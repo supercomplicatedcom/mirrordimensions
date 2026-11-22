@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal: Environment map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #F6F7F9; color: #111827; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 20px; display: flex; flex-wrap: wrap">
+<nav aria-label="Sections" style="flex: 0 0 208px; box-sizing: border-box; background: #FFFFFF; border-right: 1px solid #E2E5EA; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-weight: 700; font-size: 16px; padding: 4px 12px 16px">Mirror</div>
+<a href="Main.dc.html" aria-current="page" style="display: block; padding: 12px; border-radius: 8px; background: #EEF3FE; color: #1E3A8A; font-weight: 600; text-decoration: none">Environment</a>
+<a href="PortalAgents.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Agents</a>
+<a href="PortalPermissions.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Permissions</a>
+<a href="PortalCompany.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Company</a>
+<a href="PortalScenarios.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Scenarios</a>
+<a href="PortalRuns.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Runs</a>
+<a href="PortalHealth.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Health</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 24px 32px; display: flex; flex-direction: column; gap: 20px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div style="flex: 1 1 280px; min-width: 0">
+<div style="font-size: 13px; color: #4B5563">northfield-ops</div>
+<h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 700">Environment</h1>
+</div>
+<span style="padding: 6px 12px; border-radius: 999px; background: #EEF3FE; color: #1E3A8A; font-size: 13px; font-weight: 600">Isolation: full</span>
+<span style="padding: 6px 12px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E2E5EA; color: #374151; font-size: 13px">Snapshot: base</span>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #111827; font: inherit; font-weight: 600">Crawl again</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #1D4ED8; background: #1D4ED8; color: #FFFFFF; font: inherit; font-weight: 600">Rebuild changes</button>
+</header>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; color: #4B5563; margin-right: 4px">Show layer</span>
+<button type="button" aria-pressed="true" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #1D4ED8; background: #EEF3FE; color: #1E3A8A; font: inherit; font-weight: 600">Visibility</button>
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #374151; font: inherit">Build status</button>
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #374151; font: inherit">Fidelity</button>
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #374151; font: inherit">Production vs mirror</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<section aria-label="Environment map" style="flex: 999 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; overflow-x: auto">
+<div style="position: relative; width: 820px; height: 500px; font-size: 13px; line-height: 18px">
+<svg role="img" aria-label="From ops-assistant to Gateway" width="95" height="8" viewBox="0 0 95 8" preserveAspectRatio="none" style="position: absolute; left: 204px; top: 244px; width: 95px; height: 8px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-1" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A94A6" stroke="none" style="stroke: none; fill: #8A94A6; fill: context-stroke"/></marker></defs><path d="M 0 4 L 91 4" marker-end="url(#dc-arrow-head-filled-1)"></path></svg>
+<svg aria-hidden="true" width="60" height="8" viewBox="0 0 60 8" preserveAspectRatio="none" style="position: absolute; left: 460px; top: 244px; width: 60px; height: 8px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 60 4"></path></svg>
+<svg aria-hidden="true" width="8" height="320" viewBox="0 0 8 320" preserveAspectRatio="none" style="position: absolute; left: 516px; top: 44px; width: 8px; height: 320px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 320"></path></svg>
+<svg role="img" aria-label="From Gateway to Code hosting" width="59" height="8" viewBox="0 0 59 8" preserveAspectRatio="none" style="position: absolute; left: 520px; top: 40px; width: 59px; height: 8px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-2" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A94A6" stroke="none" style="stroke: none; fill: #8A94A6; fill: context-stroke"/></marker></defs><path d="M 0 4 L 55 4" marker-end="url(#dc-arrow-head-filled-2)"></path></svg>
+<svg role="img" aria-label="From Gateway to Team chat" width="59" height="8" viewBox="0 0 59 8" preserveAspectRatio="none" style="position: absolute; left: 520px; top: 120px; width: 59px; height: 8px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-3" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A94A6" stroke="none" style="stroke: none; fill: #8A94A6; fill: context-stroke"/></marker></defs><path d="M 0 4 L 55 4" marker-end="url(#dc-arrow-head-filled-3)"></path></svg>
+<svg role="img" aria-label="From Gateway to Wiki" width="59" height="8" viewBox="0 0 59 8" preserveAspectRatio="none" style="position: absolute; left: 520px; top: 200px; width: 59px; height: 8px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-4" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A94A6" stroke="none" style="stroke: none; fill: #8A94A6; fill: context-stroke"/></marker></defs><path d="M 0 4 L 55 4" marker-end="url(#dc-arrow-head-filled-4)"></path></svg>
+<svg role="img" aria-label="From Gateway to ERP, where access is refused" width="59" height="8" viewBox="0 0 59 8" preserveAspectRatio="none" style="position: absolute; left: 520px; top: 280px; width: 59px; height: 8px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-5" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A94A6" stroke="none" style="stroke: none; fill: #8A94A6; fill: context-stroke"/></marker></defs><path d="M 0 4 L 55 4" marker-end="url(#dc-arrow-head-filled-5)"></path></svg>
+<svg role="img" aria-label="From Gateway to HR system, which the agent is not told about" width="59" height="8" viewBox="0 0 59 8" preserveAspectRatio="none" style="position: absolute; left: 520px; top: 360px; width: 59px; height: 8px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-dasharray: 6 6; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-6" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A94A6" stroke="none" style="stroke: none; fill: #8A94A6; fill: context-stroke"/></marker></defs><path d="M 0 4 L 55 4" marker-end="url(#dc-arrow-head-filled-6)"></path></svg>
+<svg role="img" aria-label="From Gateway out to the model API, the only exit" width="8" height="111" viewBox="0 0 8 111" preserveAspectRatio="none" style="position: absolute; left: 376px; top: 288px; width: 8px; height: 111px; overflow: visible; fill: none; stroke: #8A94A6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-7" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A94A6" stroke="none" style="stroke: none; fill: #8A94A6; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 107" marker-end="url(#dc-arrow-head-filled-7)"></path></svg>
+<div style="position: absolute; left: 24px; top: 208px; width: 180px; height: 80px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #111827; color: #FFFFFF; border-radius: 10px"><span><b>ops-assistant</b><br>acts as an engineer</span></div>
+<div style="position: absolute; left: 300px; top: 208px; width: 160px; height: 80px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #111827; border-radius: 10px"><span><b>Gateway</b><br>DNS, TLS, capture</span></div>
+<div style="position: absolute; left: 300px; top: 400px; width: 160px; height: 64px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #C9CED6; border-radius: 10px"><span><b>Model API</b><br>outside the sandbox</span></div>
+<div style="position: absolute; left: 580px; top: 16px; width: 216px; height: 56px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #EEF3FE; border: 2px solid #1D4ED8; border-radius: 10px"><span><b>Code hosting</b><br>Gitea · Granted</span></div>
+<div style="position: absolute; left: 580px; top: 96px; width: 216px; height: 56px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #EEF3FE; border: 1px solid #1D4ED8; border-radius: 10px"><span><b>Team chat</b><br>Mattermost · Granted</span></div>
+<div style="position: absolute; left: 580px; top: 176px; width: 216px; height: 56px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #EEF3FE; border: 1px solid #1D4ED8; border-radius: 10px"><span><b>Wiki</b><br>Granted · building</span></div>
+<div style="position: absolute; left: 580px; top: 256px; width: 216px; height: 56px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #FFF4E8; border: 1px solid #9A3412; color: #7C2D12; border-radius: 10px"><span><b>ERP</b><br>Denied</span></div>
+<div style="position: absolute; left: 580px; top: 336px; width: 216px; height: 56px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #6B7280; color: #374151; border-radius: 10px"><span><b>HR system</b><br>Present, not disclosed</span></div>
+<div style="position: absolute; left: 580px; top: 416px; width: 216px; height: 56px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #F6F7F9; border: 1px dashed #6B7280; color: #4B5563; border-radius: 10px"><span><b>Expense tool</b><br>Absent from this mirror</span></div>
+<div style="position: absolute; left: 392px; top: 336px; width: 72px; font-size: 13px; line-height: 16px; color: #4B5563">only exit</div>
+<div style="position: absolute; left: 24px; top: 24px; width: 240px; font-size: 13px; line-height: 18px; color: #4B5563">Sandbox: nothing here can reach a real system</div>
+</div>
+</section>
+<aside aria-label="Selected system" style="flex: 1 1 280px; min-width: 0; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<div>
+<div style="font-size: 13px; color: #4B5563">Selected</div>
+<h2 style="margin: 0; font-size: 18px; line-height: 26px">Code hosting</h2>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; font-size: 13px">
+<div><dt style="color: #4B5563">Product</dt><dd style="margin: 0; font-weight: 600">Gitea</dd></div>
+<div><dt style="color: #4B5563">Built as</dt><dd style="margin: 0; font-weight: 600">Real software</dd></div>
+<div style="grid-column: 1 / -1"><dt style="color: #4B5563">Hostname the agent sees</dt><dd style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; overflow-wrap: anywhere">git.northfield-logistics.example</dd></div>
+<div><dt style="color: #4B5563">Conformance</dt><dd style="margin: 0; font-weight: 600">Passing</dd></div>
+<div><dt style="color: #4B5563">Drift</dt><dd style="margin: 0; font-weight: 600">None found</dd></div>
+</dl>
+<div>
+<label for="vis" style="display: block; font-size: 13px; color: #4B5563; margin-bottom: 6px">Visibility for ops-assistant</label>
+<select id="vis" style="width: 100%; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; font: inherit; color: #111827"><option>Granted</option><option>Denied</option><option>Present</option><option>Absent</option></select>
+</div>
+<div>
+<label for="tier" style="display: block; font-size: 13px; color: #4B5563; margin-bottom: 6px">Build tier</label>
+<select id="tier" style="width: 100%; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; font: inherit; color: #111827"><option>Real software</option><option>Catalog specification</option><option>Custom generation</option><option>Replay stub</option></select>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="PortalPermissions.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #111827; font-weight: 600; text-decoration: none">Edit permissions</a>
+<a href="PortalRun.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #111827; font-weight: 600; text-decoration: none">Latest run</a>
+</div>
+<p style="margin: 0; font-size: 13px; color: #4B5563">Changes are written to mirror.yaml. Nothing is rebuilt until you choose Rebuild changes.</p>
+</aside>
+</div>
+<section aria-label="Legend" style="display: flex; flex-wrap: wrap; gap: 12px 24px; font-size: 13px; color: #374151">
+<span><b style="color: #1E3A8A">Granted</b> listed and usable</span>
+<span><b style="color: #7C2D12">Denied</b> visible, access refused</span>
+<span><b>Present</b> running, not in the agent's tools</span>
+<span><b style="color: #4B5563">Absent</b> not in the mirror</span>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

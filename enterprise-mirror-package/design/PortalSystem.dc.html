@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal: System inputs and outputs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #F6F7F9; color: #111827; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 20px; display: flex; flex-wrap: wrap">
+<nav aria-label="Sections" style="flex: 0 0 208px; box-sizing: border-box; background: #FFFFFF; border-right: 1px solid #E2E5EA; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-weight: 700; font-size: 16px; padding: 4px 12px 16px">Mirror</div>
+<a href="Main.dc.html" aria-current="page" style="display: block; padding: 12px; border-radius: 8px; background: #EEF3FE; color: #1E3A8A; font-weight: 600; text-decoration: none">Environment</a>
+<a href="PortalAgents.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Agents</a>
+<a href="PortalPermissions.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Permissions</a>
+<a href="PortalCompany.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Company</a>
+<a href="PortalScenarios.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Scenarios</a>
+<a href="PortalRuns.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Runs</a>
+<a href="PortalHealth.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Health</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 24px 32px; display: flex; flex-direction: column; gap: 16px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div style="flex: 1 1 320px; min-width: 0">
+<div style="font-size: 13px; color: #4B5563"><a href="Main.dc.html">Environment</a> / Code hosting</div>
+<h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 700">Code hosting</h1>
+<div style="font-size: 13px; color: #4B5563">Gitea · <span style="font-family: 'JetBrains Mono', monospace">git.northfield-logistics.example</span></div>
+</div>
+<span style="padding: 6px 12px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E2E5EA; color: #374151; font-size: 13px">4 rules active</span>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #111827; font: inherit; font-weight: 600">Reset to preconfigured</button>
+</header>
+<div role="tablist" aria-label="System sections" style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #374151; font: inherit">Overview</button>
+<button type="button" role="tab" aria-selected="true" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #1D4ED8; background: #EEF3FE; color: #1E3A8A; font: inherit; font-weight: 600">Inputs and outputs</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #374151; font: inherit">Data</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #374151; font: inherit">Settings</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-label="Portals and endpoints" style="flex: 999 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<h2 style="margin: 0; font-size: 16px; flex: 1 1 200px">Portals and endpoints</h2>
+<label for="filter" style="font-size: 13px; color: #4B5563">Show</label>
+<select id="filter" style="min-height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; font: inherit"><option>All</option><option>Customized only</option><option>Used in last run</option></select>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 680px; border-collapse: collapse; font-size: 13px">
+<thead>
+<tr style="text-align: left; color: #4B5563"><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Kind</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Portal or endpoint</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Takes in</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Gives back</th><th scope="col" style="padding: 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Behavior</th></tr>
+</thead>
+<tbody>
+<tr><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Portal</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Sign-in page</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Username, password</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Session</td><td style="padding: 10px 0; border-bottom: 1px solid #EEF0F3; color: #4B5563">Preconfigured</td></tr>
+<tr><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Endpoint</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-family: 'JetBrains Mono', monospace; font-size: 12px">GET /repos/search</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Query, page</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">List of repositories</td><td style="padding: 10px 0; border-bottom: 1px solid #EEF0F3; color: #1E3A8A; font-weight: 600">Customized: slow, 0.8 to 2.5 s</td></tr>
+<tr><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Endpoint</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-family: 'JetBrains Mono', monospace; font-size: 12px">GET …/issues/{n}</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Nothing</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Issue with comments</td><td style="padding: 10px 0; border-bottom: 1px solid #EEF0F3; color: #4B5563">Preconfigured</td></tr>
+<tr style="background: #EEF3FE"><td style="padding: 10px 12px 10px 8px; border-bottom: 1px solid #D5E0FA">Endpoint</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #D5E0FA; font-family: 'JetBrains Mono', monospace; font-size: 12px">PUT …/contents/{path}</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #D5E0FA">File content, message</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #D5E0FA">Commit</td><td style="padding: 10px 8px 10px 0; border-bottom: 1px solid #D5E0FA; color: #1E3A8A; font-weight: 600">Customized: rejects files over 1 MB</td></tr>
+<tr><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Endpoint</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-family: 'JetBrains Mono', monospace; font-size: 12px">GET …/commits/{sha}/status</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Nothing</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Build status</td><td style="padding: 10px 0; border-bottom: 1px solid #EEF0F3; color: #1E3A8A; font-weight: 600">Customized: fails 1 time in 10</td></tr>
+<tr><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Endpoint</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-family: 'JetBrains Mono', monospace; font-size: 12px">GET /users/{name}</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Nothing</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Profile</td><td style="padding: 10px 0; border-bottom: 1px solid #EEF0F3; color: #1E3A8A; font-weight: 600">Customized: email removed</td></tr>
+<tr><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Portal</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">New issue form</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Title, body, labels</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Issue page</td><td style="padding: 10px 0; border-bottom: 1px solid #EEF0F3; color: #4B5563">Preconfigured</td></tr>
+<tr><td style="padding: 10px 12px 10px 0">Endpoint</td><td style="padding: 10px 12px 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px">GET /api/internal/build-info</td><td style="padding: 10px 12px 10px 0">Nothing</td><td style="padding: 10px 12px 10px 0">Fixed JSON</td><td style="padding: 10px 0; color: #7C2D12; font-weight: 600">Added: not in the real product</td></tr>
+</tbody>
+</table>
+</div>
+<div><button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #111827; font: inherit; font-weight: 600">Add an endpoint</button></div>
+</section>
+<aside aria-label="Rule for the selected endpoint" style="flex: 1 1 320px; min-width: 0; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div>
+<div style="font-size: 13px; color: #4B5563">Selected endpoint</div>
+<h2 style="margin: 0; font-size: 16px; line-height: 24px">Write a file</h2>
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #374151; overflow-wrap: anywhere">PUT /api/v1/repos/{owner}/{repo}/contents/{path}</div>
+</div>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="padding: 0; font-weight: 600; margin-bottom: 8px">Input</legend>
+<div><label for="maxsize" style="display: block; font-size: 13px; color: #4B5563; margin-bottom: 6px">Largest body accepted</label><input id="maxsize" type="text" value="1 MB" style="width: 100%; box-sizing: border-box; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CED6; font: inherit"></div>
+<div><label for="reject" style="display: block; font-size: 13px; color: #4B5563; margin-bottom: 6px">When rejected, answer with</label><select id="reject" style="width: 100%; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; font: inherit"><option>The product's "too large" error</option><option>The product's "forbidden" error</option><option>The product's "unavailable" error</option></select></div>
+</fieldset>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="padding: 0; font-weight: 600; margin-bottom: 8px">Output</legend>
+<div><label for="delay" style="display: block; font-size: 13px; color: #4B5563; margin-bottom: 6px">Added delay</label><input id="delay" type="text" value="None" style="width: 100%; box-sizing: border-box; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CED6; font: inherit"></div>
+<div><label for="failrate" style="display: block; font-size: 13px; color: #4B5563; margin-bottom: 6px">Fail some requests</label><input id="failrate" type="text" value="Never" style="width: 100%; box-sizing: border-box; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CED6; font: inherit"></div>
+<div><label for="applies" style="display: block; font-size: 13px; color: #4B5563; margin-bottom: 6px">Applies to</label><select id="applies" style="width: 100%; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; font: inherit"><option>Every identity</option><option>ops-assistant only</option><option>Contractors only</option></select></div>
+</fieldset>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #111827; font: inherit; font-weight: 600">Try a request</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #1D4ED8; background: #1D4ED8; color: #FFFFFF; font: inherit; font-weight: 600">Save rule</button>
+</div>
+<p style="margin: 0; font-size: 13px; color: #4B5563">Saved to mirror.yaml and used from the next run. The agent sees an ordinary product response; every time a rule fires it is recorded in the run.</p>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

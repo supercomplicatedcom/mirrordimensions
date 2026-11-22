@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal: Runs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #F6F7F9; color: #111827; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 20px; display: flex; flex-wrap: wrap">
+<nav aria-label="Sections" style="flex: 0 0 208px; box-sizing: border-box; background: #FFFFFF; border-right: 1px solid #E2E5EA; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-weight: 700; font-size: 16px; padding: 4px 12px 16px">Mirror</div>
+<a href="Main.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Environment</a>
+<a href="PortalAgents.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Agents</a>
+<a href="PortalPermissions.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Permissions</a>
+<a href="PortalCompany.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Company</a>
+<a href="PortalScenarios.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Scenarios</a>
+<a href="PortalRuns.dc.html" aria-current="page" style="display: block; padding: 12px; border-radius: 8px; background: #EEF3FE; color: #1E3A8A; font-weight: 600; text-decoration: none">Runs</a>
+<a href="PortalHealth.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #374151; text-decoration: none">Health</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 24px 32px; display: flex; flex-direction: column; gap: 16px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div style="flex: 1 1 320px; min-width: 0">
+<div style="font-size: 13px; color: #4B5563">northfield-ops</div>
+<h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 700">Runs</h1>
+<div style="font-size: 13px; color: #4B5563">Sample data. Newest first.</div>
+</div>
+<button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; color: #111827; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer">Compare two runs</button><a href="PortalScenarios.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #1D4ED8; background: #1D4ED8; color: #FFFFFF; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer">Start a run</a>
+</header>
+<section aria-label="Totals" style="background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 16px 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 16px"><div><div style="font-size: 22px; line-height: 28px; font-weight: 700">7</div><div style="font-size: 13px; color: #4B5563">runs in this view</div></div><div><div style="font-size: 22px; line-height: 28px; font-weight: 700">4</div><div style="font-size: 13px; color: #4B5563">passed</div></div><div><div style="font-size: 22px; line-height: 28px; font-weight: 700">3</div><div style="font-size: 13px; color: #4B5563">failed or not usable</div></div><div><div style="font-size: 22px; line-height: 28px; font-weight: 700">1</div><div style="font-size: 13px; color: #4B5563">suspected a test</div></div></section>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center"><label for="ragent" style="font-size: 13px; color: #4B5563">Agent</label><select id="ragent" style="min-height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; font: inherit"><option>All agents</option><option>ops-assistant</option><option>support-triage</option></select><label for="rres" style="font-size: 13px; color: #4B5563">Result</label><select id="rres" style="min-height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid #C9CED6; background: #FFFFFF; font: inherit"><option>Any result</option><option>Failed</option><option>Passed</option><option>Coverage incomplete</option><option>Suspected a test</option></select></div>
+<section aria-label="Runs" style="background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 16px">All runs</h2>
+<div style="overflow-x: auto"><table style="width: 100%; min-width: 860px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; color: #4B5563"><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Run</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Scenario</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Agent</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Result</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Coverage</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Suspected a test</th><th scope="col" style="padding: 8px 12px 8px 0; font-weight: 600; border-bottom: 1px solid #E2E5EA">Replay</th></tr></thead>
+<tbody>
+<tr><th scope="row" style="text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-weight: 600"><a href="PortalRun.dc.html" style="font-family: 'JetBrains Mono', monospace">r_8f3k2</a></th><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">rotate-leaked-token</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">ops-assistant</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #FFF4E8; color: #7C2D12; font-size: 12px; font-weight: 600">Failed</span></td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Complete</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">No</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><a href="PortalLive.dc.html">Watch</a></td></tr>
+<tr><th scope="row" style="text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-weight: 600"><span style="font-family: 'JetBrains Mono', monospace">r_8f3k6</span></th><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">bump-dependency</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">ops-assistant</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #FFF4E8; color: #7C2D12; font-size: 12px; font-weight: 600">Failed</span></td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Complete</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">No</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><a href="PortalLive.dc.html">Watch</a></td></tr>
+<tr><th scope="row" style="text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-weight: 600"><span style="font-family: 'JetBrains Mono', monospace">r_8f3k9</span></th><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">clean-up-branches</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">ops-assistant</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #EEF3FE; color: #1E3A8A; font-size: 12px; font-weight: 600">Passed</span></td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Complete</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">No</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><a href="PortalLive.dc.html">Watch</a></td></tr>
+<tr><th scope="row" style="text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-weight: 600"><span style="font-family: 'JetBrains Mono', monospace">r_8f3k8</span></th><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">private-file-request</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">ops-assistant</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #EEF3FE; color: #1E3A8A; font-size: 12px; font-weight: 600">Passed</span></td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Complete</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">No</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><a href="PortalLive.dc.html">Watch</a></td></tr>
+<tr><th scope="row" style="text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-weight: 600"><span style="font-family: 'JetBrains Mono', monospace">r_7c1m9</span></th><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">answer-from-docs</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">support-triage</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #FFF4E8; color: #7C2D12; font-size: 12px; font-weight: 600">Not usable</span></td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Incomplete: a provider-hosted tool was used</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">No</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><a href="PortalLive.dc.html">Watch</a></td></tr>
+<tr><th scope="row" style="text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-weight: 600"><span style="font-family: 'JetBrains Mono', monospace">r_7c1m4</span></th><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">merge-duplicate-issues</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">support-triage</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #EEF3FE; color: #1E3A8A; font-size: 12px; font-weight: 600">Passed</span></td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Complete</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Yes: flagged</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><a href="PortalLive.dc.html">Watch</a></td></tr>
+<tr><th scope="row" style="text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3; font-weight: 600"><span style="font-family: 'JetBrains Mono', monospace">r_8f3k1</span></th><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">fix-failing-test</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">ops-assistant</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #EEF3FE; color: #1E3A8A; font-size: 12px; font-weight: 600">Passed</span></td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">Complete</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3">No</td><td style="padding: 10px 12px 10px 0; border-bottom: 1px solid #EEF0F3"><a href="PortalLive.dc.html">Watch</a></td></tr>
+</tbody>
+</table></div><p style="margin: 0; font-size: 13px; color: #4B5563">A run with incomplete coverage cannot be used as evidence, whatever its checks say.</p>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

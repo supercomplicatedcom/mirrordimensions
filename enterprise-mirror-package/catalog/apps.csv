@@ -1,0 +1,501 @@
+tier,name,category,twin_status,verified
+1,Microsoft 365,Work suites and collaboration,candidate,no
+1,Google Workspace,Work suites and collaboration,candidate,no
+1,Slack,Work suites and collaboration,candidate,no
+1,Microsoft Teams,Work suites and collaboration,candidate,no
+1,Zoom,Work suites and collaboration,candidate,no
+1,Cisco Webex,Work suites and collaboration,candidate,no
+1,Microsoft SharePoint,Work suites and collaboration,candidate,no
+1,Box,Work suites and collaboration,candidate,no
+1,Dropbox,Work suites and collaboration,candidate,no
+1,Notion,Work suites and collaboration,candidate,no
+1,Confluence,Work suites and collaboration,candidate,no
+1,Miro,Work suites and collaboration,candidate,no
+1,Lucid,Work suites and collaboration,candidate,no
+1,Canva,Work suites and collaboration,candidate,no
+1,Figma,Work suites and collaboration,candidate,no
+1,Adobe Creative Cloud,Work suites and collaboration,candidate,no
+1,Smartsheet,Work suites and collaboration,candidate,no
+1,Jira,Project and work management,candidate,no
+1,Asana,Project and work management,candidate,no
+1,Trello,Project and work management,candidate,no
+1,Monday.com,Project and work management,candidate,no
+1,GitHub,Software development,candidate,no
+1,GitLab,Software development,candidate,no
+1,Bitbucket,Software development,candidate,no
+1,Docker Hub,Software development,candidate,no
+1,Amazon Web Services,Cloud platforms and data infrastructure,candidate,no
+1,Microsoft Azure,Cloud platforms and data infrastructure,candidate,no
+1,Google Cloud,Cloud platforms and data infrastructure,candidate,no
+1,Cloudflare,Cloud platforms and data infrastructure,candidate,no
+1,Snowflake,Cloud platforms and data infrastructure,candidate,no
+1,Datadog,Observability and incident response,candidate,no
+1,Splunk,Observability and incident response,candidate,no
+1,PagerDuty,Observability and incident response,candidate,no
+1,ServiceNow,IT service and device management,candidate,no
+1,Jira Service Management,IT service and device management,candidate,no
+1,Microsoft Intune,IT service and device management,candidate,no
+1,Jamf,IT service and device management,candidate,no
+1,NinjaOne,IT service and device management,candidate,no
+1,Okta,Identity and access,candidate,no
+1,Microsoft Entra ID,Identity and access,candidate,no
+1,Duo Security,Identity and access,candidate,no
+1,1Password,Identity and access,candidate,no
+1,CrowdStrike Falcon,Security,candidate,no
+1,Zscaler,Security,candidate,no
+1,Palo Alto Networks Prisma,Security,candidate,no
+1,Proofpoint,Security,candidate,no
+1,Mimecast,Security,candidate,no
+1,KnowBe4,Security,candidate,no
+1,Salesforce,CRM and sales,candidate,no
+1,HubSpot,CRM and sales,candidate,no
+1,Microsoft Dynamics 365,CRM and sales,candidate,no
+1,LinkedIn Sales Navigator,CRM and sales,candidate,no
+1,DocuSign,CRM and sales,candidate,no
+1,Adobe Marketo Engage,Marketing,candidate,no
+1,Mailchimp,Marketing,candidate,no
+1,Google Analytics,Marketing,candidate,no
+1,Zendesk,Customer support and contact center,candidate,no
+1,Twilio,Customer support and contact center,candidate,no
+1,Workday,HR and people,candidate,no
+1,SAP SuccessFactors,HR and people,candidate,no
+1,ADP Workforce Now,HR and people,candidate,no
+1,SAP S/4HANA Cloud,"Finance, ERP and procurement",candidate,no
+1,Oracle NetSuite,"Finance, ERP and procurement",candidate,no
+1,Oracle Fusion Cloud ERP,"Finance, ERP and procurement",candidate,no
+1,SAP Concur,"Finance, ERP and procurement",candidate,no
+1,Coupa,"Finance, ERP and procurement",candidate,no
+1,Stripe,"Finance, ERP and procurement",candidate,no
+1,Tableau,"Data, analytics and AI",candidate,no
+1,Microsoft Power BI,"Data, analytics and AI",candidate,no
+1,ChatGPT Enterprise,"Data, analytics and AI",candidate,no
+1,Claude,"Data, analytics and AI",candidate,no
+1,Microsoft Copilot,"Data, analytics and AI",candidate,no
+1,Zapier,Automation and low-code,candidate,no
+2,Microsoft OneDrive,Work suites and collaboration,candidate,no
+2,Adobe Acrobat Sign,Work suites and collaboration,candidate,no
+2,Airtable,Work suites and collaboration,candidate,no
+2,Coda,Work suites and collaboration,candidate,no
+2,ClickUp,Project and work management,candidate,no
+2,Wrike,Project and work management,candidate,no
+2,Basecamp,Project and work management,candidate,no
+2,Linear,Project and work management,candidate,no
+2,Azure DevOps,Project and work management,candidate,no
+2,Adobe Workfront,Project and work management,candidate,no
+2,Microsoft Project,Project and work management,candidate,no
+2,Microsoft Planner,Project and work management,candidate,no
+2,JFrog Artifactory,Software development,candidate,no
+2,CircleCI,Software development,candidate,no
+2,CloudBees,Software development,candidate,no
+2,Buildkite,Software development,candidate,no
+2,Harness,Software development,candidate,no
+2,Octopus Deploy,Software development,candidate,no
+2,Travis CI,Software development,candidate,no
+2,TeamCity Cloud,Software development,candidate,no
+2,Sonatype Nexus,Software development,candidate,no
+2,SonarQube Cloud,Software development,candidate,no
+2,Postman,Software development,candidate,no
+2,SmartBear SwaggerHub,Software development,candidate,no
+2,LaunchDarkly,Software development,candidate,no
+2,Split,Software development,candidate,no
+2,Optimizely,Software development,candidate,no
+2,Sentry,Software development,candidate,no
+2,Rollbar,Software development,candidate,no
+2,Bugsnag,Software development,candidate,no
+2,Vercel,Software development,candidate,no
+2,Netlify,Software development,candidate,no
+2,Heroku,Software development,candidate,no
+2,Render,Software development,candidate,no
+2,Oracle Cloud Infrastructure,Cloud platforms and data infrastructure,candidate,no
+2,IBM Cloud,Cloud platforms and data infrastructure,candidate,no
+2,Databricks,Cloud platforms and data infrastructure,candidate,no
+2,MongoDB Atlas,Cloud platforms and data infrastructure,candidate,no
+2,Akamai,Cloud platforms and data infrastructure,candidate,no
+2,Fastly,Cloud platforms and data infrastructure,candidate,no
+2,DigitalOcean,Cloud platforms and data infrastructure,candidate,no
+2,Red Hat OpenShift,Cloud platforms and data infrastructure,candidate,no
+2,VMware Cloud,Cloud platforms and data infrastructure,candidate,no
+2,Elastic Cloud,Cloud platforms and data infrastructure,candidate,no
+2,Confluent Cloud,Cloud platforms and data infrastructure,candidate,no
+2,New Relic,Observability and incident response,candidate,no
+2,Dynatrace,Observability and incident response,candidate,no
+2,Grafana Cloud,Observability and incident response,candidate,no
+2,AppDynamics,Observability and incident response,candidate,no
+2,Sumo Logic,Observability and incident response,candidate,no
+2,Opsgenie,Observability and incident response,candidate,no
+2,Statuspage,Observability and incident response,candidate,no
+2,SolarWinds,Observability and incident response,candidate,no
+2,LogicMonitor,Observability and incident response,candidate,no
+2,Honeycomb,Observability and incident response,candidate,no
+2,incident.io,Observability and incident response,candidate,no
+2,FireHydrant,Observability and incident response,candidate,no
+2,Freshservice,IT service and device management,candidate,no
+2,BMC Helix,IT service and device management,candidate,no
+2,Ivanti,IT service and device management,candidate,no
+2,ManageEngine ServiceDesk Plus,IT service and device management,candidate,no
+2,VMware Workspace ONE,IT service and device management,candidate,no
+2,Kandji,IT service and device management,candidate,no
+2,Tanium,IT service and device management,candidate,no
+2,Automox,IT service and device management,candidate,no
+2,TeamViewer,IT service and device management,candidate,no
+2,Citrix,IT service and device management,candidate,no
+2,Kaseya,IT service and device management,candidate,no
+2,ConnectWise,IT service and device management,candidate,no
+2,Datto,IT service and device management,candidate,no
+2,Atera,IT service and device management,candidate,no
+2,Ping Identity,Identity and access,candidate,no
+2,CyberArk,Identity and access,candidate,no
+2,SailPoint,Identity and access,candidate,no
+2,LastPass,Identity and access,candidate,no
+2,JumpCloud,Identity and access,candidate,no
+2,OneLogin,Identity and access,candidate,no
+2,Auth0,Identity and access,candidate,no
+2,BeyondTrust,Identity and access,candidate,no
+2,Delinea,Identity and access,candidate,no
+2,Saviynt,Identity and access,candidate,no
+2,Bitwarden,Identity and access,candidate,no
+2,Dashlane,Identity and access,candidate,no
+2,Keeper,Identity and access,candidate,no
+2,Microsoft Defender,Security,candidate,no
+2,SentinelOne,Security,candidate,no
+2,Netskope,Security,candidate,no
+2,Wiz,Security,candidate,no
+2,Tenable,Security,candidate,no
+2,Qualys,Security,candidate,no
+2,Rapid7,Security,candidate,no
+2,Snyk,Security,candidate,no
+2,Cisco Umbrella,Security,candidate,no
+2,Fortinet FortiCloud,Security,candidate,no
+2,Check Point Harmony,Security,candidate,no
+2,Sophos Central,Security,candidate,no
+2,Trend Micro Vision One,Security,candidate,no
+2,Abnormal Security,Security,candidate,no
+2,Arctic Wolf,Security,candidate,no
+2,Varonis,Security,candidate,no
+2,OneTrust,Security,candidate,no
+2,Vanta,Security,candidate,no
+2,Drata,Security,candidate,no
+2,Veracode,Security,candidate,no
+2,Checkmarx,Security,candidate,no
+2,Cortex XDR,Security,candidate,no
+2,Trellix,Security,candidate,no
+2,Bitdefender GravityZone,Security,candidate,no
+2,ESET Protect,Security,candidate,no
+2,Malwarebytes,Security,candidate,no
+2,VMware Carbon Black,Security,candidate,no
+2,Barracuda,Security,candidate,no
+2,Darktrace,Security,candidate,no
+2,Vectra AI,Security,candidate,no
+2,ExtraHop,Security,candidate,no
+2,Orca Security,Security,candidate,no
+2,Aqua Security,Security,candidate,no
+2,Sysdig,Security,candidate,no
+2,Exabeam,Security,candidate,no
+2,Securonix,Security,candidate,no
+2,Gong,CRM and sales,candidate,no
+2,ZoomInfo,CRM and sales,candidate,no
+2,Outreach,CRM and sales,candidate,no
+2,Salesloft,CRM and sales,candidate,no
+2,Zoho CRM,CRM and sales,candidate,no
+2,Pipedrive,CRM and sales,candidate,no
+2,Clari,CRM and sales,candidate,no
+2,Seismic,CRM and sales,candidate,no
+2,Highspot,CRM and sales,candidate,no
+2,PandaDoc,CRM and sales,candidate,no
+2,Apollo.io,CRM and sales,candidate,no
+2,6sense,CRM and sales,candidate,no
+2,Demandbase,CRM and sales,candidate,no
+2,Gainsight,CRM and sales,candidate,no
+2,SugarCRM,CRM and sales,candidate,no
+2,Freshsales,CRM and sales,candidate,no
+2,Copper,CRM and sales,candidate,no
+2,Close,CRM and sales,candidate,no
+2,Insightly,CRM and sales,candidate,no
+2,Lusha,CRM and sales,candidate,no
+2,Google Ads,Marketing,candidate,no
+2,Adobe Experience Cloud,Marketing,candidate,no
+2,Salesforce Marketing Cloud,Marketing,candidate,no
+2,Braze,Marketing,candidate,no
+2,Klaviyo,Marketing,candidate,no
+2,Hootsuite,Marketing,candidate,no
+2,Sprout Social,Marketing,candidate,no
+2,Semrush,Marketing,candidate,no
+2,Qualtrics,Marketing,candidate,no
+2,SurveyMonkey,Marketing,candidate,no
+2,Typeform,Marketing,candidate,no
+2,Amplitude,Marketing,candidate,no
+2,Mixpanel,Marketing,candidate,no
+2,Segment,Marketing,candidate,no
+2,Pendo,Marketing,candidate,no
+2,Hotjar,Marketing,candidate,no
+2,FullStory,Marketing,candidate,no
+2,Iterable,Marketing,candidate,no
+2,Customer.io,Marketing,candidate,no
+2,ActiveCampaign,Marketing,candidate,no
+2,Constant Contact,Marketing,candidate,no
+2,Campaign Monitor,Marketing,candidate,no
+2,Adobe Analytics,Marketing,candidate,no
+2,Meta Ads Manager,Marketing,candidate,no
+2,LinkedIn Campaign Manager,Marketing,candidate,no
+2,Buffer,Marketing,candidate,no
+2,Sprinklr,Marketing,candidate,no
+2,Brandwatch,Marketing,candidate,no
+2,Ahrefs,Marketing,candidate,no
+2,Moz,Marketing,candidate,no
+2,WordPress VIP,Marketing,candidate,no
+2,Webflow,Marketing,candidate,no
+2,Contentful,Marketing,candidate,no
+2,Sanity,Marketing,candidate,no
+2,Intercom,Customer support and contact center,candidate,no
+2,Freshdesk,Customer support and contact center,candidate,no
+2,Genesys Cloud,Customer support and contact center,candidate,no
+2,Five9,Customer support and contact center,candidate,no
+2,NICE CXone,Customer support and contact center,candidate,no
+2,Talkdesk,Customer support and contact center,candidate,no
+2,Help Scout,Customer support and contact center,candidate,no
+2,Kustomer,Customer support and contact center,candidate,no
+2,Gorgias,Customer support and contact center,candidate,no
+2,Gladly,Customer support and contact center,candidate,no
+2,Aircall,Customer support and contact center,candidate,no
+2,LivePerson,Customer support and contact center,candidate,no
+2,Oracle Fusion Cloud HCM,HR and people,candidate,no
+2,UKG Pro,HR and people,candidate,no
+2,Greenhouse,HR and people,candidate,no
+2,LinkedIn Recruiter,HR and people,candidate,no
+2,BambooHR,HR and people,candidate,no
+2,Rippling,HR and people,candidate,no
+2,Gusto,HR and people,candidate,no
+2,Paycom,HR and people,candidate,no
+2,Paylocity,HR and people,candidate,no
+2,Paychex Flex,HR and people,candidate,no
+2,Dayforce,HR and people,candidate,no
+2,Deel,HR and people,candidate,no
+2,Lattice,HR and people,candidate,no
+2,Culture Amp,HR and people,candidate,no
+2,Cornerstone OnDemand,HR and people,candidate,no
+2,LinkedIn Learning,HR and people,candidate,no
+2,Lever,HR and people,candidate,no
+2,iCIMS,HR and people,candidate,no
+2,SmartRecruiters,HR and people,candidate,no
+2,Workable,HR and people,candidate,no
+2,Ashby,HR and people,candidate,no
+2,Jobvite,HR and people,candidate,no
+2,Indeed,HR and people,candidate,no
+2,HireVue,HR and people,candidate,no
+2,Checkr,HR and people,candidate,no
+2,Sterling,HR and people,candidate,no
+2,HackerRank,HR and people,candidate,no
+2,Codility,HR and people,candidate,no
+2,CoderPad,HR and people,candidate,no
+2,Namely,HR and people,candidate,no
+2,HiBob,HR and people,candidate,no
+2,Personio,HR and people,candidate,no
+2,Remote,HR and people,candidate,no
+2,SAP Ariba,"Finance, ERP and procurement",candidate,no
+2,QuickBooks Online,"Finance, ERP and procurement",candidate,no
+2,Sage Intacct,"Finance, ERP and procurement",candidate,no
+2,Microsoft Dynamics 365 Business Central,"Finance, ERP and procurement",candidate,no
+2,Expensify,"Finance, ERP and procurement",candidate,no
+2,Navan,"Finance, ERP and procurement",candidate,no
+2,Ramp,"Finance, ERP and procurement",candidate,no
+2,Brex,"Finance, ERP and procurement",candidate,no
+2,BILL,"Finance, ERP and procurement",candidate,no
+2,Anaplan,"Finance, ERP and procurement",candidate,no
+2,BlackLine,"Finance, ERP and procurement",candidate,no
+2,Workiva,"Finance, ERP and procurement",candidate,no
+2,Zuora,"Finance, ERP and procurement",candidate,no
+2,Avalara,"Finance, ERP and procurement",candidate,no
+2,Xero,"Finance, ERP and procurement",candidate,no
+2,FreshBooks,"Finance, ERP and procurement",candidate,no
+2,Infor CloudSuite,"Finance, ERP and procurement",candidate,no
+2,Epicor,"Finance, ERP and procurement",candidate,no
+2,Acumatica,"Finance, ERP and procurement",candidate,no
+2,Odoo,"Finance, ERP and procurement",candidate,no
+2,Zoho Books,"Finance, ERP and procurement",candidate,no
+2,Airbase,"Finance, ERP and procurement",candidate,no
+2,Tipalti,"Finance, ERP and procurement",candidate,no
+2,Adyen,"Finance, ERP and procurement",candidate,no
+2,PayPal,"Finance, ERP and procurement",candidate,no
+2,Square,"Finance, ERP and procurement",candidate,no
+2,Looker,"Data, analytics and AI",candidate,no
+2,Google Gemini,"Data, analytics and AI",candidate,no
+2,Qlik,"Data, analytics and AI",candidate,no
+2,Alteryx,"Data, analytics and AI",candidate,no
+2,Informatica,"Data, analytics and AI",candidate,no
+2,dbt Cloud,"Data, analytics and AI",candidate,no
+2,Fivetran,"Data, analytics and AI",candidate,no
+2,Collibra,"Data, analytics and AI",candidate,no
+2,Glean,"Data, analytics and AI",candidate,no
+2,Domo,"Data, analytics and AI",candidate,no
+2,Sigma,"Data, analytics and AI",candidate,no
+2,ThoughtSpot,"Data, analytics and AI",candidate,no
+2,Mode,"Data, analytics and AI",candidate,no
+2,Metabase,"Data, analytics and AI",candidate,no
+2,Hex,"Data, analytics and AI",candidate,no
+2,Sisense,"Data, analytics and AI",candidate,no
+2,MicroStrategy,"Data, analytics and AI",candidate,no
+2,UiPath,Automation and low-code,candidate,no
+2,Microsoft Power Automate,Automation and low-code,candidate,no
+2,MuleSoft,Automation and low-code,candidate,no
+2,Workato,Automation and low-code,candidate,no
+2,Boomi,Automation and low-code,candidate,no
+2,Automation Anywhere,Automation and low-code,candidate,no
+2,Celonis,Automation and low-code,candidate,no
+2,Pega,Automation and low-code,candidate,no
+2,Ironclad,"Legal, contracts and records",candidate,no
+2,Icertis,"Legal, contracts and records",candidate,no
+2,iManage,"Legal, contracts and records",candidate,no
+2,NetDocuments,"Legal, contracts and records",candidate,no
+2,Relativity,"Legal, contracts and records",candidate,no
+2,Clio,"Legal, contracts and records",candidate,no
+2,Everlaw,"Legal, contracts and records",candidate,no
+2,DISCO,"Legal, contracts and records",candidate,no
+2,Onna,"Legal, contracts and records",candidate,no
+2,Smarsh,"Legal, contracts and records",candidate,no
+2,Global Relay,"Legal, contracts and records",candidate,no
+2,Veeva Vault,Industry and operations,candidate,no
+2,Shopify Plus,Industry and operations,candidate,no
+2,Procore,Industry and operations,candidate,no
+2,Autodesk Construction Cloud,Industry and operations,candidate,no
+2,Guidewire Cloud,Industry and operations,candidate,no
+2,nCino,Industry and operations,candidate,no
+2,Oracle Health,Industry and operations,candidate,no
+2,athenahealth,Industry and operations,candidate,no
+2,Blue Yonder,Industry and operations,candidate,no
+2,Manhattan Active,Industry and operations,candidate,no
+2,Kinaxis,Industry and operations,candidate,no
+2,Samsara,Industry and operations,candidate,no
+2,Toast,Industry and operations,candidate,no
+2,Instructure Canvas,Industry and operations,candidate,no
+2,Blackbaud,Industry and operations,candidate,no
+2,Ellucian,Industry and operations,candidate,no
+2,Tyler Technologies,Industry and operations,candidate,no
+2,Esri ArcGIS Online,Industry and operations,candidate,no
+2,Duck Creek,Industry and operations,candidate,no
+2,Q2,Industry and operations,candidate,no
+2,Temenos,Industry and operations,candidate,no
+2,FIS,Industry and operations,candidate,no
+2,Fiserv,Industry and operations,candidate,no
+2,Jack Henry,Industry and operations,candidate,no
+2,FactSet,Industry and operations,candidate,no
+2,Autodesk Fusion,Industry and operations,candidate,no
+2,PTC Windchill,Industry and operations,candidate,no
+2,Siemens Teamcenter X,Industry and operations,candidate,no
+2,Onshape,Industry and operations,candidate,no
+2,Cisco Meraki Dashboard,"Buildings, networks and connected devices",candidate,no
+2,Verkada,"Buildings, networks and connected devices",candidate,no
+2,Aruba Central,"Buildings, networks and connected devices",candidate,no
+2,Juniper Mist,"Buildings, networks and connected devices",candidate,no
+2,Ubiquiti UniFi,"Buildings, networks and connected devices",candidate,no
+2,Brivo,"Buildings, networks and connected devices",candidate,no
+2,Avigilon Alta,"Buildings, networks and connected devices",candidate,no
+2,Rhombus,"Buildings, networks and connected devices",candidate,no
+2,Kisi,"Buildings, networks and connected devices",candidate,no
+3,Loom,Work suites and collaboration,candidate,no
+3,Planview,Project and work management,candidate,no
+3,Replit,Software development,candidate,no
+3,Redis Cloud,Cloud platforms and data infrastructure,candidate,no
+3,Rootly,Observability and incident response,candidate,no
+3,SysAid,IT service and device management,candidate,no
+3,HashiCorp Vault,Identity and access,candidate,no
+3,LogRhythm,Security,candidate,no
+3,Cognism,CRM and sales,candidate,no
+3,Contentstack,Marketing,candidate,no
+3,Khoros,Customer support and contact center,candidate,no
+3,Oyster,HR and people,candidate,no
+3,Chargebee,"Finance, ERP and procurement",candidate,no
+3,Airbyte,"Data, analytics and AI",candidate,no
+3,Appian,Automation and low-code,candidate,no
+3,Diligent,"Legal, contracts and records",candidate,no
+3,o9 Solutions,Industry and operations,candidate,no
+3,Honeywell Forge,"Buildings, networks and connected devices",candidate,no
+3,Calendly,Work suites and collaboration,candidate,no
+3,Aha!,Project and work management,candidate,no
+3,Cursor,Software development,candidate,no
+3,Google BigQuery,Cloud platforms and data infrastructure,candidate,no
+3,xMatters,Observability and incident response,candidate,no
+3,AnyDesk,IT service and device management,candidate,no
+3,RSA SecurID,Identity and access,candidate,no
+3,Expel,Security,candidate,no
+3,Showpad,CRM and sales,candidate,no
+3,Sitecore,Marketing,candidate,no
+3,Ada,Customer support and contact center,candidate,no
+3,Justworks,HR and people,candidate,no
+3,Recurly,"Finance, ERP and procurement",candidate,no
+3,Stitch,"Data, analytics and AI",candidate,no
+3,OutSystems,Automation and low-code,candidate,no
+3,NAVEX,"Legal, contracts and records",candidate,no
+3,project44,Industry and operations,candidate,no
+3,Johnson Controls OpenBlue,"Buildings, networks and connected devices",candidate,no
+3,Grammarly,Work suites and collaboration,candidate,no
+3,Productboard,Project and work management,candidate,no
+3,GitHub Copilot,Software development,candidate,no
+3,Firebase,Cloud platforms and data infrastructure,candidate,no
+3,BigPanda,Observability and incident response,candidate,no
+3,GoTo Resolve,IT service and device management,candidate,no
+3,Teleport,Identity and access,candidate,no
+3,Red Canary,Security,candidate,no
+3,Conga,CRM and sales,candidate,no
+3,Unbounce,Marketing,candidate,no
+3,Forethought,Customer support and contact center,candidate,no
+3,TriNet,HR and people,candidate,no
+3,Maxio,"Finance, ERP and procurement",candidate,no
+3,Matillion,"Data, analytics and AI",candidate,no
+3,Mendix,Automation and low-code,candidate,no
+3,Litera,"Legal, contracts and records",candidate,no
+3,FourKites,Industry and operations,candidate,no
+3,Schneider Electric EcoStruxure,"Buildings, networks and connected devices",candidate,no
+3,Egnyte,Work suites and collaboration,candidate,no
+3,Shortcut,Project and work management,candidate,no
+3,Tabnine,Software development,candidate,no
+3,Supabase,Cloud platforms and data infrastructure,candidate,no
+3,Cribl,Observability and incident response,candidate,no
+3,Lansweeper,IT service and device management,candidate,no
+3,StrongDM,Identity and access,candidate,no
+3,BigID,Security,candidate,no
+3,DealHub,CRM and sales,candidate,no
+3,Instapage,Marketing,candidate,no
+3,UserVoice,Customer support and contact center,candidate,no
+3,15Five,HR and people,candidate,no
+3,Vertex,"Finance, ERP and procurement",candidate,no
+3,Talend,"Data, analytics and AI",candidate,no
+3,Make,Automation and low-code,candidate,no
+3,LexisNexis,"Legal, contracts and records",candidate,no
+3,Motive,Industry and operations,candidate,no
+3,PTC ThingWorx,"Buildings, networks and connected devices",candidate,no
+3,RingCentral,Work suites and collaboration,candidate,no
+3,Teamwork,Project and work management,candidate,no
+3,Sourcegraph,Software development,candidate,no
+3,PlanetScale,Cloud platforms and data infrastructure,candidate,no
+3,Logz.io,Observability and incident response,candidate,no
+3,Device42,IT service and device management,candidate,no
+3,Google Cloud Identity,Identity and access,candidate,no
+3,TrustArc,Security,candidate,no
+3,Xactly,CRM and sales,candidate,no
+3,Heap,Marketing,candidate,no
+3,Canny,Customer support and contact center,candidate,no
+3,Betterworks,HR and people,candidate,no
+3,Anrok,"Finance, ERP and procurement",candidate,no
+3,Alation,"Data, analytics and AI",candidate,no
+3,Tray.io,Automation and low-code,candidate,no
+3,Westlaw,"Legal, contracts and records",candidate,no
+3,Geotab,Industry and operations,candidate,no
+3,Particle,"Buildings, networks and connected devices",candidate,no
+3,Dialpad,Work suites and collaboration,candidate,no
+3,Todoist,Project and work management,candidate,no
+3,Codecov,Software development,candidate,no
+3,CockroachDB Cloud,Cloud platforms and data infrastructure,candidate,no
+3,Mezmo,Observability and incident response,candidate,no
+3,Flexera,IT service and device management,candidate,no
+3,AWS IAM Identity Center,Identity and access,candidate,no
+3,Secureframe,Security,candidate,no
+3,CaptivateIQ,CRM and sales,candidate,no
+3,mParticle,Marketing,candidate,no
+3,Zoho Desk,Customer support and contact center,candidate,no
+3,Leapsome,HR and people,candidate,no
+3,FloQast,"Finance, ERP and procurement",candidate,no
+3,Atlan,"Data, analytics and AI",candidate,no
+3,SnapLogic,Automation and low-code,candidate,no
+3,Practical Law,"Legal, contracts and records",candidate,no
+3,Verizon Connect,Industry and operations,candidate,no
+3,Losant,"Buildings, networks and connected devices",candidate,no
