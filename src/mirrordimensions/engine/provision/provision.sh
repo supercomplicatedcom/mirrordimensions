@@ -30,7 +30,7 @@ fi
 
 # Docker is restarted only if its configuration changed, so re-applying this script
 # never stops a running world without cause.
-before="$(cat /etc/docker/daemon.json /etc/systemd/system/docker.socket.d/override.conf 2>/dev/null | sha256sum)"
+before="$({ cat /etc/docker/daemon.json /etc/systemd/system/docker.socket.d/override.conf 2>/dev/null || true; } | sha256sum)"
 # Register gVisor with Docker (opt-in runtime, decision 0010), keeping other settings.
 runsc install
 # The default Lima user may use the Docker socket; the host reaches it only through
@@ -42,7 +42,7 @@ if [ -n "$ENGINE_USER" ] && id -u "$ENGINE_USER" >/dev/null 2>&1; then
   systemctl daemon-reload
 fi
 systemctl enable --now docker.socket docker
-after="$(cat /etc/docker/daemon.json /etc/systemd/system/docker.socket.d/override.conf 2>/dev/null | sha256sum)"
+after="$({ cat /etc/docker/daemon.json /etc/systemd/system/docker.socket.d/override.conf 2>/dev/null || true; } | sha256sum)"
 if [ "$before" != "$after" ] || [ ! -f "$STATE/provisioned" ]; then
   systemctl restart docker.socket docker
 fi
