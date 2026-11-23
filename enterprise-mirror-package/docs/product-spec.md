@@ -381,11 +381,13 @@ The same environment manifest and scenarios work on all three.
 
 | Profile | Runs on | Suited to | Limits |
 | --- | --- | --- | --- |
-| Local | One laptop or workstation, in containers | Trying the project, writing scenarios, a few twins and one agent | Weaker isolation than a server install; a small world; few parallel runs |
+| Local | One laptop or workstation running macOS, Windows or Linux, in containers inside a mirror-managed Linux VM | Trying the project, writing scenarios, a few twins and one agent, and producing results a security team can rely on | A small world; few parallel runs; bounded by the laptop's memory and disk |
 | Cloud | Kubernetes or virtual machines in the customer's account | Team use, CI gating, large parallel suites | The customer operates and patches it |
 | On-premise | The customer's data center, including air-gapped networks | Regulated organizations and agents on local models | Hardware sizing; updates arrive as offline bundles |
 
 The local profile ships first. It is what contributors develop against, and it is how a new user reaches a first run in minutes.
+
+**Every desktop platform, the same guarantees.** The people who try the project, write scenarios and approve agent rollouts mostly work on Macs and Windows laptops, so the local profile runs on macOS (Apple Silicon), Windows 11 and Linux. A result from any of them carries the same weight. To make that true, the mirror never relies on whatever container tool a laptop happens to have. It creates its own small Linux VM, the engine, with the sandbox runtime inside it. The admin works with ordinary files and a browser on their own system; the agent lives entirely inside the engine, two boundaries away from the admin's machine. Each result records which platform produced it. Where a platform cannot yet meet a guarantee, the result says so rather than hiding it. The build spec's "Platforms and the engine" section and its decision records give the details.
 
 **Models**
 
@@ -520,7 +522,7 @@ The mirror fails in three ways: the agent gets out, the agent notices the test, 
 
 **Isolation**
 
-- The agent and its browser run in a gVisor-class sandbox inside a lightweight VM, with no route out except the logged model gateway.
+- The agent and its browser run in a gVisor-class sandbox inside a lightweight VM, with no route out except the logged model gateway. On a laptop this VM is the mirror's own engine, which shares no folders with the host and has no route to it, on macOS, Windows and Linux alike.
 - All DNS resolves inside the sandbox. A second, independent egress block sits at the network perimeter.
 - Egress attempts are logged and alerted in real time. OpenAI's September incident came from one DNS filtering gap and an anomaly detector that excluded the affected environment, so every environment is monitored with no exclusions.
 - The mirror holds no production credentials. Any credential an agent finds is a planted canary.
