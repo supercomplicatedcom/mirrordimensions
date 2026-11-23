@@ -9,6 +9,7 @@ Each check starts real containers in the engine and tries what must fail. Every
 from __future__ import annotations
 
 import os
+import re
 import socket
 import stat
 import subprocess
@@ -215,12 +216,21 @@ MICROVM_IMAGE = (
 KATA_TELLS = ("kata", "agent.", "firecracker", "virtio_mmio", "systemd.unit=kata")
 
 
+def _is_frame(line: str) -> bool:
+    """A backtrace frame (`12: <std::thread::...>`, `at /rustc/...`), not a numbered cause."""
+    bare = line.strip()
+    return bare.startswith("at ") or bool(re.match(r"^\d+: .*(::|<)", bare))
+
+
 def _first_error(text: str) -> str:
-    """The part of a failure worth reading: the first error line, not a backtrace's last frames."""
+    """The part of a failure worth reading: the first error line and the causes under it,
+    not a backtrace's last frames."""
     lines = [ln.strip() for ln in text.replace("\\n", "\n").splitlines() if ln.strip()]
-    for ln in lines:
+    lines = [ln for ln in lines if not _is_frame(ln)]
+    for i, ln in enumerate(lines):
         if any(w in ln.lower() for w in ("error", "failed", "fatal")):
-            return ln[:400]
+            causes = [c for c in lines[i + 1 :] if re.match(r"^\d+: ", c)]
+            return " / ".join([ln, *causes[:4]])[:600]
     return (lines[0] if lines else "no output")[:400]
 
 
