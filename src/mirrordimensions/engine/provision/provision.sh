@@ -28,7 +28,10 @@ if [ ! -f "$STATE/packages" ]; then
   touch "$STATE/packages"
 fi
 
-# Register gVisor with Docker, without overwriting other daemon settings.
+# Docker is restarted only if its configuration changed, so re-applying this script
+# never stops a running world without cause.
+before="$(cat /etc/docker/daemon.json /etc/systemd/system/docker.socket.d/override.conf 2>/dev/null | sha256sum)"
+# Register gVisor with Docker (opt-in runtime, decision 0010), keeping other settings.
 runsc install
 # The default Lima user may use the Docker socket; the host reaches it only through
 # Lima's forward of that one socket.
@@ -39,7 +42,10 @@ if [ -n "$ENGINE_USER" ] && id -u "$ENGINE_USER" >/dev/null 2>&1; then
   systemctl daemon-reload
 fi
 systemctl enable --now docker.socket docker
-systemctl restart docker.socket docker
+after="$(cat /etc/docker/daemon.json /etc/systemd/system/docker.socket.d/override.conf 2>/dev/null | sha256sum)"
+if [ "$before" != "$after" ] || [ ! -f "$STATE/provisioned" ]; then
+  systemctl restart docker.socket docker
+fi
 
 # The edge firewall (decision 0004). Containers may not reach the host, the guest's own
 # services, or anything beyond the engine, except addresses explicitly allowed for one
@@ -51,6 +57,13 @@ table inet edge {
   set egress_allow {
     type ipv4_addr . ipv4_addr
     flags interval
+  }
+  # Packets with no route out (all IPv6 beyond the engine) are dropped before the
+  # forward hook, so log and drop them at prerouting instead.
+  chain prerouting {
+    type filter hook prerouting priority -160; policy accept;
+    iifname { "docker0", "br-*" } ip6 daddr != { fe80::/10, ff00::/8 } fib daddr type != local fib daddr oif missing log prefix "edge-drop egress " drop
+    iifname { "docker0", "br-*" } ip daddr != { 224.0.0.0/4, 255.255.255.255 } fib daddr type != local fib daddr oif missing log prefix "edge-drop egress " drop
   }
   chain forward {
     type filter hook forward priority -10; policy accept;
@@ -64,6 +77,11 @@ table inet edge {
   chain input {
     type filter hook input priority -10; policy accept;
     ct state established,related accept
+    # Neighbour discovery must work, or a container's packets never leave it and
+    # attempts go unrecorded. Link-local multicast cannot be routed: drop it quietly.
+    iifname { "docker0", "br-*" } icmpv6 type { nd-neighbor-solicit, nd-neighbor-advert } accept
+    iifname { "docker0", "br-*" } ip daddr { 224.0.0.0/4, 255.255.255.255 } drop
+    iifname { "docker0", "br-*" } ip6 daddr ff00::/8 drop
     iifname { "docker0", "br-*" } log prefix "edge-drop engine " drop
   }
 }
@@ -83,4 +101,5 @@ UNIT
 systemctl daemon-reload
 systemctl enable edge-firewall.service
 
+sha256sum "$0" 2>/dev/null | cut -d" " -f1 > "$STATE/provision.sha" || true
 touch "$STATE/provisioned"

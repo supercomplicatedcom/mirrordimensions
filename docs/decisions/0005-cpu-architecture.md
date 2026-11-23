@@ -1,6 +1,6 @@
 # 0005. arm64 engines on Apple Silicon; emulation allowed for twins, not for agents
 
-Status: Proposed · Date: 2026-11-22 · Milestone: M0.5, M2, M4
+Status: Proposed · Date: 2026-11-22 · Milestone: M0.5, M2, M4 · Rule 3 (no emulated agents) superseded by 0010
 
 ## Context
 

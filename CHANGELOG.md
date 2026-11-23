@@ -4,7 +4,13 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Changed
+
+- Agents run as hardened ordinary containers in the engine VM; gVisor is opt-in (decision 0010).
+
 ### Added
+
+- M1 sealed network: `mirror up`, `mirror down`, `mirror doctor`. Three networks; a CoreDNS resolver that never forwards; a mitmproxy gateway that routes by hostname, refuses unknown names without a certificate, captures each exchange with redaction, and presents ordinary nginx error pages; per-hostname certificates minted on the host; the engine firewall as the sinkhole, with drops turned into `egress.blocked` events.
 
 - M0.5 engine: `mirror engine setup|start|stop|status|destroy|check|shell`. A Lima driver for macOS and Linux (pinned and checksum-verified, private `LIMA_HOME`, no host shares, only the Docker socket forwarded), an opt-in host driver for Linux, and an experimental Windows driver (configuration only). The guest is Ubuntu 26.04 with Docker Engine, gVisor and an edge firewall that blocks container traffic to the host and all egress except allow-listed pairs.
 - Keep-awake during long operations, and sleep detection.

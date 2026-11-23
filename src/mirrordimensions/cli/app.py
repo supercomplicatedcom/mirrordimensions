@@ -159,6 +159,59 @@ def status(ctx: typer.Context) -> None:
         st.out.next_step("Next: mirror init <dir>")
 
 
+@app.command()
+def up(ctx: typer.Context) -> None:
+    """Start the sealed network for this project (M1: stub servers stand in for twins)."""
+    from mirrordimensions.service import sandbox as svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    names = svc.up(project, on_step=st.out.ok)
+    if st.out.json_mode:
+        st.out.document({"containers": names})
+        return
+    st.out.ok(f"sandbox up: {', '.join(names)}")
+    st.out.next_step("Next: mirror doctor")
+
+
+@app.command()
+def down(ctx: typer.Context) -> None:
+    """Stop and remove the sealed network for this project."""
+    from mirrordimensions.service import sandbox as svc
+
+    st = _state(ctx)
+    svc.down(service.load_project(st.start()))
+    st.out.ok("sandbox down")
+
+
+@app.command()
+def doctor(ctx: typer.Context) -> None:
+    """Run the egress, separation, inside-out, naming, transparency and capture checks."""
+    from mirrordimensions.service import sandbox as svc
+
+    st = _state(ctx)
+    report = svc.doctor(service.load_project(st.start()))
+    if st.out.json_mode:
+        st.out.document(report)
+    else:
+        suite = ""
+        for c in report.checks:
+            if c.suite != suite:
+                suite = c.suite
+                st.out.line(suite.capitalize())
+            timing = f" [{c.latency_s:.2f}s]" if c.latency_s is not None else ""
+            text = f"{c.name}{timing}" + (f"  ({c.detail})" if c.detail else "")
+            if c.outcome == "fail":
+                st.out.fail(text)
+            elif c.outcome == "n/a":
+                st.out.line(f"{'n/a':<6}{text}")
+            else:
+                st.out.ok(text)
+        st.out.line(f"Isolation: {report.isolation} ({report.boundary})")
+    if report.isolation == "failed":
+        raise typer.Exit(1)
+
+
 engine_app = typer.Typer(help="The engine: the Linux VM every world runs in.", no_args_is_help=True)
 app.add_typer(engine_app, name="engine")
 

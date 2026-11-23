@@ -20,6 +20,8 @@ Each file records one architecture or design decision: the context, what was dec
 | [0006](0006-testing-on-available-hardware.md) | How each platform is tested with only a Mac available | Accepted (owner), details Proposed |
 | [0007](0007-open-source-practices.md) | Built private, ready to publish: open-source practices from M0 | Proposed, adopted into M0 by the owner; licence Accepted (owner) |
 | [0009](0009-mcp-servers.md) | Two MCP servers: one inside the world for agents, one outside it for operators | Accepted (owner) for both; details Proposed |
+| [0010](0010-agent-runtime.md) | Agents run as hardened containers in the dedicated engine VM; gVisor becomes opt-in | Accepted (owner) |
+| [0011](0011-sealed-network-mechanisms.md) | How the sealed network is built: mechanisms that differ from the spec | Proposed |
 
 Template:
 

@@ -101,7 +101,7 @@ jobs:
         run: python3 scripts/check_dco.py "$BASE" "$HEAD"
 
   engine-linux:
-    name: Engine (Linux, lima with KVM)
+    name: Engine and sealed network (Linux, lima with KVM)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -122,6 +122,13 @@ jobs:
         run: uv run mirror engine setup --cpus 2 --memory 4 --disk 30
       - name: mirror engine check
         run: uv run mirror engine check
+      - name: mirror init, up, doctor (the sealed network)
+        run: |
+          set -euo pipefail
+          uv run mirror init "$RUNNER_TEMP/world" --seed 48213
+          cd "$RUNNER_TEMP/world"
+          uv run --project "$GITHUB_WORKSPACE" mirror up
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor
       - name: mirror engine status
         if: always()
         run: uv run mirror engine status

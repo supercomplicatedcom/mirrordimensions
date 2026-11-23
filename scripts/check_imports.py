@@ -65,6 +65,8 @@ def violations(src: Path, allowed_dists: set[str]) -> list[str]:
     out: list[str] = []
     for path in sorted(src.rglob("*.py")):
         rel = path.relative_to(src)
+        if "payloads" in rel.parts:
+            continue  # files copied into engine containers; never imported on the host
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         in_os_area = rel.parts[0] in OS_ALLOWED
         for line, module in imports_of(tree):
