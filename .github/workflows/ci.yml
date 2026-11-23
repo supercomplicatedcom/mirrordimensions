@@ -80,7 +80,9 @@ jobs:
           sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
           rm -f "${file}" checksums.txt gitleaks
       - name: Scan the full history
-        run: gitleaks git --redact --no-banner --verbose .
+        # This branch's own history; other branches are scanned on their own runs
+        # with their own allowlists.
+        run: gitleaks git --redact --no-banner --verbose --log-opts="--full-history HEAD" .
       - run: uv sync --locked
       - name: Self-test (a fake credential is rejected by the hook and the scan)
         run: uv run python scripts/gitleaks_selftest.py

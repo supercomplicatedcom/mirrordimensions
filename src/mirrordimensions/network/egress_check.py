@@ -131,7 +131,10 @@ def _attempt(
     event = collector.wait_for(match, after=started, timeout=EVENT_BUDGET_S + 3)
     if event is None:
         return Check(
-            suite=suite, name=name, outcome="fail", detail="blocked, but no event was recorded"
+            suite=suite,
+            name=name,
+            outcome="fail",
+            detail="blocked, but no event was recorded" + _why_unrecorded(probe, command, output),
         )
     latency = round(event["arrived"] - collector.offset - started, 3)
     ok = latency <= EVENT_BUDGET_S + _command_slack(command)
@@ -142,6 +145,17 @@ def _attempt(
         latency_s=latency,
         detail=f"{event['type']} {_brief(event)}" + ("" if ok else f"; recorded after {latency}s"),
     )
+
+
+def _why_unrecorded(probe: Probe, command: str, output: str) -> str:
+    """What the attempt itself saw, so a missing event can be told apart from a packet that
+    never left the container (for instance, no route for its address family)."""
+    said = " ".join(output.split())[:160]
+    extra = ""
+    if " -6 " in command:
+        _, routes = probe.sh(PROBE, "ip -6 route 2>&1; ip -6 addr show scope global 2>&1")
+        extra = "; IPv6 routes: " + (" | ".join(routes.split("\n")[:4]).strip() or "none")
+    return (f"; it said: {said}" if said else "") + extra
 
 
 def _command_slack(command: str) -> float:
@@ -292,7 +306,7 @@ def egress_suite(
             collector,
             s,
             "IPv6 connection to a public address",
-            "curl -6 -s -m 3 'http://[2606:4700:4700::1111]/' -o /dev/null",
+            "curl -6 -sS -m 3 'http://[2606:4700:4700::1111]/' -o /dev/null",
             _failed,
             _blocked("2606:4700:4700::1111", 80),
         ),
