@@ -226,6 +226,12 @@ def engine_setup(
     experimental: Annotated[
         bool, typer.Option(help="Allow the experimental Windows driver.")
     ] = False,
+    microvm: Annotated[
+        bool,
+        typer.Option(
+            help="Also install the Firecracker microVM runtime (Apple M3+ or nested KVM)."
+        ),
+    ] = False,
 ) -> None:
     """Create or update the engine. Safe to run again."""
     from mirrordimensions.engine.base import Resources
@@ -241,7 +247,9 @@ def engine_setup(
         raise MirrorError(
             f"Unknown driver {driver!r}.", "Drivers: lima, wsl, host.", "Omit --driver."
         )
-    status = svc.setup_engine(resources, driver, on_step=st.out.line, experimental=experimental)  # type: ignore[arg-type]
+    status = svc.setup_engine(  # type: ignore[arg-type]
+        resources, driver, on_step=st.out.line, experimental=experimental, microvm=microvm
+    )
     _show_engine(st, status)
     if not st.out.json_mode:
         st.out.next_step("Next: mirror engine check")

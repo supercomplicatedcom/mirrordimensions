@@ -22,6 +22,7 @@ Each file records one architecture or design decision: the context, what was dec
 | [0009](0009-mcp-servers.md) | Two MCP servers: one inside the world for agents, one outside it for operators | Accepted (owner) for both; details Proposed |
 | [0010](0010-agent-runtime.md) | Agents run as hardened containers in the dedicated engine VM; gVisor becomes opt-in | Accepted (owner) |
 | [0011](0011-sealed-network-mechanisms.md) | How the sealed network is built: mechanisms that differ from the spec | Proposed |
+| [0012](0012-firecracker-microvm-option.md) | Firecracker microVMs for agents on hosts that can nest (Apple M3+, nested KVM) | Accepted (owner) for building; details Proposed |
 
 Template:
 

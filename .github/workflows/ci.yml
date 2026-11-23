@@ -135,3 +135,23 @@ jobs:
       - name: mirror engine destroy
         if: always()
         run: uv run mirror engine destroy --yes
+
+  microvm-linux:
+    name: microVM runtime (Kata with Firecracker, Linux runner)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+      - name: Enable KVM
+        run: |
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm; containerd --version; ctr --version
+      - run: uv sync --locked
+      - name: Install Kata with Firecracker and run a microVM
+        run: uv run python scripts/ci_microvm.py

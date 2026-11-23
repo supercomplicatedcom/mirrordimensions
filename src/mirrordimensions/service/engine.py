@@ -22,6 +22,7 @@ def setup_engine(
     driver: DriverName | None = None,
     on_step: StepFn = None,
     experimental: bool = False,
+    microvm: bool = False,
 ) -> EngineStatus:
     engine = get_engine(driver)
     with keep_awake("Setting up the engine"):
@@ -29,7 +30,15 @@ def setup_engine(
             status = engine.setup(
                 resources or default_resources(), on_step, experimental=experimental
             )
+        elif isinstance(engine, LimaEngine):
+            status = engine.setup(resources or default_resources(), on_step, microvm=microvm)
         else:
+            if microvm:
+                raise MirrorError(
+                    "The host driver does not set up microVMs.",
+                    "On a Linux host, install Kata Containers yourself, or use the lima driver.",
+                    "Run: mirror engine setup --driver lima --microvm",
+                )
             status = engine.setup(resources or default_resources(), on_step)
     remember(engine.name)  # type: ignore[arg-type]
     return status
