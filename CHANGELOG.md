@@ -10,6 +10,7 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Added
 
+- M2, part 1: Gitea 28.4 and Mattermost Team Edition 12.1 replace the stub servers, each with its own PostgreSQL, configured like a long-lived corporate install with no first-run screens. A control relay on the system network carries administration over Docker exec; the system network has its own resolver; per-install secrets are kept owner-only. Identities are issued with grants and production-style credentials. State dumps are deterministic. WebSocket frames are captured; Git runs over HTTPS only. Doctor now checks that a twin's own URL-fetching feature cannot get out.
 - `mirror engine setup --microvm`: an optional Firecracker microVM runtime for agents (Kata Containers 4.4 with Firecracker 1.17, devmapper thin pool) on hosts that can nest: Apple M3 or later with macOS 15+, or Linux with nested KVM. Refuses on other hosts, naming why (decision 0012).
 - M1 sealed network: `mirror up`, `mirror down`, `mirror doctor`. Three networks; a CoreDNS resolver that never forwards; a mitmproxy gateway that routes by hostname, refuses unknown names without a certificate, captures each exchange with redaction, and presents ordinary nginx error pages; per-hostname certificates minted on the host; the engine firewall as the sinkhole, with drops turned into `egress.blocked` events.
 

@@ -195,7 +195,40 @@ def _failed(code: int, _out: str) -> bool:
     return code == 0
 
 
-def egress_suite(plan: Plan, probe: Probe, collector: Collector) -> list[Check]:
+def _twin_fetch(collector: Collector, fetch: Callable[[str], None] | None) -> Check:
+    """A twin feature that fetches a caller-supplied URL must not get out (build spec)."""
+    name = "A twin asked to fetch an external URL"
+    if fetch is None:
+        return Check(
+            suite="egress", name=name, outcome="n/a", detail="no twin with a URL-fetching feature"
+        )
+    started = time.time()
+    fetch("http://1.1.1.1/platform/infra.git")
+    event = collector.wait_for(
+        lambda e: (
+            e["type"] == "egress.blocked"
+            and e["data"].get("dst") == "1.1.1.1"
+            and str(e["data"].get("src", "")).startswith("10.41.")
+        ),
+        after=started,
+        timeout=EVENT_BUDGET_S + 10,
+    )
+    if event is None:
+        return Check(
+            suite="egress", name=name, outcome="fail", detail="no blocked attempt was recorded"
+        )
+    return Check(
+        suite="egress",
+        name=name,
+        outcome="pass",
+        detail=f"egress.blocked {_brief(event)}",
+        latency_s=round(event["arrived"] - collector.offset - started, 3),
+    )
+
+
+def egress_suite(
+    plan: Plan, probe: Probe, collector: Collector, twin_fetch: Callable[[str], None] | None = None
+) -> list[Check]:
     s = "egress"
     gw = plan.addr.gw_lan
     app = plan.tls_names[0]
@@ -340,14 +373,7 @@ def egress_suite(plan: Plan, probe: Probe, collector: Collector) -> list[Check]:
                 detail="no model routes in mirror.yaml yet (M4)",
             )
         )
-    checks.append(
-        Check(
-            suite=s,
-            name="A twin asked to fetch an external URL",
-            outcome="n/a",
-            detail="stubs cannot fetch; covered when twins arrive (M2)",
-        )
-    )
+    checks.append(_twin_fetch(collector, twin_fetch))
     with host_listener() as port:
         _, out = probe.sh(
             PROBE,
@@ -578,8 +604,11 @@ def transparency_suite(plan: Plan, probe: Probe) -> list[Check]:
         ]
         return lines, body
 
-    direct = fetch(APPS_PROBE, f"http://{app.ip}/", f"-H 'Host: {app.hostname}'")
-    via = fetch(PROBE, f"https://{app.hostname}/")
+    # A static asset: product pages carry per-request cookies and tokens, so compare a file
+    # that is the same every time.
+    path = app.static_path
+    direct = fetch(APPS_PROBE, f"http://{app.ip}:{app.port}{path}", f"-H 'Host: {app.hostname}'")
+    via = fetch(PROBE, f"https://{app.hostname}{path}")
     same = direct == via
     detail = "status, header order and casing, values (except Date) and body are identical"
     if not same:
@@ -594,11 +623,11 @@ def transparency_suite(plan: Plan, probe: Probe) -> list[Check]:
     ]
     _, timing = probe.sh(
         PROBE,
-        f"for i in $(seq 20); do curl -s -o /dev/null -w '%{{time_total}}\\n' http://{app.hostname}/; done",
+        f"for i in $(seq 20); do curl -s -o /dev/null -w '%{{time_total}}\\n' http://{app.hostname}{path}; done",
     )
     _, direct_timing = probe.sh(
         APPS_PROBE,
-        f"for i in $(seq 20); do curl -s -o /dev/null -w '%{{time_total}}\\n' -H 'Host: {app.hostname}' http://{app.ip}/; done",
+        f"for i in $(seq 20); do curl -s -o /dev/null -w '%{{time_total}}\\n' -H 'Host: {app.hostname}' http://{app.ip}:{app.port}{path}; done",
     )
     try:
         via_ms = sorted(float(x) for x in timing.split())[10] * 1000
@@ -669,14 +698,20 @@ def capture_suite(plan: Plan, probe: Probe, collector: Collector) -> list[Check]
 
 
 def run_doctor(
-    plan: Plan, docker: Docker, collector: Collector, ca_pem: bytes, driver: str, boundary: str
+    plan: Plan,
+    docker: Docker,
+    collector: Collector,
+    ca_pem: bytes,
+    driver: str,
+    boundary: str,
+    twin_fetch: Callable[[str], None] | None = None,
 ) -> DoctorReport:
     probe = Probe(docker, ca_pem)
     probe.start(PROBE, LAN, PROBE_IP, [plan.addr.dns_ip])
     probe.start(APPS_PROBE, APPS, APPS_PROBE_IP, None)
     try:
         checks = (
-            egress_suite(plan, probe, collector)
+            egress_suite(plan, probe, collector, twin_fetch)
             + separation_suite(plan, probe)
             + inside_out_suite(plan, probe, docker)
             + naming_suite(plan, probe)

@@ -26,7 +26,9 @@ EVENT_TYPES: dict[str, frozenset[str]] = {
             "run.end",
         }
     ),
-    "gateway": frozenset({"http.exchange", "tls.handshake", "route.unknown_host", "rule.applied"}),
+    "gateway": frozenset(
+        {"http.exchange", "ws.frame", "tls.handshake", "route.unknown_host", "rule.applied"}
+    ),
     "model": frozenset({"model.request", "model.response"}),
     "dns": frozenset({"dns.query"}),
     "egress": frozenset({"egress.blocked"}),

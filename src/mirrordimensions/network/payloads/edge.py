@@ -172,6 +172,28 @@ class Edge:
             },
         )
 
+    def websocket_message(self, flow: http.HTTPFlow) -> None:
+        """Every WebSocket frame, in either direction (Mattermost's live chat uses these)."""
+        if flow.websocket is None:
+            return
+        message = flow.websocket.messages[-1]
+        content = message.content
+        for secret in self.secrets:
+            content = content.replace(secret.encode(), b"[redacted]")
+        token = f"{int(time.time() * 1000)}-{id(message) & 0xFFFFFF:06x}"
+        _emit(
+            "ws.frame",
+            {
+                "host": flow.request.host_header,
+                "path": flow.request.path.split("?")[0],
+                "direction": "client" if message.from_client else "server",
+                "text": message.is_text,
+                "length": len(content),
+                "client": flow.client_conn.peername[0],
+                "body_ref": self._store(token, "ws", content),
+            },
+        )
+
     def error(self, flow: http.HTTPFlow) -> None:
         _emit(
             "http.exchange",
