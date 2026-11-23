@@ -9,7 +9,7 @@ Decision 0010 runs agents as hardened containers inside the dedicated engine VM.
 Facts, checked while building this:
 
 - **Lima 2.3** offers `nestedVirtualization`. With Apple's Virtualization.framework it works on **Apple M3 or later with macOS 15 or later**. On Linux it works when the host's KVM module allows nesting.
-- **Firecracker** is run for containers through **Kata Containers 4.4.0**. Kata does not bundle the `firecracker` binary. It is tested with **Firecracker v1.17.0** (its `versions.yaml`), not the latest 1.18.0, and runs it through its Rust runtime (`runtime-rs`) with `configuration-rs-fc.toml`.
+- **Firecracker** is run for containers through **Kata Containers 4.4.0**. Kata does not bundle the `firecracker` binary. It is tested with **Firecracker v1.17.0** (its `versions.yaml`), not the latest 1.18.0, and runs it through its Rust runtime (`runtime-rs`) with `configuration-rs-fc.toml`. Kata 4.4 refuses `KATA_CONF_FILE` unless it resolves to one of its default configuration paths, so provisioning links the first of them, `/etc/kata-containers/runtime-rs/configuration.toml`, to the shipped `configuration-rs-fc.toml` (found in CI, 2026-11-23).
 - **Firecracker has no shared file system**, so Kata needs container root file systems as block devices: containerd's **devmapper snapshotter** on a thin pool.
 - **Kata's Docker support** uses its deprecated Go runtime and is tested only with QEMU. Firecracker is run through **containerd** (`ctr` or the containerd API), not Docker.
 - Kata's static releases publish no checksums. They are pinned here on first download.
