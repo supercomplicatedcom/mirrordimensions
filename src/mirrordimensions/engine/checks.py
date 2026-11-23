@@ -215,6 +215,15 @@ MICROVM_IMAGE = (
 KATA_TELLS = ("kata", "agent.", "firecracker", "virtio_mmio", "systemd.unit=kata")
 
 
+def _first_error(text: str) -> str:
+    """The part of a failure worth reading: the first error line, not a backtrace's last frames."""
+    lines = [ln.strip() for ln in text.replace("\\n", "\n").splitlines() if ln.strip()]
+    for ln in lines:
+        if any(w in ln.lower() for w in ("error", "failed", "fatal")):
+            return ln[:400]
+    return (lines[0] if lines else "no output")[:400]
+
+
 def microvm_checks(shell: Callable[..., subprocess.CompletedProcess[str]]) -> list[CheckResult]:
     """Run a workload in a Firecracker microVM through containerd, and look at what it sees."""
     out: list[CheckResult] = []
@@ -234,7 +243,7 @@ def microvm_checks(shell: Callable[..., subprocess.CompletedProcess[str]]) -> li
             CheckResult(
                 name="Firecracker microVM runtime",
                 outcome="fail",
-                detail=(pull.stderr or pull.stdout)[-300:],
+                detail=_first_error(pull.stderr or pull.stdout),
             )
         ]
     script = (
@@ -262,7 +271,7 @@ def microvm_checks(shell: Callable[..., subprocess.CompletedProcess[str]]) -> li
             CheckResult(
                 name="Firecracker microVM runtime",
                 outcome="fail",
-                detail=(run.stderr or run.stdout)[-300:],
+                detail=_first_error(run.stderr or run.stdout),
             )
         ]
     parts = run.stdout.split("---")

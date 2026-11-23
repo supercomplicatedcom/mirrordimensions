@@ -33,7 +33,21 @@ def main() -> int:
             f"{'ok' if r.outcome == 'pass' else 'FAIL':<6}{r.name}"
             + (f"  ({r.detail})" if r.detail else "")
         )
-    return 0 if all(r.outcome == "pass" for r in results) else 1
+    if all(r.outcome == "pass" for r in results):
+        return 0
+    # Diagnostics for the CI log: the runtime's own account of the failure.
+    for title, command in (
+        (
+            "containerd and Kata log",
+            ["sudo", "journalctl", "-u", "containerd", "--no-pager", "-n", "120"],
+        ),
+        ("devmapper pool", ["sudo", "dmsetup", "status"]),
+        ("kvm", ["ls", "-l", "/dev/kvm"]),
+    ):
+        out = shell(*command, timeout=60)
+        print(f"--- {title}")
+        print((out.stdout + out.stderr).replace("\\n", "\n")[-6000:])
+    return 1
 
 
 if __name__ == "__main__":
