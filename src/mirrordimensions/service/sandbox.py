@@ -119,6 +119,25 @@ def doctor(project: Project) -> DoctorReport:
         return run_doctor(plan, docker, collector, ca_pem, driver, boundary, twin_fetch)
 
 
+def admin_fetcher(project: Project, app_id: str) -> Callable[[str, str, bytes], tuple[int, bytes]]:
+    """For `mirror system try`: ask a product directly, through the relay, as its administrator."""
+    manifest = _manifest(project)
+    plan = sandbox.plan_from(manifest)
+    docker, *_ = _docker()
+    app = next(a for a in plan.apps if a.id == app_id)
+    twin = get_twin(app.product)
+    if twin is None:
+        raise MirrorError(
+            f"{app_id} has no twin.",
+            "Only systems with a twin can be tried.",
+            "Run: mirror system list",
+        )
+    relay = Relay(docker)
+    ctx = sandbox.twin_context(plan, app, app_secrets(project, manifest))
+    twin.bootstrap(docker, relay, ctx)
+    return lambda method, path, body: twin.admin_fetch(relay, ctx, method, path, body)  # type: ignore[attr-defined]
+
+
 def _twin_fetcher(
     project: Project, plan: sandbox.Plan, docker: Docker
 ) -> Callable[[str], None] | None:

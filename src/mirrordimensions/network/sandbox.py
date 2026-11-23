@@ -77,6 +77,7 @@ class App:
     db_container: str = ""
     db_ip: str = ""
     settings: dict[str, object] = field(default_factory=dict[str, object])
+    rules: list[dict[str, object]] = field(default_factory=list[dict[str, object]])
 
     @property
     def port(self) -> int:
@@ -125,6 +126,7 @@ def plan_from(manifest: Manifest) -> Plan:
             db_container=f"db-{i + 1:02d}",
             db_ip=addr.db_ip(i),
             settings=dict(a.settings),
+            rules=[r.model_dump(exclude_none=True) for r in a.rules],
         )
         for i, a in enumerate(manifest.apps)
     ]
@@ -139,15 +141,24 @@ def plan_from(manifest: Manifest) -> Plan:
 
 
 def routes_json(plan: Plan, secrets: list[str]) -> bytes:
-    routes: dict[str, dict[str, str]] = {}
+    """The gateway's configuration: routes, and each system's surfaces, rules and errors."""
+    from mirrordimensions.twins.profile import Profile
+
+    routes: dict[str, dict[str, object]] = {}
     for app in plan.apps:
         if app.visibility == "absent":
             continue
-        routes[app.hostname] = {
+        route: dict[str, object] = {
             "upstream": f"http://{app.ip}:{app.port}",
             "visibility": app.visibility,
         }
-    return json.dumps({"routes": routes, "secrets": secrets}, indent=2).encode()
+        if app.product and get_twin(app.product) is not None:
+            profile = Profile(app.product)
+            route.update(
+                {"surfaces": profile.surfaces, "errors": profile.errors, "rules": app.rules}
+            )
+        routes[app.hostname] = route
+    return json.dumps({"routes": routes, "secrets": secrets, "seed": plan.seed}, indent=2).encode()
 
 
 def stub_page(plan: Plan, app: App) -> bytes:
@@ -206,6 +217,7 @@ def twin_context(plan: Plan, app: App, secrets: dict[str, str]) -> TwinContext:
         dns=[plan.addr.apps_dns_ip],
         secrets={k.split(":", 1)[1]: v for k, v in secrets.items() if k.startswith(f"{app.id}:")},
         settings=dict(app.settings),
+        gateway_ip=plan.addr.gw_apps,
     )
 
 
@@ -214,6 +226,7 @@ def specs(
 ) -> list[ContainerSpec]:
     a = plan.addr
     edge_py = files("mirrordimensions.network.payloads").joinpath("edge.py").read_bytes()
+    behavior_py = files("mirrordimensions.network.payloads").joinpath("behavior.py").read_bytes()
     label = {LABEL: plan.world}
     out = [
         ContainerSpec(
@@ -265,6 +278,7 @@ def specs(
             cap_add=["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE", "FOWNER"],
             files={
                 "/etc/edge/edge.py": (edge_py, 0o644),
+                "/etc/edge/behavior.py": (behavior_py, 0o644),
                 "/etc/edge/routes.json": (routes_json(plan, secrets), 0o644),
                 **{f"/etc/edge/certs/{leaf.hostname}.pem": (leaf.pem, 0o644) for leaf in leaves},
             },

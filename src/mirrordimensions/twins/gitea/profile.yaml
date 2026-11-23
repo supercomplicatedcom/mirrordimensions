@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Gitea's inputs and outputs: the single description behind locate, describe, exposed,
+# behaviour rules and `mirror system show`. Paths are matched without the query string.
+product: gitea
+surfaces:
+  # portals
+  - {id: signin.page, kind: portal, match: {method: GET, path: "/user/login"}, sentence: "Opens the sign-in page"}
+  - {id: signin.submit, kind: portal, match: {method: POST, path: "/user/login"}, sentence: "Signs in"}
+  - {id: repo.page, kind: portal, match: {method: GET, path: "/{owner}/{repo}"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Opens {owner}/{repo}"}
+  - {id: issue.page, kind: portal, match: {method: GET, path: "/{owner}/{repo}/issues/{index}"}, resource: "issue:{owner}/{repo}#{index}", access: read, sentence: "Opens issue #{index} in {repo}"}
+  - {id: file.page, kind: portal, match: {method: GET, path: "/{owner}/{repo}/src/branch/{branch}/{path+}"}, resource: "file:{owner}/{repo}/{path}", access: read, sentence: "Views {path}"}
+  # git over HTTPS
+  - {id: git.refs, kind: endpoint, match: {method: GET, path: "/{owner}/{repo}.git/info/refs"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Fetches {repo} with git"}
+  - {id: git.fetch, kind: endpoint, match: {method: POST, path: "/{owner}/{repo}.git/git-upload-pack"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Downloads {repo} with git"}
+  - {id: git.push, kind: endpoint, match: {method: POST, path: "/{owner}/{repo}.git/git-receive-pack"}, resource: "repo:{owner}/{repo}", access: write, sentence: "Pushes to {repo}"}
+  # API: users and search
+  - {id: user.self, kind: endpoint, match: {method: GET, path: "/api/v1/user"}, sentence: "Checks who it is signed in as"}
+  - {id: user.read, kind: endpoint, match: {method: GET, path: "/api/v1/users/{username}"}, resource: "user:{username}", access: read, sentence: "Looks up {username}"}
+  - {id: repo.search, kind: endpoint, match: {method: GET, path: "/api/v1/repos/search"}, sentence: "Searches repositories", output: {exposes: {each: "data.[]", resource: "repo:{full_name}"}}}
+  - {id: issue.search, kind: endpoint, match: {method: GET, path: "/api/v1/repos/issues/search"}, sentence: "Searches issues", output: {exposes: {each: "[]", resource: "issue:{number}"}}}
+  # API: repositories and files
+  - {id: repo.read, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Reads {owner}/{repo}"}
+  - {id: repo.delete, kind: endpoint, match: {method: DELETE, path: "/api/v1/repos/{owner}/{repo}"}, resource: "repo:{owner}/{repo}", access: admin, sentence: "Deletes {owner}/{repo}"}
+  - {id: tree.read, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/git/trees/{sha}"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Lists files in {repo}", output: {exposes: {each: "tree.[]", resource: "file:{owner}/{repo}/{path}"}}}
+  - {id: file.read, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/contents/{path+}"}, resource: "file:{owner}/{repo}/{path}", access: read, sentence: "Reads {path}", output: {exposes: {each: "", resource: "file:{owner}/{repo}/{path}"}}}
+  - {id: file.raw, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/raw/{path+}"}, resource: "file:{owner}/{repo}/{path}", access: read, sentence: "Reads {path}"}
+  - {id: file.write, kind: endpoint, match: {method: PUT, path: "/api/v1/repos/{owner}/{repo}/contents/{path+}"}, resource: "file:{owner}/{repo}/{path}", access: write, sentence: "Commits a change to {path}"}
+  - {id: file.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/contents/{path+}"}, resource: "file:{owner}/{repo}/{path}", access: write, sentence: "Adds {path}"}
+  - {id: file.delete, kind: endpoint, match: {method: DELETE, path: "/api/v1/repos/{owner}/{repo}/contents/{path+}"}, resource: "file:{owner}/{repo}/{path}", access: write, sentence: "Deletes {path}"}
+  - {id: commit.list, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/commits"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Lists commits in {repo}"}
+  - {id: commit.status, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/commits/{ref}/status"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Checks the build status in {repo}"}
+  - {id: tag.list, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/tags"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Lists tags in {repo}"}
+  - {id: branch.list, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/branches"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Lists branches in {repo}", output: {exposes: {each: "[]", resource: "branch:{owner}/{repo}/{name}"}}}
+  - {id: branch.delete, kind: endpoint, match: {method: DELETE, path: "/api/v1/repos/{owner}/{repo}/branches/{branch+}"}, resource: "branch:{owner}/{repo}/{branch}", access: write, sentence: "Deletes branch {branch} in {repo}"}
+  # API: issues and pull requests
+  - {id: issue.list, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/issues"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Lists issues in {repo}", output: {exposes: {each: "[]", resource: "issue:{owner}/{repo}#{number}"}}}
+  - {id: issue.read, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/issues/{index}"}, resource: "issue:{owner}/{repo}#{index}", access: read, sentence: "Reads issue #{index}", output: {exposes: {each: "", resource: "issue:{owner}/{repo}#{index}"}}}
+  - {id: issue.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/issues"}, resource: "repo:{owner}/{repo}", access: write, sentence: "Opens an issue in {repo}"}
+  - {id: issue.edit, kind: endpoint, match: {method: PATCH, path: "/api/v1/repos/{owner}/{repo}/issues/{index}"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Updates issue #{index}"}
+  - {id: comment.list, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/issues/{index}/comments"}, resource: "issue:{owner}/{repo}#{index}", access: read, sentence: "Reads the comments on issue #{index}", output: {exposes: {each: "[]", resource: "comment:{owner}/{repo}#{index}/{id}"}}}
+  - {id: comment.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/issues/{index}/comments"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Comments on issue #{index}"}
+  - {id: label.add, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/issues/{index}/labels"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Labels issue #{index}"}
+  - {id: pull.list, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/pulls"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Lists pull requests in {repo}", output: {exposes: {each: "[]", resource: "pull:{owner}/{repo}#{number}"}}}
+  - {id: pull.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/pulls"}, resource: "repo:{owner}/{repo}", access: write, sentence: "Opens a pull request in {repo}"}
+  - {id: pull.merge, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/pulls/{index}/merge"}, resource: "pull:{owner}/{repo}#{index}", access: write, sentence: "Merges pull request #{index}"}
+  # API: keys, hooks and tokens (watched by injection scenarios)
+  - {id: deploykey.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/keys"}, resource: "repo:{owner}/{repo}", access: admin, sentence: "Adds a deploy key to {repo}"}
+  - {id: hook.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/hooks"}, resource: "repo:{owner}/{repo}", access: admin, sentence: "Adds a webhook to {repo}"}
+  - {id: token.create, kind: endpoint, match: {method: POST, path: "/api/v1/users/{username}/tokens"}, resource: "user:{username}", access: write, sentence: "Creates an access token for {username}"}
+  - {id: collaborator.add, kind: endpoint, match: {method: PUT, path: "/api/v1/repos/{owner}/{repo}/collaborators/{username}"}, resource: "repo:{owner}/{repo}", access: admin, sentence: "Gives {username} access to {repo}"}
+defaults:
+  settings: {registration: closed, default_branch: main}
+  response: {page_size: 30}
+errors:
+  forbidden:
+    status: 403
+    headers: [["Cache-Control", "max-age=0, private, must-revalidate"], ["Content-Type", "application/json;charset=utf-8"], ["X-Content-Type-Options", "nosniff"], ["X-Frame-Options", "SAMEORIGIN"], ["Date", "{date}"]]
+    body: '{"message":"token does not have at least one of required scope(s), required=[write:repository]","url":"https://{host}/api/swagger"}'
+  not_found:
+    status: 404
+    headers: [["Cache-Control", "max-age=0, private, must-revalidate"], ["Content-Type", "application/json;charset=utf-8"], ["X-Content-Type-Options", "nosniff"], ["X-Frame-Options", "SAMEORIGIN"], ["Date", "{date}"]]
+    body: '{"message":"not found","url":"https://{host}/api/swagger"}'
+  too_large:
+    status: 413
+    headers: [["Server", "nginx"], ["Date", "{date}"], ["Content-Type", "text/html"], ["Connection", "close"]]
+    body: "<html>\r\n<head><title>413 Request Entity Too Large</title></head>\r\n<body>\r\n<center><h1>413 Request Entity Too Large</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+  unavailable:
+    status: 502
+    headers: [["Server", "nginx"], ["Date", "{date}"], ["Content-Type", "text/html"], ["Connection", "close"]]
+    body: "<html>\r\n<head><title>502 Bad Gateway</title></head>\r\n<body>\r\n<center><h1>502 Bad Gateway</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+  rate_limited:
+    status: 429
+    headers: [["Cache-Control", "max-age=0, private, must-revalidate"], ["Content-Type", "application/json;charset=utf-8"], ["X-Content-Type-Options", "nosniff"], ["X-Frame-Options", "SAMEORIGIN"], ["Date", "{date}"]]
+    body: '{"message":"Too Many Requests","url":"https://{host}/api/swagger"}'

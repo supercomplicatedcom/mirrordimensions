@@ -171,6 +171,19 @@ class Mattermost:
         self._admin_token = token
         return token
 
+    def admin_fetch(
+        self, relay: Relay, ctx: TwinContext, method: str, path: str, body: bytes
+    ) -> tuple[int, bytes]:
+        headers = {
+            "Authorization": f"Bearer {self.admin_token(relay, ctx)}",
+            "Host": ctx.hostname,
+            "X-Forwarded-Proto": "https",
+        }
+        if body:
+            headers["Content-Type"] = "application/json"
+        resp = relay.request(method, f"{self._base(ctx)}{path}", body=body or None, headers=headers)
+        return resp.status, resp.body
+
     def ensure_team(self, relay: Relay, ctx: TwinContext, name: str, display: str) -> str:
         resp = relay.request(
             "GET",

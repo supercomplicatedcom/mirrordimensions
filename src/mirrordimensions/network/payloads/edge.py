@@ -12,6 +12,7 @@ Events go to standard output as JSON lines; bodies go to ~/spool/bodies/.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import sys
 import threading
@@ -83,12 +84,52 @@ def _emit(kind: str, data: dict) -> int:
     return seq
 
 
+sys.path.insert(0, "/etc/edge")
+import behavior  # noqa: E402  (the shared rule engine, copied next to this file)
+
+
 class Edge:
     def __init__(self) -> None:
         config = json.loads(ROUTES.read_text())
         self.routes: dict[str, dict] = {k.lower(): v for k, v in config["routes"].items()}
         self.secrets: list[str] = [s for s in config.get("secrets", []) if s]
+        seed = int(config.get("seed", 0))
+        self.rules = {
+            host: behavior.Rules(
+                route.get("rules", []),
+                behavior.SurfaceTable(route.get("surfaces", [])),
+                route.get("errors", {}),
+                seed,
+            )
+            for host, route in self.routes.items()
+        }
+        self.version_ids: dict[str, str] = {}
         BODIES.mkdir(parents=True, exist_ok=True)
+
+    def _respond(self, flow: http.HTTPFlow, host: str, answer) -> None:
+        """Answer as the product would: its headers in its order, Content-Length last."""
+        status, headers, body = answer
+        values = {
+            "date": formatdate(usegmt=True),
+            "host": host,
+            "version_id": self.version_ids.get(host, ""),
+        }
+        for key, value in values.items():
+            body = body.replace(("{" + key + "}").encode(), value.encode())
+            headers = [[k, v.replace("{" + key + "}", value)] for k, v in headers]
+        fields = [(k.encode(), v.encode()) for k, v in headers]
+        if not any(k.lower() == "content-length" for k, _ in headers):
+            fields.append((b"Content-Length", str(len(body)).encode()))
+        flow.response = http.Response(
+            http_version=b"HTTP/1.1",
+            status_code=status,
+            reason=status_codes.RESPONSES.get(status, "").encode(),
+            headers=http.Headers(fields),
+            content=body,
+            trailers=None,
+            timestamp_start=time.time(),
+            timestamp_end=time.time(),
+        )
 
     # -- refusal of unknown names ------------------------------------------------
 
@@ -105,7 +146,7 @@ class Edge:
 
     # -- routing -----------------------------------------------------------------
 
-    def request(self, flow: http.HTTPFlow) -> None:
+    async def request(self, flow: http.HTTPFlow) -> None:
         flow.metadata["edge_start"] = time.monotonic()
         host = (flow.request.host_header or "").split(":")[0].lower()
         sni = (flow.client_conn.sni or "").lower()
@@ -117,17 +158,41 @@ class Edge:
             )
             flow.kill()
             return
+        rules = self.rules[host]
         if route.get("visibility") == "denied":
-            flow.response = http.Response.make(
-                403, route.get("denied_body", ""), route.get("denied_headers", {})
-            )
+            self._respond(flow, host, rules.error("forbidden"))
             return
+        req = behavior.Request(
+            method=flow.request.method,
+            path=flow.request.path,
+            headers=dict(flow.request.headers),
+            body=flow.request.raw_content or b"",
+        )
+        outcome = rules.apply(req, time.time())
+        for applied in outcome.applied:
+            _emit(
+                "rule.applied", {"host": host, "path": flow.request.path.split("?")[0], **applied}
+            )
+        if outcome.delay_ms:
+            await asyncio.sleep(outcome.delay_ms / 1000)
+        if outcome.respond is not None:
+            self._respond(flow, host, outcome.respond)
+            return
+        if outcome.request_body is not None:
+            flow.request.content = outcome.request_body
+        if outcome.response_edits:
+            flow.metadata["edge_edits"] = outcome.response_edits
         upstream = urlsplit(route["upstream"])
         flow.request.scheme = upstream.scheme
         flow.request.host = upstream.hostname
         flow.request.port = upstream.port or (443 if upstream.scheme == "https" else 80)
-        # The upstream sees the original Host header, as it would behind a load balancer.
+        # The upstream sees what it would behind a TLS load balancer: the original Host, and
+        # the client's scheme and address, so the links it builds use https and the hostname.
         flow.request.host_header = host
+        flow.request.headers["X-Forwarded-Proto"] = (
+            "https" if flow.client_conn.tls_established else "http"
+        )
+        flow.request.headers["X-Forwarded-For"] = flow.client_conn.peername[0]
 
     # -- capture -----------------------------------------------------------------
 
@@ -152,6 +217,14 @@ class Edge:
         return f"bodies/{name}"
 
     def response(self, flow: http.HTTPFlow) -> None:
+        if flow.response is not None:
+            host = (flow.request.host_header or "").split(":")[0].lower()
+            version = flow.response.headers.get("X-Version-Id")
+            if version:
+                self.version_ids[host] = version
+            edits = flow.metadata.get("edge_edits")
+            if edits and flow.response.content:
+                flow.response.content = behavior.edit_response(flow.response.content, edits)
         start = flow.metadata.get("edge_start", time.monotonic())
         req, resp = flow.request, flow.response
         token = f"{int(time.time() * 1000)}-{id(flow) & 0xFFFFFF:06x}"

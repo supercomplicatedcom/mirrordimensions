@@ -63,6 +63,8 @@ class Gitea:
             "GITEA__security__INSTALL_LOCK": "true",
             "GITEA__security__SECRET_KEY": ctx.secrets["secret_key"],
             "GITEA__security__INTERNAL_TOKEN": ctx.secrets["internal_token"],
+            # Trust X-Forwarded-* from the gateway's address on the system network only.
+            "GITEA__security__REVERSE_PROXY_TRUSTED_PROXIES": f"{ctx.gateway_ip}/32",
             "GITEA__service__DISABLE_REGISTRATION": "true",
             "GITEA__service__REQUIRE_SIGNIN_VIEW": "true",
             "GITEA__service__DEFAULT_KEEP_EMAIL_PRIVATE": "true",
@@ -238,6 +240,22 @@ class Gitea:
             token=token,
             env={"GITEA_URL": f"https://{ctx.hostname}", "GITEA_TOKEN": token},
         )
+
+    def admin_fetch(
+        self, relay: Relay, ctx: TwinContext, method: str, path: str, body: bytes
+    ) -> tuple[int, bytes]:
+        # The public Host, as the gateway sends it, so links in the answer use the real hostname.
+        headers = {"Host": ctx.hostname, "X-Forwarded-Proto": "https"}
+        if body:
+            headers["Content-Type"] = "application/json"
+        resp = relay.request(
+            method,
+            f"{self._base(ctx)}{path}",
+            body=body or None,
+            basic=self._admin(ctx),
+            headers=headers,
+        )
+        return resp.status, resp.body
 
     def fetch_external(self, relay: Relay, ctx: TwinContext, url: str) -> None:
         """Ask Gitea to import a repository from a URL: its own outbound fetch feature."""

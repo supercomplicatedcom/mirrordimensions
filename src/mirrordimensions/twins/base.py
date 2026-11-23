@@ -27,6 +27,7 @@ class TwinContext:
     dns: list[str]
     secrets: dict[str, str]
     settings: dict[str, Any] = field(default_factory=dict[str, Any])
+    gateway_ip: str = "10.41.0.10"
 
     @property
     def volume_prefix(self) -> str:
