@@ -95,13 +95,22 @@ systemctl daemon-reload
 systemctl enable engine-thinpool.service
 /usr/local/sbin/engine-thinpool
 
-# 3. containerd: the devmapper snapshotter. Restart only if the configuration changed.
+# 3. containerd: the devmapper snapshotter. The version line must come first and match the
+#    installed containerd (config version 3 for containerd 2.x, 2 for 1.x). Restart only if
+#    the configuration changed.
 mkdir -p /etc/containerd
 CONF=/etc/containerd/config.toml
-before="$(sha256sum "$CONF" 2>/dev/null || true)"
-if ! grep -q 'io.containerd.snapshotter.v1.devmapper' "$CONF" 2>/dev/null; then
+touch "$CONF"
+before="$(sha256sum "$CONF")"
+if ! grep -q 'io.containerd.snapshotter.v1.devmapper' "$CONF"; then
+  major="$(containerd --version | sed -E 's/.* v?([0-9]+)\..*/\1/')"
+  if [ "$major" -ge 2 ]; then version=3; else version=2; fi
+  existing="$(grep -v '^version *=' "$CONF" || true)"
+  current="$(grep -m1 '^version *=' "$CONF" | sed -E 's/[^0-9]//g' || true)"
+  [ -n "$current" ] && version="$current"
   {
-    [ -s "$CONF" ] && grep -q '^version' "$CONF" || echo 'version = 2'
+    echo "version = $version"
+    printf '%s\n' "$existing"
     cat <<'TOML'
 
 [plugins."io.containerd.snapshotter.v1.devmapper"]
@@ -110,12 +119,12 @@ if ! grep -q 'io.containerd.snapshotter.v1.devmapper' "$CONF" 2>/dev/null; then
   base_image_size = "8GB"
   discard_blocks = true
 TOML
-  } >> "$CONF"
-  # Docker's containerd package disables the CRI plugin; that is fine for ctr and the shim.
+  } > "$CONF.new"
+  mv "$CONF.new" "$CONF"
 fi
 after="$(sha256sum "$CONF")"
 if [ "$before" != "$after" ]; then
-  systemctl restart containerd
+  systemctl restart containerd || { journalctl -u containerd --no-pager | tail -30; exit 1; }
 fi
 ctr plugins ls | grep -E 'devmapper +linux/[a-z0-9]+ +ok'
 
