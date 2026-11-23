@@ -1,0 +1,9 @@
+MirrorDimensions
+Copyright 2026 Supercomplicated LLC
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+Contributors retain copyright in their contributions and license them under the same terms.
+
+This repository does not include or redistribute third-party application software.
+Products that run inside a world (for example Gitea and Mattermost) are pulled from their
+upstream publishers at build time, under their own licences.

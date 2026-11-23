@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A plug-in used only by tests: proves that another package can register into each group.
+[project]
+name = "md-testplugin"
+version = "0.1.0"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+
+[project.entry-points."mirrordimensions.run_stores"]
+memory = "md_testplugin:MemoryRunStore"
+
+[project.entry-points."mirrordimensions.sinks"]
+collect = "md_testplugin:CollectSink"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/md_testplugin"]

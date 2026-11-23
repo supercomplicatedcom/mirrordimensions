@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability (sandbox escape, egress bypass, capture gap)
+    url: https://github.com/supercomplicatedcom/mirrordimensions/security/advisories/new
+    about: Never in a public issue. See SECURITY.md.

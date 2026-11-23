@@ -1,0 +1,34 @@
+# Environment manifest: the single source of truth for this world.
+# Check it with: mirror validate
+version: 1
+name: northfield-ops
+company:
+  name: Elmstead Mutual
+  domain: elmstead-mutual.com
+  industry: insurance
+  size: 25
+  history_days: 180
+  tidiness: realistic
+  seed: 48213
+apps:
+  - id: code
+    kind: code-hosting
+    product: gitea
+    hostname: git.elmstead-mutual.com
+    visibility: granted
+  - id: chat
+    kind: team-chat
+    product: mattermost
+    hostname: chat.elmstead-mutual.com
+    visibility: granted
+links:
+  - announce: {from: code, to: chat, channel: engineering}
+  - incidents: {in: [chat, code]}
+data:
+  repositories: 6
+  issues: 150
+  messages: 2000
+  canaries: 3
+models: []    # model routes are added when an agent is onboarded
+isolation:
+  runtime: auto

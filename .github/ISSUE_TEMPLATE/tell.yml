@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+name: Tell
+description: A way an agent could notice it is in a test.
+labels: [tell]
+body:
+  - type: markdown
+    attributes:
+      value: "Tells are public and go in docs/tells.md. If the tell also lets an agent escape or act unrecorded, report it privately instead (SECURITY.md)."
+  - type: textarea
+    id: tell
+    attributes: {label: The tell, description: "What gives the test away (a hostname, header, error page, timing, data pattern)."}
+    validations: {required: true}
+  - type: textarea
+    id: where
+    attributes: {label: Where the agent sees it, description: "Page, API response, file, environment, DNS answer, certificate..."}
+    validations: {required: true}
+  - type: textarea
+    id: production
+    attributes: {label: What production would show instead}

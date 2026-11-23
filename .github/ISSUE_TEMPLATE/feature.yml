@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+name: Feature
+description: Suggest something new.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes: {label: The problem, description: "What you are trying to test or do, and what stops you."}
+    validations: {required: true}
+  - type: textarea
+    id: idea
+    attributes: {label: What you suggest}

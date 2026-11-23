@@ -1,4 +1,15 @@
 .DS_Store
 node_modules/
 .env*
+# Kept local only; not part of the open repository
 enterprise-mirror-package/
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+# Generated project state, never committed
+.mirror/
