@@ -27,3 +27,22 @@ def test_config_checksum_lines_tolerate_missing_files() -> None:
         done = subprocess.run(["bash", "-c", probe], capture_output=True, text=True, check=False)
         assert done.returncode == 0, done.stderr
         assert done.stdout.strip().endswith("ok")
+
+
+def test_every_sandbox_ipv6_network_is_inside_the_firewalls_own_range() -> None:
+    import ipaddress
+    from dataclasses import asdict
+
+    from mirrordimensions.network.sandbox import Address
+
+    script = files("mirrordimensions.engine.provision").joinpath("provision.sh").read_text("utf-8")
+    allowed = re.search(r"ip6 daddr != \{[^}]*?(fd[0-9a-f:]+/\d+) \}", script)
+    assert allowed, "the prerouting IPv6 rule names the sandbox's range"
+    sandbox_range = ipaddress.ip_network(allowed.group(1))
+    v6 = [v for k, v in asdict(Address()).items() if k.endswith("_v6")]
+    assert v6
+    for net in v6:
+        inner = ipaddress.ip_network(net)
+        assert isinstance(inner, ipaddress.IPv6Network)
+        assert isinstance(sandbox_range, ipaddress.IPv6Network)
+        assert inner.subnet_of(sandbox_range), net
