@@ -34,6 +34,9 @@ PORT = 8065
 ADMIN = "chat-admin"
 
 
+PRODUCT_ACCOUNTS = frozenset({"system-bot"})
+
+
 class Mattermost:
     product = "mattermost"
     upstream_port = PORT
@@ -346,6 +349,9 @@ class Mattermost:
                     "deleted": bool(u.get("delete_at")),
                 }
                 for u in self._pages(relay, ctx, "/users?sort=")
+                # Mattermost creates its own system-bot when a feature first needs it, at a
+                # moment that varies from run to run; it is the product's, not the world's.
+                if u["username"] not in PRODUCT_ACCOUNTS
             ),
             key=lambda u: u["username"],
         )
