@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+name: Catalog entry
+description: Add or correct an app in the catalog.
+labels: [catalog]
+body:
+  - type: markdown
+    attributes:
+      value: "Names and public facts only: no logos, screenshots or copied documentation."
+  - type: input
+    id: name
+    attributes: {label: App name}
+    validations: {required: true}
+  - type: input
+    id: kind
+    attributes: {label: Kind, description: "ticketing, code-hosting, team-chat, crm, hr, erp..."}
+  - type: textarea
+    id: facts
+    attributes: {label: Facts and sources, description: "Aliases, hostname pattern, interfaces, whether a vendor sandbox exists, with public sources."}
+    validations: {required: true}

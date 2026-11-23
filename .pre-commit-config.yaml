@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Install with: pre-commit install --hook-type pre-commit --hook-type commit-msg
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e  # v8.30.1
+    hooks:
+      - id: gitleaks-system
+        pass_filenames: false
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 9026c9127e153371d7a78dfcb0c45ae2046a3d10  # v0.17.6
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: spdx-headers
+        name: SPDX licence headers
+        entry: python scripts/check_spdx.py
+        language: system
+        pass_filenames: false
+      - id: dco-signoff
+        name: DCO sign-off
+        entry: python scripts/check_dco.py --message-file
+        language: system
+        stages: [commit-msg]

@@ -1,0 +1,101 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+"""Enforce two boundaries in `src/mirrordimensions/`.
+
+1. Every import is the standard library, this package, or a declared runtime dependency.
+   Nothing may import cloud-service code or any undeclared package.
+2. Only `hostos/` and `engine/` may ask which OS they run on (`sys.platform`, `os.name`,
+   the `platform` module, or OS-only modules such as `msvcrt`, `fcntl`, `winreg`).
+
+Exit 0 when clean, 1 with one line per violation otherwise.
+"""
+
+from __future__ import annotations
+
+import ast
+import re
+import sys
+import tomllib
+from importlib.metadata import packages_distributions
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+PACKAGE = "mirrordimensions"
+OS_ALLOWED = ("hostos", "engine")
+OS_MODULES = {"platform", "msvcrt", "fcntl", "winreg", "_winapi", "posix", "nt"}
+
+
+def declared_distributions(pyproject: Path) -> set[str]:
+    data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+    names: set[str] = set()
+    for req in data["project"]["dependencies"]:
+        match = re.match(r"^\s*([A-Za-z0-9][A-Za-z0-9._-]*)", req)
+        if match:
+            names.add(normalize(match.group(1)))
+    return names
+
+
+def normalize(name: str) -> str:
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def imports_of(tree: ast.AST) -> list[tuple[int, str]]:
+    found: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            found += [(node.lineno, alias.name) for alias in node.names]
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            found.append((node.lineno, node.module))
+    return found
+
+
+def os_checks(tree: ast.AST) -> list[tuple[int, str]]:
+    found: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+            pair = (node.value.id, node.attr)
+            if pair in {("sys", "platform"), ("os", "name"), ("sys", "getwindowsversion")}:
+                found.append((node.lineno, f"{pair[0]}.{pair[1]}"))
+    return found
+
+
+def violations(src: Path, allowed_dists: set[str]) -> list[str]:
+    stdlib = set(sys.stdlib_module_names)
+    module_to_dists = packages_distributions()
+    out: list[str] = []
+    for path in sorted(src.rglob("*.py")):
+        rel = path.relative_to(src)
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        in_os_area = rel.parts[0] in OS_ALLOWED
+        for line, module in imports_of(tree):
+            top = module.split(".")[0]
+            where = f"{PACKAGE}/{rel.as_posix()}:{line}"
+            if top in OS_MODULES and not in_os_area:
+                out.append(f"{where}: imports {top}; only hostos/ and engine/ may check the OS")
+            if top == PACKAGE or top in stdlib or top == "__future__":
+                continue
+            dists = {normalize(d) for d in module_to_dists.get(top, [])}
+            if not dists & allowed_dists:
+                out.append(
+                    f"{where}: imports {top!r}, which is not a declared dependency of {PACKAGE}"
+                )
+        if not in_os_area:
+            for line, expr in os_checks(tree):
+                where = f"{PACKAGE}/{rel.as_posix()}:{line}"
+                out.append(f"{where}: uses {expr}; only hostos/ and engine/ may check the OS")
+    return out
+
+
+def main() -> int:
+    problems = violations(ROOT / "src" / PACKAGE, declared_distributions(ROOT / "pyproject.toml"))
+    for problem in problems:
+        print(problem)
+    if problems:
+        print(f"{len(problems)} import boundary violation(s)")
+        return 1
+    print("ok    imports stay within the standard library and declared dependencies")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
