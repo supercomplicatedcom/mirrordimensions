@@ -17,11 +17,11 @@ repos:
     hooks:
       - id: spdx-headers
         name: SPDX licence headers
-        entry: python scripts/check_spdx.py
+        entry: uv run --frozen python scripts/check_spdx.py
         language: system
         pass_filenames: false
       - id: dco-signoff
         name: DCO sign-off
-        entry: python scripts/check_dco.py --message-file
+        entry: uv run --frozen python scripts/check_dco.py --message-file
         language: system
         stages: [commit-msg]

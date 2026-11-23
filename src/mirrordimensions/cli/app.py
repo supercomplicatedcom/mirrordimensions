@@ -17,6 +17,7 @@ from mirrordimensions import __version__, service
 from mirrordimensions.cli.output import Output
 from mirrordimensions.config import SCHEMAS
 from mirrordimensions.errors import MirrorError
+from mirrordimensions.hostos.console import use_utf8_streams
 
 app = typer.Typer(
     name="mirror",
@@ -159,6 +160,7 @@ def status(ctx: typer.Context) -> None:
 
 
 def main() -> None:
+    use_utf8_streams()
     try:
         app()
     except MirrorError as exc:

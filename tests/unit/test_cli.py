@@ -63,6 +63,17 @@ def test_schema_prints_json(tmp_path: Path) -> None:
     assert json.loads(done.stdout)["title"] == "Event"
 
 
+def test_output_is_utf8_on_every_host(tmp_path: Path) -> None:
+    done = subprocess.run(
+        [sys.executable, "-m", "mirrordimensions", "init", "plain", "--seed", "48213"],
+        cwd=tmp_path,
+        capture_output=True,
+        check=False,
+    )
+    assert done.returncode == 0
+    assert " · ".encode() in done.stdout
+
+
 def test_no_color_when_not_a_terminal(project_dir: Path) -> None:
     done = mirror("validate", cwd=project_dir)
     assert "\033[" not in done.stdout
