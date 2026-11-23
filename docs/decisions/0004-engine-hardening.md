@@ -19,7 +19,7 @@ Putting the sandbox in a VM adds a boundary, but VM tools are built for convenie
 
 **1. Nothing shared.**
 
-- Lima: `mounts: []`. No virtiofs or 9p shares. Automatic port forwarding off. The only forward is the Docker socket, guest to host (0003).
+- Lima: `mounts: []`. No virtiofs or 9p shares, with one exception found in M0.5: on Apple Silicon, Virtualization.framework shares Apple's Rosetta runtime into the guest at `/mnt/lima-rosetta` so that amd64 programs can run. It contains two Apple binaries and cannot be written, even by root in the guest. `mirror engine check` allows exactly that share and fails if it ever becomes writable or if any other share appears. Automatic port forwarding off. The only forward is the Docker socket, guest to host (0003).
 - WSL: the engine distribution's `/etc/wsl.conf` sets `[automount] enabled = false`, `mountFsTab = false`; `[interop] enabled = false`, `appendWindowsPath = false`; `[boot] systemd = true`. It does not touch the user's global `.wslconfig`, because that would change their other distributions.
 - `mirror doctor` checks these settings from inside the engine every time, not only at setup.
 

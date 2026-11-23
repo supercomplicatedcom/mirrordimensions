@@ -6,6 +6,9 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Added
 
+- M0.5 engine: `mirror engine setup|start|stop|status|destroy|check|shell`. A Lima driver for macOS and Linux (pinned and checksum-verified, private `LIMA_HOME`, no host shares, only the Docker socket forwarded), an opt-in host driver for Linux, and an experimental Windows driver (configuration only). The guest is Ubuntu 26.04 with Docker Engine, gVisor and an edge firewall that blocks container traffic to the host and all egress except allow-listed pairs.
+- Keep-awake during long operations, and sleep detection.
+
 - M0 scaffold: the `mirrordimensions` package and the `mirror` command (`init`, `validate`, `schema`, `status`).
 - Typed file formats for the manifest, agent files, scenarios, run events and results, with JSON Schema.
 - `mirror init`: a starter project with a generated company and a per-install root CA.

@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# The engine VM for the lima driver (decisions 0002 and 0004).
+# Rendered by engine/lima.py, which fills in resources, images and the provisioning script.
+minimumLimaVersion: 2.0.0
+vmType: @@VM_TYPE@@
+cpus: @@CPUS@@
+memory: "@@MEMORY_GIB@@GiB"
+disk: "@@DISK_GIB@@GiB"
+images:
+@@IMAGES@@
+# Nothing from the host is shared with the engine.
+mounts: []
+# Docker manages containerd; Lima's own copy is not installed.
+containerd:
+  system: false
+  user: false
+vmOpts:
+  vz:
+    rosetta:
+      enabled: @@ROSETTA@@
+      binfmt: @@ROSETTA@@
+# The only forward is the Docker socket, guest to host. Every other port is ignored,
+# so nothing a container or the guest listens on appears on the host.
+portForwards:
+  - guestSocket: "/var/run/docker.sock"
+    hostSocket: "{{.Dir}}/sock/docker.sock"
+  - guestIP: "0.0.0.0"
+    guestPortRange: [1, 65535]
+    ignore: true
+  - guestIP: "::"
+    guestPortRange: [1, 65535]
+    ignore: true
+  - guestIP: "127.0.0.1"
+    guestPortRange: [1, 65535]
+    ignore: true
+# No host names are injected into the guest (Lima would add host.lima.internal).
+hostResolver:
+  hosts: {}
+propagateProxyEnv: false
+upgradePackages: false
+timezone: "UTC"
+provision:
+  - mode: system
+    script: |
+@@PROVISION@@
+probes:
+  - description: Docker Engine with gVisor is ready
+    script: |
+      #!/bin/bash
+      set -eu -o pipefail
+      timeout 600s bash -c "until test -f /var/lib/engine/provisioned; do sleep 3; done"
+    hint: See /var/log/cloud-init-output.log in the guest (mirror engine shell)
