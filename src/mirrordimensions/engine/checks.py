@@ -219,7 +219,15 @@ def microvm_checks(shell: Callable[..., subprocess.CompletedProcess[str]]) -> li
     """Run a workload in a Firecracker microVM through containerd, and look at what it sees."""
     out: list[CheckResult] = []
     pull = shell(
-        "sudo", "ctr", "image", "pull", "--snapshotter", "devmapper", MICROVM_IMAGE, timeout=600
+        "sudo",
+        "ctr",
+        "image",
+        "pull",
+        "--local",
+        "--snapshotter",
+        "devmapper",
+        MICROVM_IMAGE,
+        timeout=600,
     )
     if pull.returncode != 0:
         return [
