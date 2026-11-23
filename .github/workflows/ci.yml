@@ -99,3 +99,32 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: python3 scripts/check_dco.py "$BASE" "$HEAD"
+
+  engine-linux:
+    name: Engine (Linux, lima with KVM)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+      - name: Enable KVM and install QEMU
+        run: |
+          set -euo pipefail
+          ls -l /dev/kvm
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+          sudo apt-get update -q && sudo apt-get install -y -q qemu-system-x86 qemu-utils
+      - run: uv sync --locked
+      - name: mirror engine setup
+        run: uv run mirror engine setup --cpus 2 --memory 4 --disk 30
+      - name: mirror engine check
+        run: uv run mirror engine check
+      - name: mirror engine status
+        if: always()
+        run: uv run mirror engine status
+      - name: mirror engine destroy
+        if: always()
+        run: uv run mirror engine destroy --yes

@@ -22,6 +22,7 @@ classifiers = [
 ]
 dependencies = [
   "cryptography>=44",   # root CA and leaf certificates
+  "docker>=7.1",        # the engine's Docker API: unix sockets, TLS, exec streams, archives
   "platformdirs>=4",    # per-user config and data folders on macOS, Windows and Linux
   "pydantic>=2.11",     # typed file formats and generated JSON Schema
   "ruamel.yaml>=0.18",  # round-trip YAML that keeps comments, and line numbers for errors

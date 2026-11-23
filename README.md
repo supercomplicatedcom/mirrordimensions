@@ -2,7 +2,7 @@
 
 A sealed, self-hosted test range for AI agents. An agent does real work inside a synthetic company and its systems (code hosting, chat, tickets) at production-style hostnames over valid TLS. It cannot reach the internet, everything it touches is recorded, and each run is scored. The agent must never be able to tell it is in a test.
 
-> **Status: pre-alpha.** Milestone M0 (scaffold) is in progress. Nothing here runs an agent yet.
+> **Status: pre-alpha.** M0 (scaffold) is done; M0.5 (the engine) is in progress. Nothing here runs an agent yet.
 
 ## Three guarantees
 
@@ -34,6 +34,17 @@ uv run mirror validate                # check mirror.yaml, agents and scenarios
 uv run mirror status                  # project state, host and plug-ins
 uv run mirror schema manifest         # JSON Schema for any file format
 ```
+
+## The engine
+
+```sh
+uv run mirror engine setup     # create the engine VM (first run: a few minutes, about 7 GB of disk)
+uv run mirror engine check     # prove gVisor, Rosetta, a private Docker endpoint, no route to the host, egress rules
+uv run mirror engine status    # driver, architecture, boundary, versions, resources, clock offset
+uv run mirror engine destroy   # remove it and everything it created
+```
+
+On macOS the engine is a Lima VM using Apple's Virtualization.framework. It needs Rosetta for Linux (`softwareupdate --install-rosetta`). On Linux it is a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor directly on the host. Windows is experimental and not yet enabled.
 
 Every command accepts `--json` and exits 0 on success, 1 when a check fails, and 2 on a usage or configuration error.
 

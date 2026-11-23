@@ -159,6 +159,149 @@ def status(ctx: typer.Context) -> None:
         st.out.next_step("Next: mirror init <dir>")
 
 
+engine_app = typer.Typer(help="The engine: the Linux VM every world runs in.", no_args_is_help=True)
+app.add_typer(engine_app, name="engine")
+
+
+@engine_app.command("setup")
+def engine_setup(
+    ctx: typer.Context,
+    cpus: Annotated[int | None, typer.Option(help="CPUs for the engine VM.")] = None,
+    memory: Annotated[int | None, typer.Option(help="Memory in GB.")] = None,
+    disk: Annotated[int | None, typer.Option(help="Disk in GB.")] = None,
+    driver: Annotated[str | None, typer.Option(help="lima, wsl or host (Linux only).")] = None,
+    experimental: Annotated[
+        bool, typer.Option(help="Allow the experimental Windows driver.")
+    ] = False,
+) -> None:
+    """Create or update the engine. Safe to run again."""
+    from mirrordimensions.engine.base import Resources
+    from mirrordimensions.engine.lima import default_resources
+    from mirrordimensions.service import engine as svc
+
+    st = _state(ctx)
+    base = default_resources()
+    resources = Resources(
+        cpus=cpus or base.cpus, memory_gb=memory or base.memory_gb, disk_gb=disk or base.disk_gb
+    )
+    if driver not in (None, "lima", "wsl", "host"):
+        raise MirrorError(
+            f"Unknown driver {driver!r}.", "Drivers: lima, wsl, host.", "Omit --driver."
+        )
+    status = svc.setup_engine(resources, driver, on_step=st.out.line, experimental=experimental)  # type: ignore[arg-type]
+    _show_engine(st, status)
+    if not st.out.json_mode:
+        st.out.next_step("Next: mirror engine check")
+
+
+@engine_app.command("status")
+def engine_status_cmd(ctx: typer.Context) -> None:
+    """Driver, state, architecture, boundary, versions, resources and clock offset."""
+    from mirrordimensions.service import engine as svc
+
+    _show_engine(_state(ctx), svc.engine_status())
+
+
+@engine_app.command("start")
+def engine_start(ctx: typer.Context) -> None:
+    """Start the engine."""
+    from mirrordimensions.service import engine as svc
+
+    st = _state(ctx)
+    _show_engine(st, svc.start_engine(on_step=st.out.line))
+
+
+@engine_app.command("stop")
+def engine_stop(ctx: typer.Context) -> None:
+    """Stop the engine."""
+    from mirrordimensions.service import engine as svc
+
+    svc.stop_engine()
+    _state(ctx).out.ok("engine stopped")
+
+
+@engine_app.command("destroy")
+def engine_destroy(
+    ctx: typer.Context,
+    yes: Annotated[bool, typer.Option("--yes", help="Do not ask for confirmation.")] = False,
+) -> None:
+    """Remove the engine and every world's containers, volumes and snapshots."""
+    from mirrordimensions.service import engine as svc
+
+    st = _state(ctx)
+    if not yes and not typer.confirm("Destroy the engine and everything in it?"):
+        raise typer.Exit(1)
+    svc.destroy_engine()
+    st.out.ok("engine destroyed; world definitions on this machine are kept")
+
+
+@engine_app.command("check")
+def engine_check(ctx: typer.Context) -> None:
+    """Prove the engine's guarantees: gVisor, Rosetta, private endpoint, no host access, egress."""
+    from mirrordimensions.service import engine as svc
+
+    st = _state(ctx)
+    results = svc.check_engine()
+    if st.out.json_mode:
+        st.out.document([r.model_dump() for r in results])
+    else:
+        for r in results:
+            line = f"{r.name}" + (f"  ({r.detail})" if r.detail else "")
+            if r.outcome == "fail":
+                st.out.fail(line)
+            elif r.outcome == "skip":
+                st.out.line(f"{'skip':<6}{line}")
+            else:
+                st.out.ok(line)
+    if any(r.outcome == "fail" for r in results):
+        raise typer.Exit(1)
+
+
+@engine_app.command(
+    "shell", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+)
+def engine_shell(ctx: typer.Context) -> None:
+    """Open a shell in the engine, for debugging the mirror itself."""
+    import os
+
+    from mirrordimensions.engine.lima import INSTANCE, LimaEngine
+    from mirrordimensions.engine.registry import get_engine
+
+    engine = get_engine()
+    if not isinstance(engine, LimaEngine):
+        raise MirrorError(
+            "engine shell needs the lima driver.",
+            f"This engine uses {engine.name}.",
+            "Use the driver's own tools.",
+        )
+    env = {**os.environ, "LIMA_HOME": str(engine.lima_home)}
+    os.execve(str(engine.limactl), [str(engine.limactl), "shell", INSTANCE, *ctx.args], env)  # noqa: S606
+
+
+def _show_engine(st: State, status: object) -> None:
+    from mirrordimensions.engine.base import EngineStatus
+
+    assert isinstance(status, EngineStatus)  # noqa: S101
+    if st.out.json_mode:
+        st.out.document(status)
+        return
+    s = status
+    st.out.line(
+        f"{'Engine':<10}{s.driver} · {s.state}"
+        + (f" · {s.arch}" if s.arch else "")
+        + (f" · {s.boundary}" if s.boundary else "")
+    )
+    if s.resources:
+        r = s.resources
+        st.out.line(f"{'Size':<10}{r.cpus} CPUs · {r.memory_gb} GB memory · {r.disk_gb} GB disk")
+    if s.versions:
+        st.out.line(
+            f"{'Versions':<10}" + " · ".join(f"{k} {v}" for k, v in sorted(s.versions.items()))
+        )
+    if s.clock_offset_s is not None:
+        st.out.line(f"{'Clock':<10}{s.clock_offset_s:+.3f} s from the host")
+
+
 def main() -> None:
     use_utf8_streams()
     try:
