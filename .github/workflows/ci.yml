@@ -132,6 +132,11 @@ jobs:
       - name: mirror engine status
         if: always()
         run: uv run mirror engine status
+      - name: Guest provisioning log (on failure)
+        if: failure()
+        run: |
+          export LIMA_HOME="$HOME/.local/share/mirrordimensions/lima-home"
+          "$HOME/.local/share/mirrordimensions/lima/2.3.0/bin/limactl" shell engine -- sudo tail -80 /var/log/cloud-init-output.log || true
       - name: mirror engine destroy
         if: always()
         run: uv run mirror engine destroy --yes

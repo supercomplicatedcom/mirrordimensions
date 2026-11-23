@@ -252,7 +252,12 @@ class LimaEngine:
         if inst is None:
             _note(on_step, "Creating the engine VM (first run downloads Ubuntu and packages)")
             done = self._limactl(
-                "start", f"--name={INSTANCE}", "--tty=false", str(self.config_path), timeout=1800
+                "start",
+                f"--name={INSTANCE}",
+                "--tty=false",
+                "--timeout=30m",
+                str(self.config_path),
+                timeout=2400,
             )
             if done.returncode != 0:
                 raise _start_error(done)
@@ -268,7 +273,7 @@ class LimaEngine:
             )
         if inst.get("status") != "Running":
             _note(on_step, "Starting the engine")
-            done = self._limactl("start", INSTANCE, "--tty=false", timeout=900)
+            done = self._limactl("start", INSTANCE, "--tty=false", "--timeout=15m", timeout=1200)
             if done.returncode != 0:
                 raise _start_error(done)
         self._restrict_socket()
