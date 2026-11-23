@@ -6,9 +6,13 @@ from __future__ import annotations
 
 import re
 import subprocess
+import sys
 from importlib.resources import files
 
+import pytest
 
+
+@pytest.mark.skipif(sys.platform == "win32", reason="bash on Windows runners is the WSL launcher")
 def test_config_checksum_lines_tolerate_missing_files() -> None:
     script = files("mirrordimensions.engine.provision").joinpath("provision.sh").read_text("utf-8")
     lines = [ln for ln in script.splitlines() if re.match(r'^(before|after)="\$\(', ln)]
