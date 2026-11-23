@@ -58,6 +58,13 @@ fi
 
 # containerd finds runtime io.containerd.kata-fc.v2 as the binary containerd-shim-kata-fc-v2.
 # Kata 4.4 runs Firecracker through its Rust runtime (runtime-rs).
+# Kata 4.4's Firecracker configuration fails Kata's own validation: it sets the agent's
+# dial_timeout_ms (the sleep between retries) to 45000 and leaves reconnect_timeout_ms
+# (the overall budget) at 3000. Keep its intended 45-second budget with the 10 ms retry
+# interval the other runtime-rs configurations use.
+FC_CONF=/opt/kata/share/defaults/kata-containers/runtime-rs/configuration-rs-fc.toml
+sed -i 's/^dial_timeout_ms = 45000$/dial_timeout_ms = 10\nreconnect_timeout_ms = 45000/' "$FC_CONF"
+grep -q '^reconnect_timeout_ms = 45000$' "$FC_CONF"
 # Kata 4.4 accepts a configuration only at one of its default paths (KATA_CONF_FILE
 # elsewhere is refused), so the first of them names the shipped Firecracker one.
 mkdir -p /etc/kata-containers/runtime-rs
