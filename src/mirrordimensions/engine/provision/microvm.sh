@@ -65,6 +65,11 @@ fi
 FC_CONF=/opt/kata/share/defaults/kata-containers/runtime-rs/configuration-rs-fc.toml
 sed -i 's/^dial_timeout_ms = 45000$/dial_timeout_ms = 10\nreconnect_timeout_ms = 45000/' "$FC_CONF"
 grep -q '^reconnect_timeout_ms = 45000$' "$FC_CONF"
+# Unprivileged dmesg is off on Ubuntu by default; in the guest it would show Kata's boot.
+if ! grep -q 'sysctl.kernel.dmesg_restrict=1' "$FC_CONF"; then
+  sed -i 's/^kernel_params = "\(.*\)"$/kernel_params = "\1 sysctl.kernel.dmesg_restrict=1"/' "$FC_CONF"
+fi
+grep -q '^kernel_params = ".*sysctl.kernel.dmesg_restrict=1"$' "$FC_CONF"
 # Kata 4.4 accepts a configuration only at one of its default paths (KATA_CONF_FILE
 # elsewhere is refused), so the first of them names the shipped Firecracker one.
 mkdir -p /etc/kata-containers/runtime-rs
