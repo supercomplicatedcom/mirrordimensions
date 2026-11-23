@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import base64
 import json
+import secrets
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -58,6 +59,8 @@ class Relay:
         basic: tuple[str, str] | None = None,
         timeout: int = 60,
     ) -> Response:
+        # Unique file names: requests run concurrently in the same relay container.
+        tag = secrets.token_hex(6)
         hdrs = dict(headers or {})
         payload = b""
         if isinstance(body, (dict, list)):
@@ -75,7 +78,7 @@ class Relay:
             "--max-time",
             str(timeout),
             "-o",
-            "/tmp/out",  # noqa: S108 (a path inside the relay container)
+            f"/tmp/out-{tag}",  # noqa: S108 (a path inside the relay container)
             "-w",
             "%{http_code}",
         ]
@@ -84,11 +87,11 @@ class Relay:
         if basic:
             args += ["-u", f"{basic[0]}:{basic[1]}"]
         if payload:
-            args += ["--data-binary", "@/tmp/in"]
+            args += ["--data-binary", f"@/tmp/in-{tag}"]
         script = (
-            'printf %s "$BODY" | base64 -d > /tmp/in; '
+            f'printf %s "$BODY" | base64 -d > /tmp/in-{tag}; '
             + " ".join(_quote(a) for a in args)
-            + f" {_quote(url)}; echo; base64 -w0 /tmp/out 2>/dev/null; rm -f /tmp/in /tmp/out"
+            + f" {_quote(url)} 2>/dev/null; echo; base64 -w0 /tmp/out-{tag} 2>/dev/null; rm -f /tmp/in-{tag} /tmp/out-{tag}"
         )
         out = self.docker.exec(
             self.name, ["sh", "-c", script], env={"BODY": base64.b64encode(payload).decode()}
@@ -102,6 +105,12 @@ class Relay:
                 f"{method} {url}: {out.output.strip()[:200]}",
                 "Check that the sandbox is up: mirror status",
             ) from exc
+        if status == 0:  # no connection (the system is starting, or gone)
+            raise MirrorError(
+                "The control relay could not reach a system.",
+                f"{method} {url}: no connection",
+                "Check that the sandbox is up: mirror status",
+            )
         return Response(status=status, body=base64.b64decode(rest.strip() or b""))
 
     def wait_for(self, url: str, timeout_s: float, ok: tuple[int, ...] = (200,)) -> None:

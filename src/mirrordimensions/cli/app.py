@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -18,6 +18,7 @@ from mirrordimensions.cli.output import Output
 from mirrordimensions.config import SCHEMAS
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.console import use_utf8_streams
+from mirrordimensions.project import Project
 
 app = typer.Typer(
     name="mirror",
@@ -210,6 +211,282 @@ def doctor(ctx: typer.Context) -> None:
         st.out.line(f"Isolation: {report.isolation} ({report.boundary})")
     if report.isolation == "failed":
         raise typer.Exit(1)
+
+
+@app.command()
+def build(
+    ctx: typer.Context,
+    force: Annotated[bool, typer.Option("--force", help="Rebuild from scratch.")] = False,
+) -> None:
+    """Generate the world, seed every twin, and save and verify the base snapshot."""
+    from mirrordimensions.service import world as world_svc
+
+    st = _state(ctx)
+    result = world_svc.build(service.load_project(st.start()), force=force, on_step=st.out.ok)
+    if st.out.json_mode:
+        st.out.document(result)
+        return
+    st.out.next_step("Built. Reset it at any time with: mirror reset")
+
+
+@app.command()
+def reset(
+    ctx: typer.Context,
+    snapshot: Annotated[str, typer.Argument(help="Snapshot to restore.")] = "base",
+) -> None:
+    """Restore a snapshot, and prove the state matches the moment it was saved."""
+    from mirrordimensions.service import world as world_svc
+
+    st = _state(ctx)
+    result = world_svc.reset(service.load_project(st.start()), snapshot, on_step=st.out.ok)
+    if st.out.json_mode:
+        st.out.document(result)
+    elif result.identical:
+        st.out.ok("State matches the snapshot exactly")
+    else:
+        st.out.fail("State differs from the snapshot: " + ", ".join(result.differences[:5]))
+    if not result.identical:
+        raise typer.Exit(1)
+
+
+snapshot_app = typer.Typer(help="Named snapshots of the world.", no_args_is_help=True)
+app.add_typer(snapshot_app, name="snapshot")
+
+
+@snapshot_app.command("save")
+def snapshot_save(ctx: typer.Context, name: Annotated[str, typer.Argument()]) -> None:
+    """Save the current state of every twin as a named snapshot."""
+    from mirrordimensions.service import world as world_svc
+
+    st = _state(ctx)
+    info = world_svc.save_snapshot(service.load_project(st.start()), name)
+    st.out.ok(f'Snapshot "{info.name}" saved ({info.seconds}s)')
+
+
+@snapshot_app.command("list")
+def snapshot_list(ctx: typer.Context) -> None:
+    """Snapshots of this world."""
+    import json as _json
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    path = project.state_dir / "snapshots" / "index.json"
+    data: dict[str, dict[str, Any]] = (
+        _json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    )
+    if st.out.json_mode:
+        st.out.document(data)
+        return
+    for name, info in sorted(data.items()):
+        st.out.line(f"  {name:<12}{info['created']}  {len(info['volumes'])} volumes")
+    if not data:
+        st.out.line("No snapshots. Run: mirror build")
+
+
+catalog_app = typer.Typer(help="The app catalog.", no_args_is_help=True)
+app.add_typer(catalog_app, name="catalog")
+
+
+@catalog_app.command("search")
+def catalog_search(ctx: typer.Context, text: Annotated[str, typer.Argument()]) -> None:
+    """Find apps by name, alias or kind."""
+    from mirrordimensions.catalog import index
+
+    st = _state(ctx)
+    hits = index.search(text)
+    if st.out.json_mode:
+        st.out.document([h.model_dump() for h in hits])
+        return
+    for h in hits:
+        st.out.line(f"  {h.slug:<28}{h.name:<32}{h.kind:<16}tier {h.tier}  {h.twin_status}")
+    if not hits:
+        st.out.line(f"No app matches {text!r}.")
+
+
+@catalog_app.command("show")
+def catalog_show(ctx: typer.Context, slug: Annotated[str, typer.Argument()]) -> None:
+    """One catalog entry."""
+    from mirrordimensions.catalog import index
+
+    st = _state(ctx)
+    entry = index.resolve(slug)
+    if entry is None:
+        raise MirrorError(
+            f"No catalog entry for {slug!r}.",
+            "Names match slugs and aliases.",
+            "Run: mirror catalog search <text>",
+        )
+    st.out.document(entry) if st.out.json_mode else st.out.line(entry.model_dump_json(indent=2))
+
+
+@catalog_app.command("list")
+def catalog_list(
+    ctx: typer.Context,
+    category: Annotated[str | None, typer.Option(help="Filter by category.")] = None,
+    tier: Annotated[int | None, typer.Option(help="Filter by tier.")] = None,
+    status: Annotated[
+        str | None, typer.Option(help="candidate, specified, buildable or verified.")
+    ] = None,
+) -> None:
+    """List catalog entries."""
+    from mirrordimensions.catalog import index
+
+    st = _state(ctx)
+    entries = [
+        e
+        for e in index.load()
+        if (category is None or e.category == category)
+        and (tier is None or e.tier == tier)
+        and (status is None or e.twin_status == status)
+    ]
+    if st.out.json_mode:
+        st.out.document([e.model_dump() for e in entries])
+        return
+    for e in entries:
+        st.out.line(f"  {e.slug:<28}{e.name:<32}{e.category:<40}{e.twin_status}")
+
+
+@catalog_app.command("stats")
+def catalog_stats(ctx: typer.Context) -> None:
+    """Counts by status and tier."""
+    from mirrordimensions.catalog import index
+
+    st = _state(ctx)
+    data = index.stats()
+    st.out.document(data) if st.out.json_mode else st.out.line(
+        f"{data['entries']} entries in {data['categories']} categories · by status {data['by_status']} · by tier {data['by_tier']}"
+    )
+
+
+world_app = typer.Typer(help="Define and create a world.", no_args_is_help=True)
+app.add_typer(world_app, name="world")
+
+
+@world_app.command("new")
+def world_new(
+    ctx: typer.Context,
+    directory: Annotated[Path, typer.Argument()] = Path(),
+    template: Annotated[str | None, typer.Option(help="software-team")] = None,
+    systems: Annotated[
+        str | None, typer.Option(help="Comma-separated system names, matched against the catalog.")
+    ] = None,
+    people: Annotated[int, typer.Option(help="Number of people.")] = 25,
+    history: Annotated[int, typer.Option(help="Days of history.")] = 180,
+    seed: Annotated[int | None, typer.Option(help="Seed (default: random).")] = None,
+) -> None:
+    """Define a world from a template or from named systems."""
+    from mirrordimensions.service import worlddef
+
+    st = _state(ctx)
+    names = [n.strip() for n in systems.split(",")] if systems else None
+    root = worlddef.new_world(directory, template, names, people, history, seed)
+    shown = worlddef.show_world(Project(root=root))
+    st.out.ok(f"World defined in {root}")
+    st.out.line(f"{'Company':<10}{shown['company']}")
+    for line in shown["systems"]:
+        st.out.line(f"  {line}")
+    st.out.next_step("Next: mirror world create")
+
+
+@world_app.command("show")
+def world_show(ctx: typer.Context) -> None:
+    """The definition in plain terms."""
+    from mirrordimensions.service import worlddef
+
+    st = _state(ctx)
+    shown = worlddef.show_world(service.load_project(st.start()))
+    if st.out.json_mode:
+        st.out.document(shown)
+        return
+    st.out.line(f"{'Company':<10}{shown['company']}")
+    st.out.line("Systems")
+    for line in shown["systems"]:
+        st.out.line(f"  {line}")
+    st.out.line(f"{'Links':<10}" + ("; ".join(shown["links"]) or "none"))
+    st.out.line(
+        f"{'Data':<10}" + (", ".join(f"{k} {v}" for k, v in shown["data"].items()) or "defaults")
+    )
+
+
+@world_app.command("status")
+def world_status_cmd(ctx: typer.Context) -> None:
+    """State, last finished stage, and whether the definition changed."""
+    from mirrordimensions.service import worlddef
+
+    st = _state(ctx)
+    status = worlddef.world_status(service.load_project(st.start()))
+    if st.out.json_mode:
+        st.out.document(status)
+        return
+    st.out.line(f"{'State':<10}{status.state}")
+    st.out.line(
+        f"{'Stage':<10}{status.last_stage} of 8"
+        + (f" ({status.stages[status.last_stage - 1]})" if status.last_stage else "")
+    )
+    if status.definition_changed:
+        st.out.line("The definition changed since creation; run: mirror world create --resume")
+
+
+@world_app.command("create")
+def world_create(
+    ctx: typer.Context,
+    resume: Annotated[
+        bool, typer.Option("--resume", help="Continue from the first unfinished stage.")
+    ] = False,
+    from_stage: Annotated[
+        int | None, typer.Option("--from-stage", help="Start at this stage (1 to 8).")
+    ] = None,
+) -> None:
+    """Create the world in eight stages, one line per stage."""
+    from mirrordimensions.service import world as world_svc
+
+    st = _state(ctx)
+    world_svc.create_world(
+        service.load_project(st.start()), resume=resume, from_stage=from_stage, on_stage=st.out.ok
+    )
+    st.out.next_step("Ready. Agents can be onboarded into this world.")
+
+
+@world_app.command("clone")
+def world_clone(
+    ctx: typer.Context,
+    src: Annotated[Path, typer.Argument()],
+    dst: Annotated[Path, typer.Argument()],
+    new_seed: Annotated[
+        bool, typer.Option("--new-seed", help="Same shape, a different company.")
+    ] = False,
+) -> None:
+    """Copy a definition, optionally with a new seed."""
+    from mirrordimensions.service import worlddef
+
+    root = worlddef.clone_world(src, dst, new_seed)
+    _state(ctx).out.ok(f"Cloned into {root}")
+
+
+@world_app.command("destroy")
+def world_destroy(
+    ctx: typer.Context,
+    yes: Annotated[bool, typer.Option("--yes", help="Do not ask for confirmation.")] = False,
+) -> None:
+    """Remove containers, volumes and generated files; keep mirror.yaml."""
+    import shutil as _shutil
+
+    from mirrordimensions.service import sandbox as sandbox_svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    if not yes and not typer.confirm(
+        "Remove this world's containers, volumes and generated files?"
+    ):
+        raise typer.Exit(1)
+    sandbox_svc.down(project, purge=True)
+    for name in ("world.json", "create.json", "build.json", "snapshots", "sandbox"):
+        target = project.state_dir / name
+        if target.is_dir():
+            _shutil.rmtree(target)
+        else:
+            target.unlink(missing_ok=True)
+    st.out.ok("World destroyed; mirror.yaml, agents and the root CA are kept")
 
 
 system_app = typer.Typer(help="Systems: surfaces, settings, data and rules.", no_args_is_help=True)

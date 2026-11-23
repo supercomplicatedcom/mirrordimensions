@@ -31,7 +31,8 @@ To be measured in M0.5 (empty engine) and M2 (prototype world with both twins, b
 | Disk: engine, images | 3.4 GB for the VM disk (40 GB, sparse) plus 3.3 GB of cached image: about 7 GB in all | | |
 | Disk: one world, base snapshot | 6.4 GB used in the engine with Gitea, Mattermost, two PostgreSQL databases and the sandbox (images 3.4 GB); snapshot size in M3 | | |
 | Memory: world up, one agent, browser | About 1.3 GB in use with both twins up (Mattermost 215 MB under Rosetta, Gitea 91 MB, databases 30 MB each, gateway 68 MB); agent and browser in M4 | | |
-| Restore time, base snapshot (target under 60 s) | | | |
+| Restore time, base snapshot (target under 60 s) | 10.1 s for both twins after arbitrary changes (an issue created, a repository deleted); state identical to the snapshot | | |
+| `mirror build` from scratch (25 people, 6 repositories, 71 commits, 150 issues, 255 comments, 1,940 posts) | 104 s; snapshot 5 s; restore-and-compare 9.6 s | | |
 | `mirror up` (sandbox with two stub apps, images cached) | about 10 s | | |
 | `mirror doctor` | 39 s | | |
 | Event delay, gateway to host `events.jsonl` (budget 2 s) | | | |

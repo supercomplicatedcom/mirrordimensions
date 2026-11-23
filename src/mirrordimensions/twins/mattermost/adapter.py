@@ -14,6 +14,7 @@ local mode on for administration through Mattermost's own CLI (mmctl), never ove
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
@@ -118,11 +119,8 @@ class Mattermost:
             ctx.app_container, ["mmctl", "--local", "user", "list", "--all", "--format", "json"]
         )
         try:
-            existing = (
-                json.loads(listed.output[listed.output.find("[") :] or "[]")
-                if "[" in listed.output
-                else []
-            )
+            start = listed.output.find("[")
+            existing = json.JSONDecoder().raw_decode(listed.output[start:])[0] if start >= 0 else []
         except ValueError:
             existing = []
         if any(u.get("username") == ADMIN for u in existing or []):
@@ -166,6 +164,17 @@ class Mattermost:
         cached = getattr(self, "_admin_token", None)
         if cached:
             return cached
+        # One control token at a time: revoke any left by an earlier process first.
+        listed = self.docker.exec(
+            ctx.app_container,
+            ["mmctl", "--local", "token", "list", ADMIN, "--all", "--format", "json"],
+        ).output
+        for match in re.finditer(
+            r'"id"\s*:\s*"([a-z0-9]{26})"[^}]*?"description"\s*:\s*"control"', listed
+        ):
+            self.docker.exec(
+                ctx.app_container, ["mmctl", "--local", "token", "revoke", match.group(1)]
+            )
         out = self._mmctl(self.docker, ctx, "token", "generate", ADMIN, "control")
         token = _json_field(out, "token")
         self._admin_token = token
@@ -319,10 +328,17 @@ class Mattermost:
                 members = sorted(
                     m["username"] for m in self._pages(relay, ctx, f"/users?in_channel={ch['id']}&")
                 )
-                posts = (
-                    self.api(relay, ctx, "GET", f"/channels/{ch['id']}/posts?per_page=200") or {}
-                )
-                ordered = [posts["posts"][pid] for pid in reversed(posts.get("order", []))]
+                ordered: list[dict[str, Any]] = []
+                page = 0
+                while True:
+                    url = f"/channels/{ch['id']}/posts?per_page=200&page={page}"
+                    posts = self.api(relay, ctx, "GET", url) or {}
+                    batch = [posts["posts"][pid] for pid in posts.get("order", [])]
+                    ordered.extend(batch)
+                    if len(batch) < 200:
+                        break
+                    page += 1
+                ordered.sort(key=lambda p: (p.get("create_at", 0), p.get("message", "")))
                 channels.append(
                     {
                         "name": ch["name"],
@@ -352,7 +368,13 @@ class Mattermost:
         tokens: dict[str, list[str]] = {}
         for u in self._pages(relay, ctx, "/users?sort="):
             listed = self.api(relay, ctx, "GET", f"/users/{u['id']}/tokens") or []
-            active = sorted(t.get("description", "") for t in listed if t.get("is_active", True))
+            # The control plane's own token is machinery, not state a user could have made.
+            active = sorted(
+                t.get("description", "")
+                for t in listed
+                if t.get("is_active", True)
+                and not (u["username"] == ADMIN and t.get("description") == "control")
+            )
             if active:
                 tokens[u["username"]] = active
         return {"product": "mattermost", "users": users, "teams": teams, "tokens": tokens}

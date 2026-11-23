@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Gitleaks' default rules, plus one exception: the golden synthetic world, whose planted
+# canary credentials are fake by design (they exist to be leaked and traced).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic canaries in the golden world"
+paths = ['''tests/golden/world-[0-9]+\.json''']

@@ -129,6 +129,7 @@ def plan_from(manifest: Manifest) -> Plan:
             rules=[r.model_dump(exclude_none=True) for r in a.rules],
         )
         for i, a in enumerate(manifest.apps)
+        if a.build != "unavailable"  # recorded in the definition, left out of creation
     ]
     return Plan(
         world=manifest.name,
@@ -340,8 +341,14 @@ def up(
     return names
 
 
+def _blank_secrets(plan: Plan) -> dict[str, str]:
+    """Names only: removing containers needs their specs, not their secrets."""
+    keys = ("db_password", "admin_password", "user_password", "secret_key", "internal_token")
+    return {f"{app.id}:{k}": "" for app in plan.apps for k in keys}
+
+
 def down(docker: Docker, plan: Plan, purge: bool = False) -> None:
-    for spec in specs(plan, [], []):
+    for spec in specs(plan, [], [], _blank_secrets(plan)):
         docker.remove(spec.name)
     for net in (LAN, APPS, UPLINK):
         docker.remove_network(net)
@@ -349,5 +356,5 @@ def down(docker: Docker, plan: Plan, purge: bool = False) -> None:
         for app in plan.apps:
             twin = get_twin(app.product)
             if twin is not None:
-                for volume in twin.volumes(twin_context(plan, app, {})):
+                for volume in twin.volumes(twin_context(plan, app, _blank_secrets(plan))):
                     docker.remove_volume(volume)
