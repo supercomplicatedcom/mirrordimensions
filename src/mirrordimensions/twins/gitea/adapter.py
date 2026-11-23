@@ -294,11 +294,19 @@ class Gitea:
         return GiteaSeeder(self, relay, ctx, docker).seed(world, now)
 
     def setup_traces(self, docker: Docker, relay: Relay, ctx: TwinContext) -> list[str]:
+        from mirrordimensions.twins.gitea.seed import PUSH_TIME
+
         checks = {
             "access tokens": "SELECT count(*) FROM access_token",
-            "seeding's push and repository-creation entries in the activity feed": (
-                "SELECT count(*) FROM action WHERE op_type IN (1, 5, 18)"
+            "push entries in the activity feed not at their commit's time": (
+                "SELECT count(*) FROM action WHERE op_type=5 AND content LIKE '{%'"  # noqa: S608 (constant SQL)
+                f" AND created_unix <> {PUSH_TIME}"
             ),
+            "repository creations in the activity feed not at the repository's time": (
+                "SELECT count(*) FROM action a JOIN repository r ON r.id=a.repo_id"
+                " WHERE a.op_type=1 AND a.created_unix <> r.created_unix"
+            ),
+            "mirror-sync entries": "SELECT count(*) FROM action WHERE op_type=18",
             "system notices": "SELECT count(*) FROM notice",
         }
         found: list[str] = []

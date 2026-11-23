@@ -321,15 +321,24 @@ class GiteaSeeder:
             # Repositories were created when their first commit was made.
             f"UPDATE repository SET created_unix={oldest};"
             "UPDATE repository r SET updated_unix=COALESCE((SELECT max(i.updated_unix) FROM issue i WHERE i.repo_id=r.id), r.updated_unix);"
-            # The activity feed: each entry takes the time of what it refers to; seeding's own
-            # push entries (all stamped with today) are removed.
+            # The activity feed: each entry takes the time of what it refers to. Pushes take
+            # their head commit's (backdated) time; repository creation takes the repository's.
             "UPDATE action a SET created_unix=c.created_unix FROM comment c WHERE a.comment_id=c.id AND a.comment_id>0;"
             "UPDATE action a SET created_unix=i.created_unix FROM issue i WHERE a.comment_id=0 AND a.repo_id=i.repo_id "
             "AND a.content LIKE (i.index::text || '|%');"
-            "DELETE FROM action WHERE op_type IN (1, 5, 18);"
+            f"UPDATE action SET created_unix={PUSH_TIME} WHERE op_type=5 AND content LIKE '{{%';"
+            "UPDATE action a SET created_unix=r.created_unix FROM repository r WHERE a.op_type=1 AND a.repo_id=r.id;"
+            "DELETE FROM action WHERE op_type=18;"
             "DELETE FROM access_token;"
             "COMMIT;"
         )
+
+
+# The head commit's time, from the push entry's own JSON (Gitea's PushCommits).
+PUSH_TIME = (
+    "COALESCE(extract(epoch FROM (content::json->'HeadCommit'->>'Timestamp')::timestamptz),"
+    " extract(epoch FROM (content::json->'Commits'->0->>'Timestamp')::timestamptz), created_unix)::bigint"
+)
 
 
 def _issue_sql(issue_id: int, created: datetime, closed: datetime | None) -> str:
