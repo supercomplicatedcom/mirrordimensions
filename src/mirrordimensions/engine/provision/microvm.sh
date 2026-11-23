@@ -95,32 +95,29 @@ systemctl daemon-reload
 systemctl enable engine-thinpool.service
 /usr/local/sbin/engine-thinpool
 
-# 3. containerd: the devmapper snapshotter. The version line must come first and match the
-#    installed containerd (config version 3 for containerd 2.x, 2 for 1.x). Restart only if
-#    the configuration changed.
+# 3. containerd: the devmapper snapshotter, added in the format the existing file uses.
+#    Docker's containerd package ships an unversioned (version 1) file that disables "cri"
+#    by its short name; adding a version line would make that name invalid, so an
+#    unversioned file gets the version 1 section name, and a versioned file the full one.
+#    containerd is restarted only if the configuration changed.
 mkdir -p /etc/containerd
 CONF=/etc/containerd/config.toml
 touch "$CONF"
 before="$(sha256sum "$CONF")"
-if ! grep -q 'io.containerd.snapshotter.v1.devmapper' "$CONF"; then
-  major="$(containerd --version | sed -E 's/.* v?([0-9]+)\..*/\1/')"
-  if [ "$major" -ge 2 ]; then version=3; else version=2; fi
-  existing="$(grep -v '^version *=' "$CONF" || true)"
-  current="$(grep -m1 '^version *=' "$CONF" | sed -E 's/[^0-9]//g' || true)"
-  [ -n "$current" ] && version="$current"
-  {
-    echo "version = $version"
-    printf '%s\n' "$existing"
-    cat <<'TOML'
+if ! grep -qE 'io.containerd.snapshotter.v1.devmapper|plugins.devmapper' "$CONF"; then
+  if grep -q '^version *=' "$CONF"; then
+    section='[plugins."io.containerd.snapshotter.v1.devmapper"]'
+  else
+    section='[plugins.devmapper]'
+  fi
+  cat >> "$CONF" <<TOML
 
-[plugins."io.containerd.snapshotter.v1.devmapper"]
+$section
   pool_name = "engine-thinpool"
   root_path = "/var/lib/containerd/devmapper"
   base_image_size = "8GB"
   discard_blocks = true
 TOML
-  } > "$CONF.new"
-  mv "$CONF.new" "$CONF"
 fi
 after="$(sha256sum "$CONF")"
 if [ "$before" != "$after" ]; then
