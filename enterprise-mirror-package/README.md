@@ -9,6 +9,11 @@ Everything produced during design, ready to place at the root of a new repositor
 | `CLAUDE.md` | Orientation and working rules. Keep it at the repository root |
 | `docs/build-spec.md` | What to build, in what order, with acceptance criteria. The authority |
 | `docs/product-spec.md` | Why: the product, its principles, risks and roadmap |
+| `docs/decisions/` | Architecture decision records, starting with platform support (0001 to 0006) |
+| `docs/platforms.md` | Supported hosts, prerequisites, measured footprint and the verification log |
+| `docs/platforms/windows-verification.md` | What must pass on a real Windows machine before Windows leaves experimental |
+| `docs/open-source/go-public.md` | Everything that must be done before the repository becomes public |
+| `docs/tells.md` | Every way found for an agent to tell it is in a test, and how each was closed |
 | `docs/architecture.png` | Architecture diagram from the product spec (two box labels have since been renamed: "Capture and redaction" is now "Discovery crawler", and the twin factory "builds locally from specs") |
 | `design/` | Source of the 17 command-line and portal artboards, with a guide |
 | `catalog/apps.csv` | 500 candidate enterprise apps: tier, name, category. Unverified |
@@ -28,7 +33,8 @@ Everything produced during design, ready to place at the root of a new repositor
 
 | # | Name | Result |
 | --- | --- | --- |
-| M0 | Scaffold | Package, CLI skeleton, schemas, CI |
+| M0 | Scaffold | Package, CLI skeleton, schemas, CI on macOS, Windows and Linux, open-source readiness |
+| M0.5 | Engine | The mirror-managed Linux VM on every host, hardened, with gVisor |
 | M1 | Sealed network | DNS, gateway, certificates, three networks, egress and inside-out suites |
 | M2 | Twins | Gitea and Mattermost behind adapters, with profiles and rules |
 | M3 | World and reset | Seeded company, world definition and creation, snapshot, catalog index |
@@ -54,6 +60,7 @@ The specs grew over many rounds. Later sections refined earlier ones without eve
 - **Scope statement.** "Purpose and scope" describes the prototype through M6. The portal, import and devices were added afterward as M7 to M9.
 - **Exit codes.** `mirror run` exit code 4 also covers `coverage: incomplete`, as stated in "Complete coverage".
 - **Import start.** The "Three ways to start" table and the "World import" section agree that import is M8; the wizard artboard shows it as available.
+- **Platforms.** The section "Platforms and the engine" and `docs/decisions/0001` to `0006` replace every earlier statement that the prototype runs on one Linux machine or that macOS and Windows are development-only at reduced isolation. Wherever the spec says "the host" for running containers, read "the engine".
 - **Product spec terms.** The product spec says "library twin" in places where the decision is now "catalog specification built locally". It also describes the discovery crawler, drift detection, SSO and remote agents, none of which are in the build spec's milestones.
 
 Ask before resolving any conflict not listed here.
@@ -61,6 +68,7 @@ Ask before resolving any conflict not listed here.
 ## Things to verify before relying on them
 
 - Tool behavior named in the build spec (mitmproxy modes, gVisor runtime monitoring, CoreDNS, Docker internal networks, host access to an internal bridge) was not checked against current documentation.
+- Engine assumptions, each listed under "To verify" in its decision record: Lima's settings for no mounts and socket-only forwarding, Rosetta for amd64 images, gVisor under WSL2 (undocumented), Docker API streaming across the VM boundary within the two-second event budget. Results go in `docs/platforms.md`.
 - Logging blocked connection attempts on a network with no route out is an open design problem; the spec suggests a sinkhole.
 - Gitea and Mattermost licenses for this use.
 - Provider hostnames and authentication for model routes.
@@ -69,4 +77,4 @@ Ask before resolving any conflict not listed here.
 
 ## Decisions still open
 
-See "Open decisions for the owner" at the end of the build spec: stack confirmation, first twins, project and command name, license, supported platforms, default model hosts, repository and reviewers.
+See "Open decisions for the owner" at the end of the build spec: stack confirmation, first twins, project and command name, license, default model hosts, reviewers, a Windows machine for verification, and disk for the engine. Also: DCO or CLA, the project's commit email, and whether to keep history at publication. Supported platforms were decided on 2026-11-22.

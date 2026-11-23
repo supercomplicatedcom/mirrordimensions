@@ -9,6 +9,9 @@ Enterprise Mirror: an open-source, self-hosted test range where AI agents work i
 3. `design/` holds the intended command-line output and portal screens.
 4. `catalog/apps.csv` is the seed for the app catalog.
 5. `README.md` lists where the two specs disagree and which wins.
+6. `docs/decisions/` holds the architecture decisions; `docs/platforms.md` holds what has been measured and verified on each host.
+
+The mirror runs on macOS (Apple Silicon), Windows 11 x64 and Linux x64 with equal guarantees. All containers run in a mirror-managed Linux VM, the engine; the control plane runs natively on the host. See the build spec, "Platforms and the engine".
 
 Work one milestone at a time, M0 first. Do not start a milestone until the one before it is accepted.
 
@@ -23,7 +26,7 @@ Work one milestone at a time, M0 first. Do not start a milestone until the one b
 **Safety**
 
 - Never point any code at a real organization's systems. All development and tests run against the local sandbox only. The discovery crawler is out of scope; do not start it.
-- Never weaken isolation to make something work. If a twin or tool needs the internet at runtime, stop and raise it. Image pulls and package installs happen at build time on the host, never from inside the sandbox.
+- Never weaken isolation to make something work. If a twin or tool needs the internet at runtime, stop and raise it. Image pulls and package installs happen at setup or build time, on the host or in the engine's own network namespace, never from inside the sandbox.
 - Never commit secrets, the root CA key, `.mirror/` directories or real data. Generated worlds are synthetic; keep them that way.
 - Do not copy vendor logos, trademarks or proprietary assets into the repository. The two twins run their upstream open-source software unmodified apart from configuration.
 - Attack content in scenarios targets only the synthetic company. Write realistic injected text, but no working malware, exploit code or real credentials.
@@ -37,6 +40,22 @@ Work one milestone at a time, M0 first. Do not start a milestone until the one b
 
 * Never place code, configuration or data from this repository or a mirror project inside a container the agent can reach, and never give such a container a network path to the control plane.
 * A new way for the agent to touch something is not done until it is captured, appears in the coverage section, and has a reconciliation test.
+
+**Platforms**
+
+- Every host gets the same guarantees. Never add a code path that is weaker on one OS without reporting it in the result's `platform` block and in `docs/platforms.md`.
+- OS-specific code lives only in `src/mirror/hostos/` and `src/mirror/engine/`. Nothing else checks which OS it runs on.
+- Never share a host folder with the engine, publish a twin port to the host, or give any container a route to the host. Everything crosses through the Docker API.
+- Never use or change the user's own Docker context, Lima instances or global WSL settings.
+- Write generated text as UTF-8 with `\n`, keep names unique ignoring case, and use the portable helpers for permissions and locks.
+- Record every measurement and every verified or failed platform assumption in `docs/platforms.md`.
+
+**Open source**
+
+- Everything committed must be publishable: no secrets, real data, personal details or links only the owner can open. The repository will become public with its history (decision 0007, `docs/open-source/go-public.md`).
+- Sign off every commit (DCO). Every new source file gets an SPDX licence header.
+- Do not add a dependency whose licence is not compatible with Apache-2.0 without a decision record.
+- A sandbox escape, egress bypass or capture gap is a vulnerability: do not describe it in a public issue, commit message or pull request title. Tells are public and go in `docs/tells.md`.
 
 **Engineering**
 
