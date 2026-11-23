@@ -96,6 +96,95 @@ def first_stage_affected(old: dict[str, str], new: dict[str, str]) -> int:
     return 9
 
 
+def resume_stage(
+    record: dict[str, Any], hashes: dict[str, str], resume: bool, from_stage: int | None
+) -> int:
+    """The 1-based stage to start at. Without --resume a recorded world starts over; with it,
+    the earlier of the first unfinished stage and the first stage a change affects."""
+    if from_stage is not None:
+        if not 1 <= from_stage <= len(STAGES):
+            raise MirrorError(
+                f"There is no stage {from_stage}.",
+                f"Stages are 1 to {len(STAGES)}.",
+                "Run: mirror world status",
+            )
+        return from_stage
+    if not record:
+        return 1
+    affected = first_stage_affected(record.get("hashes", {}), hashes)
+    if not resume:
+        return (
+            1
+            if record.get("failed") or int(record.get("last_stage", 0)) < len(STAGES)
+            else affected
+        )
+    return min(int(record.get("last_stage", 0)) + 1, affected)
+
+
+class Draft(BaseModel):
+    """Answers so far to `mirror world new`, kept so an interrupted session resumes."""
+
+    seed: int
+    attempt: int = 0
+    company: CompanySuggestion | None = None
+    template: str | None = None
+    systems: list[str] | None = None
+    people: int | None = None
+    history: int | None = None
+
+
+QUESTIONS = ("company", "shape", "people", "history")
+
+
+def draft_path(root: Path) -> Path:
+    return root.resolve() / STATE_DIR / "draft.json"
+
+
+def load_draft(root: Path) -> Draft:
+    path = draft_path(root)
+    if path.is_file():
+        return Draft.model_validate_json(path.read_text(encoding="utf-8"))
+    return Draft(seed=secrets.randbelow(900_000) + 100_000)
+
+
+def save_draft(root: Path, draft: Draft) -> None:
+    make_dir(draft_path(root).parent, owner_only=True)
+    write_text(draft_path(root), draft.model_dump_json(indent=2) + "\n", owner_only=True)
+
+
+def next_question(draft: Draft) -> str | None:
+    """The first question not yet answered, or None when the draft is complete."""
+    if draft.company is None:
+        return "company"
+    if draft.template is None and not draft.systems:
+        return "shape"
+    if draft.people is None:
+        return "people"
+    if draft.history is None:
+        return "history"
+    return None
+
+
+def finish_draft(root: Path, draft: Draft) -> Path:
+    if next_question(draft) is not None:
+        raise MirrorError(
+            "The draft is not complete.",
+            f"Still to answer: {next_question(draft)}.",
+            "Run: mirror world new",
+        )
+    made = new_world(
+        root,
+        draft.template,
+        draft.systems,
+        draft.people or 25,
+        draft.history or 180,
+        draft.seed,
+        company=draft.company,
+    )
+    draft_path(root).unlink(missing_ok=True)
+    return made
+
+
 def new_world(
     path: Path,
     template: str | None = None,
@@ -104,6 +193,7 @@ def new_world(
     history: int = 180,
     seed: int | None = None,
     industry: str | None = None,
+    company: CompanySuggestion | None = None,
 ) -> Path:
     """Write a definition: a template, or named systems matched against the catalog."""
     root = path.resolve()
@@ -120,7 +210,7 @@ def new_world(
             "Run: mirror world new --template software-team",
         )
     seed = seed if seed is not None else secrets.randbelow(900_000) + 100_000
-    company = suggest_company(seed, industry)
+    company = company or suggest_company(seed, industry)
     text = render_manifest(slug(root.name) or slug(company.name), company, seed)
     text = text.replace("  size: 25\n", f"  size: {people}\n").replace(
         "  history_days: 180\n", f"  history_days: {history}\n"

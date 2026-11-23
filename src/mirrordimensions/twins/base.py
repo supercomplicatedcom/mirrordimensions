@@ -5,10 +5,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, Protocol
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.twins.relay import Relay
+
+if TYPE_CHECKING:
+    from mirrordimensions.world.model import World
 
 
 @dataclass
@@ -63,6 +67,15 @@ class Twin(Protocol):
         grants: dict[str, Any],
     ) -> Identity: ...
     def dump_state(self, relay: Relay, ctx: TwinContext) -> dict[str, Any]: ...
+    def seed(
+        self, docker: Docker, relay: Relay, ctx: TwinContext, world: World, now: datetime
+    ) -> dict[str, int]:
+        """Load the company into the product, backdated, and remove seeding's own traces."""
+        ...
+
+    def setup_traces(self, docker: Docker, relay: Relay, ctx: TwinContext) -> list[str]:
+        """What building the world left behind that a real company would not have; empty when clean."""
+        ...
 
 
 def get_twin(product: str | None) -> Twin | None:

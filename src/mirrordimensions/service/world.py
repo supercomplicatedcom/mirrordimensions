@@ -8,6 +8,7 @@ import hashlib
 import json
 import time
 from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Any, cast
 
 from pydantic import BaseModel
@@ -116,92 +117,149 @@ def diff_dumps(before: Any, after: Any, prefix: str = "") -> list[str]:
     return [prefix or "/"]
 
 
-def build(project: Project, force: bool = False, on_step: StepFn = None) -> BuildResult:
-    manifest: Manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
-    docker, *_ = _docker()
-    secrets = app_secrets(project, manifest)
-    with ProjectLock(project.state_dir, "build"), keep_awake("Building the world"):
-        world = generate(manifest)
-        text = world_json(world)
-        digest = hashlib.sha256(text.encode()).hexdigest()[:16]
-        write_text(project.state_dir / "world.json", text, owner_only=True)
-        _step(
-            on_step,
-            f"World generated from seed {manifest.company.seed}: {len(world.people)} people, "
-            f"{len(world.repositories)} repositories, {sum(len(r.issues) for r in world.repositories)} issues, "
-            f"{sum(len(c.messages) for c in world.channels)} messages",
-        )
-        state_path = project.state_dir / "build.json"
-        state: dict[str, Any] = (
-            json.loads(state_path.read_text(encoding="utf-8")) if state_path.is_file() else {}
-        )
-        fresh = force or state.get("world") != digest
-        if fresh:
-            sandbox.down(docker, plan, purge=True)
-        leaves = ensure_leaves(
-            project.state_dir / "ca", project.state_dir / "certs", plan.tls_names, plan.seed
-        )
-        sandbox.up(docker, plan, leaves, secrets=[], app_secrets=secrets)
-        _step(on_step, "Network ready: DNS, gateway, certificates")
-        from mirrordimensions.twins.gitea.seed import GiteaSeeder, utc_now
-        from mirrordimensions.twins.mattermost import seed as mattermost_seed
+class _Run:
+    """One build, as six idempotent stages. Each can run again after a failure without harm:
+    generation is deterministic, the network comes up idempotently, and seeding records each
+    finished system in build.json and skips it next time."""
 
-        now = utc_now()
-        relay = Relay(docker)
-        seeded: dict[str, dict[str, int]] = dict(state.get("seeded", {})) if not fresh else {}
-        for app in _twins(plan):
-            if app.id in seeded:
+    def __init__(self, project: Project, force: bool, on_step: StepFn) -> None:
+        self.project = project
+        self.force = force
+        self.on_step = on_step
+        self.manifest: Manifest = _manifest(project)
+        self.plan = sandbox.plan_from(self.manifest)
+        self.docker, *_ = _docker()
+        self.secrets = app_secrets(project, self.manifest)
+        self.world = generate(self.manifest)
+        self.text = world_json(self.world)
+        self.digest = hashlib.sha256(self.text.encode()).hexdigest()[:16]
+        self.state_path = project.state_dir / "build.json"
+        self.state: dict[str, Any] = (
+            json.loads(self.state_path.read_text(encoding="utf-8"))
+            if self.state_path.is_file()
+            else {}
+        )
+        self.fresh = force or self.state.get("world") != self.digest
+        self.seeded: dict[str, dict[str, int]] = (
+            {} if self.fresh else dict(self.state.get("seeded", {}))
+        )
+        self.result: BuildResult | None = None
+
+    def stages(self) -> list[Callable[[], None]]:
+        return [self.generate, self.network, self.start, self.load, self.traces, self.snapshot]
+
+    def generate(self) -> None:
+        write_text(self.project.state_dir / "world.json", self.text, owner_only=True)
+        w = self.world
+        _step(
+            self.on_step,
+            f"World generated from seed {self.manifest.company.seed}: {len(w.people)} people, "
+            f"{len(w.repositories)} repositories, {sum(len(r.issues) for r in w.repositories)} issues, "
+            f"{sum(len(c.messages) for c in w.channels)} messages",
+        )
+
+    def network(self) -> None:
+        if self.fresh:
+            sandbox.down(self.docker, self.plan, purge=True)
+            self.state = {}
+            self.fresh = False  # a later stage re-run in this build must not purge again
+        leaves = ensure_leaves(
+            self.project.state_dir / "ca",
+            self.project.state_dir / "certs",
+            self.plan.tls_names,
+            self.plan.seed,
+        )
+        sandbox.up(self.docker, self.plan, leaves, secrets=[], app_secrets=self.secrets)
+        _step(self.on_step, "Network ready: DNS, gateway, certificates")
+
+    def start(self) -> None:
+        relay = Relay(self.docker)
+        for app in _twins(self.plan):
+            twin = get_twin(app.product)
+            assert twin is not None  # noqa: S101
+            twin.bootstrap(self.docker, relay, sandbox.twin_context(self.plan, app, self.secrets))
+        _step(
+            self.on_step,
+            "Systems started: " + ", ".join(str(a.product) for a in _twins(self.plan)),
+        )
+
+    def load(self) -> None:
+        now = datetime.now(UTC)  # seeding time; the world itself is defined by offsets from it
+        relay = Relay(self.docker)
+        for app in _twins(self.plan):
+            if app.id in self.seeded:
                 continue
             twin = get_twin(app.product)
             assert twin is not None  # noqa: S101
-            ctx = sandbox.twin_context(plan, app, secrets)
-            twin.bootstrap(docker, relay, ctx)
-            if app.product == "gitea":
-                seeded[app.id] = GiteaSeeder(twin, relay, ctx, docker).seed(world, now)
-            elif app.product == "mattermost":
-                seeded[app.id] = mattermost_seed.seed(docker, ctx, world, now)
+            ctx = sandbox.twin_context(self.plan, app, self.secrets)
+            self.seeded[app.id] = twin.seed(self.docker, relay, ctx, self.world, now)
             write_text(
-                state_path,
-                json.dumps({"world": digest, "seeded": seeded}, indent=2) + "\n",
+                self.state_path,
+                json.dumps({"world": self.digest, "seeded": self.seeded}, indent=2) + "\n",
                 owner_only=True,
             )
             _step(
-                on_step,
+                self.on_step,
                 f"{app.product} seeded: "
-                + ", ".join(f"{v} {k}" for k, v in seeded[app.id].items()),
+                + ", ".join(f"{v} {k}" for k, v in self.seeded[app.id].items()),
             )
-        before = _dumps(docker, plan, secrets)
-        containers, vols = _containers_and_volumes(plan, secrets)
-        info = snap.save(
-            docker, "base", vols, containers, project.state_dir / "snapshots" / "index.json"
+
+    def traces(self) -> None:
+        relay = Relay(self.docker)
+        found: list[str] = []
+        for app in _twins(self.plan):
+            twin = get_twin(app.product)
+            assert twin is not None  # noqa: S101
+            found += twin.setup_traces(
+                self.docker, relay, sandbox.twin_context(self.plan, app, self.secrets)
+            )
+        if found:
+            raise MirrorError(
+                "Building the world left traces a real company would not have.",
+                "; ".join(found[:4]),
+                "Report this as a bug, then run: mirror world create --resume",
+            )
+        _step(
+            self.on_step, "No setup traces: tokens, import files, jobs and audit entries are gone"
         )
+
+    def snapshot(self) -> None:
+        sdir = self.project.state_dir / "snapshots"
+        before = _dumps(self.docker, self.plan, self.secrets)
+        containers, vols = _containers_and_volumes(self.plan, self.secrets)
+        info = snap.save(self.docker, "base", vols, containers, sdir / "index.json")
         write_text(
-            project.state_dir / "snapshots" / "base.dump.json",
-            json.dumps(before, sort_keys=True) + "\n",
-            owner_only=True,
+            sdir / "base.dump.json", json.dumps(before, sort_keys=True) + "\n", owner_only=True
         )
-        _step(on_step, f'Snapshot saved as "base" ({info.seconds}s)')
+        _step(self.on_step, f'Snapshot saved as "base" ({info.seconds}s)')
         started = time.time()
-        snap.restore(docker, "base", project.state_dir / "snapshots" / "index.json", containers)
-        _start_twins(docker, plan, secrets)
+        snap.restore(self.docker, "base", sdir / "index.json", containers)
+        _start_twins(self.docker, self.plan, self.secrets)
         restore_seconds = round(time.time() - started, 1)
-        after = _dumps(docker, plan, secrets)
-        verified = after == before
-        if not verified:
+        after = _dumps(self.docker, self.plan, self.secrets)
+        if after != before:
             raise MirrorError(
                 "The base snapshot does not restore exactly.",
                 "Differences: " + ", ".join(diff_dumps(before, after)[:5]),
                 "Report this as a bug; the world cannot be reset reliably.",
             )
-        _step(on_step, f"Snapshot verified by a restore-and-compare ({restore_seconds}s)")
-        return BuildResult(
-            world_hash=digest,
-            seeded=seeded,
+        _step(self.on_step, f"Snapshot verified by a restore-and-compare ({restore_seconds}s)")
+        self.result = BuildResult(
+            world_hash=self.digest,
+            seeded=self.seeded,
             snapshot_seconds=info.seconds,
             restore_seconds=restore_seconds,
-            verified=verified,
+            verified=True,
         )
+
+
+def build(project: Project, force: bool = False, on_step: StepFn = None) -> BuildResult:
+    with ProjectLock(project.state_dir, "build"), keep_awake("Building the world"):
+        run = _Run(project, force, on_step)
+        for stage in run.stages():
+            stage()
+    assert run.result is not None  # noqa: S101
+    return run.result
 
 
 def reset(project: Project, name: str = "base", on_step: StepFn = None) -> ResetResult:
@@ -251,57 +309,64 @@ def save_snapshot(project: Project, name: str) -> snap.SnapshotInfo:
     return info
 
 
+def run_stages(
+    stages: list[Callable[[], None]],
+    start: int,
+    record: Callable[[int, str | None], None],
+    on_stage: StepFn = None,
+) -> int:
+    """Run stages[start-1:], recording each as it finishes; on failure record where it stopped
+    and re-raise. Returns the last finished stage. Stage numbers are 1-based."""
+    from mirrordimensions.service.worlddef import STAGES
+
+    last = start - 1
+    for number in range(start, len(stages) + 1):
+        try:
+            stages[number - 1]()
+        except MirrorError as exc:
+            record(last, f"stage {number} ({STAGES[number - 1]}): {exc.what}")
+            raise
+        last = number
+        record(last, None)
+        _step(on_stage, f"{number}. {STAGES[number - 1]}")
+    return last
+
+
 def create_world(
     project: Project, resume: bool = False, from_stage: int | None = None, on_stage: StepFn = None
-) -> list[str]:
-    """Run the eight creation stages, recording each; resume from the first unfinished one."""
+) -> int:
+    """Run the eight creation stages, recording each; resume from the first unfinished one,
+    or from the first stage a change to the definition affects."""
     from mirrordimensions.service import sandbox as sandbox_svc
     from mirrordimensions.service import worlddef
 
     manifest = _manifest(project)
-    status = worlddef.world_status(project)
     record_path = project.state_dir / "create.json"
     record: dict[str, Any] = (
         json.loads(record_path.read_text(encoding="utf-8")) if record_path.is_file() else {}
     )
-    start = 1
-    if from_stage is not None:
-        start = from_stage
-    elif resume and record:
-        start = min(
-            int(record.get("last_stage", 0)) + 1,
-            worlddef.first_stage_affected(
-                record.get("hashes", {}), worlddef.definition_hash(manifest)
-            ),
+    start = worlddef.resume_stage(record, worlddef.definition_hash(manifest), resume, from_stage)
+    if start > len(worlddef.STAGES):
+        _step(on_stage, "Already created; nothing in the definition changed")
+        return len(worlddef.STAGES)
+    unavailable = [a.id for a in manifest.apps if a.build == "unavailable"]
+    if unavailable:
+        _step(on_stage, "Left out (no twin yet): " + ", ".join(unavailable))
+
+    def checks() -> None:
+        report = sandbox_svc.doctor(project)
+        if report.isolation == "failed":
+            failed = ", ".join(c.name for c in report.failed[:3])
+            raise MirrorError(
+                "The world's checks failed.", f"Failed: {failed}.", "Run: mirror doctor"
+            )
+
+    with ProjectLock(project.state_dir, "build"), keep_awake("Creating the world"):
+        run = _Run(project, force=start == 1 and bool(record), on_step=None)
+        stages = [*run.stages(), checks, lambda: None]
+        return run_stages(
+            stages,
+            start,
+            lambda stage, failed: worlddef.record_stage(project, stage, manifest, failed),
+            on_stage,
         )
-    done: list[str] = []
-    if status.unavailable:
-        _step(on_stage, "Left out (no twin yet): " + ", ".join(status.unavailable))
-
-    def finish(stage: int) -> None:
-        worlddef.record_stage(project, stage, manifest)
-        done.append(worlddef.STAGES[stage - 1])
-        _step(on_stage, f"{stage}. {worlddef.STAGES[stage - 1]}")
-
-    try:
-        if start <= 6:
-            force = start <= 4 and bool(record) and not resume
-            build(project, force=force or (start <= 1 and bool(record)), on_step=None)
-            for stage in range(max(start, 1), 7):
-                finish(stage)
-        if start <= 7:
-            report = sandbox_svc.doctor(project)
-            if report.isolation == "failed":
-                failed = ", ".join(c.name for c in report.failed[:3])
-                worlddef.record_stage(project, 6, manifest, failed=f"checks failed: {failed}")
-                raise MirrorError(
-                    "The world's checks failed.",
-                    f"Failed: {failed}.",
-                    "Run: mirror doctor, then mirror world create --resume",
-                )
-            finish(7)
-        if start <= 8:
-            finish(8)
-    except MirrorError:
-        raise
-    return done

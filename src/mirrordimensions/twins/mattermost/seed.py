@@ -200,7 +200,9 @@ def _backdate(docker: Docker, ctx: TwinContext, world: World, now: datetime) -> 
     statements.append(
         "UPDATE channels c SET lastpostat=COALESCE((SELECT max(createat) FROM posts p WHERE p.channelid=c.id), c.lastpostat);"
     )
-    statements.append("DELETE FROM jobs WHERE type='import_process';")
+    statements.append("DELETE FROM jobs WHERE type LIKE 'import%';")
+    # The audit log would show the tooling's own calls (tokens, roles); a real company's would not.
+    statements.append("DELETE FROM audits;")
     statements.append("COMMIT;")
     out = docker.exec(
         ctx.db_container,

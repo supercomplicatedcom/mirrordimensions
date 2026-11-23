@@ -8,6 +8,7 @@ Exit codes: 0 success, 1 a failed check, 2 a usage or configuration error.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -379,13 +380,60 @@ def world_new(
 
     st = _state(ctx)
     names = [n.strip() for n in systems.split(",")] if systems else None
-    root = worlddef.new_world(directory, template, names, people, history, seed)
+    if template is None and names is None and sys.stdin.isatty() and not st.out.json_mode:
+        root = _world_new_interactive(st, directory)
+    else:
+        root = worlddef.new_world(directory, template, names, people, history, seed)
     shown = worlddef.show_world(Project(root=root))
     st.out.ok(f"World defined in {root}")
     st.out.line(f"{'Company':<10}{shown['company']}")
     for line in shown["systems"]:
         st.out.line(f"  {line}")
     st.out.next_step("Next: mirror world create")
+
+
+def _world_new_interactive(st: State, directory: Path) -> Path:
+    """Ask each question in turn; every answer is saved, so an interrupted session resumes."""
+    from mirrordimensions.service import worlddef
+    from mirrordimensions.world.names import suggest_company
+
+    draft = worlddef.load_draft(directory)
+    if draft.company is not None or draft.template or draft.systems:
+        st.out.line("Continuing the draft from where it was left.")
+    while (question := worlddef.next_question(draft)) is not None:
+        if question == "company":
+            offer = suggest_company(draft.seed, attempt=draft.attempt)
+            answer = typer.prompt(
+                f"Company: {offer.name} ({offer.domain}, {offer.industry}). Use it? "
+                "yes, another, or type a name",
+                default="yes",
+            ).strip()
+            if answer.lower() in ("y", "yes"):
+                draft.company = offer
+            elif answer.lower() in ("a", "another", "n", "no"):
+                draft.attempt += 1
+            else:
+                from mirrordimensions.world.names import CompanySuggestion, slug
+
+                draft.company = CompanySuggestion(
+                    name=answer, domain=f"{slug(answer)}.com", industry=offer.industry
+                )
+        elif question == "shape":
+            names = ", ".join(t.name for t in worlddef.list_templates())
+            answer = typer.prompt(
+                f"Start from a template ({names}) or list systems, comma-separated",
+                default="software-team",
+            ).strip()
+            if answer in worlddef.TEMPLATES:
+                draft.template = answer
+            else:
+                draft.systems = [n.strip() for n in answer.split(",") if n.strip()]
+        elif question == "people":
+            draft.people = typer.prompt("How many people", default=25, type=int)
+        else:
+            draft.history = typer.prompt("Days of history", default=180, type=int)
+        worlddef.save_draft(directory, draft)
+    return worlddef.finish_draft(directory, draft)
 
 
 @world_app.command("show")

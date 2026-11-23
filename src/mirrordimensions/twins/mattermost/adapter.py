@@ -15,12 +15,16 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import Identity, TwinContext
 from mirrordimensions.twins.relay import Relay
+
+if TYPE_CHECKING:
+    from mirrordimensions.world.model import World
 
 IMAGE = "mattermost/mattermost-team-edition:12.1@sha256:35927b9c535a9eb74f0e45385d3fe5d8308b16e0464031f157a834da8af3ee73"
 DB_IMAGE = (
@@ -304,6 +308,34 @@ class Mattermost:
             token=token,
             env={"MATTERMOST_URL": f"https://{ctx.hostname}", "MATTERMOST_TOKEN": token},
         )
+
+    def seed(
+        self, docker: Docker, relay: Relay, ctx: TwinContext, world: World, now: datetime
+    ) -> dict[str, int]:
+        from mirrordimensions.twins.mattermost.seed import seed
+
+        return seed(docker, ctx, world, now)
+
+    def setup_traces(self, docker: Docker, relay: Relay, ctx: TwinContext) -> list[str]:
+        found: list[str] = []
+        checks = {
+            "import jobs": "SELECT count(*) FROM jobs WHERE type LIKE 'import%'",
+            "audit log entries": "SELECT count(*) FROM audits",
+            # The one control token is expected; anything else is seeding's.
+            "access tokens other than the control token": (
+                "SELECT count(*) FROM useraccesstokens WHERE description <> 'control'"
+            ),
+        }
+        for what, query in checks.items():
+            out = docker.exec(
+                ctx.db_container, ["psql", "-U", "mattermost", "-d", "mattermost", "-tAc", query]
+            )
+            if out.exit_code != 0 or out.output.strip() != "0":
+                found.append(f"mattermost: {what} ({out.output.strip()[:80]})")
+        listed = docker.exec(ctx.app_container, ["mmctl", "--local", "import", "list", "available"])
+        if "No import files found" not in listed.output:
+            found.append(f"mattermost: import files left ({listed.output.strip()[:80]})")
+        return found
 
     def dump_state(self, relay: Relay, ctx: TwinContext) -> dict[str, Any]:
         users = sorted(
