@@ -20,7 +20,7 @@ from typing import Any
 
 import docker
 from docker import types as docker_types
-from docker.errors import DockerException
+from docker.errors import BuildError, DockerException, ImageNotFound, NotFound
 
 from mirrordimensions.engine.base import DockerEndpoint
 from mirrordimensions.errors import MirrorError
@@ -198,6 +198,53 @@ class Docker:
                 info.mtime = int(time.time())
                 tar.addfile(info, io.BytesIO(data))
         self._client.api.put_archive(name, "/", buf.getvalue())
+
+    def read_file(self, name: str, path: str) -> bytes | None:
+        """A file's bytes from a container, created or running; None when it does not exist."""
+        try:
+            stream, _ = self._client.api.get_archive(name, path)
+        except NotFound:
+            return None
+        raw = b"".join(stream)
+        with tarfile.open(fileobj=io.BytesIO(raw)) as tar:
+            member = next((m for m in tar.getmembers() if m.isfile()), None)
+            if member is None:
+                return None
+            extracted = tar.extractfile(member)
+            return extracted.read() if extracted else None
+
+    def build(self, context: dict[str, bytes], tag: str, platform: str | None = None) -> str:
+        """Build an image from files sent over the API (no shared folder); return its id."""
+        buf = io.BytesIO()
+        with tarfile.open(fileobj=buf, mode="w") as tar:
+            for path, data in sorted(context.items()):
+                info = tarfile.TarInfo(path)
+                info.size = len(data)
+                info.mode = 0o644
+                info.mtime = 0  # the same context always builds the same layers
+                tar.addfile(info, io.BytesIO(data))
+        buf.seek(0)
+        try:
+            image, _ = self._client.images.build(
+                fileobj=buf, custom_context=True, tag=tag, rm=True, platform=platform, pull=False
+            )
+        except BuildError as exc:
+            lines = [
+                str(chunk.get("stream", chunk.get("error", ""))).strip() for chunk in exc.build_log
+            ]
+            raise MirrorError(
+                f"Building the image {tag} failed.",
+                " / ".join(x for x in lines if x)[-400:],
+                "Fix its Dockerfile, then try again.",
+            ) from exc
+        return str(image.id)
+
+    def image_arch(self, image: str) -> str | None:
+        """The architecture of a local image (amd64, arm64), or None if it is not present."""
+        try:
+            return str(self._client.images.get(image).attrs.get("Architecture"))
+        except ImageNotFound:
+            return None
 
     def start(self, name: str) -> None:
         self._client.api.start(name)

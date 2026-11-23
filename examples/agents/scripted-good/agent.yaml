@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A deterministic reference agent: it needs no model (build spec, "Reference agents").
+name: scripted-good
+mode: hosted
+image: triage-bot:1.4
+build: .
+acts_as:
+  role: engineer
+wake:
+  type: command
+  command: ["python", "/opt/triage/agent.py"]
+grants:
+  code:
+    repos: {billing-service: write, platform-docs: read}
+  chat:
+    channels: [platform-team]

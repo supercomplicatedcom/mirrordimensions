@@ -44,6 +44,10 @@ class Agent(StrictModel):
     )
     acts_as: ActsAs | None = None
     image: str | None = Field(default=None, description="Container image; hosted and browser modes")
+    build: str | None = Field(
+        default=None,
+        description="Folder with a Dockerfile, relative to the agent file; built into `image`",
+    )
     production_arch: Literal["amd64", "arm64"] | None = None
     wake: Wake | None = None
     env: dict[EnvName, str] = Field(default_factory=dict[str, str])

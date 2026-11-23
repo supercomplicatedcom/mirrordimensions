@@ -537,6 +537,109 @@ def world_destroy(
     st.out.ok("World destroyed; mirror.yaml, agents and the root CA are kept")
 
 
+agent_app = typer.Typer(
+    help="Agents under test: register, inspect and check them.", no_args_is_help=True
+)
+app.add_typer(agent_app, name="agent")
+
+
+@agent_app.command("add")
+def agent_add(ctx: typer.Context, file: Annotated[Path, typer.Argument()]) -> None:
+    """Register an agent file with the project and validate it against the world."""
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    added = agents_svc.add_agent(service.load_project(st.start()), file)
+    st.out.ok(f"Agent {added.name} added ({added.mode})")
+    st.out.next_step(f"Next: mirror agent check {added.name}")
+
+
+@agent_app.command("list")
+def agent_list(ctx: typer.Context) -> None:
+    """The project's agents."""
+    from mirrordimensions.config.loader import load_model as _load
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    rows: list[dict[str, str]] = []
+    for name, path in agents_svc.agent_files(project).items():
+        agent, _ = _load(path, agents_svc.Agent)
+        if agent is not None:
+            who = str(agent.acts_as.person or agent.acts_as.role) if agent.acts_as else "nobody yet"
+            state = f"draft, step {agent.step} of 6" if agent.status == "draft" else "defined"
+            rows.append({"name": name, "mode": agent.mode, "acts_as": who, "state": state})
+    if st.out.json_mode:
+        st.out.document(rows)
+        return
+    for r in rows:
+        st.out.line(f"  {r['name']:<20}{r['mode']:<9}{r['acts_as']:<16}{r['state']}")
+    if not rows:
+        st.out.line("No agents yet. Run: mirror agent add <file>")
+
+
+@agent_app.command("rm")
+def agent_rm(ctx: typer.Context, name: Annotated[str, typer.Argument()]) -> None:
+    """Remove an agent file from the project."""
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    agents_svc.remove_agent(service.load_project(st.start()), name)
+    st.out.ok(f"Agent {name} removed")
+
+
+@agent_app.command("creds")
+def agent_creds(ctx: typer.Context, name: Annotated[str, typer.Argument()]) -> None:
+    """The identity and credentials the agent would be issued, for debugging."""
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    shown = agents_svc.creds(service.load_project(st.start()), name)
+    if st.out.json_mode:
+        st.out.document(shown)
+        return
+    st.out.line(f"{'Acts as':<10}{shown['person']}")
+    for app_id, info in shown["systems"].items():
+        st.out.line(
+            f"  {app_id:<8}{info['username']:<20}token {info['token']}  variables {', '.join(info['env'])}"
+        )
+
+
+@agent_app.command("check")
+def agent_check(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument()],
+    allow_emulated: Annotated[
+        bool,
+        typer.Option(
+            "--allow-emulated",
+            help="Run an image built for another architecture, at reduced isolation.",
+        ),
+    ] = False,
+) -> None:
+    """Every preflight check; each failure names its fix."""
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    checks = agents_svc.check_agent(service.load_project(st.start()), name, allow_emulated)
+    if st.out.json_mode:
+        st.out.document([c.model_dump() for c in checks])
+    else:
+        for c in checks:
+            text = c.name + (f"  ({c.detail})" if c.detail else "")
+            if c.outcome == "pass":
+                st.out.ok(text)
+            elif c.outcome == "fail":
+                st.out.fail(text)
+                st.out.line(f"      Fix: {c.fix}")
+            else:
+                st.out.line(f"n/a   {text}")
+    if any(c.outcome == "fail" for c in checks):
+        raise typer.Exit(1)
+    if not st.out.json_mode:
+        st.out.next_step(f"{name} is ready.")
+
+
 system_app = typer.Typer(help="Systems: surfaces, settings, data and rules.", no_args_is_help=True)
 app.add_typer(system_app, name="system")
 set_app = typer.Typer(help="Edit mirror.yaml.", no_args_is_help=True)

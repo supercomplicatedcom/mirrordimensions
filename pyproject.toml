@@ -77,6 +77,9 @@ ignore = [
 "src/mirrordimensions/world/generate.py" = ["E501"]
 "src/mirrordimensions/service/world.py" = ["E501"]
 "src/mirrordimensions/service/worlddef.py" = ["E501"]
+"src/mirrordimensions/service/agents.py" = ["E501"]
+# Reference agents are the company's programs, written as a small team would write them.
+"examples/agents/**" = ["E501", "S310", "T201"]
 "src/mirrordimensions/cli/app.py" = ["E501"]
 # Backdating SQL is built only from integers and generated usernames ([a-z0-9.-]).
 "src/mirrordimensions/twins/*/seed.py" = ["E501", "S608"]
