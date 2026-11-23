@@ -58,11 +58,14 @@ table inet edge {
     type ipv4_addr . ipv4_addr
     flags interval
   }
-  # Packets with no route out (all IPv6 beyond the engine) are dropped before the
-  # forward hook, so log and drop them at prerouting instead.
+  # IPv6 beyond the sandbox's own range is logged and dropped here, before routing:
+  # whether the guest has an IPv6 route, or forwards IPv6 at all, differs between hosts
+  # (none on macOS; a default route on Linux), and either way a packet dropped later
+  # would go unrecorded. IPv4 with no route out is likewise dropped before the forward
+  # hook, so it is logged here too.
   chain prerouting {
     type filter hook prerouting priority -160; policy accept;
-    iifname { "docker0", "br-*" } ip6 daddr != { fe80::/10, ff00::/8 } fib daddr type != local fib daddr oif missing log prefix "edge-drop egress " drop
+    iifname { "docker0", "br-*" } ip6 daddr != { fe80::/10, ff00::/8, fd4a:4000::/32 } fib daddr type != local log prefix "edge-drop egress " drop
     iifname { "docker0", "br-*" } ip daddr != { 224.0.0.0/4, 255.255.255.255 } fib daddr type != local fib daddr oif missing log prefix "edge-drop egress " drop
   }
   chain forward {
