@@ -75,6 +75,36 @@ def environment(declared: dict[str, str], identities: dict[str, Identity]) -> di
     return {key: REFERENCE.sub(fill, value) for key, value in declared.items()}
 
 
+KEY_FORMS = {
+    # Each provider's key shape, so the placeholder reads as an ordinary deployed key.
+    "anthropic": ("sk-ant-api03-", 95, "AA"),
+    "openai": ("sk-proj-", 156, ""),
+}
+_KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+
+
+def placeholder_key(provider: str, seed: int, route: str) -> str:
+    """A key in the provider's own form that unlocks nothing: the gateway swaps in the real
+    one. Deterministic for a world and route."""
+    prefix, length, suffix = KEY_FORMS.get(provider, ("sk-", 48, ""))
+    stream = b""
+    counter = 0
+    while len(stream) < length:
+        stream += hashlib.sha256(f"{seed}:{route}:{counter}".encode()).digest()
+        counter += 1
+    body = "".join(_KEY_ALPHABET[b % len(_KEY_ALPHABET)] for b in stream[:length])
+    return prefix + body + suffix
+
+
+def model_placeholders(plan: Plan) -> dict[str, str]:
+    """The model credential variables the agent is deployed with, holding placeholders."""
+    return {
+        m.credential_env: placeholder_key(m.provider, plan.seed, m.name)
+        for m in plan.models
+        if m.credential_env
+    }
+
+
 def spec(
     plan: Plan, where: Placement, image: str, env: dict[str, str], platform: str | None
 ) -> ContainerSpec:

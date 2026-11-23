@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A minimal real agent using a model through the gateway (build spec, "Reference agents").
+# Needs a model route in mirror.yaml, for example:
+#   models:
+#     - name: primary
+#       provider: anthropic
+#       host: api.anthropic.com
+#       credential: {from_env: ANTHROPIC_API_KEY}
+# and ANTHROPIC_API_KEY set on the host. The agent holds only a placeholder.
+name: llm-example
+mode: hosted
+image: issue-assist:0.9
+build: .
+acts_as:
+  role: engineer
+wake:
+  type: command
+  command: ["python", "/opt/assist/agent.py"]
+env:
+  GITEA_URL: "${code.url}"
+  GITEA_TOKEN: "${code.token}"
+  # The company's images trust its root through the system bundle.
+  SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+grants:
+  code:
+    repos: {billing-service: write}

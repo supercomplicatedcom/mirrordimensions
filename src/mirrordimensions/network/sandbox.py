@@ -91,6 +91,28 @@ class App:
 
 
 @dataclass
+class ModelPlan:
+    """One model route. `ip`, `port` and `credential` are filled on the host just before the
+    gateway starts (service.sandbox.resolve_models); the plan itself makes no network calls."""
+
+    name: str
+    provider: str
+    host: str
+    hosted_tools: str
+    credential_env: str | None = None
+    upstream: str | None = None  # self-hosted: address:port
+    ip: str = ""
+    port: int = 0
+    credential: str | None = None
+
+    @property
+    def scheme(self) -> str:
+        # Cloud providers are reached over TLS; a self-hosted server on the company's own
+        # network is addressed as it is configured (address:port, plain HTTP).
+        return "http" if self.provider == "self-hosted" else "https"
+
+
+@dataclass
 class Plan:
     world: str
     seed: int
@@ -98,6 +120,7 @@ class Plan:
     apps: list[App]
     model_hosts: list[str]
     addr: Address = field(default_factory=Address)
+    models: list[ModelPlan] = field(default_factory=list[ModelPlan])
 
     @property
     def resolvable(self) -> list[str]:
@@ -106,7 +129,9 @@ class Plan:
 
     @property
     def tls_names(self) -> list[str]:
-        return [a.hostname for a in self.apps if a.visibility != "absent"]
+        # Model hosts get certificates from the company's root, as behind a corporate
+        # TLS-inspecting proxy.
+        return [a.hostname for a in self.apps if a.visibility != "absent"] + self.model_hosts
 
 
 DNS_NAME, GATEWAY_NAME, RELAY_NAME = "ns1", "edge-proxy-02", "klog"
@@ -138,6 +163,17 @@ def plan_from(manifest: Manifest) -> Plan:
         apps=apps,
         model_hosts=[m.host for m in manifest.models],
         addr=addr,
+        models=[
+            ModelPlan(
+                name=m.name,
+                provider=m.provider,
+                host=m.host,
+                hosted_tools=m.hosted_tools,
+                credential_env=m.credential.from_env if m.credential else None,
+                upstream=m.upstream,
+            )
+            for m in manifest.models
+        ],
     )
 
 
@@ -159,7 +195,28 @@ def routes_json(plan: Plan, secrets: list[str]) -> bytes:
                 {"surfaces": profile.surfaces, "errors": profile.errors, "rules": app.rules}
             )
         routes[app.hostname] = route
-    return json.dumps({"routes": routes, "secrets": secrets, "seed": plan.seed}, indent=2).encode()
+    for model in plan.models:
+        if not model.ip:
+            continue  # not resolved: the host stays unknown to the gateway and is refused
+        routes[model.host] = {
+            "upstream": f"{model.scheme}://{model.ip}:{model.port}",
+            "visibility": "granted",
+            "model": {
+                "name": model.name,
+                "provider": model.provider,
+                "hosted_tools": model.hosted_tools,
+                "credential": model.credential,
+                "sni": model.host,
+            },
+        }
+    redact = [*secrets, *(m.credential for m in plan.models if m.credential)]
+    return json.dumps({"routes": routes, "secrets": redact, "seed": plan.seed}, indent=2).encode()
+
+
+def egress_entries(plan: Plan) -> list[tuple[str, str, int]]:
+    """What the edge firewall lets out: the gateway's uplink address to each model route's
+    one upstream address and port. Nothing else leaves the engine."""
+    return [(plan.addr.gw_uplink, m.ip, m.port) for m in plan.models if m.ip and m.port]
 
 
 def stub_page(plan: Plan, app: App) -> bytes:
@@ -227,6 +284,7 @@ def specs(
 ) -> list[ContainerSpec]:
     a = plan.addr
     edge_py = files("mirrordimensions.network.payloads").joinpath("edge.py").read_bytes()
+    models_py = files("mirrordimensions.network.payloads").joinpath("models.py").read_bytes()
     behavior_py = files("mirrordimensions.network.payloads").joinpath("behavior.py").read_bytes()
     label = {LABEL: plan.world}
     out = [
@@ -275,11 +333,13 @@ def specs(
             image=IMAGES["gateway"],
             command=_gateway_command(plan),
             networks={LAN: a.gw_lan, APPS: a.gw_apps, UPLINK: a.gw_uplink},
+            default_route=UPLINK,  # model calls leave from the uplink address only
             sysctls={"net.ipv4.ip_unprivileged_port_start": "0"},
             cap_add=["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE", "FOWNER"],
             files={
                 "/etc/edge/edge.py": (edge_py, 0o644),
                 "/etc/edge/behavior.py": (behavior_py, 0o644),
+                "/etc/edge/models.py": (models_py, 0o644),
                 "/etc/edge/routes.json": (routes_json(plan, secrets), 0o644),
                 **{f"/etc/edge/certs/{leaf.hostname}.pem": (leaf.pem, 0o644) for leaf in leaves},
             },

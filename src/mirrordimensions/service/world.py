@@ -169,6 +169,9 @@ class _Run:
             self.plan.tls_names,
             self.plan.seed,
         )
+        from mirrordimensions.service.sandbox import apply_model_routes
+
+        apply_model_routes(self.plan)
         sandbox.up(self.docker, self.plan, leaves, secrets=[], app_secrets=self.secrets)
         _step(self.on_step, "Network ready: DNS, gateway, certificates")
 

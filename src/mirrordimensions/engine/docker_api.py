@@ -48,6 +48,8 @@ class ContainerSpec:
     platform: str | None = None  # e.g. linux/amd64 for an image emulated under Rosetta
     working_dir: str | None = None
     volumes: dict[str, str] = field(default_factory=dict[str, str])  # named volume -> path
+    # Network whose gateway becomes the container's default route (Docker's GwPriority).
+    default_route: str | None = None
 
 
 @dataclass
@@ -183,7 +185,16 @@ class Docker:
             working_dir=spec.working_dir,
         )
         for net, ip in rest:
-            self._client.api.connect_container_to_network(spec.name, net, ipv4_address=ip)
+            if net == spec.default_route:
+                # docker-py has no gateway-priority argument; the Engine API takes it directly.
+                endpoint_config = {"IPAMConfig": {"IPv4Address": ip}, "GwPriority": 100}
+                response = self._client.api._post_json(  # pyright: ignore[reportPrivateUsage]
+                    self._client.api._url("/networks/{0}/connect", net),  # pyright: ignore[reportPrivateUsage]
+                    data={"Container": spec.name, "EndpointConfig": endpoint_config},
+                )
+                self._client.api._raise_for_status(response)  # pyright: ignore[reportPrivateUsage]
+            else:
+                self._client.api.connect_container_to_network(spec.name, net, ipv4_address=ip)
         if spec.files:
             self.put_files(spec.name, spec.files)
 
@@ -226,7 +237,15 @@ class Docker:
         buf.seek(0)
         try:
             image, _ = self._client.images.build(
-                fileobj=buf, custom_context=True, tag=tag, rm=True, platform=platform, pull=False
+                fileobj=buf,
+                custom_context=True,
+                tag=tag,
+                rm=True,
+                platform=platform,
+                pull=False,
+                # Package installs happen at build time in the engine's own network namespace
+                # (CLAUDE.md, Safety); container networks are sealed by the edge firewall.
+                network_mode="host",
             )
         except BuildError as exc:
             lines = [

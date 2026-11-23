@@ -54,8 +54,9 @@ cat > /etc/nftables.d-edge.nft <<'NFT'
 table inet edge
 delete table inet edge
 table inet edge {
+  # (source network, destination, TCP port) allowed out: the model routes, nothing else.
   set egress_allow {
-    type ipv4_addr . ipv4_addr
+    type ipv4_addr . ipv4_addr . inet_service
     flags interval
   }
   # IPv6 beyond the sandbox's own range is logged and dropped here, before routing:
@@ -74,7 +75,7 @@ table inet edge {
     meta nfproto ipv6 iifname { "docker0", "br-*" } log prefix "edge-drop ipv6 " drop
     iifname { "docker0", "br-*" } ip daddr { 192.168.5.0/24, 169.254.0.0/16 } log prefix "edge-drop host " drop
     iifname { "docker0", "br-*" } oifname { "docker0", "br-*" } accept
-    iifname { "docker0", "br-*" } ip saddr . ip daddr @egress_allow accept
+    iifname { "docker0", "br-*" } ip saddr . ip daddr . tcp dport @egress_allow accept
     iifname { "docker0", "br-*" } log prefix "edge-drop egress " drop
   }
   chain input {

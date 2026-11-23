@@ -262,7 +262,8 @@ def run_hosted(
         platform, reduced = f"linux/{arch}", f"image is {arch}, emulated on {native}"
     person, identities = issue(project, agent, docker)
     where = hosted.placement(plan, agent.name)
-    env = hosted.environment(agent.env, identities)
+    # The agent's own variables win; model keys default to placeholders the gateway replaces.
+    env = {**hosted.model_placeholders(plan), **hosted.environment(agent.env, identities)}
     bridges = {
         f"br-{docker.network_id(n)[:12]}": n for n in (sandbox.LAN, sandbox.APPS, sandbox.UPLINK)
     }

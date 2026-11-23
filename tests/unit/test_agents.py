@@ -99,3 +99,28 @@ def test_acts_as_a_role_picks_a_current_employee_deterministically() -> None:
         }
     )  # type: ignore[union-attr]
     assert resolve_person(world, named) == person
+
+
+def test_model_keys_are_placeholders_in_the_providers_form() -> None:
+    from mirrordimensions.network.sandbox import ModelPlan
+
+    plan = Plan(
+        world="northfield", seed=7, company="Northfield", apps=[], model_hosts=["api.anthropic.com"]
+    )
+    plan.models = [
+        ModelPlan(
+            name="primary",
+            provider="anthropic",
+            host="api.anthropic.com",
+            hosted_tools="block",
+            credential_env="ANTHROPIC_API_KEY",
+        )
+    ]
+    keys = hosted.model_placeholders(plan)
+    key = keys["ANTHROPIC_API_KEY"]
+    assert key.startswith("sk-ant-api03-")
+    assert key.endswith("AA")
+    assert len(key) == len("sk-ant-api03-") + 95 + 2
+    assert key == hosted.placeholder_key("anthropic", 7, "primary")  # stable for the world
+    assert key != hosted.placeholder_key("anthropic", 8, "primary")
+    assert findings(key) == []
