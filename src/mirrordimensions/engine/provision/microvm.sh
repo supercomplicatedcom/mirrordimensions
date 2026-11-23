@@ -58,9 +58,15 @@ fi
 
 # containerd finds runtime io.containerd.kata-fc.v2 as the binary containerd-shim-kata-fc-v2.
 # Kata 4.4 runs Firecracker through its Rust runtime (runtime-rs).
+# Kata 4.4 accepts a configuration only at one of its default paths (KATA_CONF_FILE
+# elsewhere is refused), so the first of them names the shipped Firecracker one.
+mkdir -p /etc/kata-containers/runtime-rs
+ln -sfn /opt/kata/share/defaults/kata-containers/runtime-rs/configuration-rs-fc.toml \
+  /etc/kata-containers/runtime-rs/configuration.toml
+test -f /etc/kata-containers/runtime-rs/configuration.toml
 cat > /usr/local/bin/containerd-shim-kata-fc-v2 <<'SHIM'
 #!/bin/sh
-KATA_CONF_FILE=/opt/kata/share/defaults/kata-containers/runtime-rs/configuration-rs-fc.toml exec /opt/kata/runtime-rs/bin/containerd-shim-kata-v2 "$@"
+exec /opt/kata/runtime-rs/bin/containerd-shim-kata-v2 "$@"
 SHIM
 chmod 0755 /usr/local/bin/containerd-shim-kata-fc-v2
 
