@@ -56,7 +56,7 @@ The self-hosted route was tested against a stub inference server outside Docker'
 **A live cloud provider call** (owner's Mac and Anthropic key, 2026-11-24). `examples/agents/llm-example` ran `fix-failing-test` with a `provider: anthropic` route:
 
 - The engine firewall held exactly one triple for the route: the gateway's uplink address to `api.anthropic.com`'s pinned address on 443.
-- The agent called `claude-opus-5-5` through the gateway and got a 200 answer (148 tokens in, 220 out). The answer was captured as `model.exchange` with its body.
+- The agent called `claude-opus-5-5` through the gateway and got a 200 answer (148 tokens in, 240 out; run `r_a4a699d262`). The answer was captured as `model.exchange` with its body.
 - The real key appears nowhere in the run's captures or results. Credential headers were recorded as `[redacted]`.
 - Coverage was complete: every connection the agent's container opened went to the gateway or the resolver.
 
