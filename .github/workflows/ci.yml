@@ -142,6 +142,10 @@ jobs:
           "$L" shell engine -- sudo docker stats --no-stream --format '{{.Name}} cpu={{.CPUPerc}}' auditd-01 edge-proxy-02 || true
           cd "$RUNNER_TEMP/world"
           uv run --project "$GITHUB_WORKSPACE" mirror doctor 2>&1 | grep -E 'Latency' || true
+          echo "with the tracer stopped:"
+          "$L" shell engine -- sudo docker stop -t 2 auditd-01 || true
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor 2>&1 | grep -E 'Latency' || true
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor 2>&1 | grep -E 'Latency' || true
       - name: mirror engine status
         if: always()
         run: uv run mirror engine status
