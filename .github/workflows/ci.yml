@@ -131,6 +131,17 @@ jobs:
           cd "$RUNNER_TEMP/world"
           uv run --project "$GITHUB_WORKSPACE" mirror up
           uv run --project "$GITHUB_WORKSPACE" mirror doctor
+      - name: Tracer load and a second latency sample (diagnostic, temporary)
+        if: always()
+        run: |
+          export LIMA_HOME="$HOME/.local/share/mirrordimensions/lima-home"
+          L="$HOME/.local/share/mirrordimensions/lima/2.3.0/bin/limactl"
+          "$L" shell engine -- sudo docker stats --no-stream --format '{{.Name}} cpu={{.CPUPerc}} mem={{.MemUsage}}' || true
+          "$L" shell engine -- sh -c 'cat /proc/loadavg; nproc' || true
+          sleep 60
+          "$L" shell engine -- sudo docker stats --no-stream --format '{{.Name}} cpu={{.CPUPerc}}' auditd-01 edge-proxy-02 || true
+          cd "$RUNNER_TEMP/world"
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor 2>&1 | grep -E 'Latency' || true
       - name: mirror engine status
         if: always()
         run: uv run mirror engine status
