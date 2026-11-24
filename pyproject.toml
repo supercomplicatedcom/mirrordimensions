@@ -23,10 +23,12 @@ classifiers = [
 dependencies = [
   "cryptography>=44",   # root CA and leaf certificates
   "docker>=7.1",        # the engine's Docker API: unix sockets, TLS, exec streams, archives
+  "fastapi>=0.120",    # the portal's local HTTP API (build spec, "Portal")
   "platformdirs>=4",    # per-user config and data folders on macOS, Windows and Linux
   "pydantic>=2.11",     # typed file formats and generated JSON Schema
   "ruamel.yaml>=0.18",  # round-trip YAML that keeps comments, and line numbers for errors
   "typer>=0.16",        # the command line
+  "uvicorn>=0.38",     # serves the portal on 127.0.0.1
 ]
 
 [project.scripts]
@@ -35,6 +37,7 @@ mirrordimensions = "mirrordimensions.cli.app:main"
 
 [dependency-groups]
 dev = [
+  "httpx>=0.28",
   "md-testplugin",
   "pre-commit>=4",
   "pyright>=1.1.400",
@@ -51,6 +54,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mirrordimensions"]
+# The portal's built front end is not in git; build it first (CONTRIBUTING.md), and it ships.
+artifacts = ["src/mirrordimensions/portal/static/**"]
+exclude = ["src/mirrordimensions/portal/web/**"]
 
 [tool.ruff]
 line-length = 100

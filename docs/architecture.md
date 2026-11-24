@@ -21,7 +21,7 @@ MirrorDimensions builds a synthetic company, runs an AI agent inside it, records
                                          └──────────────────────────────────────────────┘
 ```
 
-- **The host** runs `mirror`, the control plane. It holds the project (`mirror.yaml`, agents, scenarios, the root CA) and every run's record under `.mirror/`. Nothing on the host is shared with the engine: no folders, no ports, no route back (decisions 0002 to 0004).
+- **The host** runs `mirror`, the control plane, and, when asked, the portal (`mirror portal`): a web page on `127.0.0.1` over the same service layer, never on any sandbox network (decision 0017). It holds the project (`mirror.yaml`, agents, scenarios, the root CA) and every run's record under `.mirror/`. Nothing on the host is shared with the engine: no folders, no ports, no route back (decisions 0002 to 0004).
 - **The engine** is a Linux VM the mirror creates and owns: Lima on macOS and Linux, WSL on Windows (experimental). The control plane reaches it only through its Docker API, on a socket only the owner can open. Containers run under gVisor, or, as an option on hosts with nested virtualization, in Firecracker microVMs (decision 0012).
 - **The sandbox** is one project's world inside the engine: the agent, the systems it works in, and the infrastructure that makes them look real and records what happens. The agent sees a company network with production-style hostnames and valid TLS. Nothing in it names the mirror, a test or a sandbox ([tells.md](tells.md) lists every giveaway found and how it was closed).
 
@@ -100,6 +100,7 @@ If any of these fails, coverage is `incomplete` and the run exits with code 4, w
 | Package | Holds |
 | --- | --- |
 | `cli/` | The `mirror` command: argument parsing and output only |
+| `portal/` | The local portal: `server.py` (the HTTP API over `service/`) and `web/` (the React front end, built into `static/`) |
 | `service/` | What each command does: drives the engine and calls the pure packages |
 | `config/` | The file formats (manifest, agent, scenario, event, result) as typed models |
 | `engine/` | Creating and checking the engine on each host. The only place, with `hostos/`, that knows which OS it runs on |

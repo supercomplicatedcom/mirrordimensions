@@ -17,6 +17,7 @@ network tools the agent may not have, which only makes the checks stricter.
 
 from __future__ import annotations
 
+import contextlib
 import re
 import secrets
 import time
@@ -406,6 +407,42 @@ def egress_suite(
     return checks
 
 
+HOST_NAMES = "192.168.5.2 host.lima.internal host.docker.internal gateway.docker.internal"
+PORTAL_PORT = 7420  # `mirror portal`'s default
+
+
+def portal_check(probe: Probe, portal_port: int | None) -> Check:
+    """The portal is unreachable from the agent's network and the systems' network
+    (build spec, "Portal"). Probes the running portal's port, or, when none runs, a
+    listener on the portal's default port standing in for it."""
+    with contextlib.ExitStack() as stack:
+        port = portal_port
+        what = f"the running portal's port {port}"
+        if port is None:
+            try:
+                port = stack.enter_context(host_listener(PORTAL_PORT))
+                what = f"a stand-in listener on the portal's default port {port}"
+            except OSError:
+                port = stack.enter_context(host_listener())
+                what = f"a stand-in listener on port {port} (the default port is in use)"
+        reached: list[str] = []
+        for name in (PROBE, APPS_PROBE):
+            _, out = probe.sh(
+                name,
+                f"for h in {HOST_NAMES} 127.0.0.1; do nc -z -w 2 $h {port} 2>/dev/null"
+                f" && echo REACHED $h; done; true",
+            )
+            reached += [
+                f"{name}: {ln.split()[1]}" for ln in out.splitlines() if ln.startswith("REACHED")
+            ]
+    return Check(
+        suite="egress",
+        name="The portal, from the agent's network and the systems' network",
+        outcome="fail" if reached else "pass",
+        detail=", ".join(reached) or f"{what} on 127.0.0.1: unreachable from both",
+    )
+
+
 def separation_suite(plan: Plan, probe: Probe) -> list[Check]:
     targets = [plan.addr.gw_apps] + [a.ip for a in plan.apps if a.visibility != "absent"]
     reached: list[str] = []
@@ -735,19 +772,21 @@ def run_doctor(
     boundary: str,
     twin_fetch: Callable[[str], None] | None = None,
     latency_budget_ms: float = LATENCY_BUDGET_MS,
+    portal_port: int | None = None,
 ) -> DoctorReport:
     probe = Probe(docker, ca_pem)
     probe.start(PROBE, LAN, PROBE_IP, [plan.addr.dns_ip])
     probe.start(APPS_PROBE, APPS, APPS_PROBE_IP, None)
     try:
-        checks = (
-            egress_suite(plan, probe, collector, twin_fetch)
-            + separation_suite(plan, probe)
-            + inside_out_suite(plan, probe, docker)
-            + naming_suite(plan, probe)
-            + transparency_suite(plan, probe, latency_budget_ms)
-            + capture_suite(plan, probe, collector)
-        )
+        checks = [
+            *egress_suite(plan, probe, collector, twin_fetch),
+            portal_check(probe, portal_port),
+            *separation_suite(plan, probe),
+            *inside_out_suite(plan, probe, docker),
+            *naming_suite(plan, probe),
+            *transparency_suite(plan, probe, latency_budget_ms),
+            *capture_suite(plan, probe, collector),
+        ]
     finally:
         probe.stop(PROBE, APPS_PROBE)
     if any(c.outcome == "fail" for c in checks):
