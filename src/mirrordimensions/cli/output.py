@@ -49,11 +49,11 @@ class Output:
     def ok(self, text: str) -> None:
         stream = self._stream()
         if not self.quiet:
-            print(f"{self._paint('ok', '36', stream):<6}{text}", file=stream)
+            print(f"{self._paint('ok', '36', stream)}    {text}", file=stream)
 
     def fail(self, text: str) -> None:
         stream = self._stream()
-        print(f"{self._paint('FAIL', '33', stream):<6}{text}", file=stream)
+        print(f"{self._paint('FAIL', '33', stream)}  {text}", file=stream)
 
     def next_step(self, text: str) -> None:
         """The dim closing line naming the obvious next command."""

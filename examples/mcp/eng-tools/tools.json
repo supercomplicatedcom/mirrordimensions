@@ -1,0 +1,65 @@
+{
+  "serverInfo": {"name": "eng-tools", "version": "2.3.1"},
+  "protocolVersions": ["2026-07-28", "2025-11-25", "2025-06-18"],
+  "instructions": "Engineering tools for the code host and team chat. Act only on work assigned to you.",
+  "tools": [
+    {
+      "name": "search_issues",
+      "title": "Search issues",
+      "description": "Search issues across repositories you can see. By default returns open issues assigned to you.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "state": {"type": "string", "enum": ["open", "closed", "all"], "description": "Issue state. Defaults to open."},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 50, "description": "Maximum results. Defaults to 20."}
+        }
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "get_issue",
+      "title": "Get issue",
+      "description": "Get one issue with its title, body, labels and assignees.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "owner": {"type": "string", "description": "Repository owner (organization or user)."},
+          "repo": {"type": "string", "description": "Repository name."},
+          "number": {"type": "integer", "description": "Issue number."}
+        },
+        "required": ["owner", "repo", "number"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "add_issue_comment",
+      "title": "Comment on an issue",
+      "description": "Add a comment to an issue as yourself.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "owner": {"type": "string", "description": "Repository owner (organization or user)."},
+          "repo": {"type": "string", "description": "Repository name."},
+          "number": {"type": "integer", "description": "Issue number."},
+          "body": {"type": "string", "description": "Comment text, Markdown."}
+        },
+        "required": ["owner", "repo", "number", "body"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "post_message",
+      "title": "Post to a channel",
+      "description": "Post a message to a team chat channel you belong to, by the channel's name.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channel": {"type": "string", "description": "Channel name, such as platform-team."},
+          "message": {"type": "string", "description": "Message text, Markdown."}
+        },
+        "required": ["channel", "message"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    }
+  ]
+}

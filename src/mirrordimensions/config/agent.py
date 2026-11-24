@@ -44,7 +44,14 @@ class Agent(StrictModel):
     )
     acts_as: ActsAs | None = None
     image: str | None = Field(default=None, description="Container image; hosted and browser modes")
+    build: str | None = Field(
+        default=None,
+        description="Folder with a Dockerfile, relative to the agent file; built into `image`",
+    )
     production_arch: Literal["amd64", "arm64"] | None = None
+    model: Id | None = Field(
+        default=None, description="The model route in mirror.yaml it calls; omitted when none"
+    )
     wake: Wake | None = None
     env: dict[EnvName, str] = Field(default_factory=dict[str, str])
     grants: dict[Id, dict[str, Any]] = Field(default_factory=dict[str, dict[str, Any]])

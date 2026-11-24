@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# What each eng-tools tool calls in the world's twins (decision 0009). The tool list itself
+# (tools.json) is the production server's export, kept unchanged.
+endpoint: /mcp
+backends:
+  code: {auth: token}
+  chat: {auth: Bearer}
+tools:
+  search_issues:
+    access: read
+    sentence: Searches the issues assigned to it
+    steps:
+      - {app: code, method: GET, path: /api/v1/repos/issues/search,
+         query: {assigned: "true", type: issues, state: "{state|open}", limit: "{limit|20}"}}
+  get_issue:
+    access: read
+    resource: "issue:{owner}/{repo}#{number}"
+    sentence: "Reads issue #{number} in {repo}"
+    steps:
+      - {app: code, method: GET, path: "/api/v1/repos/{owner}/{repo}/issues/{number}"}
+  add_issue_comment:
+    access: write
+    resource: "issue:{owner}/{repo}#{number}"
+    sentence: "Comments on issue #{number} in {repo}"
+    steps:
+      - {app: code, method: POST, path: "/api/v1/repos/{owner}/{repo}/issues/{number}/comments",
+         body: {body: "{body}"}}
+  post_message:
+    access: write
+    resource: "channel:{channel}"
+    sentence: "Posts in #{channel}"
+    steps:
+      - {app: chat, method: GET, path: /api/v4/users/me/teams}
+      - {app: chat, method: GET, path: "/api/v4/teams/{$0.0.id}/channels/name/{channel}"}
+      - {app: chat, method: POST, path: /api/v4/posts,
+         body: {channel_id: "{$1.id}", message: "{message}"}}

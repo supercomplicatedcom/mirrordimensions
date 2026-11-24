@@ -7,9 +7,12 @@ Until twins exist (M2), each app is served by a stub web server behind the gatew
 
 from __future__ import annotations
 
+import ipaddress
 import json
+import os
 import secrets as secrets_module
-from collections.abc import Callable
+import socket
+from collections.abc import Callable, Mapping
 
 from mirrordimensions.config.loader import load_model
 from mirrordimensions.config.manifest import Manifest
@@ -36,6 +39,15 @@ def _manifest(project: Project) -> Manifest:
         first = problems[0].render() if problems else "unknown problem"
         raise MirrorError("mirror.yaml is not valid.", first, "Run: mirror validate")
     return manifest
+
+
+def world_plan(project: Project, manifest: Manifest | None = None) -> sandbox.Plan:
+    """The world's plan, with MCP servers' tools loaded and the install root known."""
+    result = sandbox.plan_from(manifest or _manifest(project), project.root)
+    ca = project.state_dir / "ca" / "root-ca.crt"
+    if ca.is_file():
+        result.ca_pem = ca.read_bytes()
+    return result
 
 
 def _docker() -> tuple[Docker, str, str, float]:
@@ -74,9 +86,64 @@ def app_secrets(project: Project, manifest: Manifest) -> dict[str, str]:
     return current
 
 
+Resolver = Callable[[str, int], str]
+
+
+def _resolve_ipv4(host: str, port: int) -> str:
+    """The provider's address, looked up on the host (never from inside the sandbox)."""
+    try:
+        infos = socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM)
+    except OSError as exc:
+        raise MirrorError(
+            f"Cannot look up the model host {host}.",
+            str(exc),
+            "Check the host name in mirror.yaml and this machine's network.",
+        ) from exc
+    return str(infos[0][4][0])
+
+
+def open_model_routes(
+    plan: sandbox.Plan, environ: Mapping[str, str], resolve: Resolver = _resolve_ipv4
+) -> list[tuple[str, str, int]]:
+    """Fill each model route's one upstream and real credential, and return the firewall
+    entries that let exactly those out. The credential is read from the host's environment;
+    it is given to the gateway only, never to anything the agent can reach."""
+    for model in plan.models:
+        if model.upstream:
+            address, _, port = model.upstream.rpartition(":")
+            model.port = int(port)
+            model.ip = address if _is_ipv4(address) else resolve(address, model.port)
+        else:
+            model.port = 443
+            model.ip = resolve(model.host, model.port)
+        if model.credential_env:
+            value = environ.get(model.credential_env)
+            if not value:
+                raise MirrorError(
+                    f"Model route {model.name!r} needs {model.credential_env}, which is unset.",
+                    "The gateway adds the real credential; the agent holds only a placeholder.",
+                    f"Set {model.credential_env} in this shell, then try again.",
+                )
+            model.credential = value
+    return sandbox.egress_entries(plan)
+
+
+def _is_ipv4(text: str) -> bool:
+    try:
+        return isinstance(ipaddress.ip_address(text), ipaddress.IPv4Address)
+    except ValueError:
+        return False
+
+
+def apply_model_routes(plan: sandbox.Plan) -> None:
+    """Resolve the model routes and set the engine firewall to exactly their upstreams."""
+    entries = open_model_routes(plan, os.environ) if plan.models else []
+    get_engine().set_egress_allow(entries)
+
+
 def up(project: Project, on_step: StepFn = None) -> list[str]:
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = world_plan(project, manifest)
     docker, *_ = _docker()
     with ProjectLock(project.state_dir, "up"), keep_awake("Starting the sandbox"):
         leaves = ensure_leaves(
@@ -84,6 +151,7 @@ def up(project: Project, on_step: StepFn = None) -> list[str]:
         )
         if on_step:
             on_step(f"{len(leaves)} certificates for {', '.join(plan.tls_names)}")
+        apply_model_routes(plan)
         names = sandbox.up(
             docker,
             plan,
@@ -96,14 +164,15 @@ def up(project: Project, on_step: StepFn = None) -> list[str]:
 
 
 def down(project: Project, purge: bool = False) -> None:
-    plan = sandbox.plan_from(_manifest(project))
+    plan = world_plan(project)
     docker, *_ = _docker()
     with ProjectLock(project.state_dir, "down"):
         sandbox.down(docker, plan, purge=purge)
+        get_engine().set_egress_allow([])  # with the world down, nothing may leave
 
 
 def doctor(project: Project) -> DoctorReport:
-    plan = sandbox.plan_from(_manifest(project))
+    plan = world_plan(project)
     docker, driver, boundary, offset = _docker()
     for name in (sandbox.DNS_NAME, sandbox.GATEWAY_NAME, sandbox.RELAY_NAME):
         if not docker.is_running(name):
@@ -122,7 +191,7 @@ def doctor(project: Project) -> DoctorReport:
 def admin_fetcher(project: Project, app_id: str) -> Callable[[str, str, bytes], tuple[int, bytes]]:
     """For `mirror system try`: ask a product directly, through the relay, as its administrator."""
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = world_plan(project, manifest)
     docker, *_ = _docker()
     app = next(a for a in plan.apps if a.id == app_id)
     twin = get_twin(app.product)

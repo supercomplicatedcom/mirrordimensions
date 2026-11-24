@@ -114,7 +114,7 @@ def test_parse_gateway_line() -> None:
     assert parse_gateway(line) == {
         "source": "gateway",
         "type": "http.exchange",
-        "data": {"status": 200},
+        "data": {"status": 200, "gateway_seq": 1},
     }
     assert parse_gateway("[12:00:00] some log text") is None
 

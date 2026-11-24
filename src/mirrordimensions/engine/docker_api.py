@@ -20,7 +20,7 @@ from typing import Any
 
 import docker
 from docker import types as docker_types
-from docker.errors import DockerException
+from docker.errors import BuildError, DockerException, ImageNotFound, NotFound
 
 from mirrordimensions.engine.base import DockerEndpoint
 from mirrordimensions.errors import MirrorError
@@ -48,6 +48,9 @@ class ContainerSpec:
     platform: str | None = None  # e.g. linux/amd64 for an image emulated under Rosetta
     working_dir: str | None = None
     volumes: dict[str, str] = field(default_factory=dict[str, str])  # named volume -> path
+    # Network whose gateway becomes the container's default route (Docker's GwPriority).
+    default_route: str | None = None
+    entrypoint: list[str] | None = None
 
 
 @dataclass
@@ -155,6 +158,7 @@ class Docker:
         if first[0] is not None:
             endpoint = self._client.api.create_endpoint_config(ipv4_address=first[1])
             networking = self._client.api.create_networking_config({first[0]: endpoint})
+        shares_network = (spec.network_mode or "").startswith("container:")
         host_config = self._client.api.create_host_config(
             cap_drop=["ALL"],
             cap_add=spec.cap_add or None,
@@ -173,7 +177,9 @@ class Docker:
             spec.image,
             command=spec.command,
             name=spec.name,
-            hostname=spec.hostname or spec.name,
+            # A container sharing another's network namespace takes that one's host name.
+            hostname=None if shares_network else spec.hostname or spec.name,
+            entrypoint=spec.entrypoint,
             labels=spec.labels,
             host_config=host_config,
             networking_config=networking,
@@ -183,7 +189,16 @@ class Docker:
             working_dir=spec.working_dir,
         )
         for net, ip in rest:
-            self._client.api.connect_container_to_network(spec.name, net, ipv4_address=ip)
+            if net == spec.default_route:
+                # docker-py has no gateway-priority argument; the Engine API takes it directly.
+                endpoint_config = {"IPAMConfig": {"IPv4Address": ip}, "GwPriority": 100}
+                response = self._client.api._post_json(  # pyright: ignore[reportPrivateUsage]
+                    self._client.api._url("/networks/{0}/connect", net),  # pyright: ignore[reportPrivateUsage]
+                    data={"Container": spec.name, "EndpointConfig": endpoint_config},
+                )
+                self._client.api._raise_for_status(response)  # pyright: ignore[reportPrivateUsage]
+            else:
+                self._client.api.connect_container_to_network(spec.name, net, ipv4_address=ip)
         if spec.files:
             self.put_files(spec.name, spec.files)
 
@@ -198,6 +213,61 @@ class Docker:
                 info.mtime = int(time.time())
                 tar.addfile(info, io.BytesIO(data))
         self._client.api.put_archive(name, "/", buf.getvalue())
+
+    def read_file(self, name: str, path: str) -> bytes | None:
+        """A file's bytes from a container, created or running; None when it does not exist."""
+        try:
+            stream, _ = self._client.api.get_archive(name, path)
+        except NotFound:
+            return None
+        raw = b"".join(stream)
+        with tarfile.open(fileobj=io.BytesIO(raw)) as tar:
+            member = next((m for m in tar.getmembers() if m.isfile()), None)
+            if member is None:
+                return None
+            extracted = tar.extractfile(member)
+            return extracted.read() if extracted else None
+
+    def build(self, context: dict[str, bytes], tag: str, platform: str | None = None) -> str:
+        """Build an image from files sent over the API (no shared folder); return its id."""
+        buf = io.BytesIO()
+        with tarfile.open(fileobj=buf, mode="w") as tar:
+            for path, data in sorted(context.items()):
+                info = tarfile.TarInfo(path)
+                info.size = len(data)
+                info.mode = 0o644
+                info.mtime = 0  # the same context always builds the same layers
+                tar.addfile(info, io.BytesIO(data))
+        buf.seek(0)
+        try:
+            image, _ = self._client.images.build(
+                fileobj=buf,
+                custom_context=True,
+                tag=tag,
+                rm=True,
+                platform=platform,
+                pull=False,
+                # Package installs happen at build time in the engine's own network namespace
+                # (CLAUDE.md, Safety); container networks are sealed by the edge firewall.
+                network_mode="host",
+            )
+        except BuildError as exc:
+            lines = [
+                str(chunk.get("stream", chunk.get("error", ""))).strip() for chunk in exc.build_log
+            ]
+            raise MirrorError(
+                f"Building the image {tag} failed.",
+                " / ".join(x for x in lines if x)[-400:],
+                "Fix its Dockerfile, then try again.",
+            ) from exc
+        return str(image.id)
+
+    def image_arch(self, image: str) -> str | None:
+        """The architecture of a local image (amd64, arm64), or None if it is not present."""
+        try:
+            return str(self._client.images.get(image).attrs.get("Architecture"))
+        except ImageNotFound:
+            return None
 
     def start(self, name: str) -> None:
         self._client.api.start(name)

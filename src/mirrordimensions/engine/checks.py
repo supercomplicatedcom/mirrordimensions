@@ -323,7 +323,7 @@ def _egress_checks(engine: LimaEngine, docker: Docker) -> list[CheckResult]:
             "inet",
             "edge",
             "egress_allow",
-            f"{{ {subnet} . {OUTSIDE_TARGET} }}",
+            f"{{ {subnet} . {OUTSIDE_TARGET} . 443 }}",
         )
         allowed = _nc(docker, OUTSIDE_TARGET, 443, network=name)
         other_blocked = not _nc(docker, OTHER_TARGET, 443, network=name)
@@ -335,7 +335,7 @@ def _egress_checks(engine: LimaEngine, docker: Docker) -> list[CheckResult]:
             "inet",
             "edge",
             "egress_allow",
-            f"{{ {subnet} . {OUTSIDE_TARGET} }}",
+            f"{{ {subnet} . {OUTSIDE_TARGET} . 443 }}",
         )
         logged = (
             "edge-drop egress"

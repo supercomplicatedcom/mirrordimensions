@@ -13,6 +13,7 @@ Events go to standard output as JSON lines; bodies go to ~/spool/bodies/.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import sys
 import threading
@@ -23,7 +24,9 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from mitmproxy import http, tls, version
+from mitmproxy.net import encoding
 from mitmproxy.net.http import status_codes
+from mitmproxy.proxy import server_hooks
 from mitmproxy.proxy.layers.http import _http1, _http2
 
 # -- the edge presents itself as an ordinary nginx load balancer --------------------------
@@ -86,6 +89,8 @@ def _emit(kind: str, data: dict) -> int:
 
 sys.path.insert(0, "/etc/edge")
 import behavior  # noqa: E402  (the shared rule engine, copied next to this file)
+import mcpcap  # noqa: E402  (world MCP servers: mcp.message and mcp.call events)
+import models  # noqa: E402  (model routes: inference only, credentials, hosted tools)
 
 
 class Edge:
@@ -104,6 +109,19 @@ class Edge:
             for host, route in self.routes.items()
         }
         self.version_ids: dict[str, str] = {}
+        # Model routes: one pinned upstream each, reached with the provider's own name as SNI.
+        self.model_routes: dict[str, models.Route] = {}
+        self.sni_by_addr: dict[tuple[str, int], str] = {}
+        for host, route in self.routes.items():
+            spec = route.get("model")
+            if spec:
+                self.model_routes[host] = models.Route(
+                    provider=spec["provider"],
+                    hosted_tools=spec.get("hosted_tools", "block"),
+                    credential=spec.get("credential"),
+                )
+                upstream = urlsplit(route["upstream"])
+                self.sni_by_addr[(upstream.hostname, upstream.port)] = spec.get("sni", host)
         BODIES.mkdir(parents=True, exist_ok=True)
 
     def _respond(self, flow: http.HTTPFlow, host: str, answer) -> None:
@@ -158,6 +176,9 @@ class Edge:
             )
             flow.kill()
             return
+        if host in self.model_routes:
+            self._model_request(flow, host, route)
+            return
         rules = self.rules[host]
         if route.get("visibility") == "denied":
             self._respond(flow, host, rules.error("forbidden"))
@@ -194,6 +215,87 @@ class Edge:
         )
         flow.request.headers["X-Forwarded-For"] = flow.client_conn.peername[0]
 
+    def _model_request(self, flow: http.HTTPFlow, host: str, route: dict) -> None:
+        """A call to the model: inference only, hosted tools as configured, the real
+        credential added here. The prompt and parameters pass through untouched."""
+        mr = self.model_routes[host]
+        flow.metadata["edge_model"] = route["model"]["name"]
+        method, path = flow.request.method, flow.request.path
+        if not models.is_inference(mr, method, path):
+            _emit(
+                "model.refused",
+                {"host": host, "path": path.split("?")[0], "reason": "not an inference path"},
+            )
+            flow.metadata["edge_refused"] = True
+            self._respond(flow, host, models.not_inference(mr.provider, method, path))
+            return
+        hosted = models.hosted_tools_in(mr.provider, flow.request.raw_content or b"")
+        if hosted:
+            action = {"block": "blocked", "flag": "flagged", "allow": "allowed"}[mr.hosted_tools]
+            _emit("model.hosted_tools", {"host": host, "tools": hosted, "action": action})
+            if mr.hosted_tools == "block":
+                flow.metadata["edge_refused"] = True
+                self._respond(flow, host, models.refuse_hosted(mr.provider, hosted))
+                return
+            flow.metadata["edge_hosted"] = hosted
+        sent = [(k, v) for k, v in flow.request.headers.items(multi=True)]
+        flow.request.headers = http.Headers(
+            [(k.encode(), v.encode()) for k, v in models.credential_headers(mr, sent)]
+        )
+        upstream = urlsplit(route["upstream"])
+        flow.request.scheme = upstream.scheme
+        flow.request.host = upstream.hostname
+        flow.request.port = upstream.port
+        flow.request.host_header = host
+
+    def server_connect(self, data: server_hooks.ServerConnectionHookData) -> None:
+        # A model route's upstream is a pinned address; present the provider's name so its
+        # certificate is checked against that name.
+        address = data.server.address
+        if address and tuple(address) in self.sni_by_addr:
+            data.server.sni = self.sni_by_addr[tuple(address)]
+
+    def responseheaders(self, flow: http.HTTPFlow) -> None:
+        # Streamed model and MCP answers reach the agent as they arrive; a copy is kept.
+        if flow.response is None:
+            return
+        host = (flow.request.host_header or "").split(":")[0].lower()
+        if "edge_model" not in flow.metadata and "mcp" not in self.routes.get(host, {}):
+            return
+        if flow.response.headers.get("content-type", "").startswith("text/event-stream"):
+            copy = bytearray()
+            flow.metadata["edge_stream"] = copy
+
+            def tee(chunk: bytes) -> bytes:
+                copy.extend(chunk)
+                return chunk
+
+            flow.response.stream = tee
+
+    def _model_exchange(self, flow: http.HTTPFlow, body: bytes, streamed: bool) -> None:
+        mr_name = flow.metadata["edge_model"]
+        host = (flow.request.host_header or "").split(":")[0].lower()
+        mr = self.model_routes.get(host)
+        if mr is None or flow.response is None:
+            return
+        found = models.usage(mr.provider, body, streamed)
+        _emit(
+            "model.exchange",
+            {
+                "route": mr_name,
+                "provider": mr.provider,
+                "host": host,
+                "path": flow.request.path.split("?")[0],
+                "status": flow.response.status_code,
+                "streamed": streamed,
+                "hosted_tools": flow.metadata.get("edge_hosted", []),
+                "duration_ms": round(
+                    (time.monotonic() - flow.metadata.get("edge_start", time.monotonic())) * 1000, 1
+                ),
+                **found,
+            },
+        )
+
     # -- capture -----------------------------------------------------------------
 
     def _redact(self, headers) -> list[list[str]]:
@@ -227,8 +329,22 @@ class Edge:
                 flow.response.content = behavior.edit_response(flow.response.content, edits)
         start = flow.metadata.get("edge_start", time.monotonic())
         req, resp = flow.request, flow.response
+        resp_body = resp.raw_content if resp else None
+        if "edge_stream" in flow.metadata:
+            resp_body = bytes(flow.metadata["edge_stream"])
+        if (
+            "edge_model" in flow.metadata
+            and resp is not None
+            and "edge_refused" not in flow.metadata
+        ):
+            plain = resp_body or b""
+            enc = resp.headers.get("content-encoding")
+            if enc:
+                with contextlib.suppress(ValueError):
+                    plain = encoding.decode(plain, enc)
+            self._model_exchange(flow, plain, "edge_stream" in flow.metadata)
         token = f"{int(time.time() * 1000)}-{id(flow) & 0xFFFFFF:06x}"
-        _emit(
+        seq = _emit(
             "http.exchange",
             {
                 "method": req.method,
@@ -240,10 +356,36 @@ class Edge:
                 "req_headers": self._redact(req.headers),
                 "resp_headers": self._redact(resp.headers) if resp else [],
                 "req_body_ref": self._store(token, "req", req.raw_content),
-                "resp_body_ref": self._store(token, "resp", resp.raw_content if resp else None),
+                "resp_body_ref": self._store(token, "resp", resp_body),
                 "duration_ms": round((time.monotonic() - start) * 1000, 1),
             },
         )
+        host = (req.host_header or "").split(":")[0].lower()
+        mcp = self.routes.get(host, {}).get("mcp")
+        if mcp is not None and resp is not None:
+            self._mcp(flow, seq, host, mcp, resp_body)
+
+    def _mcp(self, flow: http.HTTPFlow, seq: int, host: str, mcp: dict, body: bytes | None) -> None:
+        """Every JSON-RPC message to and from a world MCP server, linked to its exchange."""
+        resp = flow.response
+        plain = body or b""
+        enc = resp.headers.get("content-encoding")
+        if enc:
+            with contextlib.suppress(ValueError):
+                plain = encoding.decode(plain, enc)
+        found = mcpcap.events(
+            flow.request.get_content(strict=False),
+            flow.request.headers.get("content-type", ""),
+            plain,
+            resp.headers.get("content-type", ""),
+            mcp.get("tools", {}),
+            self.secrets,
+        )
+        for kind, data in found:
+            _emit(
+                kind,
+                {"exchange": seq, "host": host, "client": flow.client_conn.peername[0], **data},
+            )
 
     def websocket_message(self, flow: http.HTTPFlow) -> None:
         """Every WebSocket frame, in either direction (Mattermost's live chat uses these)."""

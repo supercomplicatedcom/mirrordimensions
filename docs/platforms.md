@@ -36,6 +36,7 @@ To be measured in M0.5 (empty engine) and M2 (prototype world with both twins, b
 | `mirror world create` from stage 1 (all eight stages, including the trace check and `mirror doctor`) | 149 s and 142 s on two runs; the two state dumps identical apart from Mattermost's own `system-bot`, which the product creates at a varying moment and the dump leaves out | | |
 | `mirror up` (sandbox with two stub apps, images cached) | about 10 s | | |
 | `mirror doctor` | 39 s | | |
+| Managed browser (M4): image, memory, one `browser-basic` run | Image 3.57 GB (Playwright 1.65.2 base, Chromium 159 headless shell, arm64), pulled once; browser about 90 MB and observer about 19 MB during a run; a whole run (identity issued, browser and observer started, sign-in, comment, teardown) 10.8 s; `mirror agent check` 7 s | | |
 | Event delay, gateway to host `events.jsonl` (budget 2 s) | | | |
 | Emulated images and added latency | Mattermost (amd64 only) runs under Rosetta: median 12 ms for `/api/v4/system/ping` through the gateway | | |
 | `mirror up` with Gitea and Mattermost (images cached) | 73 s, most of it Mattermost starting under Rosetta | | |
@@ -61,3 +62,12 @@ One row per assumption from the decision records, as it is checked.
 | 2026-11-23 | macOS | The sealed network (M1): `mirror doctor` passes every check | Confirmed: egress events in 0.03–0.05 s, gateway adds 2.6 ms, isolation `full` | 0011 |
 | 2026-11-23 | macOS | IPv6 attempts reach the firewall | Not at first: no IPv6 route out, and neighbour discovery was dropped. Fixed with a prerouting rule and by allowing neighbour discovery | 0011 |
 | 2026-11-23 | macOS | gVisor hides the engine's kernel name | Yes, but gVisor reports `4.19.0-gvisor`: a tell of its own (docs/tells.md, row 5) | 0004 |
+| 2026-11-24 | macOS | Hardened Chromium (no capabilities, `no-new-privileges`, default seccomp and AppArmor, unprivileged user) starts in the engine and serves DevTools on loopback | Confirmed with `--no-sandbox`; Chromium's own sandbox cannot start without capabilities | 0014 |
+| 2026-11-24 | macOS | A second DevTools session sees the agent's input | No: DevTools has no event for another client's commands. The observer records the agent's own DevTools stream instead | 0014 |
+| 2026-11-24 | macOS | A container sharing the browser's network namespace reaches DevTools on loopback, and passes the agent's connection through unchanged | Confirmed; `browser-basic` signs in to Gitea over valid TLS, comments, and every command, navigation and screenshot is captured, with the password redacted | 0014 |
+| 2026-11-24 | macOS | Playwright's DevTools client compresses messages | Yes: permessage-deflate with context takeover; the observer inflates its copy | 0014 |
+| 2026-11-24 | - | MCP's current revision and its HTTP transport | 2026-07-28: stateless Streamable HTTP, `server/discover`, required `MCP-Protocol-Version`, `Mcp-Method` and `Mcp-Name` headers; legacy `initialize` sessions allowed alongside (dual-era) | 0009 |
+| 2026-11-24 | macOS | An agent with only MCP credentials completes `scripted-good`'s work through the world MCP server, and every message is captured | Confirmed: 5 exchanges, 10 `mcp.message`, 3 `mcp.call`; the server's 5 twin calls captured from its own address; reconciliation passes; `mirror up` with the MCP server 14 s | 0009 |
+| 2026-11-24 | macOS | `mirror agent new` interactively in a terminal, then the preflight | Confirmed: six steps; role defaults from the generated company (engineer: Astrid Mbeki, Platform Lead, with her team's repositories and her channels); every check passed | - |
+| 2026-11-24 | macOS | `mirror agent check` reaches a model route from the agent's network with the real credential, at no cost | Confirmed against the self-hosted route: an empty request answered 200 through the gateway; with the key unset the check fails and names the variable | 0013 |
+

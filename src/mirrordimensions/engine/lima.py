@@ -23,7 +23,13 @@ from pathlib import Path
 from typing import Any
 
 from mirrordimensions.engine import pins
-from mirrordimensions.engine.base import DockerEndpoint, EngineStatus, Resources
+from mirrordimensions.engine.base import (
+    DockerEndpoint,
+    EgressEntry,
+    EngineStatus,
+    Resources,
+    egress_allow_commands,
+)
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.dirs import data_dir
 from mirrordimensions.hostos.files import make_dir, set_owner_only, write_text
@@ -340,6 +346,16 @@ class LimaEngine:
     def shell(self, *command: str, timeout: float = 120) -> subprocess.CompletedProcess[str]:
         """Run a command in the guest, for the host admin and the engine's own checks."""
         return self._limactl("shell", "--workdir", "/", INSTANCE, "--", *command, timeout=timeout)
+
+    def set_egress_allow(self, entries: list[EgressEntry]) -> None:
+        for command in egress_allow_commands(entries):
+            done = self.shell("sudo", *command, timeout=60)
+            if done.returncode != 0:
+                raise MirrorError(
+                    "The engine's firewall refused the model routes.",
+                    (done.stderr or done.stdout).strip()[-300:],
+                    "Run: mirror engine setup (it reinstalls the firewall), then try again.",
+                )
 
     def clock_offset(self) -> float:
         """Guest clock minus host clock, in seconds, corrected for half the round trip."""

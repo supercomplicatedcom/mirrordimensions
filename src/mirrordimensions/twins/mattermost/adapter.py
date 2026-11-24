@@ -171,6 +171,9 @@ class Mattermost:
         cached = getattr(self, "_admin_token", None)
         if cached:
             return cached
+        # A process that did not bootstrap the world reaches the container through the relay's engine.
+        if getattr(self, "docker", None) is None:
+            self.docker = relay.docker
         # One control token at a time: revoke any left by an earlier process first.
         listed = self.docker.exec(
             ctx.app_container,

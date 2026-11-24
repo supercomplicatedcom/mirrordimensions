@@ -30,6 +30,21 @@ class EngineStatus(BaseModel):
     clock_offset_s: float | None = None
 
 
+EgressEntry = tuple[str, str, int]  # (source subnet, destination address, TCP port)
+
+
+def egress_allow_commands(entries: list[EgressEntry]) -> list[list[str]]:
+    """nft commands that make the edge's allow set exactly `entries`. Flushed first, so the
+    set is never wider than asked; between the two commands it is empty (fails closed)."""
+    commands = [["nft", "flush", "set", "inet", "edge", "egress_allow"]]
+    if entries:
+        elements = ", ".join(f"{src} . {dst} . {port}" for src, dst, port in sorted(set(entries)))
+        commands.append(
+            ["nft", "add", "element", "inet", "edge", "egress_allow", f"{{ {elements} }}"]
+        )
+    return commands
+
+
 class Engine(Protocol):
     name: str
 
@@ -40,3 +55,4 @@ class Engine(Protocol):
     def destroy(self) -> None: ...
     def docker_endpoint(self) -> DockerEndpoint: ...
     def clock_offset(self) -> float: ...
+    def set_egress_allow(self, entries: list[EgressEntry]) -> None: ...

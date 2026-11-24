@@ -12,7 +12,13 @@ from __future__ import annotations
 import subprocess
 from importlib.resources import files
 
-from mirrordimensions.engine.base import DockerEndpoint, EngineStatus, Resources
+from mirrordimensions.engine.base import (
+    DockerEndpoint,
+    EgressEntry,
+    EngineStatus,
+    Resources,
+    egress_allow_commands,
+)
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.dirs import data_dir
 
@@ -88,6 +94,21 @@ class WslEngine:
 
     def docker_endpoint(self) -> DockerEndpoint:
         return DockerEndpoint(url=f"tcp://127.0.0.1:{DOCKER_PORT}", tls_dir=str(self.tls_dir))
+
+    def set_egress_allow(self, entries: list[EgressEntry]) -> None:
+        for command in egress_allow_commands(entries):
+            done = subprocess.run(
+                ["wsl", "-d", DISTRIBUTION, "-u", "root", "--", *command],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if done.returncode != 0:
+                raise MirrorError(
+                    "The engine's firewall refused the model routes.",
+                    (done.stderr or done.stdout).strip()[-300:],
+                    "Run: mirror engine setup (it reinstalls the firewall), then try again.",
+                )
 
     def clock_offset(self) -> float:
         return 0.0

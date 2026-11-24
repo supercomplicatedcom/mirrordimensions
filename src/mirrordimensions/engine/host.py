@@ -11,7 +11,13 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from mirrordimensions.engine.base import DockerEndpoint, EngineStatus, Resources
+from mirrordimensions.engine.base import (
+    DockerEndpoint,
+    EgressEntry,
+    EngineStatus,
+    Resources,
+    egress_allow_commands,
+)
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.info import host_arch
 
@@ -48,6 +54,19 @@ class HostEngine:
 
     def docker_endpoint(self) -> DockerEndpoint:
         return DockerEndpoint(url=f"unix://{SOCKET}")
+
+    def set_egress_allow(self, entries: list[EgressEntry]) -> None:
+        # Host mode runs the firewall on this machine; changing it needs passwordless sudo.
+        for command in egress_allow_commands(entries):
+            done = subprocess.run(
+                ["sudo", "-n", *command], capture_output=True, text=True, check=False
+            )
+            if done.returncode != 0:
+                raise MirrorError(
+                    "This machine's firewall refused the model routes.",
+                    (done.stderr or done.stdout).strip()[-300:],
+                    "Allow passwordless sudo for nft, or use the engine VM (mirror engine setup).",
+                )
 
     def clock_offset(self) -> float:
         return 0.0

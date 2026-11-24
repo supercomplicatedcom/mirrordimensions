@@ -23,6 +23,7 @@ from mirrordimensions.network import sandbox
 from mirrordimensions.network.certs import ensure_leaves
 from mirrordimensions.project import Project
 from mirrordimensions.service.sandbox import _docker, _manifest, app_secrets  # pyright: ignore[reportPrivateUsage]
+from mirrordimensions.service.sandbox import world_plan as project_plan
 from mirrordimensions.snapshot import volumes as snap
 from mirrordimensions.twins.base import get_twin
 from mirrordimensions.twins.relay import Relay
@@ -127,7 +128,7 @@ class _Run:
         self.force = force
         self.on_step = on_step
         self.manifest: Manifest = _manifest(project)
-        self.plan = sandbox.plan_from(self.manifest)
+        self.plan = project_plan(project, self.manifest)
         self.docker, *_ = _docker()
         self.secrets = app_secrets(project, self.manifest)
         self.world = generate(self.manifest)
@@ -169,6 +170,9 @@ class _Run:
             self.plan.tls_names,
             self.plan.seed,
         )
+        from mirrordimensions.service.sandbox import apply_model_routes
+
+        apply_model_routes(self.plan)
         sandbox.up(self.docker, self.plan, leaves, secrets=[], app_secrets=self.secrets)
         _step(self.on_step, "Network ready: DNS, gateway, certificates")
 
@@ -264,7 +268,7 @@ def build(project: Project, force: bool = False, on_step: StepFn = None) -> Buil
 
 def reset(project: Project, name: str = "base", on_step: StepFn = None) -> ResetResult:
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = project_plan(project, manifest)
     docker, *_ = _docker()
     secrets = app_secrets(project, manifest)
     dump_path = project.state_dir / "snapshots" / f"{name}.dump.json"
@@ -291,7 +295,7 @@ def reset(project: Project, name: str = "base", on_step: StepFn = None) -> Reset
 
 def save_snapshot(project: Project, name: str) -> snap.SnapshotInfo:
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = project_plan(project, manifest)
     docker, *_ = _docker()
     secrets = app_secrets(project, manifest)
     with ProjectLock(project.state_dir, "snapshot"):

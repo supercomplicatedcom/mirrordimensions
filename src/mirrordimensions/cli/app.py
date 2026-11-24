@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 import typer
 
@@ -535,6 +535,287 @@ def world_destroy(
         else:
             target.unlink(missing_ok=True)
     st.out.ok("World destroyed; mirror.yaml, agents and the root CA are kept")
+
+
+agent_app = typer.Typer(
+    help="Agents under test: register, inspect and check them.", no_args_is_help=True
+)
+app.add_typer(agent_app, name="agent")
+
+
+@agent_app.command("add")
+def agent_add(ctx: typer.Context, file: Annotated[Path, typer.Argument()]) -> None:
+    """Register an agent file with the project and validate it against the world."""
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    added = agents_svc.add_agent(service.load_project(st.start()), file)
+    st.out.ok(f"Agent {added.name} added ({added.mode})")
+    st.out.next_step(f"Next: mirror agent check {added.name}")
+
+
+def _parse_grants(values: list[str]) -> dict[str, Any]:
+    """`--grant code.repos.billing-service=write`, `--grant chat.channels=a,b`, `--grant tools`."""
+    grants: dict[str, Any] = {}
+    for value in values:
+        key, _, setting = value.partition("=")
+        app_id, _, rest = key.partition(".")
+        grant = grants.setdefault(app_id, {})
+        if not rest:
+            continue
+        field, _, item = rest.partition(".")
+        if item:
+            grant.setdefault(field, {})[item] = setting
+        else:
+            grant[field] = [x.strip() for x in setting.split(",") if x.strip()]
+    return grants
+
+
+@agent_app.command("new")
+def agent_new(
+    ctx: typer.Context,
+    name: Annotated[str | None, typer.Argument(help="The agent's name.")] = None,
+    file: Annotated[
+        Path | None, typer.Option("--file", help="A complete agent file: register and check it.")
+    ] = None,
+    resume: Annotated[str | None, typer.Option(help="Resume the draft with this name.")] = None,
+    mode: Annotated[str | None, typer.Option(help="hosted or browser (remote: M7.5).")] = None,
+    image: Annotated[str | None, typer.Option(help="The agent's container image.")] = None,
+    build: Annotated[
+        Path | None, typer.Option(help="Folder with a Dockerfile that builds the image.")
+    ] = None,
+    model: Annotated[
+        str | None, typer.Option(help="Where its model runs: cloud, self-hosted or none.")
+    ] = None,
+    provider: Annotated[str | None, typer.Option(help="Cloud provider: anthropic, openai.")] = None,
+    model_host: Annotated[str | None, typer.Option(help="The model's host name.")] = None,
+    upstream: Annotated[
+        str | None, typer.Option(help="Self-hosted: the one address:port it may reach.")
+    ] = None,
+    credential_env: Annotated[
+        str | None, typer.Option(help="Host variable holding the real model credential.")
+    ] = None,
+    hosted_tools: Annotated[str, typer.Option(help="block, flag or allow.")] = "block",
+    role: Annotated[str | None, typer.Option(help="The role it acts in.")] = None,
+    person: Annotated[str | None, typer.Option(help="A specific person instead of a role.")] = None,
+    grant: Annotated[
+        list[str] | None,
+        typer.Option(help="Access, repeatable: code.repos.NAME=write, chat.channels=a,b, tools."),
+    ] = None,
+    wake: Annotated[str | None, typer.Option(help="command or poll.")] = None,
+    command: Annotated[str | None, typer.Option(help="The command run when work arrives.")] = None,
+    no_check: Annotated[bool, typer.Option("--no-check", help="Skip the preflight.")] = False,
+) -> None:
+    """Onboard an agent in six steps, by prompts or by flags; a draft resumes where it stopped."""
+    import shlex
+
+    from mirrordimensions.service import onboard
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    if file is not None:
+        added = onboard.complete_file(project, file)
+        st.out.ok(f"Wrote agents/{added.name}.yaml")
+        if not no_check:
+            agent_check(ctx, added.name, False)
+        return
+    interactive = sys.stdin.isatty() and not st.out.json_mode
+    name = name or resume
+    if name is None:
+        if not interactive:
+            raise MirrorError("The agent needs a name.", "", "Pass it: mirror agent new <name>")
+        name = str(typer.prompt("? Name")).strip()
+    agent_name: str = name
+    draft = onboard.draft_agent(project, agent_name)
+    if draft.step > 1 and not draft.done:
+        st.out.line(f"Continuing {name} from step {draft.step} of 6.")
+
+    def ask(label: str, given: str | None, default: str | None = None) -> str | None:
+        if given is not None:
+            return given
+        if interactive:
+            answer = typer.prompt(f"? {label}", default=default or "", show_default=bool(default))
+            return answer.strip() or None
+        return default
+
+    while not draft.done and draft.step <= 5:
+        step = draft.step
+        fields: dict[str, Any] = {}
+        if step == 1:
+            fields["mode"] = ask("How does it connect (hosted, browser, remote)", mode, "hosted")
+            fields["image"] = ask("Container image", image)
+            built = ask("Build it from a folder (blank for none)", str(build) if build else None)
+            if built:
+                fields["build"] = built
+        elif step == 2:
+            where = ask(
+                "Where does its model run (cloud, self-hosted, in-sandbox, none)", model, "none"
+            )
+            if where in (None, "none"):
+                fields["model"] = "none"
+            else:
+                chosen_provider = provider
+                if where == "cloud":
+                    chosen_provider = ask("Provider (anthropic, openai)", provider, "anthropic")
+                host = ask("Model host (blank for the provider's own)", model_host)
+                up = ask("Upstream address:port", upstream) if where == "self-hosted" else None
+                env_name = ask(
+                    "Credential (host variable, blank for the provider's usual)", credential_env
+                )
+                tools_rule = ask(
+                    "Provider-hosted tools (block, flag, allow)", hosted_tools, "block"
+                )
+                fields["model"] = onboard.add_model_route(
+                    project,
+                    where,
+                    provider=chosen_provider,
+                    host=host,
+                    upstream=up,
+                    credential_env=env_name,
+                    hosted_tools=tools_rule or "block",
+                )
+        elif step == 3:
+            if person:
+                fields["acts_as"] = {"person": person}
+            else:
+                chosen = ask("Acts as (role)", role, "engineer") or "engineer"
+                fields["acts_as"] = {"role": chosen}
+            who = onboard.person_for(project, **fields["acts_as"])
+            st.out.line(
+                f"      {fields['acts_as'].get('role') or 'person'} -> {who.name}, {who.title}"
+            )
+        elif step == 4:
+            acts = cast(dict[str, str], draft.fields.get("acts_as") or {})
+            if grant:
+                fields["grants"] = _parse_grants(grant)
+            else:
+                defaults = onboard.role_defaults(
+                    project, acts.get("role") or "", acts.get("person")
+                )
+                for line in onboard.describe_grants(defaults) or ["nothing"]:
+                    st.out.line(f"      role default: {line}")
+                edits: list[str] = []
+                while interactive:
+                    answer = typer.prompt(
+                        "? Access: keep it, or add an edit (code.repos.NAME=read, chat.channels=a,b, tools)",
+                        default="keep",
+                    ).strip()
+                    if answer in ("keep", "yes", "y", ""):
+                        break
+                    edits.append(answer)
+                merged = defaults
+                for app_id, extra in _parse_grants(edits).items():
+                    merged.setdefault(app_id, {}).update(extra)
+                fields["grants"] = merged
+        elif step == 5:
+            if draft.fields.get("mode") == "browser":
+                fields["wake"] = {"type": "poll"}
+                st.out.line(
+                    "      The agent watches its inbox in the browser, signing in as a person would."
+                )
+            else:
+                how = ask("How it notices work (command, poll)", wake, "command")
+                if how == "command":
+                    run = ask("Command run when work arrives", command)
+                    fields["wake"] = {
+                        "type": "command",
+                        "command": shlex.split(run) if run else None,
+                    }
+                else:
+                    fields["wake"] = {"type": how}
+        draft = onboard.update_draft(project, agent_name, step, fields)
+        st.out.ok(f"Step {step} of 6: {onboard.STEPS[step - 1]}")
+    st.out.ok(f"Wrote agents/{agent_name}.yaml")
+    if no_check:
+        st.out.next_step(f"Check it with: mirror agent check {agent_name}")
+        return
+    agent_check(ctx, agent_name, False)
+
+
+@agent_app.command("list")
+def agent_list(ctx: typer.Context) -> None:
+    """The project's agents."""
+    from mirrordimensions.config.loader import load_model as _load
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    rows: list[dict[str, str]] = []
+    for name, path in agents_svc.agent_files(project).items():
+        agent, _ = _load(path, agents_svc.Agent)
+        if agent is not None:
+            who = str(agent.acts_as.person or agent.acts_as.role) if agent.acts_as else "nobody yet"
+            state = f"draft, step {agent.step} of 6" if agent.status == "draft" else "defined"
+            rows.append({"name": name, "mode": agent.mode, "acts_as": who, "state": state})
+    if st.out.json_mode:
+        st.out.document(rows)
+        return
+    for r in rows:
+        st.out.line(f"  {r['name']:<20}{r['mode']:<9}{r['acts_as']:<16}{r['state']}")
+    if not rows:
+        st.out.line("No agents yet. Run: mirror agent add <file>")
+
+
+@agent_app.command("rm")
+def agent_rm(ctx: typer.Context, name: Annotated[str, typer.Argument()]) -> None:
+    """Remove an agent file from the project."""
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    agents_svc.remove_agent(service.load_project(st.start()), name)
+    st.out.ok(f"Agent {name} removed")
+
+
+@agent_app.command("creds")
+def agent_creds(ctx: typer.Context, name: Annotated[str, typer.Argument()]) -> None:
+    """The identity and credentials the agent would be issued, for debugging."""
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    shown = agents_svc.creds(service.load_project(st.start()), name)
+    if st.out.json_mode:
+        st.out.document(shown)
+        return
+    st.out.line(f"{'Acts as':<10}{shown['person']}")
+    for app_id, info in shown["systems"].items():
+        st.out.line(
+            f"  {app_id:<8}{info['username']:<20}token {info['token']}  variables {', '.join(info['env'])}"
+        )
+
+
+@agent_app.command("check")
+def agent_check(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument()],
+    allow_emulated: Annotated[
+        bool,
+        typer.Option(
+            "--allow-emulated",
+            help="Run an image built for another architecture, at reduced isolation.",
+        ),
+    ] = False,
+) -> None:
+    """Every preflight check; each failure names its fix."""
+    from mirrordimensions.service import agents as agents_svc
+
+    st = _state(ctx)
+    checks = agents_svc.check_agent(service.load_project(st.start()), name, allow_emulated)
+    if st.out.json_mode:
+        st.out.document([c.model_dump() for c in checks])
+    else:
+        for c in checks:
+            text = c.name + (f"  ({c.detail})" if c.detail else "")
+            if c.outcome == "pass":
+                st.out.ok(text)
+            elif c.outcome == "fail":
+                st.out.fail(text)
+                st.out.line(f"      Fix: {c.fix}")
+            else:
+                st.out.line(f"n/a   {text}")
+    if any(c.outcome == "fail" for c in checks):
+        raise typer.Exit(1)
+    if not st.out.json_mode:
+        st.out.next_step(f"{name} is ready.")
 
 
 system_app = typer.Typer(help="Systems: surfaces, settings, data and rules.", no_args_is_help=True)
