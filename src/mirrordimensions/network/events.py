@@ -167,6 +167,7 @@ class Collector:
         self.offset = clock_offset_s
         self.names = names
         self.events: list[dict[str, Any]] = []
+        self.run_id: str | None = None
         self._lock = threading.Lock()
         self._cond = threading.Condition(self._lock)
         self._threads: list[threading.Thread] = []
@@ -193,25 +194,34 @@ class Collector:
         thread.start()
         self._threads.append(thread)
 
+    def emit(self, source: str, kind: str, data: dict[str, Any]) -> dict[str, Any]:
+        """Record an event the control plane itself produced (runner, evaluator, state)."""
+        return self._record({"source": source, "type": kind, "data": data})
+
+    def _record(self, event: dict[str, Any]) -> dict[str, Any]:
+        arrived = time.time() + self.offset
+        with self._cond:
+            event["seq"] = len(self.events) + 1
+            event["ts"] = (
+                datetime.fromtimestamp(arrived, UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+            )
+            if self.run_id:
+                event["run_id"] = self.run_id
+            event["arrived"] = arrived
+            self.events.append(event)
+            with self.out.open("a", encoding="utf-8", newline="\n") as handle:
+                record = {k: v for k, v in event.items() if k != "arrived"}
+                handle.write(json.dumps(record) + "\n")
+            self._cond.notify_all()
+        return event
+
     def _follow(
         self, name: str, parser: Callable[[str], dict[str, Any] | None], since: int
     ) -> None:
         for line in self.docker.follow(name, since=since):
             event = parser(line)
-            if event is None:
-                continue
-            arrived = time.time() + self.offset
-            with self._cond:
-                event["seq"] = len(self.events) + 1
-                event["ts"] = (
-                    datetime.fromtimestamp(arrived, UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
-                )
-                event["arrived"] = arrived
-                self.events.append(event)
-                with self.out.open("a", encoding="utf-8", newline="\n") as handle:
-                    record = {k: v for k, v in event.items() if k != "arrived"}
-                    handle.write(json.dumps(record) + "\n")
-                self._cond.notify_all()
+            if event is not None:
+                self._record(event)
 
     def wait_for(
         self, match: Callable[[dict[str, Any]], bool], after: float, timeout: float

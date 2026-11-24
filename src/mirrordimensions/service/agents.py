@@ -9,6 +9,7 @@ import hashlib
 import hmac
 import json
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -288,11 +289,87 @@ def ensure_image(docker: Docker, agent: Agent) -> str | None:
     return ARCH.get(docker.image_arch(agent.image) or "", docker.image_arch(agent.image))
 
 
+@dataclass
+class AgentHandle:
+    """A started agent: its workstation, and its managed browser for browser agents."""
+
+    agent: Agent
+    where: hosted.Placement
+    desk: browser.BrowserPlacement | None
+    shots: Path
+
+    @property
+    def clients(self) -> set[str]:
+        """Addresses whose traffic is the agent's."""
+        return {self.where.ip} | ({self.desk.ip} if self.desk else set[str]())
+
+
+def image_platform(
+    docker: Docker, agent: Agent, allow_emulated: bool
+) -> tuple[str | None, str | None]:
+    """(platform to run, reason it is reduced) for the agent's image; builds it if needed."""
+    arch = ensure_image(docker, agent)
+    native = engine_arch(docker)
+    if arch == native:
+        return None, None
+    if not allow_emulated:
+        raise MirrorError(
+            f"The agent's image is {arch}, and the engine runs {native}.",
+            "Emulated agents run at reduced isolation.",
+            f"Build the image for {native}, or pass --allow-emulated to run it at reduced isolation.",
+        )
+    return f"linux/{arch}", f"image is {arch}, emulated on {native}"
+
+
+def start_agent(
+    project: Project,
+    docker: Docker,
+    plan: sandbox.Plan,
+    agent: Agent,
+    identities: dict[str, Identity],
+    collector: Collector,
+    platform: str | None,
+    shots: Path,
+) -> AgentHandle:
+    """Start the agent as deployed: the managed browser first for browser agents, then the
+    agent's own container with its variables and the company root trusted."""
+    where = hosted.placement(plan, agent.name)
+    ca_pem = (project.state_dir / "ca" / "root-ca.crt").read_bytes()
+    desk = browser.placement(plan, agent.name) if agent.mode == "browser" else None
+    if desk is None:
+        # The agent's own variables win; model keys default to placeholders the gateway replaces.
+        env = {**hosted.model_placeholders(plan), **hosted.environment(agent.env, identities)}
+    else:
+        env = {
+            **hosted.model_placeholders(plan),
+            **browser.environment(agent.env, identities, desk),
+        }
+    command = agent.wake.command if agent.wake and agent.wake.type == "command" else None
+    container = hosted.spec(plan, where, agent.image or "", env, platform)
+    if command:
+        container.command = command
+    handle = AgentHandle(agent=agent, where=where, desk=desk, shots=shots)
+    if desk is not None:
+        _start_browser(docker, collector, plan, desk, ca_pem, identities, shots, time.time())
+    try:
+        hosted.start(docker, container, ca_pem)
+    except MirrorError:
+        stop_agent(docker, handle)
+        raise
+    return handle
+
+
+def stop_agent(docker: Docker, handle: AgentHandle) -> None:
+    docker.remove(handle.where.name)
+    if handle.desk is not None:
+        browser.stop(docker, handle.desk)
+
+
 def run_hosted(
     project: Project, name: str, allow_emulated: bool = False, timeout_s: int = 300
 ) -> HostedOutcome:
-    """Run a hosted or browser agent once: issue its identity, start it as deployed (with
-    the managed browser for browser agents), let it finish, and return what was captured."""
+    """Run a hosted or browser agent once, outside any scenario: issue its identity, start it
+    as deployed, let it finish, and return what was captured."""
     agent, _ = load_agent(project, name)
     if agent.mode not in ("hosted", "browser"):
         raise MirrorError(
@@ -308,47 +385,19 @@ def run_hosted(
             raise MirrorError(
                 "The world is not running.", f"{needed} is not running.", "Run: mirror up"
             )
-    arch = ensure_image(docker, agent)
-    native = engine_arch(docker)
-    platform, reduced = None, None
-    if arch != native:
-        if not allow_emulated:
-            raise MirrorError(
-                f"The agent's image is {arch}, and the engine runs {native}.",
-                "Emulated agents run at reduced isolation.",
-                f"Build the image for {native}, or pass --allow-emulated to run it at reduced isolation.",
-            )
-        platform, reduced = f"linux/{arch}", f"image is {arch}, emulated on {native}"
+    platform, reduced = image_platform(docker, agent, allow_emulated)
     person, identities = issue(project, agent, docker)
-    where = hosted.placement(plan, agent.name)
-    ca_pem = (project.state_dir / "ca" / "root-ca.crt").read_bytes()
-    desk = browser.placement(plan, agent.name) if agent.mode == "browser" else None
-    if desk is None:
-        # The agent's own variables win; model keys default to placeholders the gateway replaces.
-        env = {**hosted.model_placeholders(plan), **hosted.environment(agent.env, identities)}
-    else:
-        env = {
-            **hosted.model_placeholders(plan),
-            **browser.environment(agent.env, identities, desk),
-        }
     bridges = {
         f"br-{docker.network_id(n)[:12]}": n for n in (sandbox.LAN, sandbox.APPS, sandbox.UPLINK)
     }
     collector = Collector(docker, project.state_dir / "sandbox" / "events.jsonl", bridges, offset)
     collector.start()
-    command = agent.wake.command if agent.wake and agent.wake.type == "command" else None
-    container = hosted.spec(plan, where, agent.image or "", env, platform)
-    if command:
-        container.command = command
     shots = project.state_dir / "sandbox" / "browser" / agent.name
     started = time.time()
+    handle = start_agent(project, docker, plan, agent, identities, collector, platform, shots)
     try:
-        if desk is not None:
-            _start_browser(docker, collector, plan, desk, ca_pem, identities, shots, started)
-        hosted.start(docker, container, ca_pem)
-        result = docker.wait(where.name, timeout_s=timeout_s)
+        result = docker.wait(handle.where.name, timeout_s=timeout_s)
         time.sleep(2.5)  # the last exchanges and screenshots reach the collector
-        clients = {where.ip} | ({desk.ip} if desk else set[str]())
         exchanges = [
             Exchange(
                 method=e["data"]["method"],
@@ -358,7 +407,7 @@ def run_hosted(
             )
             for e in collector.events
             if e.get("type") == "http.exchange"
-            and e["data"].get("client") in clients
+            and e["data"].get("client") in handle.clients
             and e["arrived"] - offset >= started
         ]
         browser_events = [
@@ -367,22 +416,20 @@ def run_hosted(
             if e.get("source") == "browser" and e["arrived"] - offset >= started
         ]
     finally:
-        docker.remove(where.name)
-        if desk is not None:
-            browser.stop(docker, desk)
+        stop_agent(docker, handle)
     return HostedOutcome(
         agent=agent.name,
         person=person.username,
-        host=where.name,
-        address=where.ip,
+        host=handle.where.name,
+        address=handle.where.ip,
         isolation="reduced" if reduced else "full",
         reduced_reason=reduced,
         exit_code=result.exit_code,
         output=result.output[-2000:],
         exchanges=exchanges,
-        browser_host=desk.name if desk else None,
+        browser_host=handle.desk.name if handle.desk else None,
         browser_events=browser_events,
-        screenshots=str(shots) if desk else None,
+        screenshots=str(shots) if handle.desk else None,
     )
 
 

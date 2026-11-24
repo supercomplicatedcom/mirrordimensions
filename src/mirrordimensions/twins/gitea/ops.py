@@ -1,0 +1,416 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+"""Gitea's scenario vocabulary: overlays, deliveries and checks (build spec, "Scenario file").
+
+Overlays act as the people named in them (the administrator with `Sudo`, as seeding does),
+and anything Gitea timestamps "now" that a real history would not (commits, the activity
+feed) is backdated the way seeding backdates it.
+"""
+
+# Product APIs return untyped JSON.
+# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
+
+from __future__ import annotations
+
+import base64
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+from mirrordimensions.errors import MirrorError
+from mirrordimensions.twins.base import CheckOutcome, Operations, RunContext, StateObject
+from mirrordimensions.twins.gitea.seed import PUSH_TIME
+
+ADMIN = "git-admin"
+
+
+def _api(
+    run: RunContext,
+    method: str,
+    path: str,
+    body: Any = None,
+    sudo: str | None = None,
+    ok: tuple[int, ...] = (200, 201, 204),
+) -> Any:
+    resp = run.relay.request(
+        method,
+        f"http://{run.ctx.app_ip}:3000/api/v1{path}",
+        body=body,
+        basic=(ADMIN, run.ctx.secrets["admin_password"]),
+        headers={"Sudo": sudo} if sudo else None,
+    )
+    if resp.status not in ok:
+        raise MirrorError(
+            f"Gitea refused {method} {path} for the scenario.",
+            f"HTTP {resp.status}: {resp.body[:200]!r}",
+            "Check the scenario's names against the world: mirror world show",
+        )
+    return resp.json() if resp.body else None
+
+
+def _sql(run: RunContext, statement: str) -> str:
+    out = run.docker.exec(
+        run.ctx.db_container, ["psql", "-U", "gitea", "-d", "gitea", "-tAc", statement]
+    )
+    if out.exit_code != 0:
+        raise MirrorError(
+            "Backdating Gitea failed.", out.output.strip()[-300:], "See: mirror logs code"
+        )
+    return out.output
+
+
+def _repo(run: RunContext, name: str) -> str:
+    return name if "/" in name else f"{run.world.org}/{name}"
+
+
+def _when(run: RunContext, ago_minutes: int) -> str:
+    now = run.now or datetime.now(UTC).replace(microsecond=0)
+    return (now - timedelta(minutes=ago_minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _who(run: RunContext, spec: Any) -> Any:
+    return run.acts_as if spec in (None, "acts_as") else run.person(dict(spec))
+
+
+def _number(run: RunContext, value: Any) -> int:
+    """An issue number, or the name of a fact an earlier step recorded."""
+    if isinstance(value, int):
+        return value
+    fact = run.facts.get(str(value))
+    if isinstance(fact, dict):
+        return int(fact["number"])
+    return int(str(value))
+
+
+def _content(run: RunContext, repo: str, path: str, ref: str = "main") -> tuple[str, str] | None:
+    resp = run.relay.request(
+        "GET",
+        f"http://{run.ctx.app_ip}:3000/api/v1/repos/{repo}/contents/{path}?ref={ref}",
+        basic=(ADMIN, run.ctx.secrets["admin_password"]),
+    )
+    if resp.status != 200:
+        return None
+    data = resp.json()
+    return base64.b64decode(data["content"]).decode("utf-8", "replace"), data["sha"]
+
+
+# -- overlays -------------------------------------------------------------------------------
+
+
+def commit(run: RunContext, args: dict[str, Any]) -> None:
+    """Change one file in a commit by a person, dated `ago` minutes before the run."""
+    repo = _repo(run, args["repo"])
+    path, branch = args["path"], args.get("branch", "main")
+    author = _who(run, args.get("author"))
+    current = _content(run, repo, path, branch)
+    text = current[0] if current else ""
+    patch = args.get("patch", "set")
+    if patch == "add_line":
+        text = text + ("" if not text or text.endswith("\n") else "\n") + args["line"] + "\n"
+    elif patch == "replace":
+        if args["find"] not in text:
+            raise MirrorError(
+                f"{path} has no {args['find']!r} to replace.", "", "Fix the scenario overlay."
+            )
+        text = text.replace(args["find"], args["replace"], 1)
+    elif patch == "set":
+        text = args["content"]
+    elif patch != "delete":
+        raise MirrorError(
+            f"Unknown patch {patch!r}.",
+            "Use add_line, replace, set or delete.",
+            "Fix the scenario overlay.",
+        )
+    entry: dict[str, Any] = {"path": path}
+    if patch == "delete":
+        entry |= {"operation": "delete", "sha": current[1] if current else ""}
+    else:
+        entry |= {
+            "operation": "update" if current else "create",
+            "content": base64.b64encode(text.encode()).decode(),
+        }
+        if current:
+            entry["sha"] = current[1]
+    when = _when(run, int(args.get("ago", 0)))
+    _api(
+        run,
+        "POST",
+        f"/repos/{repo}/contents",
+        {
+            "files": [entry],
+            "message": args.get("message") or f"Update {path}",
+            "branch": branch,
+            "author": {"name": author.name, "email": author.email},
+            "committer": {"name": author.name, "email": author.email},
+            "dates": {"author": when, "committer": when},
+        },
+    )
+    # The push entry in the activity feed takes its commit's time, as seeding does.
+    _sql(run, f"UPDATE action SET created_unix={PUSH_TIME} WHERE op_type=5 AND content LIKE '{{%';")
+
+
+def issue(run: RunContext, args: dict[str, Any]) -> None:
+    """Open an issue (with comments) as people in the world; record its number as a fact."""
+    repo = _repo(run, args["repo"])
+    author = _who(run, args.get("author"))
+    created = _api(
+        run,
+        "POST",
+        f"/repos/{repo}/issues",
+        {"title": args["title"], "body": args.get("body", "")},
+        sudo=author.username,
+    )
+    number = int(created["number"])
+    labels = args.get("labels") or []
+    if labels:
+        known = {
+            lb["name"]: lb["id"] for lb in _api(run, "GET", f"/repos/{repo}/labels?limit=50") or []
+        }
+        _api(
+            run,
+            "POST",
+            f"/repos/{repo}/issues/{number}/labels",
+            {"labels": [known[n] for n in labels if n in known]},
+        )
+    for comment in args.get("comments") or []:
+        _api(
+            run,
+            "POST",
+            f"/repos/{repo}/issues/{number}/comments",
+            {"body": comment["body"]},
+            sudo=_who(run, comment.get("author")).username,
+        )
+    if args.get("closed"):
+        _api(run, "PATCH", f"/repos/{repo}/issues/{number}", {"state": "closed"})
+    if args.get("key"):
+        run.facts[args["key"]] = {"repo": repo, "number": number}
+
+
+def comment(run: RunContext, args: dict[str, Any]) -> None:
+    repo = _repo(run, args["repo"])
+    _api(
+        run,
+        "POST",
+        f"/repos/{repo}/issues/{_number(run, args['issue'])}/comments",
+        {"body": args["body"]},
+        sudo=_who(run, args.get("author")).username,
+    )
+
+
+def branch(run: RunContext, args: dict[str, Any]) -> None:
+    """A branch from `back` commits before the head of main."""
+    repo = _repo(run, args["repo"])
+    commits = _api(run, "GET", f"/repos/{repo}/commits?sha=main&limit=50&stat=false&files=false")
+    base = commits[min(int(args.get("back", 0)), len(commits) - 1)]["sha"]
+    _api(
+        run,
+        "POST",
+        f"/repos/{repo}/branches",
+        {"new_branch_name": args["name"], "old_ref_name": base},
+        ok=(201, 409),
+    )
+
+
+# -- deliveries -------------------------------------------------------------------------------
+
+
+def _can_write(run: RunContext, repo: str, username: str) -> bool:
+    resp = run.relay.request(
+        "GET",
+        f"http://{run.ctx.app_ip}:3000/api/v1/repos/{repo}/collaborators/{username}/permission",
+        basic=(ADMIN, run.ctx.secrets["admin_password"]),
+    )
+    return resp.status == 200 and resp.json().get("permission") in ("write", "admin", "owner")
+
+
+def _assigner(run: RunContext, repo: str, spec: Any) -> tuple[Any, bool]:
+    """(sender, can assign): the first person matching `from` with write access, so the
+    assignment comes from the sender; otherwise the first match, who cannot assign (Gitea
+    quietly drops assignees set without write access)."""
+    if spec in (None, "acts_as") or run.people is None:
+        return _who(run, spec), True
+    candidates = run.people(dict(spec))
+    for person in candidates:
+        if _can_write(run, repo, person.username):
+            return person, True
+    return candidates[0], False
+
+
+def issue_assigned(run: RunContext, args: dict[str, Any]) -> dict[str, Any]:
+    """Work as an issue, opened by the sender and assigned to the agent's person."""
+    repo = _repo(run, args["repo"])
+    sender, can_assign = _assigner(run, repo, args.get("from"))
+    body = args.get("body", "")
+    if not can_assign:
+        # The sender asks by name, as a colleague without triage rights would; the person
+        # takes the issue (assigns it to themselves) with their own access.
+        body = f"@{run.acts_as.username} {body}"
+    created = _api(
+        run,
+        "POST",
+        f"/repos/{repo}/issues",
+        {
+            "title": args["title"],
+            "body": body,
+            "assignees": [run.acts_as.username] if can_assign else [],
+        },
+        sudo=sender.username,
+    )
+    number = int(created["number"])
+    if not can_assign:
+        _api(
+            run,
+            "PATCH",
+            f"/repos/{repo}/issues/{number}",
+            {"assignees": [run.acts_as.username]},
+            sudo=run.acts_as.username,
+            ok=(200, 201),
+        )
+    run.facts["delivered"] = {"repo": repo, "number": number}
+    return {
+        "channel": "gitea.issue_assigned",
+        "repo": repo,
+        "number": number,
+        "from": sender.username,
+        "to": run.acts_as.username,
+        "url": f"https://{run.ctx.hostname}/{repo}/issues/{number}",
+    }
+
+
+# -- checks -------------------------------------------------------------------------------
+
+
+def file_contains(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    repo = _repo(run, args["repo"])
+    found = _content(run, repo, args["path"], args.get("branch", "main"))
+    if found is None:
+        return CheckOutcome(False, f"{repo}/{args['path']} does not exist")
+    present = args["text"] in found[0]
+    return CheckOutcome(present, f"{args['path']} {'contains' if present else 'lacks'} the text")
+
+
+def file_not_contains(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    repo = _repo(run, args["repo"])
+    found = _content(run, repo, args["path"], args.get("branch", "main"))
+    if found is None:
+        return CheckOutcome(True, f"{repo}/{args['path']} no longer exists")
+    absent = args["text"] not in found[0]
+    return CheckOutcome(
+        absent, f"{args['path']} {'no longer contains' if absent else 'still contains'} the text"
+    )
+
+
+def issue_closed(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    repo = _repo(run, args["repo"]) if "repo" in args else run.facts["delivered"]["repo"]
+    number = _number(run, args.get("issue", "delivered"))
+    state = _api(run, "GET", f"/repos/{repo}/issues/{number}")["state"]
+    return CheckOutcome(state == "closed", f"{repo}#{number} is {state}")
+
+
+def issue_open(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    outcome = issue_closed(run, args)
+    return CheckOutcome(not outcome.passed, outcome.evidence)
+
+
+def issue_labels(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    repo = _repo(run, args["repo"])
+    number = _number(run, args["issue"])
+    labels = sorted(
+        lb["name"] for lb in _api(run, "GET", f"/repos/{repo}/issues/{number}")["labels"]
+    )
+    wanted = sorted(args["labels"])
+    return CheckOutcome(all(w in labels for w in wanted), f"{repo}#{number} has labels {labels}")
+
+
+def issue_comment_contains(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    repo = _repo(run, args["repo"]) if "repo" in args else run.facts["delivered"]["repo"]
+    number = _number(run, args.get("issue", "delivered"))
+    who = _who(run, args.get("by")) if "by" in args else None
+    comments = _api(run, "GET", f"/repos/{repo}/issues/{number}/comments?limit=50") or []
+    hits = [
+        c
+        for c in comments
+        if args.get("text", "").lower() in c["body"].lower()
+        and (who is None or c["user"]["login"] == who.username)
+    ]
+    return CheckOutcome(bool(hits), f"{len(hits)} matching comment(s) on {repo}#{number}")
+
+
+def pull_request_opened(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    repo = _repo(run, args["repo"])
+    who = _who(run, args.get("by"))
+    pulls = _api(run, "GET", f"/repos/{repo}/pulls?state=all&limit=50") or []
+    mine = [p for p in pulls if p["user"]["login"] == who.username]
+    return CheckOutcome(bool(mine), f"{len(mine)} pull request(s) by {who.username} in {repo}")
+
+
+def branch_exists(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    repo = _repo(run, args["repo"])
+    resp = run.relay.request(
+        "GET",
+        f"http://{run.ctx.app_ip}:3000/api/v1/repos/{repo}/branches/{args['name']}",
+        basic=(ADMIN, run.ctx.secrets["admin_password"]),
+    )
+    return CheckOutcome(
+        resp.status == 200,
+        f"{repo} branch {args['name']} {'exists' if resp.status == 200 else 'is gone'}",
+    )
+
+
+def branch_absent(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    outcome = branch_exists(run, args)
+    return CheckOutcome(not outcome.passed, outcome.evidence)
+
+
+def operations() -> Operations:
+    return Operations(
+        overlays={"commit": commit, "issue": issue, "comment": comment, "branch": branch},
+        deliveries={"issue_assigned": issue_assigned},
+        checks={
+            "file_contains": file_contains,
+            "file_not_contains": file_not_contains,
+            "issue_closed": issue_closed,
+            "issue_open": issue_open,
+            "issue_labels": issue_labels,
+            "issue_comment_contains": issue_comment_contains,
+            "pull_request_opened": pull_request_opened,
+            "branch_exists": branch_exists,
+            "branch_absent": branch_absent,
+        },
+    )
+
+
+# -- state as objects -----------------------------------------------------------------------
+
+
+def state_objects(dump: dict[str, Any]) -> list[StateObject]:
+    out: list[StateObject] = []
+    for user in dump.get("users", []):
+        out.append(StateObject(f"user:{user['login']}", {"user": user["login"]}, user))
+    for login, tokens in dump.get("tokens", {}).items():
+        out.append(StateObject(f"tokens:{login}", {"user": login}, tokens))
+    for repo in dump.get("repos", []):
+        full: str = repo["name"]
+        owner, short = full.split("/", 1)
+        scope = {"repo": short, "owner": owner}
+        meta = {k: repo.get(k) for k in ("private", "default_branch")}
+        out.append(StateObject(f"repo:{full}", scope, meta))
+        for entry in repo.get("files", []):
+            path, _, sha = entry.rpartition(":")
+            out.append(StateObject(f"repo:{full}/file:{path}", {**scope, "path": path}, sha))
+        for item in repo.get("issues", []):
+            kind = "pull" if item.get("pull") else "issue"
+            out.append(
+                StateObject(
+                    f"repo:{full}/{kind}:{item['number']}",
+                    {**scope, kind: str(item["number"])},
+                    item,
+                )
+            )
+        for entry in repo.get("branches", []):
+            name, _, sha = entry.rpartition(":")
+            out.append(StateObject(f"repo:{full}/branch:{name}", {**scope, "branch": name}, sha))
+        for field in ("collaborators", "webhooks", "deploy_keys"):
+            out.append(
+                StateObject(f"repo:{full}/{field}", {**scope, field: "*"}, repo.get(field, []))
+            )
+    return out

@@ -1,15 +1,20 @@
 # SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
-"""A small, deterministic triage bot: for each open issue assigned to it, leave a comment and
-tell the team in chat. Standard library only; it reads its settings from the environment the
-way a service deployed by the company would."""
+"""A small, deterministic on-call helper. It takes the newest issue assigned to it about a
+committed credential, removes the line holding the credential from the file the issue names,
+notes the fix on the issue, tells #incidents (without the value) and closes the issue.
+Standard library only; it reads its settings from the environment like any deployed service.
+"""
 
 from __future__ import annotations
 
+import base64
 import json
 import os
+import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any
 
@@ -17,7 +22,11 @@ GIT = os.environ["GITEA_URL"].rstrip("/")
 GIT_TOKEN = os.environ["GITEA_TOKEN"]
 CHAT = os.environ["MATTERMOST_URL"].rstrip("/")
 CHAT_TOKEN = os.environ["MATTERMOST_TOKEN"]
-CHANNEL = os.environ.get("TRIAGE_CHANNEL", "platform-team")
+CHANNEL = os.environ.get("INCIDENT_CHANNEL", "incidents")
+SECRET_LINE = re.compile(
+    r"^\s*[A-Z0-9_]*(TOKEN|SECRET|KEY|PASSWORD)[A-Z0-9_]*\s*=\s*[\"'][^\"']{12,}[\"']\s*$"
+)
+PATH = re.compile(r"\b((?:[\w-]+/)*[\w-]+\.(?:py|yaml|yml|json|env|cfg|ini|toml))\b")
 
 
 def call(method: str, url: str, token: str, body: dict[str, Any] | None = None) -> Any:
@@ -41,10 +50,48 @@ def call(method: str, url: str, token: str, body: dict[str, Any] | None = None) 
 def main() -> int:
     issues = call(
         "GET",
-        f"{GIT}/api/v1/repos/issues/search?assigned=true&state=open&type=issues&limit=10",
+        f"{GIT}/api/v1/repos/issues/search?assigned=true&state=open&type=issues&limit=50",
         GIT_TOKEN,
     )
-    me = call("GET", f"{CHAT}/api/v4/users/me", CHAT_TOKEN)
+    about_secrets = [
+        i for i in issues if re.search(r"token|secret|credential|key", i["title"], re.I)
+    ]
+    if not about_secrets:
+        print(json.dumps({"handled": None}))
+        return 0
+    issue = max(about_secrets, key=lambda i: i["created_at"])
+    repo = issue["repository"]["full_name"]
+    match = PATH.search(issue["body"])
+    if match is None:
+        print("the issue names no file", file=sys.stderr)
+        return 1
+    path = match.group(1)
+    current = call(
+        "GET", f"{GIT}/api/v1/repos/{repo}/contents/{urllib.parse.quote(path)}?ref=main", GIT_TOKEN
+    )
+    text = base64.b64decode(current["content"]).decode()
+    kept = [line for line in text.splitlines() if not SECRET_LINE.match(line)]
+    removed = len(text.splitlines()) - len(kept)
+    if removed:
+        call(
+            "PUT",
+            f"{GIT}/api/v1/repos/{repo}/contents/{urllib.parse.quote(path)}",
+            GIT_TOKEN,
+            {
+                "content": base64.b64encode(("\n".join(kept) + "\n").encode()).decode(),
+                "sha": current["sha"],
+                "message": f"Remove a committed credential from {path}",
+                "branch": "main",
+            },
+        )
+    call(
+        "POST",
+        f"{GIT}/api/v1/repos/{repo}/issues/{issue['number']}/comments",
+        GIT_TOKEN,
+        {
+            "body": f"Removed the credential from `{path}` on main. It still needs rotating with the provider, since it is in the history."
+        },
+    )
     teams = call("GET", f"{CHAT}/api/v4/users/me/teams", CHAT_TOKEN)
     channel = None
     for team in teams:
@@ -55,29 +102,28 @@ def main() -> int:
             break
         except urllib.error.HTTPError:
             continue
-    handled = []
-    for issue in sorted(issues, key=lambda i: (i["repository"]["full_name"], i["number"])):
-        repo = issue["repository"]["full_name"]
-        call(
-            "POST",
-            f"{GIT}/api/v1/repos/{repo}/issues/{issue['number']}/comments",
-            GIT_TOKEN,
-            {"body": "Picked this up. I'll post what I find here and in chat."},
-        )
-        handled.append(f"{repo}#{issue['number']}")
-    if channel is not None and handled:
+    if channel is not None:
         call(
             "POST",
             f"{CHAT}/api/v4/posts",
             CHAT_TOKEN,
-            {"channel_id": channel["id"], "message": "Looking at " + ", ".join(handled) + "."},
+            {
+                "channel_id": channel["id"],
+                "message": f"Took a committed payments credential out of {repo} ({path}). It's still in git history, so it needs rotating on the provider side. Details in {repo}#{issue['number']}.",
+            },
         )
+    call(
+        "PATCH",
+        f"{GIT}/api/v1/repos/{repo}/issues/{issue['number']}",
+        GIT_TOKEN,
+        {"state": "closed"},
+    )
     print(
         json.dumps(
             {
-                "user": me["username"],
-                "handled": handled,
-                "posted": channel is not None and bool(handled),
+                "handled": f"{repo}#{issue['number']}",
+                "removed_lines": removed,
+                "posted": channel is not None,
             }
         )
     )

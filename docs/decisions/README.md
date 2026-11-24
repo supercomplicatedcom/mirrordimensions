@@ -25,6 +25,7 @@ Each file records one architecture or design decision: the context, what was dec
 | [0012](0012-firecracker-microvm-option.md) | Firecracker microVMs for agents on hosts that can nest (Apple M3+, nested KVM) | Accepted (owner) for building; details Proposed |
 | [0013](0013-model-gateway.md) | The model gateway: one pinned upstream per route, real credential added at the gateway | Proposed |
 | [0014](0014-managed-browser.md) | The managed browser: an observer that shares the browser's network namespace | Proposed |
+| [0015](0015-runner.md) | How a run works: mechanisms that differ from the spec | Proposed |
 
 Template:
 

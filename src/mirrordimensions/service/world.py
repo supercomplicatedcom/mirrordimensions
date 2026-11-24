@@ -293,6 +293,29 @@ def reset(project: Project, name: str = "base", on_step: StepFn = None) -> Reset
     )
 
 
+def restore(project: Project, docker: Docker, plan: sandbox.Plan, name: str = "base") -> float:
+    """Restore a snapshot and bring the twins back up; return the seconds it took. Runs use
+    this; `reset` also compares the result with the saved dump."""
+    secrets = app_secrets(project, _manifest(project))
+    index = project.state_dir / "snapshots" / "index.json"
+    if not index.is_file():
+        raise MirrorError(
+            "The world has no snapshot to restore.",
+            "Runs start from the base snapshot taken when the world was created.",
+            "Run: mirror world create",
+        )
+    containers, _ = _containers_and_volumes(plan, secrets)
+    started = time.time()
+    snap.restore(docker, name, index, containers)
+    _start_twins(docker, plan, secrets)
+    return round(time.time() - started, 1)
+
+
+def dumps(docker: Docker, plan: sandbox.Plan, project: Project) -> dict[str, Any]:
+    """Every twin's state dump, by app id."""
+    return _dumps(docker, plan, app_secrets(project, _manifest(project)))
+
+
 def save_snapshot(project: Project, name: str) -> snap.SnapshotInfo:
     manifest = _manifest(project)
     plan = project_plan(project, manifest)

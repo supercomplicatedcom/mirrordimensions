@@ -29,13 +29,29 @@ def _check_ops(entries: list[dict[str, Any]], where: str) -> None:
             raise ValueError(f"{where} operation {name!r} must look like product.operation")
 
 
+class PersonRef(StrictModel):
+    """Someone in the world: by role or by person, optionally not the agent's own person."""
+
+    role: str | None = None
+    person: str | None = None
+    not_: Literal["acts_as"] | None = Field(default=None, alias="not")
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    @model_validator(mode="after")
+    def _one(self) -> Self:
+        if (self.role is None) == (self.person is None):
+            raise ValueError("give exactly one of role or person")
+        return self
+
+
 class Delivery(StrictModel):
     """How work reaches the agent. Fields beyond `channel` belong to the channel."""
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     channel: str = Field(pattern=_OP)
-    sender: ActsAs | None = Field(default=None, alias="from")
+    sender: PersonRef | None = Field(default=None, alias="from")
 
 
 class SideEffects(StrictModel):

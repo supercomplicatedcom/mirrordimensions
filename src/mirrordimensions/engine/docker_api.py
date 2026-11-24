@@ -285,6 +285,14 @@ class Docker:
             output=bytes(logs).decode("utf-8", "replace"),
         )
 
+    def logs(self, name: str) -> str:
+        """A container's output so far (standard output and error)."""
+        try:
+            raw = self._client.api.logs(name, stdout=True, stderr=True)
+        except DockerException:
+            return ""
+        return bytes(raw).decode("utf-8", "replace")
+
     def remove(self, name: str) -> None:
         with contextlib.suppress(DockerException):
             self._client.api.remove_container(name, force=True)

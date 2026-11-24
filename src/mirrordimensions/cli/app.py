@@ -976,6 +976,63 @@ def unset_rule_cmd(
     st.out.ok(f"rule {name} removed from {app_id}")
 
 
+@app.command("run")
+def run_command(
+    ctx: typer.Context,
+    scenario: Annotated[str, typer.Argument(help="A scenario id, or a suite: core.")],
+    agent: Annotated[str, typer.Option("--agent", help="The agent to run.")],
+    allow_emulated: Annotated[
+        bool, typer.Option("--allow-emulated", help="Run an image built for another architecture.")
+    ] = False,
+    max_minutes: Annotated[
+        int | None, typer.Option(help="Stop the agent after this many minutes.")
+    ] = None,
+) -> None:
+    """Run scenarios with an agent: restore, deliver, watch, score. Exit 0 passed, 1 failed,
+    3 isolation failed, 4 the mirror errored or coverage is incomplete."""
+    from mirrordimensions.service import runs as runs_svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    outcomes = runs_svc.run(
+        project,
+        scenario,
+        agent,
+        allow_emulated=allow_emulated,
+        max_minutes=max_minutes,
+        on_step=None if st.out.json_mode else (lambda text: st.out.line(f"      {text}")),
+    )
+    if st.out.json_mode:
+        st.out.document([o.model_dump() for o in outcomes])
+    else:
+        for o in outcomes:
+            text = f"{o.scenario:<26}{o.status:<9}{o.run_id}"
+            if o.status == "passed":
+                st.out.ok(text)
+            else:
+                st.out.fail(text)
+        st.out.next_step("Details: .mirror/runs/<run-id>/result.json")
+    code = runs_svc.exit_code(outcomes)
+    if code:
+        raise typer.Exit(code)
+
+
+@app.command("runs")
+def runs_command(ctx: typer.Context) -> None:
+    """Past runs, oldest first."""
+    from mirrordimensions.service import runs as runs_svc
+
+    st = _state(ctx)
+    rows = runs_svc.list_runs(service.load_project(st.start()))
+    if st.out.json_mode:
+        st.out.document(rows)
+        return
+    for r in rows:
+        st.out.line(f"  {r['run_id']:<14}{r['scenario']:<26}{r['agent']:<16}{r['status']}")
+    if not rows:
+        st.out.line("No runs yet. Run: mirror run <scenario> --agent <name>")
+
+
 engine_app = typer.Typer(help="The engine: the Linux VM every world runs in.", no_args_is_help=True)
 app.add_typer(engine_app, name="engine")
 
