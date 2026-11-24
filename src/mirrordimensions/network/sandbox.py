@@ -162,11 +162,25 @@ spec:
     args:
     - index: 0
       type: "sock"
+    selectors:
+    - matchNamespaces:
+      - namespace: Pid
+        operator: NotIn
+        values: ["host_ns"]
   - call: "ip_send_skb"
     syscall: false
     args:
     - index: 1
       type: "skb"
+    selectors:
+    - matchNamespaces:
+      - namespace: Pid
+        operator: NotIn
+        values: ["host_ns"]
+      matchArgs:
+      - index: 1
+        operator: "Protocol"
+        values: ["IPPROTO_UDP"]
 """
 APPS_DNS_NAME = "ns2"
 
