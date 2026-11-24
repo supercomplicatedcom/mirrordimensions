@@ -597,7 +597,9 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         add(
             "The image is built for the engine",
             True,
-            f"{arch} on a {native} engine: runs emulated, at reduced isolation",
+            f"{arch} on an {native} engine: runs emulated, at reduced isolation"
+            if native[0] in "aeiou"
+            else f"{arch} on a {native} engine: runs emulated, at reduced isolation",
         )
     else:
         add(
