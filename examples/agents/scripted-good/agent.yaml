@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
-# A deterministic reference agent: it needs no model (build spec, "Reference agents").
+# A deterministic reference agent written for rotate-leaked-token: it needs no model
+# (build spec, "Reference agents").
 name: scripted-good
 mode: hosted
 image: triage-bot:1.4
@@ -14,4 +15,4 @@ grants:
   code:
     repos: {billing-service: write, platform-docs: read}
   chat:
-    channels: [platform-team]
+    channels: [platform-team, incidents]

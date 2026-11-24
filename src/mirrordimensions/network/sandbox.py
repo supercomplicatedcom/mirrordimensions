@@ -27,6 +27,7 @@ from pathlib import Path
 
 from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
+from mirrordimensions.errors import MirrorError
 from mirrordimensions.mcp.world import toolset
 from mirrordimensions.mcp.world.toolset import Toolset
 from mirrordimensions.network.certs import Leaf
@@ -40,6 +41,8 @@ IMAGES = {
     "stub": "nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de",
     "relay": "alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f",
     "probe": "nicolaka/netshoot:v0.14@sha256:7f08c4aff13ff61a35d30e30c5c1ea8396eac6ab4ce19fd02d5a4b3b5d0d09a2",
+    # Tetragon (Apache-2.0): eBPF process and socket tracing in the engine kernel (0010, 0016).
+    "tracer": "quay.io/cilium/tetragon:v1.8.0@sha256:5ed9088a1582131d71b06c98e0d549a37a71ae63ab13aabefc7a47553c822a9d",
 }
 
 LAN, APPS, UPLINK = "corp-lan", "corp-apps", "corp-uplink"
@@ -147,6 +150,38 @@ class Plan:
 
 
 DNS_NAME, GATEWAY_NAME, RELAY_NAME = "ns1", "edge-proxy-02", "klog"
+TRACER_NAME = "auditd-01"
+TRACER_POLICY = """apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: sockets
+spec:
+  kprobes:
+  - call: "tcp_connect"
+    syscall: false
+    args:
+    - index: 0
+      type: "sock"
+    selectors:
+    - matchNamespaces:
+      - namespace: Pid
+        operator: NotIn
+        values: ["host_ns"]
+  - call: "ip_send_skb"
+    syscall: false
+    args:
+    - index: 1
+      type: "skb"
+    selectors:
+    - matchNamespaces:
+      - namespace: Pid
+        operator: NotIn
+        values: ["host_ns"]
+      matchArgs:
+      - index: 1
+        operator: "Protocol"
+        values: ["IPPROTO_UDP"]
+"""
 APPS_DNS_NAME = "ns2"
 
 
@@ -352,6 +387,34 @@ def specs(
             labels=label,
         ),
         relay_spec(APPS, a.relay_ip, [a.apps_dns_ip]),
+        # In the engine's own namespaces, on no network: it watches every container from the
+        # kernel, so nothing is added inside the agent's container (decision 0016).
+        ContainerSpec(
+            name=TRACER_NAME,
+            image=IMAGES["tracer"],
+            entrypoint=["/usr/bin/tetragon"],
+            command=[
+                "--export-filename",
+                "/dev/stdout",
+                # Tetragon rotates its export file at 10 MB by default, and "rotating"
+                # /dev/stdout silently ends the stream; Docker's log rotation bounds it instead.
+                "--export-file-max-size-mb",
+                "1000000",
+                "--export-allowlist",
+                '{"event_set":["PROCESS_EXEC","PROCESS_KPROBE"]}',
+                "--tracing-policy",
+                "/etc/tetragon/sockets.yaml",
+            ],
+            networks={},
+            network_mode="none",
+            privileged=True,
+            pid_mode="host",
+            cgroupns="host",
+            engine_binds={"/sys/kernel": "/sys/kernel"},
+            log_options={"max-size": "50m", "max-file": "3"},
+            files={"/etc/tetragon/sockets.yaml": (TRACER_POLICY.encode(), 0o644)},
+            labels=label,
+        ),
         ContainerSpec(
             name=GATEWAY_NAME,
             image=IMAGES["gateway"],
@@ -450,6 +513,8 @@ def up(
         docker.create(spec)
         docker.start(spec.name)
         names.append(spec.name)
+        if spec.name == TRACER_NAME:
+            _wait_for_tracer(docker)
     relay = Relay(docker)
     for app in plan.apps:
         twin = get_twin(app.product)
@@ -461,6 +526,28 @@ def up(
         if callable(on_step):
             on_step(f"{app.product} ready at {app.hostname}")
     return names
+
+
+def _wait_for_tracer(docker: Docker, timeout_s: float = 90.0) -> None:
+    """Return once the tracer is listening: a run must not start before its agent can be
+    watched, and the tracer's start-up work (reading every process, loading its programs)
+    should be over before anything is measured."""
+    import time
+
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        recent = docker.logs(TRACER_NAME, tail=400)
+        # Ready once it says so, or once events flow (its own lines and events share a stream).
+        if "Listening for events" in recent or '"process_exec"' in recent:
+            return
+        if not docker.is_running(TRACER_NAME):
+            break
+        time.sleep(1)
+    raise MirrorError(
+        "The engine's tracer did not start.",
+        docker.logs(TRACER_NAME, tail=5)[-300:],
+        "Run: mirror engine check; runs need it for complete coverage.",
+    )
 
 
 def _blank_secrets(plan: Plan) -> dict[str, str]:

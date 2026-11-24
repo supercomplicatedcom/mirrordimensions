@@ -58,11 +58,17 @@ class Backend(BaseHTTPRequestHandler):
                 200,
                 [{"number": 3, "title": "Rounding", "repository": {"full_name": "acme/billing"}}],
             )
+        if "/contents/" in self.path:
+            return self._reply(200, {"sha": "abc123", "content": ""})
         if self.path == "/api/v4/users/me/teams":
             return self._reply(200, [{"id": "team1", "name": "acme"}])
         if self.path == "/api/v4/teams/team1/channels/name/platform-team":
             return self._reply(200, {"id": "chan9", "name": "platform-team"})
         self._reply(404, {"message": "The target couldn't be found."})
+
+    def do_PUT(self) -> None:
+        self._record()
+        self._reply(201, {"commit": {"sha": "def456"}})
 
     def do_POST(self) -> None:
         body = self._record()
@@ -276,7 +282,7 @@ def test_a_legacy_client_initializes_and_keeps_a_session(mcp: str) -> None:
     )
     assert status == 202
     _, _, listed = post(mcp, {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}, with_session)
-    assert len(listed["result"]["tools"]) == 4
+    assert len(listed["result"]["tools"]) == 10
     status, _, reply = post(mcp, {"jsonrpc": "2.0", "id": 3, "method": "tools/list"})
     assert status == 400
     status, _, _ = post(
@@ -311,7 +317,8 @@ def test_grants_limit_the_tools_a_token_sees(mcp: str, tmp_path: Path) -> None:
 
 
 def test_the_example_tool_set_is_valid_and_names_nothing(tools: toolset.Toolset) -> None:
-    assert tools.names == ["search_issues", "get_issue", "add_issue_comment", "post_message"]
+    assert tools.names[:4] == ["search_issues", "get_issue", "add_issue_comment", "post_message"]
+    assert len(tools.names) == 10
     visible = json.dumps(
         {"server": tools.server, "instructions": tools.instructions, "tools": tools.tools}
     )
@@ -464,4 +471,54 @@ def test_the_mcp_channel_reconciles_with_the_servers_own_writes() -> None:
     no_message = [e for e in events if e["data"]["gateway_seq"] != 8]
     assert reconcile(no_message, {host}, {server}) == [
         "exchange 7 with mcp.acme.com has no mcp.message"
+    ]
+
+
+def test_a_file_is_read_as_text_and_written_base64_on_a_new_branch(mcp: str) -> None:
+    args = {
+        "owner": "acme",
+        "repo": "billing",
+        "path": "x.py",
+        "content": "print(1)\n",
+        "message": "m",
+        "new_branch": "fix/x",
+    }
+    _, _, reply = modern(mcp, "tools/call", {"name": "update_file", "arguments": args})
+    assert reply["result"]["isError"] is False, reply
+    put = next(seen for seen in Backend.seen if seen[0] == "PUT")
+    body = json.loads(put[3])
+    assert (
+        body["content"] == "cHJpbnQoMSkK"
+        and body["new_branch"] == "fix/x"
+        and body["branch"] == "main"
+    )
+
+
+def test_every_write_by_the_server_belongs_to_a_write_call() -> None:
+    from mirrordimensions.mcp.world.reconcile import unexplained_writes
+
+    server = "10.41.0.23"
+    events = [
+        _event(
+            1,
+            "http.exchange",
+            host="git.acme.com",
+            method="POST",
+            client=server,
+            path="/api/v1/repos/acme/b/issues/3/comments",
+        ),
+        _event(2, "mcp.call", exchange=1, tool="add_issue_comment", access="write", is_error=False),
+        _event(
+            3,
+            "http.exchange",
+            host="git.acme.com",
+            method="DELETE",
+            client=server,
+            path="/api/v1/repos/acme/b",
+        ),
+        _event(4, "mcp.call", exchange=2, tool="get_issue", access="read", is_error=False),
+    ]
+    assert unexplained_writes(events[:2], {server}) == []
+    assert unexplained_writes(events, {server}) == [
+        "DELETE git.acme.com/api/v1/repos/acme/b is not explained by a write tool call (get_issue)"
     ]

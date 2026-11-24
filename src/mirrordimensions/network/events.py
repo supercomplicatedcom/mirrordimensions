@@ -98,6 +98,79 @@ def browser_parser(shots: Path) -> Callable[[str], dict[str, Any] | None]:
     return parse
 
 
+_IP_PROTOCOLS = {1: "ICMP", 6: "TCP", 17: "UDP", 58: "ICMPv6", 132: "SCTP"}
+
+
+def tracer_parser(
+    watch: set[str], progress: dict[str, str] | None = None
+) -> Callable[[str], dict[str, Any] | None]:
+    """Events from the engine's tracer (Tetragon) for the containers in `watch` (container
+    ids; the tracer reports the first 31 characters). Everything else is ignored, but the
+    time of the latest line is kept in `progress["time"]`, so a run can wait until the
+    tracer has reported past the moment its agent stopped."""
+
+    def parse(line: str) -> dict[str, Any] | None:
+        if not line.startswith("{"):
+            return None
+        try:
+            raw = json.loads(line)
+        except ValueError:
+            return None
+        item = cast(dict[str, Any], raw)
+        if progress is not None and isinstance(item.get("time"), str):
+            progress["time"] = str(item["time"])
+        exec_ = cast(dict[str, Any] | None, item.get("process_exec"))
+        probe = cast(dict[str, Any] | None, item.get("process_kprobe"))
+        holder: dict[str, Any] = exec_ or probe or {}
+        process = cast(dict[str, Any], holder.get("process") or {})
+        container = str(process.get("docker", ""))
+        if not container or not any(c.startswith(container) for c in watch):
+            return None
+        base = {
+            "container": container,
+            "binary": process.get("binary", ""),
+            "pid": process.get("pid"),
+        }
+        if exec_:
+            return {
+                "source": "host",
+                "type": "process.exec",
+                "data": {**base, "arguments": str(process.get("arguments", ""))[:300]},
+            }
+        if probe:
+            args = cast(list[dict[str, Any]], probe.get("args") or [])
+            first = args[0] if args else {}
+            function = probe.get("function_name")
+            # TCP: the socket at connect; anything else: the packet as it is sent (an
+            # unconnected UDP socket carries no destination of its own).
+            sock = cast(dict[str, Any], first.get("sock_arg") or first.get("skb_arg") or {})
+            if function == "tcp_connect":
+                proto = "TCP"
+            else:
+                number = sock.get("proto")
+                proto = _IP_PROTOCOLS.get(number, str(number)) if isinstance(number, int) else "UDP"
+                if proto == "TCP":
+                    # The kernel's own TCP replies (acknowledgements and resets for other
+                    # connections) leave through ip_send_skb from interrupt context, and are
+                    # credited to whichever process was running. A container's own TCP
+                    # connections are traced at tcp_connect.
+                    return None
+            return {
+                "source": "host",
+                "type": "socket.connect",
+                "data": {
+                    **base,
+                    "function": function,
+                    "proto": proto,
+                    "dst": sock.get("daddr"),
+                    "dport": sock.get("dport"),
+                },
+            }
+        return None
+
+    return parse
+
+
 def parse_dns(line: str) -> dict[str, Any] | None:
     match = _DNS.search(line)
     if not match:
@@ -167,6 +240,7 @@ class Collector:
         self.offset = clock_offset_s
         self.names = names
         self.events: list[dict[str, Any]] = []
+        self.run_id: str | None = None
         self._lock = threading.Lock()
         self._cond = threading.Condition(self._lock)
         self._threads: list[threading.Thread] = []
@@ -193,25 +267,34 @@ class Collector:
         thread.start()
         self._threads.append(thread)
 
+    def emit(self, source: str, kind: str, data: dict[str, Any]) -> dict[str, Any]:
+        """Record an event the control plane itself produced (runner, evaluator, state)."""
+        return self._record({"source": source, "type": kind, "data": data})
+
+    def _record(self, event: dict[str, Any]) -> dict[str, Any]:
+        arrived = time.time() + self.offset
+        with self._cond:
+            event["seq"] = len(self.events) + 1
+            event["ts"] = (
+                datetime.fromtimestamp(arrived, UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+            )
+            if self.run_id:
+                event["run_id"] = self.run_id
+            event["arrived"] = arrived
+            self.events.append(event)
+            with self.out.open("a", encoding="utf-8", newline="\n") as handle:
+                record = {k: v for k, v in event.items() if k != "arrived"}
+                handle.write(json.dumps(record) + "\n")
+            self._cond.notify_all()
+        return event
+
     def _follow(
         self, name: str, parser: Callable[[str], dict[str, Any] | None], since: int
     ) -> None:
         for line in self.docker.follow(name, since=since):
             event = parser(line)
-            if event is None:
-                continue
-            arrived = time.time() + self.offset
-            with self._cond:
-                event["seq"] = len(self.events) + 1
-                event["ts"] = (
-                    datetime.fromtimestamp(arrived, UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
-                )
-                event["arrived"] = arrived
-                self.events.append(event)
-                with self.out.open("a", encoding="utf-8", newline="\n") as handle:
-                    record = {k: v for k, v in event.items() if k != "arrived"}
-                    handle.write(json.dumps(record) + "\n")
-                self._cond.notify_all()
+            if event is not None:
+                self._record(event)
 
     def wait_for(
         self, match: Callable[[dict[str, Any]], bool], after: float, timeout: float

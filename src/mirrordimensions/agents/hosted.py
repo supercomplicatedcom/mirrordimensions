@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
@@ -136,8 +137,15 @@ def trust_root(docker: Docker, name: str, ca_pem: bytes) -> str:
     )
 
 
-def start(docker: Docker, container: ContainerSpec, ca_pem: bytes) -> str:
+def start(
+    docker: Docker,
+    container: ContainerSpec,
+    ca_pem: bytes,
+    before_start: Callable[[str], None] | None = None,
+) -> str:
     docker.create(container)
     bundle = trust_root(docker, container.name, ca_pem)
+    if before_start is not None:
+        before_start(container.name)  # e.g. tell the tracer which container to watch
     docker.start(container.name)
     return bundle

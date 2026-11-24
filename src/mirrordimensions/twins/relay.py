@@ -13,7 +13,7 @@ import base64
 import json
 import secrets
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
@@ -29,6 +29,7 @@ RELAY_IMAGE = (
 class Response:
     status: int
     body: bytes
+    headers: dict[str, str] = field(default_factory=dict[str, str])  # when asked for
 
     def json(self) -> Any:
         return json.loads(self.body or b"null")
@@ -58,6 +59,7 @@ class Relay:
         headers: dict[str, str] | None = None,
         basic: tuple[str, str] | None = None,
         timeout: int = 60,
+        with_headers: bool = False,
     ) -> Response:
         # Unique file names: requests run concurrently in the same relay container.
         tag = secrets.token_hex(6)
@@ -86,12 +88,15 @@ class Relay:
             args += ["-H", f"{key}: {value}"]
         if basic:
             args += ["-u", f"{basic[0]}:{basic[1]}"]
+        if with_headers:
+            args += ["-D", f"/tmp/hdr-{tag}"]  # noqa: S108 (inside the relay container)
         if payload:
             args += ["--data-binary", f"@/tmp/in-{tag}"]
         script = (
             f'printf %s "$BODY" | base64 -d > /tmp/in-{tag}; '
             + " ".join(_quote(a) for a in args)
-            + f" {_quote(url)} 2>/dev/null; echo; base64 -w0 /tmp/out-{tag} 2>/dev/null; rm -f /tmp/in-{tag} /tmp/out-{tag}"
+            + f" {_quote(url)} 2>/dev/null; echo; base64 -w0 /tmp/out-{tag} 2>/dev/null; echo;"
+            f" base64 -w0 /tmp/hdr-{tag} 2>/dev/null; rm -f /tmp/in-{tag} /tmp/out-{tag} /tmp/hdr-{tag}"
         )
         out = self.docker.exec(
             self.name, ["sh", "-c", script], env={"BODY": base64.b64encode(payload).decode()}
@@ -111,7 +116,13 @@ class Relay:
                 f"{method} {url}: no connection",
                 "Check that the sandbox is up: mirror status",
             )
-        return Response(status=status, body=base64.b64decode(rest.strip() or b""))
+        body_b64, _, headers_b64 = rest.partition("\n")
+        got: dict[str, str] = {}
+        for line in base64.b64decode(headers_b64.strip() or b"").decode("latin-1").splitlines():
+            name, sep, value = line.partition(":")
+            if sep and not name.startswith("HTTP/"):
+                got[name.strip().lower()] = value.strip()
+        return Response(status=status, body=base64.b64decode(body_b64.strip() or b""), headers=got)
 
     def wait_for(self, url: str, timeout_s: float, ok: tuple[int, ...] = (200,)) -> None:
         deadline = time.time() + timeout_s

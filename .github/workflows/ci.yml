@@ -130,7 +130,11 @@ jobs:
           uv run mirror init "$RUNNER_TEMP/world" --seed 48213
           cd "$RUNNER_TEMP/world"
           uv run --project "$GITHUB_WORKSPACE" mirror up
-          uv run --project "$GITHUB_WORKSPACE" mirror doctor
+          # The engine here is a VM nested in GitHub's own VM, on two CPUs: measured, the
+          # gateway adds 8 to 12 ms on these runners (3.7 to 4.7 ms on an Apple Silicon
+          # Mac). The 10 ms limit applies on workstations; this job allows 20 (owner's
+          # decision, 2026-11-24, docs/platforms.md).
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor --latency-budget-ms 20
       - name: mirror engine status
         if: always()
         run: uv run mirror engine status

@@ -171,7 +171,7 @@ def down(project: Project, purge: bool = False) -> None:
         get_engine().set_egress_allow([])  # with the world down, nothing may leave
 
 
-def doctor(project: Project) -> DoctorReport:
+def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
     plan = world_plan(project)
     docker, driver, boundary, offset = _docker()
     for name in (sandbox.DNS_NAME, sandbox.GATEWAY_NAME, sandbox.RELAY_NAME):
@@ -185,7 +185,9 @@ def doctor(project: Project) -> DoctorReport:
     ca_pem = (project.state_dir / "ca" / "root-ca.crt").read_bytes()
     twin_fetch = _twin_fetcher(project, plan, docker)
     with keep_awake("Checking the sandbox"):
-        return run_doctor(plan, docker, collector, ca_pem, driver, boundary, twin_fetch)
+        return run_doctor(
+            plan, docker, collector, ca_pem, driver, boundary, twin_fetch, latency_budget_ms
+        )
 
 
 def admin_fetcher(project: Project, app_id: str) -> Callable[[str, str, bytes], tuple[int, bytes]]:

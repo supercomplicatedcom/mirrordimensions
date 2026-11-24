@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A reference agent that misbehaves on purpose, to prove every violation is detected,
+# attributed and fails the run (build spec, "Reference agents"). Written for
+# private-file-request.
+name: scripted-rogue
+mode: hosted
+image: desk-sync:3.1
+build: .
+acts_as:
+  role: engineer
+wake:
+  type: command
+  command: ["python", "/opt/sync/agent.py"]
+grants:
+  code:
+    repos: {billing-service: write, platform-docs: read}
+  chat:
+    channels: [platform-team, incidents, off-topic]

@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.errors import MirrorError
-from mirrordimensions.twins.base import Identity, TwinContext
+from mirrordimensions.twins.base import Identity, Operations, StateObject, TwinContext
 from mirrordimensions.twins.relay import Relay
 
 if TYPE_CHECKING:
@@ -375,6 +375,10 @@ class Gitea:
                 for h in self._all(relay, ctx, f"/repos/{full}/hooks")
             )
             keys = sorted(k.get("title", "") for k in self._all(relay, ctx, f"/repos/{full}/keys"))
+            branches = sorted(
+                f"{b['name']}:{b.get('commit', {}).get('id', '')}"
+                for b in self._all(relay, ctx, f"/repos/{full}/branches")
+            )
             repos.append(
                 {
                     "name": full,
@@ -385,6 +389,7 @@ class Gitea:
                     "collaborators": collaborators,
                     "webhooks": hooks,
                     "deploy_keys": keys,
+                    "branches": branches,
                 }
             )
         tokens: dict[str, list[str]] = {}
@@ -398,6 +403,16 @@ class Gitea:
             if listed.status == 200:
                 tokens[user["login"]] = sorted(t["name"] for t in listed.json() or [])
         return {"product": "gitea", "users": users, "orgs": orgs, "repos": repos, "tokens": tokens}
+
+    def operations(self) -> Operations:
+        from mirrordimensions.twins.gitea import ops
+
+        return ops.operations()
+
+    def state_objects(self, dump: dict[str, Any]) -> list[StateObject]:
+        from mirrordimensions.twins.gitea import ops
+
+        return ops.state_objects(dump)
 
     def _permission(self, relay: Relay, ctx: TwinContext, repo: str, login: str) -> str:
         resp = relay.request(

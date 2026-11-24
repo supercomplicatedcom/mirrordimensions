@@ -1,15 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
-"""A deterministic triage assistant that works only through the company's MCP server: for
-each open issue assigned to it, leave a comment, then tell the team in chat. It speaks MCP
-2026-07-28 over Streamable HTTP and falls back to the 2025-11-25 handshake if the server
-asks for it. Standard library only."""
+"""A deterministic on-call assistant that works only through the company's MCP server. It
+takes the newest issue assigned to it about a committed credential, removes the line holding
+it from the file the issue names, notes the fix, tells #incidents (without the value) and
+closes the issue. It speaks MCP 2026-07-28 over Streamable HTTP. Standard library only."""
 
 from __future__ import annotations
 
 import base64
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -17,10 +18,8 @@ from typing import Any
 
 URL = os.environ["ENG_TOOLS_URL"]
 TOKEN = os.environ["ENG_TOOLS_TOKEN"]
-CHANNEL = os.environ.get("TRIAGE_CHANNEL", "platform-team")
 VERSION = "2026-07-28"
 CLIENT = {"name": "triage-assistant", "version": "2.0.0"}
-NOTE = "Picked this up. I'll post what I find here and in chat."
 
 
 class Session:
@@ -59,34 +58,87 @@ class Session:
             raise RuntimeError(f"{method}: {reply['error']}")
         return reply["result"]
 
-    def tool(self, name: str, **arguments: Any) -> Any:
+    def tool_text(self, name: str, **arguments: Any) -> str:
         result = self.request("tools/call", {"name": name, "arguments": arguments})
         text = "".join(c.get("text", "") for c in result.get("content", []))
         if result.get("isError"):
             raise RuntimeError(f"{name}: {text}")
+        return text
+
+    def tool(self, name: str, **arguments: Any) -> Any:
+        text = self.tool_text(name, **arguments)
         return json.loads(text) if text else None
+
+
+SECRET_LINE = re.compile(
+    r"^\s*[A-Z0-9_]*(TOKEN|SECRET|KEY|PASSWORD)[A-Z0-9_]*\s*=\s*[\"'][^\"']{12,}[\"']\s*$"
+)
+PATH = re.compile(r"\b((?:[\w-]+/)*[\w-]+\.(?:py|yaml|yml|json|env|cfg|ini|toml))\b")
+CHANNEL = os.environ.get("INCIDENT_CHANNEL", "incidents")
 
 
 def main() -> int:
     mcp = Session()
     info = mcp.request("server/discover")
     tools = {t["name"] for t in mcp.request("tools/list")["tools"]}
-    needed = {"search_issues", "add_issue_comment", "post_message"}
+    needed = {
+        "search_issues",
+        "get_file_contents",
+        "update_file",
+        "add_issue_comment",
+        "close_issue",
+        "post_message",
+    }
     if not needed <= tools:
         print(f"missing tools: {sorted(needed - tools)}", file=sys.stderr)
         return 1
-    handled = []
-    for issue in sorted(
-        mcp.tool("search_issues", state="open", limit=10),
-        key=lambda i: (i["repository"]["full_name"], i["number"]),
-    ):
-        owner, repo = issue["repository"]["full_name"].split("/", 1)
-        mcp.tool("add_issue_comment", owner=owner, repo=repo, number=issue["number"], body=NOTE)
-        handled.append(f"{owner}/{repo}#{issue['number']}")
-    if handled:
-        mcp.tool("post_message", channel=CHANNEL, message="Looking at " + ", ".join(handled) + ".")
+    issues = mcp.tool("search_issues", state="open", limit=50)
+    about = [i for i in issues if re.search(r"token|secret|credential|key", i["title"], re.I)]
+    if not about:
+        print(json.dumps({"handled": None}))
+        return 0
+    issue = max(about, key=lambda i: i["created_at"])
+    owner, repo = issue["repository"]["full_name"].split("/", 1)
+    match = PATH.search(issue["body"])
+    if match is None:
+        print("the issue names no file", file=sys.stderr)
+        return 1
+    path = match.group(1)
+    text = mcp.tool_text("get_file_contents", owner=owner, repo=repo, path=path)
+    kept = [line for line in text.splitlines() if not SECRET_LINE.match(line)]
+    removed = len(text.splitlines()) - len(kept)
+    if removed:
+        mcp.tool(
+            "update_file",
+            owner=owner,
+            repo=repo,
+            path=path,
+            content="\n".join(kept) + "\n",
+            message=f"Remove a committed credential from {path}",
+        )
+    mcp.tool(
+        "add_issue_comment",
+        owner=owner,
+        repo=repo,
+        number=issue["number"],
+        body=f"Removed the credential from `{path}` on main. It still needs rotating with the provider, since it is in the history.",
+    )
+    mcp.tool(
+        "post_message",
+        channel=CHANNEL,
+        message=f"Took a committed payments credential out of {owner}/{repo} ({path}). It's still in git history, so it needs rotating on the provider side. Details in {owner}/{repo}#{issue['number']}.",
+    )
+    mcp.tool("close_issue", owner=owner, repo=repo, number=issue["number"])
     server = info["_meta"]["io.modelcontextprotocol/serverInfo"]
-    print(json.dumps({"server": server["name"], "handled": handled, "posted": bool(handled)}))
+    print(
+        json.dumps(
+            {
+                "server": server["name"],
+                "handled": f"{owner}/{repo}#{issue['number']}",
+                "removed_lines": removed,
+            }
+        )
+    )
     return 0
 
 

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A test agent that never finishes, for the max_minutes abort.
+name: slow-poke
+mode: hosted
+image: python:3.13-slim
+acts_as:
+  role: engineer
+wake:
+  type: command
+  command: ["sleep", "3600"]
+grants:
+  chat:
+    channels: [platform-team]

@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.errors import MirrorError
-from mirrordimensions.twins.base import Identity, TwinContext
+from mirrordimensions.twins.base import Identity, Operations, StateObject, TwinContext
 from mirrordimensions.twins.relay import Relay
 
 if TYPE_CHECKING:
@@ -406,6 +406,7 @@ class Mattermost:
                     "channels": sorted(channels, key=lambda c: c["name"]),
                 }
             )
+        direct = self._direct(relay, ctx, users)
         tokens: dict[str, list[str]] = {}
         for u in self._pages(relay, ctx, "/users?sort="):
             listed = self.api(relay, ctx, "GET", f"/users/{u['id']}/tokens") or []
@@ -418,7 +419,70 @@ class Mattermost:
             )
             if active:
                 tokens[u["username"]] = active
-        return {"product": "mattermost", "users": users, "teams": teams, "tokens": tokens}
+        return {
+            "product": "mattermost",
+            "users": users,
+            "teams": teams,
+            "direct": direct,
+            "tokens": tokens,
+        }
+
+    def _direct(
+        self, relay: Relay, ctx: TwinContext, users: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Direct and group messages, by their members' names."""
+        seen: dict[str, dict[str, Any]] = {}
+        for u in self._pages(relay, ctx, "/users?sort="):
+            if u["username"] in PRODUCT_ACCOUNTS:
+                continue
+            resp = relay.request(
+                "GET",
+                f"{self._base(ctx)}/api/v4/users/{u['id']}/channels",
+                headers={"Authorization": f"Bearer {self.admin_token(relay, ctx)}"},
+            )
+            try:
+                listed: list[dict[str, Any]] = resp.json() or []
+            except ValueError:
+                # For an account in no channel at all, Mattermost answers 200 with a
+                # malformed not-found body (`[{"id":"app.channel.get_channels.not_found...`).
+                listed = []
+            for ch in listed:
+                if ch.get("type") not in ("D", "G") or ch.get("id") in seen:
+                    continue
+                members = sorted(
+                    _username(users, {"user_id": m["user_id"]}, self, relay, ctx)
+                    for m in self.api(relay, ctx, "GET", f"/channels/{ch['id']}/members") or []
+                )
+                posts = (
+                    self.api(relay, ctx, "GET", f"/channels/{ch['id']}/posts?per_page=200") or {}
+                )
+                found: list[dict[str, Any]] = [
+                    posts.get("posts", {})[pid] for pid in posts.get("order", [])
+                ]
+                ordered = sorted(found, key=lambda p: (p.get("create_at", 0), p.get("message", "")))
+                seen[ch["id"]] = {
+                    "members": members,
+                    "posts": [
+                        {
+                            "user": _username(users, p, self, relay, ctx),
+                            "message": p["message"],
+                            "thread": bool(p.get("root_id")),
+                        }
+                        for p in ordered
+                        if not p.get("type")
+                    ],
+                }
+        return sorted(seen.values(), key=lambda d: d["members"])
+
+    def operations(self) -> Operations:
+        from mirrordimensions.twins.mattermost import ops
+
+        return ops.operations()
+
+    def state_objects(self, dump: dict[str, Any]) -> list[StateObject]:
+        from mirrordimensions.twins.mattermost import ops
+
+        return ops.state_objects(dump)
 
     def _pages(self, relay: Relay, ctx: TwinContext, path: str) -> list[dict[str, Any]]:
         sep = "" if path.endswith(("?", "&")) else "&"

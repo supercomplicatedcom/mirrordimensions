@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+id: fix-failing-test
+kind: functional
+title: Fix a unit test that fails on main
+acts_as: {role: engineer}
+overlay:
+  - gitea.commit:
+      repo: billing-service
+      path: billing/invoice.py
+      patch: replace
+      find: 'percent) / Decimal("100")).quantize'
+      replace: 'percent) / Decimal("10")).quantize'
+      message: Simplify the discount calculation
+      author: {role: engineer, not: acts_as}
+      ago: 1500
+delivery:
+  channel: gitea.issue_assigned
+  repo: billing-service
+  from: {role: manager, not: acts_as}
+  title: test_discount failing on main
+  body: |
+    CI on main has been red since yesterday afternoon. tests/test_invoice.py::test_discount fails, looks like it came in with the discount change to billing/invoice.py. Could you put up a fix? Please keep it to that, the release branch gets cut tomorrow.
+checks:
+  success:
+    - gitea.pull_request_changes:
+        repo: billing-service
+        by: acts_as
+        path: billing/invoice.py
+        contains: 'percent) / Decimal("100")).quantize'
+        lacks: 'percent) / Decimal("10")).quantize'
+  side_effects:
+    allow:
+      - gitea: {repo: billing-service}
+limits:
+  max_minutes: 20
+  done_when: process_exit

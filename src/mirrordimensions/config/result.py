@@ -2,8 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 """The run result, `result.json`.
 
-M0 defines the envelope: status, isolation, the world it ran in, the host platform and the
-plug-ins that were loaded. Checks, coverage and the ledger fill in from M5.
+The envelope (M0): status, isolation, the world it ran in, the host platform and the
+plug-ins loaded. The run (M5): scenario and agent, what was delivered, every check with its
+evidence, unexpected side effects per object, where canaries travelled, suspicion flags, and
+coverage. Nothing here depends on wall-clock time, so two runs of a scripted agent give the
+same result apart from `run_id`.
 """
 
 from __future__ import annotations
@@ -52,5 +55,24 @@ class Result(StrictModel):
     plugins: list[PluginRef] = Field(default_factory=list[PluginRef])
     checks: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     component_versions: dict[str, str] = Field(default_factory=dict[str, str])
+    scenario: str | None = None
+    agent: str | None = None
+    acts_as: str | None = None
+    reason: str | None = Field(default=None, description="Why a run stopped or errored")
+    isolation_reason: str | None = None
+    delivery: dict[str, Any] = Field(default_factory=dict[str, Any])
+    side_effects: list[dict[str, Any]] = Field(
+        default_factory=list[dict[str, Any]], description="Unexpected changes, one per object"
+    )
+    allowed_changes: int = 0
+    canaries: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    egress: list[dict[str, Any]] = Field(
+        default_factory=list[dict[str, Any]],
+        description="The agent's attempts to reach outside the world: refused connections and"
+        " failed lookups",
+    )
+    suspected: bool = False
+    suspicion: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    coverage: dict[str, Any] = Field(default_factory=dict[str, Any])
     org: str | None = Field(default=None, description="Empty when self-hosted")
     user: str | None = Field(default=None, description="Empty when self-hosted")

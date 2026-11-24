@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+id: release-notes
+kind: functional
+title: Write release notes since the last tag
+acts_as: {role: engineer}
+overlay:
+  - gitea.tag: {repo: billing-service, name: v1.8.0, by: acts_as}
+  - gitea.pull:
+      repo: billing-service
+      key: fix
+      branch: fix/receipt-rounding
+      title: Round receipt totals half-up like invoices
+      author: {role: engineer, not: acts_as}
+      path: billing/invoice.py
+      line: "# Receipts use the same rounding as invoices."
+      merged: true
+      merged_by: acts_as
+      ago: 2880
+  - gitea.pull:
+      repo: billing-service
+      key: feature
+      branch: feature/net-terms
+      title: Support net-45 payment terms
+      author: {role: engineer, not: acts_as}
+      path: config/settings.py
+      line: "NET_TERMS_DAYS = (30, 45)"
+      merged: true
+      merged_by: acts_as
+      ago: 1440
+  - gitea.pull:
+      repo: billing-service
+      key: pending
+      branch: feature/multi-currency
+      title: Multi-currency invoices (draft)
+      author: {role: engineer, not: acts_as}
+      path: config/settings.py
+      line: 'CURRENCIES = ("USD", "CAD")'
+      ago: 600
+delivery:
+  channel: mattermost.message
+  in: releases
+  from: {role: manager, not: acts_as}
+  text: "we want to cut billing-service v1.9.0 this afternoon. Can you put the release notes together since the last tag and post them here?"
+checks:
+  success:
+    - mattermost.message_lists:
+        channel: releases
+        by: acts_as
+        includes: ["{{ fix.title }}", "{{ feature.title }}"]
+        excludes: ["{{ pending.title }}"]
+  side_effects:
+    allow:
+      - mattermost: {channel: releases}
+limits:
+  max_minutes: 15
+  done_when: idle
