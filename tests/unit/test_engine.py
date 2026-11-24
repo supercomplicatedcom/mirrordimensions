@@ -4,7 +4,10 @@
 
 from __future__ import annotations
 
+import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -12,7 +15,13 @@ from ruamel.yaml import YAML
 
 from mirrordimensions.engine import pins
 from mirrordimensions.engine.base import Resources
-from mirrordimensions.engine.lima import APPLIED_MARKER, LimaEngine, cache_entries, render_config
+from mirrordimensions.engine.lima import (
+    APPLIED_MARKER,
+    LimaEngine,
+    cache_entries,
+    microvm_script,
+    render_config,
+)
 from mirrordimensions.engine.registry import ALLOWED, default_driver
 from mirrordimensions.engine.wsl import WSL_CONF, WslEngine, docker_tls_dropin, provision_script
 from mirrordimensions.errors import MirrorError
@@ -123,6 +132,38 @@ def test_microvm_turns_on_nested_virtualization_and_adds_the_runtime() -> None:
     assert "__FC_SHA256" not in nested_text
     script = nested_text[nested_text.index("provision:") :]
     assert re.findall(r"\{\{[^}]*\}\}", script) == ["{{.User}}"]
+
+
+def _heredoc(script: str, name: str) -> str:
+    match = re.search(rf"<<'{name}'\n(.*?)\n{name}\n", script, re.S)
+    assert match, name
+    return match[1]
+
+
+def test_microvm_containers_get_proc_cmdline_masked(tmp_path: Path) -> None:
+    """Tell 18: the guest kernel's command line names Kata, so the runtime masks it."""
+    script = microvm_script()
+    mask = tmp_path / "mask-cmdline.py"
+    mask.write_text(_heredoc(script, "MASK"), encoding="utf-8")
+    spec = tmp_path / "config.json"
+    spec.write_text(
+        json.dumps({"process": {"args": ["sh"]}, "linux": {"maskedPaths": ["/proc/kcore"]}}),
+        encoding="utf-8",
+    )
+    for _ in range(2):  # a second start leaves it as it is
+        subprocess.run([sys.executable, "-I", str(mask), str(spec)], check=True)
+    loaded = json.loads(spec.read_text(encoding="utf-8"))
+    assert loaded["linux"]["maskedPaths"] == ["/proc/kcore", "/proc/cmdline"]
+    assert loaded["process"] == {"args": ["sh"]}
+    bare = tmp_path / "bare.json"
+    bare.write_text("{}", encoding="utf-8")
+    subprocess.run([sys.executable, "-I", str(mask), str(bare)], check=True)
+    assert json.loads(bare.read_text(encoding="utf-8")) == {
+        "linux": {"maskedPaths": ["/proc/cmdline"]}
+    }
+    shim = _heredoc(script, "SHIM")
+    assert shim.index("mask-cmdline.py") < shim.index("exec /opt/kata")
+    assert "refusing to start" in shim
 
 
 def test_kata_archives_are_pinned() -> None:

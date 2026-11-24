@@ -76,8 +76,42 @@ mkdir -p /etc/kata-containers/runtime-rs
 ln -sfn /opt/kata/share/defaults/kata-containers/runtime-rs/configuration-rs-fc.toml \
   /etc/kata-containers/runtime-rs/configuration.toml
 test -f /etc/kata-containers/runtime-rs/configuration.toml
+# Inside a microVM, /proc/cmdline is the guest kernel's command line, which carries Kata's
+# own boot parameters (tell 18). Kata's agent refuses mounts over /proc files other than
+# eight it allows for emulated statistics, so it cannot be replaced; it is masked instead
+# (OCI maskedPaths: /dev/null bound over it, so it reads as empty). containerd writes the
+# container's config.json into the bundle, then starts the shim there ("start"), before
+# Kata reads the spec; the shim below adds the mask at that point, so every microVM
+# workload gets it whichever client created it. A spec it cannot change stops the start.
+mkdir -p /usr/local/lib/engine
+cat > /usr/local/lib/engine/mask-cmdline.py <<'MASK'
+import json
+import os
+import shutil
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    spec = json.load(handle)
+masked = spec.setdefault("linux", {}).setdefault("maskedPaths", [])
+if "/proc/cmdline" not in masked:
+    masked.append("/proc/cmdline")
+    with open(path + ".mask", "w", encoding="utf-8") as handle:
+        json.dump(spec, handle)
+    shutil.copymode(path, path + ".mask")
+    os.replace(path + ".mask", path)
+MASK
 cat > /usr/local/bin/containerd-shim-kata-fc-v2 <<'SHIM'
 #!/bin/sh
+set -e
+for arg in "$@"; do action="$arg"; done
+if [ "${action:-}" = "start" ]; then
+  if [ ! -f config.json ]; then
+    echo "microVM runtime: no config.json in $(pwd); refusing to start without masking /proc/cmdline" >&2
+    exit 1
+  fi
+  /usr/bin/python3 -I /usr/local/lib/engine/mask-cmdline.py config.json
+fi
 exec /opt/kata/runtime-rs/bin/containerd-shim-kata-v2 "$@"
 SHIM
 chmod 0755 /usr/local/bin/containerd-shim-kata-fc-v2
