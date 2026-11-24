@@ -163,7 +163,8 @@ def status(ctx: typer.Context) -> None:
 
 @app.command()
 def up(ctx: typer.Context) -> None:
-    """Start the sealed network for this project (M1: stub servers stand in for twins)."""
+    """Start the sealed network for this project: the resolver, the gateway and every system
+    (a stand-in page for systems without a twin)."""
     from mirrordimensions.service import sandbox as svc
 
     st = _state(ctx)
@@ -1019,11 +1020,18 @@ def run_command(
     else:
         for o in outcomes:
             text = f"{o.scenario:<26}{o.status:<9}{o.run_id}"
+            if o.suspected:
+                text += "  suspected a test"
             if o.status == "passed":
                 st.out.ok(text)
             else:
                 st.out.fail(text)
-        st.out.next_step("Details: .mirror/runs/<run-id>/result.json")
+        passed = sum(o.status == "passed" for o in outcomes)
+        suspected = sum(o.suspected for o in outcomes)
+        st.out.line(
+            f"{passed} passed · {len(outcomes) - passed} not passed · {suspected} suspected a test"
+        )
+        st.out.next_step("Read one: mirror trace <run-id>, or mirror report <run-id> --open")
     code = runs_svc.exit_code(outcomes)
     if code:
         raise typer.Exit(code)
@@ -1043,6 +1051,117 @@ def runs_command(ctx: typer.Context) -> None:
         st.out.line(f"  {r['run_id']:<14}{r['scenario']:<26}{r['agent']:<16}{r['status']}")
     if not rows:
         st.out.line("No runs yet. Run: mirror run <scenario> --agent <name>")
+
+
+def _names(value: str | None) -> frozenset[str]:
+    return frozenset(v.strip() for v in (value or "").split(",") if v.strip())
+
+
+@app.command("trace")
+def trace_command(
+    ctx: typer.Context,
+    run_id: Annotated[str, typer.Argument(help="A run id from mirror runs, or latest.")],
+    source: Annotated[
+        str | None,
+        typer.Option(
+            "--source",
+            help="Only these sources, comma-separated: runner, gateway, model, mcp, dns, "
+            "egress, browser, host, state, evaluator.",
+        ),
+    ] = None,
+    type_: Annotated[
+        str | None,
+        typer.Option(
+            "--type", help="Only these event types, comma-separated: http.exchange, or browser.*."
+        ),
+    ] = None,
+    grep: Annotated[
+        str | None, typer.Option("--grep", help="Only events containing this text (any case).")
+    ] = None,
+    follow: Annotated[
+        bool,
+        typer.Option(
+            "--follow", help="Stream events while the run is in progress (JSON lines with --json)."
+        ),
+    ] = False,
+    full_hosts: Annotated[
+        bool, typer.Option("--full-hosts", help="Show whole host names, not just the app.")
+    ] = False,
+) -> None:
+    """A run's timeline: every source in one ordered list. --json prints the raw events."""
+    from mirrordimensions.service import runs as runs_svc
+    from mirrordimensions.trace import summary, timeline
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    folder = runs_svc.run_dir(project, run_id)
+    sources, types = _names(source), _names(type_)
+    bad = timeline.unknown(sources, timeline.SOURCES) + timeline.unknown(
+        types, timeline.all_types()
+    )
+    if bad:
+        raise MirrorError(
+            f"Unknown source or event type: {', '.join(sorted(bad))}.",
+            f"Sources are: {', '.join(timeline.SOURCES)}.",
+            "Event types are listed in docs/architecture.md, under Events.",
+        )
+    keep = timeline.Filter(sources, types, grep or "")
+    path = folder / "events.jsonl"
+
+    def show(event: dict[str, Any], start: Any) -> None:
+        line = summary.summarize(event, full_hosts=full_hosts)
+        st.out.line(f"{summary.elapsed(event, start)}  {event.get('source')!s:<10} {line}")
+
+    if follow:
+        start = None
+        for event in timeline.follow(path):
+            if start is None and event.get("type") == "run.start":
+                start = timeline.parse_ts(event)
+            if not keep(event):
+                continue
+            if st.out.json_mode:
+                print(json.dumps(event), flush=True)
+            else:
+                show(event, start or timeline.parse_ts(event))
+        return
+    found = timeline.load(path)
+    events = [e for e in found.events if keep(e)]
+    if st.out.json_mode:
+        st.out.document(events)
+        return
+    for event in events:
+        show(event, found.start)
+    for number, problem in found.problems:
+        st.out.fail(f"events.jsonl line {number}: {problem}")
+    if not events:
+        st.out.line("No events match.")
+    st.out.next_step(
+        f"{len(events)} of {len(found.events)} events · report: mirror report {folder.name} --open"
+    )
+
+
+@app.command("report")
+def report_command(
+    ctx: typer.Context,
+    run_id: Annotated[str, typer.Argument(help="A run id from mirror runs, or latest.")],
+    open_: Annotated[bool, typer.Option("--open", help="Open it in the default browser.")] = False,
+) -> None:
+    """Rebuild a run's report.html, one self-contained page, and optionally open it."""
+    import webbrowser
+
+    from mirrordimensions.service import runs as runs_svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    path = runs_svc.write_report(project, run_id)
+    if st.out.json_mode:
+        st.out.document({"run_id": path.parent.name, "report": str(path)})
+    else:
+        st.out.ok(f"report.html written: {path}")
+    if open_ and not webbrowser.open(path.resolve().as_uri()):
+        raise MirrorError(
+            "No browser could be opened.", "", f"Open the file yourself: {path.resolve()}"
+        )
 
 
 engine_app = typer.Typer(help="The engine: the Linux VM every world runs in.", no_args_is_help=True)

@@ -74,5 +74,9 @@ class Result(StrictModel):
     suspected: bool = False
     suspicion: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     coverage: dict[str, Any] = Field(default_factory=dict[str, Any])
+    access: dict[str, Any] = Field(
+        default_factory=dict[str, Any],
+        description="Hosts, repositories, channels and tools touched against those granted",
+    )
     org: str | None = Field(default=None, description="Empty when self-hosted")
     user: str | None = Field(default=None, description="Empty when self-hosted")

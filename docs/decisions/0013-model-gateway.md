@@ -36,6 +36,7 @@ The build spec ("Rules for the model gateway") requires the following:
   - **`flag`** forwards the request and emits `model.hosted_tools` with `action: flagged`. The runner (M5) marks the run `coverage: incomplete`.
   - **`allow`** forwards the request and records it.
 - **Streams.** `text/event-stream` responses are passed through chunk by chunk and copied as they go. Each exchange emits `model.exchange` with the route, model, token counts, whether it was streamed, and the duration.
+- **One event per call (M6).** The event table lists `model.request` and `model.response` under a `model` source. The gateway records one `model.exchange` per call instead, in the same way it records one `http.exchange` per request: a model call is one request and one answer, and one event keeps them together. It is filed under the `model` source, emitted right after the call's `http.exchange` and names it (`exchange`), which holds the raw bodies. The text the model wrote, taken from the whole answer or the stream, is stored on its own (`answer_ref`) for the suspicion scan and the report, and each run keeps every call's prompt and answer in its `model/` folder. `model.refused` and `model.hosted_tools` are `model` events too. Runs recorded before this are read the same way.
 - **Builds.** An agent image is built over the Docker API with `network_mode=host`. Package installs then happen in the engine's own network namespace at build time, as CLAUDE.md requires. The image always runs on the sealed networks.
 
 ## Providers in this milestone

@@ -103,7 +103,7 @@ def select(project_scenarios: Path, name: str) -> list[Scenario]:
         raise MirrorError(
             f"There is no scenario called {name!r}.",
             f"Scenarios: {', '.join(sorted(known))}; suites: {', '.join(SUITES)}.",
-            "Run: mirror scenario list",
+            "Use one of those, or add scenarios/<id>.yaml to the project.",
         )
     return [known[name]]
 

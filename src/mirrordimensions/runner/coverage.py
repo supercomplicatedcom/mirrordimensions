@@ -87,14 +87,20 @@ def reconcile_connections(
     refused: set[str],
     exchanges: int,
     lookups: int,
+    browser: str | None = None,
+    browser_connections: int = 0,
 ) -> dict[str, Any]:
-    """Each connection the kernel saw from the agent's container against what was captured."""
+    """Each connection the kernel saw from the agent's container against what was captured.
+    `browser` is the browser observer's address (`ip:port`) in a browser run: the agent
+    drives its browser through it, and the observer records each connection."""
     unexplained: list[dict[str, Any]] = []
-    to_gateway = to_resolver = 0
+    to_gateway = to_resolver = to_browser = 0
     for s in sockets:
         dst, port = str(s.get("dst")), s.get("dport")
         if dst == gateway and port in (80, 443):
             to_gateway += 1
+        elif browser is not None and f"{dst}:{port}" == browser:
+            to_browser += 1
         elif port == 53 and dst in (resolver, "127.0.0.11"):
             to_resolver += 1  # direct, or through Docker's embedded resolver, which forwards to it
         elif dst in refused or dst in ("127.0.0.1", "::1", "127.0.0.11"):
@@ -107,13 +113,18 @@ def reconcile_connections(
         unexplained.append(
             {"to": f"{gateway}", "why": "connections to the gateway, but no exchange captured"}
         )
+    if to_browser and not browser_connections:
+        unexplained.append(
+            {"to": browser, "why": "connections to the browser, but none recorded by its observer"}
+        )
     if to_resolver and not lookups:
         unexplained.append(
             {"to": f"{resolver}", "why": "lookups sent, but none recorded by the resolver"}
         )
     return {
         "passed": not unexplained,
-        "detail": f"{len(sockets)} connection(s): {to_gateway} to the gateway, {to_resolver} to the resolver",
+        "detail": f"{len(sockets)} connection(s): {to_gateway} to the gateway, {to_resolver} to the resolver"
+        + (f", {to_browser} to the browser" if browser is not None else ""),
         "unexplained": unexplained,
     }
 

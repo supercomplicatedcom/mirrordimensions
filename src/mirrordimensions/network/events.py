@@ -49,7 +49,11 @@ def parse_gateway(line: str) -> dict[str, Any] | None:
     # The gateway numbers its own events; MCP events name the exchange that carried them
     # by that number (`exchange`), so it is kept on every gateway event.
     data["gateway_seq"] = item.get("seq")
-    return {"source": "gateway", "type": item["type"], "data": data}
+    kind = str(item["type"])
+    # Model calls and MCP messages pass through the gateway but are their own sources in
+    # the timeline (build spec, "Run event").
+    source = kind.split(".", 1)[0] if kind.startswith(("model.", "mcp.")) else "gateway"
+    return {"source": source, "type": kind, "data": data}
 
 
 BROWSER_TYPES = frozenset(

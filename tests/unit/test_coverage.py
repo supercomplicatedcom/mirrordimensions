@@ -256,3 +256,32 @@ def test_kernel_tcp_replies_are_not_credited_to_the_running_process() -> None:
     assert udp is not None and udp["data"]["proto"] == "UDP" and udp["data"]["dport"] == 53
     icmp = parse(send(1, "1.1.1.1", 0))
     assert icmp is not None and icmp["data"]["proto"] == "ICMP"
+
+
+def test_a_browser_agents_connections_to_its_browser_are_explained_by_the_observer() -> None:
+    sockets = [{"binary": "node", "dst": "10.40.0.171", "dport": 9222, "proto": "TCP"}]
+    seen = coverage.reconcile_connections(
+        sockets,
+        gateway="10.40.0.10",
+        resolver="10.40.0.53",
+        refused=set(),
+        exchanges=0,
+        lookups=0,
+        browser="10.40.0.171:9222",
+        browser_connections=2,
+    )
+    assert seen["passed"] and "1 to the browser" in seen["detail"]
+    unrecorded = coverage.reconcile_connections(
+        sockets,
+        gateway="10.40.0.10",
+        resolver="10.40.0.53",
+        refused=set(),
+        exchanges=0,
+        lookups=0,
+        browser="10.40.0.171:9222",
+    )
+    assert not unrecorded["passed"]
+    not_a_browser_run = coverage.reconcile_connections(
+        sockets, gateway="10.40.0.10", resolver="10.40.0.53", refused=set(), exchanges=0, lookups=0
+    )
+    assert not_a_browser_run["unexplained"][0]["to"] == "10.40.0.171:9222"

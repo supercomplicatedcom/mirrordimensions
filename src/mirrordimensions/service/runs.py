@@ -26,6 +26,7 @@ something to explain away (docs/decisions/0015).
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import time
 from collections.abc import Callable
@@ -54,6 +55,7 @@ from mirrordimensions.service.sandbox import (
     world_plan,
 )
 from mirrordimensions.service.worlddef import definition_hash
+from mirrordimensions.trace import access, report
 from mirrordimensions.twins.base import RunContext, StateObject, get_twin
 from mirrordimensions.twins.relay import Relay
 from mirrordimensions.world.model import Person, World
@@ -71,6 +73,7 @@ class RunOutcome(BaseModel):
     isolation: str
     coverage: str
     path: str
+    suspected: bool = False
 
 
 def exit_code(outcomes: list[RunOutcome]) -> int:
@@ -465,7 +468,7 @@ class _Run:
     # -- evaluation ----------------------------------------------------------------------
 
     def _bodies(self, clients: set[str]) -> list[tuple[int, str, str]]:
-        """(event seq, where, text) for every request body the agent sent, and model answers."""
+        """(event seq, where, text) for every request body the agent sent."""
         out: list[tuple[int, str, str]] = []
         for e in self.collector.events:
             data = e.get("data", {})
@@ -479,6 +482,34 @@ class _Run:
                     raw = self.docker.read_file(sandbox.GATEWAY_NAME, f"{BODIES}/{ref}")
                     if raw:
                         out.append((int(e["seq"]), where, raw.decode("utf-8", "replace")))
+        return out
+
+    def _answers(self, clients: set[str]) -> list[tuple[int, str, str]]:
+        """(event seq, where, text) for everything a model wrote back to the agent. Each
+        exchange's prompt and answer are also kept in the run's `model/` folder for the
+        report: the gateway's copies do not outlive the sandbox."""
+        out: list[tuple[int, str, str]] = []
+        exchanges = {
+            e["data"].get("gateway_seq"): e
+            for e in self.collector.events
+            if e.get("type") == "http.exchange"
+        }
+        for e in self.collector.events:
+            data = e.get("data", {})
+            if e.get("type") != "model.exchange" or data.get("client") not in clients:
+                continue
+            seq = int(e["seq"])
+            prompt = self._body(
+                (exchanges.get(data.get("exchange")) or {"data": {}})["data"].get("req_body_ref")
+            )
+            raw = self._body(data.get("answer_ref"))
+            make_dir(self.dir / "model", owner_only=True)
+            if prompt:
+                (self.dir / "model" / f"{seq}.request.json").write_bytes(prompt)
+            if raw:
+                (self.dir / "model" / f"{seq}.answer.txt").write_bytes(raw)
+                where = f"model answer ({data.get('route')}, {data.get('model', 'unknown model')})"
+                out.append((seq, where, raw.decode("utf-8", "replace")))
         return out
 
     def _evaluate(self, handle_clients: set[str]) -> None:
@@ -579,8 +610,17 @@ class _Run:
         self.result.egress = evaluate.egress(
             self.collector.events, handle_clients, set(self.plan.resolvable)
         )
-        writes = [(seq, text) for seq, where, text in bodies if not where.startswith("GET ")]
-        flags = evaluate.suspicions(writes)
+        # What the agent wrote into the world, and what its model wrote back. A request to the
+        # model is not scanned: it carries the world's own text as context.
+        model_hosts = set(self.plan.model_hosts)
+        writes = [
+            (seq, text)
+            for seq, where, text in bodies
+            if not where.startswith("GET ")
+            and where.split(" ", 1)[-1].split("/", 1)[0].split(":")[0].lower() not in model_hosts
+        ]
+        writes += [(seq, text) for seq, _, text in self._answers(handle_clients)]
+        flags = evaluate.suspicions(sorted(writes))
         for flag in flags:
             self.collector.emit("evaluator", "suspicion.flag", flag)
         self.result.suspicion = flags
@@ -606,6 +646,28 @@ class _Run:
         )
         write_text(self.dir / "ledger.json", json.dumps(rows, indent=2) + "\n")
         self.result.coverage["ledger"] = {"resources": len(rows), "file": "ledger.json"}
+        self.result.access = access.access_map(
+            self.collector.events, clients, rows, self._grants(), set(self.plan.model_hosts)
+        )
+
+    def _grants(self) -> list[access.Grant]:
+        out: list[access.Grant] = []
+        for app in self.plan.apps:
+            grant = self.agent.grants.get(app.id)
+            if grant is None:
+                continue
+            tools = grant.get("tools")
+            out.append(
+                access.Grant(
+                    system=app.id,
+                    host=app.hostname,
+                    owner=self.world.org if grant.get("repos") is not None else "",
+                    repos=grant.get("repos"),
+                    channels=grant.get("channels"),
+                    tools=sorted(tools) if isinstance(tools, dict | list) else None,
+                )
+            )
+        return out
 
     def _coverage(self, clients: set[str], found: list[evaluate.Change]) -> None:
         events = self.collector.events
@@ -635,6 +697,14 @@ class _Run:
             for e in events
             if e.get("type") == "dns.query" and e["data"].get("client") == agent_ip
         )
+        observer = next(
+            (
+                str(e["data"].get("listen"))
+                for e in events
+                if e.get("type") == "browser.observer_ready"
+            ),
+            None,
+        )
         connections = coverage.reconcile_connections(
             sockets,
             gateway=self.plan.addr.gw_lan,
@@ -642,6 +712,8 @@ class _Run:
             refused=refused,
             exchanges=exchanges,
             lookups=lookups,
+            browser=observer,
+            browser_connections=sum(1 for e in events if e.get("type") == "browser.connect"),
         )
         recs = {
             "state_against_requests": coverage.reconcile_state(found, writes),
@@ -699,6 +771,12 @@ class _Run:
             self.dir / "result.json",
             self.result.model_dump_json(indent=2, exclude_none=True) + "\n",
         )
+        try:
+            report.write(self.dir)
+        except OSError as exc:
+            self.step(
+                f"report.html could not be written ({exc}); rebuild it: mirror report {self.run_id}"
+            )
         self.step(f"{self.scenario.id}: {self.result.status}")
         return RunOutcome(
             run_id=self.run_id,
@@ -707,6 +785,7 @@ class _Run:
             isolation=self.result.isolation,
             coverage=str(self.result.coverage.get("status", "complete")),
             path=str(self.dir),
+            suspected=self.result.suspected,
         )
 
 
@@ -779,8 +858,45 @@ def list_runs(project: Project) -> list[dict[str, Any]]:
     return out
 
 
+_RUN_ID = re.compile(r"^r_[a-z0-9]{4,32}$")
+
+
+def run_dir(project: Project, run_id: str) -> Path:
+    """The folder of an existing run. `latest` names the most recent one."""
+    folder = project.state_dir / "runs"
+    if run_id == "latest":
+        runs = sorted(
+            (p for p in folder.glob("r_*") if (p / "events.jsonl").is_file()),
+            key=lambda p: (p / "events.jsonl").stat().st_mtime,
+        )
+        if not runs:
+            raise MirrorError(
+                "There are no runs yet.", "", "Run: mirror run <scenario> --agent <name>"
+            )
+        return runs[-1]
+    if not _RUN_ID.match(run_id):
+        raise MirrorError(
+            f"{run_id!r} is not a run id.",
+            "Run ids look like r_8f3k2a91c0.",
+            "List them with: mirror runs",
+        )
+    path = folder / run_id
+    if not (path / "events.jsonl").is_file():
+        raise MirrorError(f"There is no run {run_id}.", "", "List them with: mirror runs")
+    return path
+
+
+def write_report(project: Project, run_id: str) -> Path:
+    """Rebuild a run's report.html from its folder."""
+    return report.write(run_dir(project, run_id))
+
+
 def load_result(project: Project, run_id: str) -> Result:
-    path: Path = project.state_dir / "runs" / run_id / "result.json"
+    path: Path = run_dir(project, run_id) / "result.json"
     if not path.is_file():
-        raise MirrorError(f"There is no run {run_id}.", "", "Run: mirror runs")
+        raise MirrorError(
+            f"Run {run_id} has no result.",
+            "It is still running, or stopped before it was scored.",
+            f"Follow it with: mirror trace {run_id} --follow",
+        )
     return Result.model_validate_json(path.read_text(encoding="utf-8"))
