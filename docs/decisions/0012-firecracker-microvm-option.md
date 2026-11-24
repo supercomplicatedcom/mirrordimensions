@@ -35,7 +35,7 @@ Facts, checked while building this:
    - a typed client for it;
    - the microVM's network attached to `corp-lan`.
 
-4. **`mirror engine check`** runs a workload in a Firecracker microVM through containerd and confirms it has its own kernel. It also scans `uname`, `/proc/cmdline` and `dmesg` inside the microVM for Kata and Firecracker tells. The guest kernel command line is expected to carry Kata's own parameters; if it does, that is a tell to close before agents use this runtime.
+4. **`mirror engine check`** runs a workload in a Firecracker microVM through containerd and confirms it has its own kernel. It also scans `uname`, `/proc/cmdline` and `dmesg` inside the microVM for Kata and Firecracker tells. The guest kernel command line carries Kata's own parameters (`agent.*`, `systemd.unit=kata-containers.target`; tell 18). The owner chose to hide it: the runtime's shim adds `/proc/cmdline` to every microVM container's OCI `maskedPaths` before Kata reads the spec, so it reads as empty, and the check confirms it. Replacing it with an ordinary boot line is not possible, because Kata's agent, like runc, refuses mounts over it.
 
 5. **Isolation.** A microVM agent reports boundary `microvm` inside the engine's `dedicated-vm`. The level is `full` when every suite passes.
 
@@ -58,5 +58,5 @@ Facts, checked while building this:
 ## To verify
 
 - The M3 path end to end.
-- Kata's guest kernel command line and boot messages inside the microVM, as seen by the workload.
+- Kata's guest kernel command line and boot messages inside the microVM, as seen by the workload. Seen in CI (tell 18); the command line is now masked and the boot messages restricted.
 - Attaching a microVM's network to the `corp-lan` bridge with Kata's networking (M4).
