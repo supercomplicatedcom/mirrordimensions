@@ -5,6 +5,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import time
 from pathlib import Path
 from typing import Any
@@ -22,7 +25,12 @@ from mirrordimensions.hostos.files import write_text
 from mirrordimensions.network import sandbox
 from mirrordimensions.network.events import Collector, browser_parser
 from mirrordimensions.project import Project
-from mirrordimensions.service.sandbox import _docker, _manifest, app_secrets  # pyright: ignore[reportPrivateUsage]
+from mirrordimensions.service.sandbox import (
+    _docker,  # pyright: ignore[reportPrivateUsage]
+    _manifest,  # pyright: ignore[reportPrivateUsage]
+    app_secrets,
+)
+from mirrordimensions.service.sandbox import world_plan as project_plan
 from mirrordimensions.twins.base import Identity, get_twin
 from mirrordimensions.twins.relay import Relay
 from mirrordimensions.world.model import Person, World
@@ -175,7 +183,7 @@ def issue(
     world = _world(project)
     person = resolve_person(world, agent)
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = project_plan(project, manifest)
     docker = docker or _docker()[0]
     secrets = app_secrets(project, manifest)
     relay = Relay(docker)
@@ -190,7 +198,55 @@ def issue(
         identities[app.id] = twin.issue_identity(
             relay, ctx, person.username, person.name, person.email, _grants(agent, app, world)
         )
+    for app in plan.apps:
+        if app.is_mcp and app.tools is not None and app.id in agent.grants:
+            identities[app.id] = _issue_mcp(docker, plan, app, agent, person, identities, secrets)
     return person, identities
+
+
+def _issue_mcp(
+    docker: Docker,
+    plan: sandbox.Plan,
+    app: sandbox.App,
+    agent: Agent,
+    person: Person,
+    identities: dict[str, Identity],
+    secrets: dict[str, str],
+) -> Identity:
+    """A bearer token for the world MCP server, in the form its production server issues.
+    The server acts as the person in each backing system, with the person's own credentials
+    there, so out-of-grant calls fail as they would in production."""
+    assert app.tools is not None  # noqa: S101 (checked by the caller)
+    key = secrets.get(f"{app.id}:secret_key", "").encode()
+    token = hmac.new(key, person.username.encode(), hashlib.sha256).hexdigest()[:40]
+    tools = agent.grants[app.id].get("tools")
+    entry: dict[str, object] = {
+        "person": person.username,
+        "backends": {b: identities[b].token for b in app.tools.backends if b in identities},
+        "tools": list(tools) if tools is not None else None,
+    }
+    current = docker.read_file(app.container, sandbox.MCP_CONFIG)
+    config: dict[str, Any] = json.loads(current) if current else {}
+    if not config:
+        raise MirrorError(
+            f"The MCP server {app.id} is not running.",
+            f"{app.container} has no configuration.",
+            "Run: mirror up",
+        )
+    tokens: dict[str, dict[str, Any]] = config.get("tokens", {})
+    config["tokens"] = {t: e for t, e in tokens.items() if e.get("person") != person.username}
+    config["tokens"][token] = entry
+    docker.put_files(app.container, {sandbox.MCP_CONFIG: (json.dumps(config).encode(), 0o644)})
+    prefix = app.id.upper().replace("-", "_")
+    return Identity(
+        username=person.username,
+        password="",
+        token=token,
+        env={
+            f"{prefix}_MCP_URL": f"https://{app.hostname}{app.tools.endpoint}",
+            f"{prefix}_MCP_TOKEN": token,
+        },
+    )
 
 
 def creds(project: Project, name: str) -> dict[str, Any]:
@@ -245,7 +301,7 @@ def run_hosted(
             "Remote agents arrive in M7.5.",
         )
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = project_plan(project, manifest)
     docker, _, _, offset = _docker()
     for needed in (sandbox.DNS_NAME, sandbox.GATEWAY_NAME):
         if not docker.is_running(needed):
@@ -438,7 +494,7 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         add("Remote agents", None, "remote agents arrive in M7.5")
         return checks
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = project_plan(project, manifest)
     docker, _, _, _ = _docker()
     if not add(
         "The world is running",
@@ -561,5 +617,7 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
     )
     if desk is not None:
         channels += ", DevTools commands, navigations and screenshots at the browser observer"
+    if any(a.is_mcp and a.id in agent.grants for a in plan.apps):
+        channels += ", MCP messages and tool calls at the gateway"
     add("Coverage channels report captured", True, channels)
     return checks

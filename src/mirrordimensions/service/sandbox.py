@@ -41,6 +41,15 @@ def _manifest(project: Project) -> Manifest:
     return manifest
 
 
+def world_plan(project: Project, manifest: Manifest | None = None) -> sandbox.Plan:
+    """The world's plan, with MCP servers' tools loaded and the install root known."""
+    result = sandbox.plan_from(manifest or _manifest(project), project.root)
+    ca = project.state_dir / "ca" / "root-ca.crt"
+    if ca.is_file():
+        result.ca_pem = ca.read_bytes()
+    return result
+
+
 def _docker() -> tuple[Docker, str, str, float]:
     engine = get_engine()
     status = engine.status()
@@ -134,7 +143,7 @@ def apply_model_routes(plan: sandbox.Plan) -> None:
 
 def up(project: Project, on_step: StepFn = None) -> list[str]:
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = world_plan(project, manifest)
     docker, *_ = _docker()
     with ProjectLock(project.state_dir, "up"), keep_awake("Starting the sandbox"):
         leaves = ensure_leaves(
@@ -155,7 +164,7 @@ def up(project: Project, on_step: StepFn = None) -> list[str]:
 
 
 def down(project: Project, purge: bool = False) -> None:
-    plan = sandbox.plan_from(_manifest(project))
+    plan = world_plan(project)
     docker, *_ = _docker()
     with ProjectLock(project.state_dir, "down"):
         sandbox.down(docker, plan, purge=purge)
@@ -163,7 +172,7 @@ def down(project: Project, purge: bool = False) -> None:
 
 
 def doctor(project: Project) -> DoctorReport:
-    plan = sandbox.plan_from(_manifest(project))
+    plan = world_plan(project)
     docker, driver, boundary, offset = _docker()
     for name in (sandbox.DNS_NAME, sandbox.GATEWAY_NAME, sandbox.RELAY_NAME):
         if not docker.is_running(name):
@@ -182,7 +191,7 @@ def doctor(project: Project) -> DoctorReport:
 def admin_fetcher(project: Project, app_id: str) -> Callable[[str, str, bytes], tuple[int, bytes]]:
     """For `mirror system try`: ask a product directly, through the relay, as its administrator."""
     manifest = _manifest(project)
-    plan = sandbox.plan_from(manifest)
+    plan = world_plan(project, manifest)
     docker, *_ = _docker()
     app = next(a for a in plan.apps if a.id == app_id)
     twin = get_twin(app.product)

@@ -44,6 +44,10 @@ class Rule(StrictModel):
 
 class McpServes(StrictModel):
     tools_from: dict[str, Any] = Field(description="file, import, or catalog")
+    surfaces: str | None = Field(
+        default=None,
+        description="File mapping each tool to the twin operations it calls (decision 0009)",
+    )
     backed_by: list[Id] = Field(default_factory=list[str])
 
 

@@ -84,11 +84,12 @@ ignore = [
 # Backdating SQL is built only from integers and generated usernames ([a-z0-9.-]).
 "src/mirrordimensions/twins/*/seed.py" = ["E501", "S608"]
 "src/mirrordimensions/network/payloads/**" = ["E501"]
+"src/mirrordimensions/mcp/world/front.py" = ["E501", "S310"]
 
 [tool.pyright]
 include = ["src/mirrordimensions"]
 # Files copied into engine containers, run there against that container's own libraries.
-exclude = ["src/mirrordimensions/network/payloads"]
+exclude = ["src/mirrordimensions/network/payloads", "src/mirrordimensions/mcp/world/front.py"]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
 

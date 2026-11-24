@@ -89,6 +89,7 @@ def _emit(kind: str, data: dict) -> int:
 
 sys.path.insert(0, "/etc/edge")
 import behavior  # noqa: E402  (the shared rule engine, copied next to this file)
+import mcpcap  # noqa: E402  (world MCP servers: mcp.message and mcp.call events)
 import models  # noqa: E402  (model routes: inference only, credentials, hosted tools)
 
 
@@ -255,8 +256,11 @@ class Edge:
             data.server.sni = self.sni_by_addr[tuple(address)]
 
     def responseheaders(self, flow: http.HTTPFlow) -> None:
-        # Streamed model answers reach the agent as they arrive; a copy is kept for capture.
-        if flow.response is None or "edge_model" not in flow.metadata:
+        # Streamed model and MCP answers reach the agent as they arrive; a copy is kept.
+        if flow.response is None:
+            return
+        host = (flow.request.host_header or "").split(":")[0].lower()
+        if "edge_model" not in flow.metadata and "mcp" not in self.routes.get(host, {}):
             return
         if flow.response.headers.get("content-type", "").startswith("text/event-stream"):
             copy = bytearray()
@@ -340,7 +344,7 @@ class Edge:
                     plain = encoding.decode(plain, enc)
             self._model_exchange(flow, plain, "edge_stream" in flow.metadata)
         token = f"{int(time.time() * 1000)}-{id(flow) & 0xFFFFFF:06x}"
-        _emit(
+        seq = _emit(
             "http.exchange",
             {
                 "method": req.method,
@@ -356,6 +360,32 @@ class Edge:
                 "duration_ms": round((time.monotonic() - start) * 1000, 1),
             },
         )
+        host = (req.host_header or "").split(":")[0].lower()
+        mcp = self.routes.get(host, {}).get("mcp")
+        if mcp is not None and resp is not None:
+            self._mcp(flow, seq, host, mcp, resp_body)
+
+    def _mcp(self, flow: http.HTTPFlow, seq: int, host: str, mcp: dict, body: bytes | None) -> None:
+        """Every JSON-RPC message to and from a world MCP server, linked to its exchange."""
+        resp = flow.response
+        plain = body or b""
+        enc = resp.headers.get("content-encoding")
+        if enc:
+            with contextlib.suppress(ValueError):
+                plain = encoding.decode(plain, enc)
+        found = mcpcap.events(
+            flow.request.get_content(strict=False),
+            flow.request.headers.get("content-type", ""),
+            plain,
+            resp.headers.get("content-type", ""),
+            mcp.get("tools", {}),
+            self.secrets,
+        )
+        for kind, data in found:
+            _emit(
+                kind,
+                {"exchange": seq, "host": host, "client": flow.client_conn.peername[0], **data},
+            )
 
     def websocket_message(self, flow: http.HTTPFlow) -> None:
         """Every WebSocket frame, in either direction (Mattermost's live chat uses these)."""

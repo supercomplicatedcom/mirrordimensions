@@ -85,6 +85,14 @@ def violations(src: Path, allowed_dists: set[str]) -> list[str]:
                 and parts[2] not in TWIN_SHARED
             ):
                 out.append(f"{where}: imports the product {parts[2]!r}; use the twin interface")
+            if (
+                rel.parts[:2] == ("mcp", "world")
+                and parts[:1] == [PACKAGE]
+                and (parts[1:2] == ["service"] or parts[1:3] == ["mcp", "operator"])
+            ):
+                out.append(f"{where}: the world MCP server may not import {module} (decision 0009)")
+            if rel.parts[:3] == ("mcp", "world", "front.py") and top == PACKAGE:
+                out.append(f"{where}: front.py runs alone inside the world; standard library only")
             if top == PACKAGE or top in stdlib or top == "__future__":
                 continue
             dists = {normalize(d) for d in module_to_dists.get(top, [])}

@@ -476,6 +476,9 @@ def inside_out_suite(plan: Plan, probe: Probe, docker: Docker) -> list[Check]:
     for host in plan.tls_names:
         for path in paths:
             _, body = probe.sh(PROBE, f"curl -s -m 4 -D - https://{host}{path}")
+            # Some products echo the requested path in their 404 (OpenAI-compatible APIs:
+            # "Invalid URL (GET /mitm.it)"). The probe's own path is not a tell.
+            body = body.replace(path, "")
             if any(re.search(rf"\b{re.escape(w)}\b", body.lower()) for w in TELL_WORDS):
                 leaks.append(f"{host}{path}")
     _, mitm = probe.sh(

@@ -66,3 +66,6 @@ One row per assumption from the decision records, as it is checked.
 | 2026-11-24 | macOS | A second DevTools session sees the agent's input | No: DevTools has no event for another client's commands. The observer records the agent's own DevTools stream instead | 0014 |
 | 2026-11-24 | macOS | A container sharing the browser's network namespace reaches DevTools on loopback, and passes the agent's connection through unchanged | Confirmed; `browser-basic` signs in to Gitea over valid TLS, comments, and every command, navigation and screenshot is captured, with the password redacted | 0014 |
 | 2026-11-24 | macOS | Playwright's DevTools client compresses messages | Yes: permessage-deflate with context takeover; the observer inflates its copy | 0014 |
+| 2026-11-24 | - | MCP's current revision and its HTTP transport | 2026-07-28: stateless Streamable HTTP, `server/discover`, required `MCP-Protocol-Version`, `Mcp-Method` and `Mcp-Name` headers; legacy `initialize` sessions allowed alongside (dual-era) | 0009 |
+| 2026-11-24 | macOS | An agent with only MCP credentials completes `scripted-good`'s work through the world MCP server, and every message is captured | Confirmed: 5 exchanges, 10 `mcp.message`, 3 `mcp.call`; the server's 5 twin calls captured from its own address; reconciliation passes; `mirror up` with the MCP server 14 s | 0009 |
+

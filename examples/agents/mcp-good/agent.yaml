@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# scripted-good's work done through the company's MCP server only: no code-host or chat
+# credentials of its own (build spec, M4).
+name: mcp-good
+mode: hosted
+image: triage-assistant:2.0
+build: .
+acts_as:
+  role: engineer
+wake:
+  type: command
+  command: ["python", "/opt/assistant/agent.py"]
+env:
+  ENG_TOOLS_URL: ${tools.url}
+  ENG_TOOLS_TOKEN: ${tools.token}
+grants:
+  tools: {}
+  code:
+    repos: {billing-service: write, platform-docs: read}
+  chat:
+    channels: [platform-team]

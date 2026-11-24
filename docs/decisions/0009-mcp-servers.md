@@ -1,6 +1,6 @@
 # 0009. Two MCP servers: one inside the world for agents, one outside it for operators
 
-Status: Accepted (owner) for building both; the rest Proposed · Date: 2026-11-23 · Milestones: M4, M5, M7, M7.5, M8
+Status: Accepted (owner) for building both; the rest Proposed · Date: 2026-11-23, M4 notes 2026-11-24 · Milestones: M4, M5, M7, M7.5, M8
 
 ## Context
 
@@ -101,3 +101,20 @@ Nothing under `mcp/world/` may import from `mcp/operator/` or the service layer.
 - The current MCP specification: Streamable HTTP transport, session handling, authorization (OAuth 2.1 and client registration), and the protocol version to target. Check it again when M4 and M7.5 start.
 - The official MCP Python SDK's server support for Streamable HTTP and stdio, for both servers.
 - How major agent platforms connect to remote MCP servers (authorization flow, required hostnames, allow-listing), before M7.5.
+
+## Built in M4 (world MCP server, inside the sandbox)
+
+Checked against the current specification, **MCP 2026-07-28**, which made Streamable HTTP stateless: no `initialize` handshake or `Mcp-Session-Id`, the version and client capabilities in every request's `_meta`, the `MCP-Protocol-Version`, `Mcp-Method` and `Mcp-Name` headers required and checked against the body, `server/discover`, and `resultType` on every result.
+
+- **Dual-era front.** Most deployed clients and servers still speak 2025-11-25 or 2025-06-18, so the front serves both eras on one endpoint, as the specification allows. A request with modern `_meta` is served statelessly. An `initialize` opens a legacy session with `Mcp-Session-Id`. Which versions it offers comes from the exported tool list (`protocolVersions`), so it matches the production server.
+- **The front is one standard-library file** (`src/mirrordimensions/mcp/world/front.py`), run in an image already in the engine. The official Python SDK would add a dependency and a build step for an agent-reachable service that needs only four methods. It answers as a uvicorn-hosted server does (`Server: uvicorn`).
+- **Configuration.**
+  - `serves.tools_from: {file: ...}` is the export: `serverInfo`, `protocolVersions`, `instructions` and the `tools/list` entries, served verbatim.
+  - `serves.surfaces: <file>` maps each tool to the twin calls it makes (steps that may use an earlier step's result), its resource, its access and a sentence for the live view.
+  - Import (M8) and the catalog give a clear error until they exist.
+- **Identity.** Granting an agent the MCP app issues a bearer token in the server's form, `<APP>_MCP_URL` and `<APP>_MCP_TOKEN`. The front calls the twins through the gateway, by their production names, with the person's own credentials there. Out-of-grant calls therefore get the product's own error as a tool error: Mattermost's `403 Forbidden: You do not have the appropriate permissions.` was verified live. An agent grant may list `tools:` to limit what `tools/list` shows and what can be called.
+- **Capture.** The gateway parses each exchange with an MCP app, JSON or SSE, into `mcp.message` events (direction, kind, method, version, redacted body) and `mcp.call` events (tool, redacted arguments, access, resource, sentence, error, result). Each links to its exchange by the gateway's sequence number (`exchange` = `gateway_seq`).
+- **Reconciliation.** `mcp/world/reconcile.py` checks two things. Every exchange with an MCP endpoint must carry messages. Every successful write call must be matched by a write from the server to a twin within the call. It is unit-tested, and it passed on the live run with a negative control.
+- **Verified live** (`examples/agents/mcp-good`, which holds only the MCP URL and token): it discovered, listed, searched its issues, commented on `billing-service#3` and posted in `#platform-team`. That is `scripted-good`'s work. Every message and call was captured, and `mirror doctor` found no tell in the server's certificate, headers or pages.
+
+Not built yet: streaming tool results (the front always answers with JSON), `subscriptions/listen`, OAuth (M7.5), vendor-hosted MCP hostnames routed to the front.

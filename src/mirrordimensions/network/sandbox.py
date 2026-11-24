@@ -23,9 +23,12 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from importlib.resources import files
+from pathlib import Path
 
 from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
+from mirrordimensions.mcp.world import toolset
+from mirrordimensions.mcp.world.toolset import Toolset
 from mirrordimensions.network.certs import Leaf
 from mirrordimensions.network.dns import ROOT_ZONE, render_corefile, render_hosts
 from mirrordimensions.twins.base import TwinContext, get_twin
@@ -78,9 +81,17 @@ class App:
     db_ip: str = ""
     settings: dict[str, object] = field(default_factory=dict[str, object])
     rules: list[dict[str, object]] = field(default_factory=list[dict[str, object]])
+    kind: str | None = None
+    tools: Toolset | None = None  # kind mcp-server: loaded when the plan knows its project
+
+    @property
+    def is_mcp(self) -> bool:
+        return self.kind == "mcp-server" and self.product is None
 
     @property
     def port(self) -> int:
+        if self.is_mcp:
+            return MCP_PORT
         twin = get_twin(self.product)
         return twin.upstream_port if twin else 80
 
@@ -121,6 +132,7 @@ class Plan:
     model_hosts: list[str]
     addr: Address = field(default_factory=Address)
     models: list[ModelPlan] = field(default_factory=list[ModelPlan])
+    ca_pem: bytes = b""  # the install root, for services in the world that call each other
 
     @property
     def resolvable(self) -> list[str]:
@@ -138,7 +150,8 @@ DNS_NAME, GATEWAY_NAME, RELAY_NAME = "ns1", "edge-proxy-02", "klog"
 APPS_DNS_NAME = "ns2"
 
 
-def plan_from(manifest: Manifest) -> Plan:
+def plan_from(manifest: Manifest, root: Path | None = None) -> Plan:
+    """The world's network plan. With the project's folder, MCP servers' tools are loaded."""
     addr = Address()
     apps = [
         App(
@@ -152,10 +165,18 @@ def plan_from(manifest: Manifest) -> Plan:
             db_ip=addr.db_ip(i),
             settings=dict(a.settings),
             rules=[r.model_dump(exclude_none=True) for r in a.rules],
+            kind=a.kind,
         )
         for i, a in enumerate(manifest.apps)
         if a.build != "unavailable"  # recorded in the definition, left out of creation
     ]
+    if root is not None:
+        app_ids = {a.id for a in manifest.apps}
+        for app, source in zip(
+            apps, [a for a in manifest.apps if a.build != "unavailable"], strict=True
+        ):
+            if app.is_mcp and source.serves is not None:
+                app.tools = toolset.load(root, app.id, source.serves.model_dump(), app_ids)
     return Plan(
         world=manifest.name,
         seed=manifest.company.seed,
@@ -194,6 +215,8 @@ def routes_json(plan: Plan, secrets: list[str]) -> bytes:
             route.update(
                 {"surfaces": profile.surfaces, "errors": profile.errors, "rules": app.rules}
             )
+        if app.is_mcp:
+            route["mcp"] = {"tools": toolset.gateway_surfaces(app.tools) if app.tools else {}}
         routes[app.hostname] = route
     for model in plan.models:
         if not model.ip:
@@ -286,6 +309,7 @@ def specs(
     edge_py = files("mirrordimensions.network.payloads").joinpath("edge.py").read_bytes()
     models_py = files("mirrordimensions.network.payloads").joinpath("models.py").read_bytes()
     behavior_py = files("mirrordimensions.network.payloads").joinpath("behavior.py").read_bytes()
+    mcpcap_py = files("mirrordimensions.network.payloads").joinpath("mcpcap.py").read_bytes()
     label = {LABEL: plan.world}
     out = [
         ContainerSpec(
@@ -340,6 +364,7 @@ def specs(
                 "/etc/edge/edge.py": (edge_py, 0o644),
                 "/etc/edge/behavior.py": (behavior_py, 0o644),
                 "/etc/edge/models.py": (models_py, 0o644),
+                "/etc/edge/mcpcap.py": (mcpcap_py, 0o644),
                 "/etc/edge/routes.json": (routes_json(plan, secrets), 0o644),
                 **{f"/etc/edge/certs/{leaf.hostname}.pem": (leaf.pem, 0o644) for leaf in leaves},
             },
@@ -355,6 +380,9 @@ def specs(
                 spec.labels = {**label, **spec.labels}
                 out.append(spec)
             continue
+        if app.is_mcp:
+            out.append(mcp_front_spec(plan, app, label))
+            continue
         out.append(
             ContainerSpec(
                 name=app.container,
@@ -366,6 +394,40 @@ def specs(
             )
         )
     return out
+
+
+MCP_PORT = 8000
+MCP_SERVER = "/opt/tools/server.py"
+MCP_CONFIG = "/etc/tools/config.json"
+MCP_CA = "/etc/tools/ca.crt"
+
+
+def mcp_hosts(plan: Plan) -> dict[str, str]:
+    return {a.id: a.hostname for a in plan.apps if a.visibility != "absent"}
+
+
+def mcp_front_spec(
+    plan: Plan, app: App, label: dict[str, str], tokens: dict[str, dict[str, object]] | None = None
+) -> ContainerSpec:
+    """A world MCP server: one file of this repository's code and its configuration, on the
+    system network, calling the twins through the gateway by their production names."""
+    server = files("mirrordimensions.mcp.world").joinpath("front.py").read_bytes()
+    config = toolset.front_config(app.tools, mcp_hosts(plan), tokens) if app.tools else {}
+    return ContainerSpec(
+        name=app.container,
+        image=IMAGES["gateway"],  # an image already in the engine with Python 3
+        networks={APPS: app.ip},
+        entrypoint=["python3", MCP_SERVER],
+        command=[],
+        dns=[plan.addr.apps_dns_ip],
+        user="65534:65534",
+        files={
+            MCP_SERVER: (server, 0o644),
+            MCP_CONFIG: (json.dumps(config).encode(), 0o644),
+            MCP_CA: (plan.ca_pem, 0o644),
+        },
+        labels=label,
+    )
 
 
 def up(

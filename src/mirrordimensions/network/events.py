@@ -45,7 +45,11 @@ def parse_gateway(line: str) -> dict[str, Any] | None:
     item = cast(dict[str, Any], raw)
     if item.get("source") != "gateway":
         return None
-    return {"source": "gateway", "type": item["type"], "data": item.get("data", {})}
+    data = dict(item.get("data", {}))
+    # The gateway numbers its own events; MCP events name the exchange that carried them
+    # by that number (`exchange`), so it is kept on every gateway event.
+    data["gateway_seq"] = item.get("seq")
+    return {"source": "gateway", "type": item["type"], "data": data}
 
 
 BROWSER_TYPES = frozenset(
