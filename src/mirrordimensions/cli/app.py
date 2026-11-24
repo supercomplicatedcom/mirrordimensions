@@ -187,12 +187,24 @@ def down(ctx: typer.Context) -> None:
 
 
 @app.command()
-def doctor(ctx: typer.Context) -> None:
+def doctor(
+    ctx: typer.Context,
+    latency_budget_ms: Annotated[
+        float,
+        typer.Option(
+            "--latency-budget-ms",
+            min=1.0,
+            help="The most the gateway may add to a request (median), in milliseconds. "
+            "The default, 10, is the limit on a workstation; raise it only for a slower "
+            "machine such as a nested CI virtual machine. The result names the limit used.",
+        ),
+    ] = 10.0,
+) -> None:
     """Run the egress, separation, inside-out, naming, transparency and capture checks."""
     from mirrordimensions.service import sandbox as svc
 
     st = _state(ctx)
-    report = svc.doctor(service.load_project(st.start()))
+    report = svc.doctor(service.load_project(st.start()), latency_budget_ms)
     if st.out.json_mode:
         st.out.document(report)
     else:

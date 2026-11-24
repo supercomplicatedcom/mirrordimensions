@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 from cryptography import x509
 
@@ -168,3 +169,30 @@ def test_edge_payload_replaces_proxy_error_pages() -> None:
     assert "version.MITMPROXY = SERVER" in source
     assert "_http1.make_error_response = _nginx_error_response" in source
     assert "_http2.format_error = _nginx_page" in source
+
+
+class _TimedProbe:
+    """Answers the transparency suite's probes: identical responses both ways, and fixed
+    request timings in seconds (direct, then through the gateway)."""
+
+    def __init__(self, direct_s: float, via_s: float) -> None:
+        self.direct_s = direct_s
+        self.via_s = via_s
+
+    def sh(self, name: str, command: str) -> tuple[int, str]:
+        if "time_total" in command:
+            seconds = self.via_s if "-H 'Host:" not in command else self.direct_s
+            return 0, "\n".join([str(seconds)] * 20)
+        return 0, "HTTP/1.1 200 OK\nServer: nginx\n---BODY---\nok"
+
+
+def test_the_gateway_latency_limit_is_10_ms_unless_raised_and_always_named() -> None:
+    from mirrordimensions.network.egress_check import Probe, transparency_suite
+
+    plan = sandbox.plan_from(MANIFEST)
+    probe = cast(Probe, _TimedProbe(direct_s=0.001, via_s=0.013))
+    (latency,) = [c for c in transparency_suite(plan, probe) if c.name.startswith("Latency")]
+    assert latency.outcome == "fail" and "limit 10 ms)" in latency.detail
+    (raised,) = [c for c in transparency_suite(plan, probe, 20.0) if c.name.startswith("Latency")]
+    assert raised.outcome == "pass"
+    assert "limit 20 ms, raised from the default 10 ms" in raised.detail

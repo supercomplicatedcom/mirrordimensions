@@ -604,7 +604,12 @@ def naming_suite(plan: Plan, probe: Probe) -> list[Check]:
     return out
 
 
-def transparency_suite(plan: Plan, probe: Probe) -> list[Check]:
+LATENCY_BUDGET_MS = 10.0
+
+
+def transparency_suite(
+    plan: Plan, probe: Probe, latency_budget_ms: float = LATENCY_BUDGET_MS
+) -> list[Check]:
     s = "transparency"
     app = next(a for a in plan.apps if a.visibility not in ("absent", "denied"))
 
@@ -654,8 +659,15 @@ def transparency_suite(plan: Plan, probe: Probe) -> list[Check]:
             Check(
                 suite=s,
                 name="Latency the gateway adds (median of 20 plain HTTP requests)",
-                outcome="pass" if added < 10 else "fail",
-                detail=f"{added} ms ({direct_ms:.1f} ms direct, {via_ms:.1f} ms through the gateway)",
+                outcome="pass" if added < latency_budget_ms else "fail",
+                detail=f"{added} ms ({direct_ms:.1f} ms direct, {via_ms:.1f} ms through the gateway; "
+                f"limit {latency_budget_ms:g} ms"
+                + (
+                    ""
+                    if latency_budget_ms == LATENCY_BUDGET_MS
+                    else ", raised from the default 10 ms"
+                )
+                + ")",
             )
         )
     except (ValueError, IndexError):
@@ -722,6 +734,7 @@ def run_doctor(
     driver: str,
     boundary: str,
     twin_fetch: Callable[[str], None] | None = None,
+    latency_budget_ms: float = LATENCY_BUDGET_MS,
 ) -> DoctorReport:
     probe = Probe(docker, ca_pem)
     probe.start(PROBE, LAN, PROBE_IP, [plan.addr.dns_ip])
@@ -732,7 +745,7 @@ def run_doctor(
             + separation_suite(plan, probe)
             + inside_out_suite(plan, probe, docker)
             + naming_suite(plan, probe)
-            + transparency_suite(plan, probe)
+            + transparency_suite(plan, probe, latency_budget_ms)
             + capture_suite(plan, probe, collector)
         )
     finally:

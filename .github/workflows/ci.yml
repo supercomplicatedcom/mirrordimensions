@@ -130,22 +130,11 @@ jobs:
           uv run mirror init "$RUNNER_TEMP/world" --seed 48213
           cd "$RUNNER_TEMP/world"
           uv run --project "$GITHUB_WORKSPACE" mirror up
-          uv run --project "$GITHUB_WORKSPACE" mirror doctor
-      - name: Tracer load and a second latency sample (diagnostic, temporary)
-        if: always()
-        run: |
-          export LIMA_HOME="$HOME/.local/share/mirrordimensions/lima-home"
-          L="$HOME/.local/share/mirrordimensions/lima/2.3.0/bin/limactl"
-          "$L" shell engine -- sudo docker stats --no-stream --format '{{.Name}} cpu={{.CPUPerc}} mem={{.MemUsage}}' || true
-          "$L" shell engine -- sh -c 'cat /proc/loadavg; nproc' || true
-          sleep 60
-          "$L" shell engine -- sudo docker stats --no-stream --format '{{.Name}} cpu={{.CPUPerc}}' auditd-01 edge-proxy-02 || true
-          cd "$RUNNER_TEMP/world"
-          uv run --project "$GITHUB_WORKSPACE" mirror doctor 2>&1 | grep -E 'Latency' || true
-          echo "with the tracer stopped:"
-          "$L" shell engine -- sudo docker stop -t 2 auditd-01 || true
-          uv run --project "$GITHUB_WORKSPACE" mirror doctor 2>&1 | grep -E 'Latency' || true
-          uv run --project "$GITHUB_WORKSPACE" mirror doctor 2>&1 | grep -E 'Latency' || true
+          # The engine here is a VM nested in GitHub's own VM, on two CPUs: measured, the
+          # gateway adds 8 to 12 ms on these runners (3.7 to 4.7 ms on an Apple Silicon
+          # Mac). The 10 ms limit applies on workstations; this job allows 20 (owner's
+          # decision, 2026-11-24, docs/platforms.md).
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor --latency-budget-ms 20
       - name: mirror engine status
         if: always()
         run: uv run mirror engine status
