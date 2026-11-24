@@ -28,6 +28,8 @@ from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.network.certs import Leaf
 from mirrordimensions.network.dns import ROOT_ZONE, render_corefile, render_hosts
+from mirrordimensions.twins.base import TwinContext, get_twin
+from mirrordimensions.twins.relay import Relay, relay_spec
 
 IMAGES = {
     "dns": "coredns/coredns:1.15.0@sha256:0a9d8c8ddf34347eb59aad9a8784f0710de88d6d112726d11d271f9bc6daca26",
@@ -51,12 +53,17 @@ class Address:
     uplink_subnet: str = "10.42.0.0/24"
     uplink_gw: str = "10.42.0.1"
     dns_ip: str = "10.40.0.53"
+    apps_dns_ip: str = "10.41.0.53"
+    relay_ip: str = "10.41.0.5"
     gw_lan: str = "10.40.0.10"
     gw_apps: str = "10.41.0.10"
     gw_uplink: str = "10.42.0.10"
 
     def app_ip(self, index: int) -> str:
         return f"10.41.0.{21 + index}"
+
+    def db_ip(self, index: int) -> str:
+        return f"10.41.0.{121 + index}"
 
 
 @dataclass
@@ -66,6 +73,21 @@ class App:
     visibility: str
     container: str
     ip: str
+    product: str | None = None
+    db_container: str = ""
+    db_ip: str = ""
+    settings: dict[str, object] = field(default_factory=dict[str, object])
+    rules: list[dict[str, object]] = field(default_factory=list[dict[str, object]])
+
+    @property
+    def port(self) -> int:
+        twin = get_twin(self.product)
+        return twin.upstream_port if twin else 80
+
+    @property
+    def static_path(self) -> str:
+        twin = get_twin(self.product)
+        return twin.static_path if twin else "/"
 
 
 @dataclass
@@ -88,6 +110,7 @@ class Plan:
 
 
 DNS_NAME, GATEWAY_NAME, RELAY_NAME = "ns1", "edge-proxy-02", "klog"
+APPS_DNS_NAME = "ns2"
 
 
 def plan_from(manifest: Manifest) -> Plan:
@@ -99,8 +122,14 @@ def plan_from(manifest: Manifest) -> Plan:
             visibility=a.visibility,
             container=f"app-{i + 1:02d}",
             ip=addr.app_ip(i),
+            product=a.product,
+            db_container=f"db-{i + 1:02d}",
+            db_ip=addr.db_ip(i),
+            settings=dict(a.settings),
+            rules=[r.model_dump(exclude_none=True) for r in a.rules],
         )
         for i, a in enumerate(manifest.apps)
+        if a.build != "unavailable"  # recorded in the definition, left out of creation
     ]
     return Plan(
         world=manifest.name,
@@ -113,12 +142,24 @@ def plan_from(manifest: Manifest) -> Plan:
 
 
 def routes_json(plan: Plan, secrets: list[str]) -> bytes:
-    routes: dict[str, dict[str, str]] = {}
+    """The gateway's configuration: routes, and each system's surfaces, rules and errors."""
+    from mirrordimensions.twins.profile import Profile
+
+    routes: dict[str, dict[str, object]] = {}
     for app in plan.apps:
         if app.visibility == "absent":
             continue
-        routes[app.hostname] = {"upstream": f"http://{app.ip}:80", "visibility": app.visibility}
-    return json.dumps({"routes": routes, "secrets": secrets}, indent=2).encode()
+        route: dict[str, object] = {
+            "upstream": f"http://{app.ip}:{app.port}",
+            "visibility": app.visibility,
+        }
+        if app.product and get_twin(app.product) is not None:
+            profile = Profile(app.product)
+            route.update(
+                {"surfaces": profile.surfaces, "errors": profile.errors, "rules": app.rules}
+            )
+        routes[app.hostname] = route
+    return json.dumps({"routes": routes, "secrets": secrets, "seed": plan.seed}, indent=2).encode()
 
 
 def stub_page(plan: Plan, app: App) -> bytes:
@@ -163,9 +204,30 @@ def _gateway_command(plan: Plan) -> list[str]:
     return command
 
 
-def specs(plan: Plan, leaves: list[Leaf], secrets: list[str]) -> list[ContainerSpec]:
+def twin_context(plan: Plan, app: App, secrets: dict[str, str]) -> TwinContext:
+    return TwinContext(
+        app_id=app.id,
+        hostname=app.hostname,
+        company=plan.company,
+        seed=plan.seed,
+        app_container=app.container,
+        app_ip=app.ip,
+        db_container=app.db_container,
+        db_ip=app.db_ip,
+        network=APPS,
+        dns=[plan.addr.apps_dns_ip],
+        secrets={k.split(":", 1)[1]: v for k, v in secrets.items() if k.startswith(f"{app.id}:")},
+        settings=dict(app.settings),
+        gateway_ip=plan.addr.gw_apps,
+    )
+
+
+def specs(
+    plan: Plan, leaves: list[Leaf], secrets: list[str], app_secrets: dict[str, str] | None = None
+) -> list[ContainerSpec]:
     a = plan.addr
     edge_py = files("mirrordimensions.network.payloads").joinpath("edge.py").read_bytes()
+    behavior_py = files("mirrordimensions.network.payloads").joinpath("behavior.py").read_bytes()
     label = {LABEL: plan.world}
     out = [
         ContainerSpec(
@@ -191,6 +253,23 @@ def specs(plan: Plan, leaves: list[Leaf], secrets: list[str]) -> list[ContainerS
             },
             labels=label,
         ),
+        # The system network's own resolver: twins resolve the world's names to the gateway's
+        # address on their network, and nothing else. Without it, Docker's embedded DNS would
+        # forward twins' lookups to the engine's real resolver.
+        ContainerSpec(
+            name=APPS_DNS_NAME,
+            image=IMAGES["dns"],
+            command=["-conf", "/etc/coredns/Corefile"],
+            networks={APPS: a.apps_dns_ip},
+            cap_add=["NET_BIND_SERVICE"],
+            files={
+                "/etc/coredns/Corefile": (render_corefile().encode(), 0o644),
+                "/etc/coredns/hosts": (render_hosts(plan.resolvable, a.gw_apps).encode(), 0o644),
+                "/etc/coredns/root.zone": (ROOT_ZONE.encode(), 0o644),
+            },
+            labels=label,
+        ),
+        relay_spec(APPS, a.relay_ip, [a.apps_dns_ip]),
         ContainerSpec(
             name=GATEWAY_NAME,
             image=IMAGES["gateway"],
@@ -200,6 +279,7 @@ def specs(plan: Plan, leaves: list[Leaf], secrets: list[str]) -> list[ContainerS
             cap_add=["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE", "FOWNER"],
             files={
                 "/etc/edge/edge.py": (edge_py, 0o644),
+                "/etc/edge/behavior.py": (behavior_py, 0o644),
                 "/etc/edge/routes.json": (routes_json(plan, secrets), 0o644),
                 **{f"/etc/edge/certs/{leaf.hostname}.pem": (leaf.pem, 0o644) for leaf in leaves},
             },
@@ -208,6 +288,12 @@ def specs(plan: Plan, leaves: list[Leaf], secrets: list[str]) -> list[ContainerS
     ]
     for app in plan.apps:
         if app.visibility == "absent":
+            continue
+        twin = get_twin(app.product)
+        if twin is not None:
+            for spec in twin.containers(twin_context(plan, app, app_secrets or {})):
+                spec.labels = {**label, **spec.labels}
+                out.append(spec)
             continue
         out.append(
             ContainerSpec(
@@ -222,24 +308,53 @@ def specs(plan: Plan, leaves: list[Leaf], secrets: list[str]) -> list[ContainerS
     return out
 
 
-def up(docker: Docker, plan: Plan, leaves: list[Leaf], secrets: list[str]) -> list[str]:
-    """Create the networks and containers and start them. Returns the container names."""
+def up(
+    docker: Docker,
+    plan: Plan,
+    leaves: list[Leaf],
+    secrets: list[str],
+    app_secrets: dict[str, str] | None = None,
+    on_step: object = None,
+) -> list[str]:
+    """Create the networks and containers, start them, and bring each twin to ready."""
     a = plan.addr
     label = {LABEL: plan.world}
     docker.ensure_network(LAN, a.lan_subnet, a.lan_gw, ipv6_subnet=a.lan_v6, labels=label)
     docker.ensure_network(APPS, a.apps_subnet, a.apps_gw, labels=label)
     docker.ensure_network(UPLINK, a.uplink_subnet, a.uplink_gw, labels=label)
     names: list[str] = []
-    for spec in specs(plan, leaves, secrets):
-        docker.pull(spec.image)
+    for spec in specs(plan, leaves, secrets, app_secrets):
+        docker.pull(spec.image, platform=spec.platform)
         docker.create(spec)
         docker.start(spec.name)
         names.append(spec.name)
+    relay = Relay(docker)
+    for app in plan.apps:
+        twin = get_twin(app.product)
+        if twin is None or app.visibility == "absent":
+            continue
+        ctx = twin_context(plan, app, app_secrets or {})
+        twin.wait_ready(relay, ctx, timeout_s=300)
+        twin.bootstrap(docker, relay, ctx)
+        if callable(on_step):
+            on_step(f"{app.product} ready at {app.hostname}")
     return names
 
 
-def down(docker: Docker, plan: Plan) -> None:
-    for spec in specs(plan, [], []):
+def _blank_secrets(plan: Plan) -> dict[str, str]:
+    """Names only: removing containers needs their specs, not their secrets."""
+    keys = ("db_password", "admin_password", "user_password", "secret_key", "internal_token")
+    return {f"{app.id}:{k}": "" for app in plan.apps for k in keys}
+
+
+def down(docker: Docker, plan: Plan, purge: bool = False) -> None:
+    for spec in specs(plan, [], [], _blank_secrets(plan)):
         docker.remove(spec.name)
     for net in (LAN, APPS, UPLINK):
         docker.remove_network(net)
+    if purge:
+        for app in plan.apps:
+            twin = get_twin(app.product)
+            if twin is not None:
+                for volume in twin.volumes(twin_context(plan, app, _blank_secrets(plan))):
+                    docker.remove_volume(volume)

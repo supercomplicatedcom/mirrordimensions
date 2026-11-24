@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Aliases, world-level kinds and hostname patterns for catalog entries, keyed by slug.
+# twin_status: candidate | specified | buildable | verified
+gitea:
+  name: Gitea
+  aliases: [gitea server, forgejo-compatible git]
+  category: Software development
+  kind: code-hosting
+  tier: 2
+  interfaces: [web, rest, webhooks, git-https]
+  twin_status: buildable
+  twin: gitea
+mattermost:
+  name: Mattermost
+  aliases: [mattermost team edition, mattermost chat]
+  category: Work suites and collaboration
+  kind: team-chat
+  tier: 2
+  interfaces: [web, rest, websocket, webhooks]
+  twin_status: buildable
+  twin: mattermost
+slack: {aliases: [slack enterprise grid], kind: team-chat, hostname_pattern: "{tenant}.slack.com"}
+microsoft-teams: {aliases: [teams, ms teams], kind: team-chat}
+github: {aliases: [github enterprise, github.com], kind: code-hosting}
+gitlab: {aliases: [gitlab self-managed], kind: code-hosting}
+bitbucket: {aliases: [bitbucket cloud, bitbucket server], kind: code-hosting}
+jira: {aliases: [jira software, jira cloud, atlassian jira], kind: ticketing, hostname_pattern: "{tenant}.atlassian.net"}
+confluence: {aliases: [atlassian confluence], kind: wiki}
+servicenow: {aliases: [servicenow itsm], kind: ticketing}
+zendesk: {aliases: [zendesk support], kind: helpdesk}
+salesforce: {aliases: [salesforce sales cloud, sfdc], kind: crm}
+hubspot: {aliases: [hubspot crm], kind: crm}
+workday: {aliases: [workday hcm], kind: hr}
+okta: {aliases: [okta workforce identity], kind: identity}

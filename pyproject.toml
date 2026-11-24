@@ -65,11 +65,22 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S105", "S106"]
+"tests/**" = ["S101", "S105", "S106", "PT018", "E501"]
 "scripts/**" = ["S101"]
 # Pinned image digests and the shell commands the probes run read better unwrapped.
 "src/mirrordimensions/network/egress_check.py" = ["E501"]
 "src/mirrordimensions/network/sandbox.py" = ["E501"]
+"src/mirrordimensions/twins/**" = ["E501"]
+"src/mirrordimensions/service/systems.py" = ["E501"]
+# The synthetic company's text and the commands that describe a world read better unwrapped.
+"src/mirrordimensions/world/content.py" = ["E501"]
+"src/mirrordimensions/world/generate.py" = ["E501"]
+"src/mirrordimensions/service/world.py" = ["E501"]
+"src/mirrordimensions/service/worlddef.py" = ["E501"]
+"src/mirrordimensions/cli/app.py" = ["E501"]
+# Backdating SQL is built only from integers and generated usernames ([a-z0-9.-]).
+"src/mirrordimensions/twins/*/seed.py" = ["E501", "S608"]
+"src/mirrordimensions/network/payloads/**" = ["E501"]
 
 [tool.pyright]
 include = ["src/mirrordimensions"]

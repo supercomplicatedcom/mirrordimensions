@@ -44,6 +44,10 @@ class ContainerSpec:
     network_mode: str | None = None
     user: str | None = None
     masked_paths: list[str] | None = None
+    env: dict[str, str] = field(default_factory=dict[str, str])
+    platform: str | None = None  # e.g. linux/amd64 for an image emulated under Rosetta
+    working_dir: str | None = None
+    volumes: dict[str, str] = field(default_factory=dict[str, str])  # named volume -> path
 
 
 @dataclass
@@ -160,6 +164,7 @@ class Docker:
             devices=spec.devices or None,
             network_mode=spec.network_mode or (first[0] if first[0] else None),
             restart_policy={"Name": "no"},
+            binds={vol: {"bind": path, "mode": "rw"} for vol, path in spec.volumes.items()} or None,
         )
         if spec.masked_paths is not None:
             # Replaces Docker's default list, so callers pass the defaults too.
@@ -173,6 +178,9 @@ class Docker:
             host_config=host_config,
             networking_config=networking,
             user=spec.user,
+            environment=spec.env or None,
+            platform=spec.platform,
+            working_dir=spec.working_dir,
         )
         for net, ip in rest:
             self._client.api.connect_container_to_network(spec.name, net, ipv4_address=ip)
@@ -194,13 +202,33 @@ class Docker:
     def start(self, name: str) -> None:
         self._client.api.start(name)
 
+    def stop(self, name: str, timeout_s: int = 20) -> None:
+        with contextlib.suppress(DockerException):
+            self._client.api.stop(name, timeout=timeout_s)
+
+    def wait(self, name: str, timeout_s: int = 600) -> RunOutput:
+        """Wait for a container to exit; return its exit code and output."""
+        result: Any = self._client.api.wait(name, timeout=timeout_s)
+        logs = self._client.api.logs(name, stdout=True, stderr=True)
+        return RunOutput(
+            exit_code=int(result.get("StatusCode", -1)),
+            output=bytes(logs).decode("utf-8", "replace"),
+        )
+
     def remove(self, name: str) -> None:
         with contextlib.suppress(DockerException):
             self._client.api.remove_container(name, force=True)
 
-    def exec(self, name: str, command: list[str], *, user: str | None = None) -> RunOutput:
+    def exec(
+        self,
+        name: str,
+        command: list[str],
+        *,
+        user: str | None = None,
+        env: dict[str, str] | None = None,
+    ) -> RunOutput:
         result: Any = self._client.containers.get(name).exec_run(
-            command, user=user or "", demux=False
+            command, user=user or "", demux=False, environment=env
         )
         output = (result.output or b"").decode("utf-8", "replace")
         return RunOutput(exit_code=int(result.exit_code), output=output)
@@ -216,6 +244,10 @@ class Docker:
             while b"\n" in pending:
                 line, pending = pending.split(b"\n", 1)
                 yield line.decode("utf-8", "replace")
+
+    def remove_volume(self, name: str) -> None:
+        with contextlib.suppress(DockerException):
+            self._client.api.remove_volume(name, force=True)
 
     def changes(self, name: str) -> list[dict[str, Any]]:
         """Files added, changed or deleted in a container since it was created."""

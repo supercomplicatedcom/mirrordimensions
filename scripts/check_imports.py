@@ -6,6 +6,8 @@
    Nothing may import cloud-service code or any undeclared package.
 2. Only `hostos/` and `engine/` may ask which OS they run on (`sys.platform`, `os.name`,
    the `platform` module, or OS-only modules such as `msvcrt`, `fcntl`, `winreg`).
+3. Only `twins/` may import a product by name (`mirrordimensions.twins.<product>`); everything
+   else goes through the twin interface in `twins/base.py`.
 
 Exit 0 when clean, 1 with one line per violation otherwise.
 """
@@ -22,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = "mirrordimensions"
 OS_ALLOWED = ("hostos", "engine")
+TWIN_SHARED = {"base", "relay", "profile"}
 OS_MODULES = {"platform", "msvcrt", "fcntl", "winreg", "_winapi", "posix", "nt"}
 
 
@@ -74,6 +77,14 @@ def violations(src: Path, allowed_dists: set[str]) -> list[str]:
             where = f"{PACKAGE}/{rel.as_posix()}:{line}"
             if top in OS_MODULES and not in_os_area:
                 out.append(f"{where}: imports {top}; only hostos/ and engine/ may check the OS")
+            parts = module.split(".")
+            if (
+                rel.parts[0] != "twins"
+                and parts[:2] == [PACKAGE, "twins"]
+                and len(parts) > 2
+                and parts[2] not in TWIN_SHARED
+            ):
+                out.append(f"{where}: imports the product {parts[2]!r}; use the twin interface")
             if top == PACKAGE or top in stdlib or top == "__future__":
                 continue
             dists = {normalize(d) for d in module_to_dists.get(top, [])}

@@ -19,6 +19,9 @@ class MirrorError(Exception):
     def lines(self) -> list[str]:
         return [self.what, self.why, self.fix]
 
+    def __str__(self) -> str:
+        return " ".join(self.lines())
+
 
 class NotAProjectError(MirrorError):
     def __init__(self, start: str) -> None:

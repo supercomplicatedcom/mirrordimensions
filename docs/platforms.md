@@ -10,6 +10,7 @@ What runs where, and what has been measured. The rules are in the build spec ("P
 | Linux x64 | `lima` (QEMU and KVM), default | x64 | Dedicated VM | Supported |
 | Linux x64 | `host`, opt-in | x64 | Host | Supported |
 | Windows 11 x64 | `wsl` (dedicated WSL2 distribution) | x64 | Shared VM | **Experimental: not yet verified on real hardware** |
+| macOS on Apple M3 or later, macOS 15+ | `lima` with `--microvm` (nested virtualization; Kata Containers with Firecracker for agents) | arm64 | Dedicated VM, microVM per agent | **Unverified: no M3 available.** The same runtime is verified on a Linux runner in CI |
 
 ## Prerequisites
 
@@ -28,13 +29,16 @@ To be measured in M0.5 (empty engine) and M2 (prototype world with both twins, b
 | Engine setup download | Lima 2.3.0 (31 MB archive, 108 MB unpacked); Ubuntu 26.04 image (3.3 GB in Lima's cache); Docker and gVisor packages | | |
 | Engine idle memory | 6 GB allocated; about 600 MB used by the idle guest | | |
 | Disk: engine, images | 3.4 GB for the VM disk (40 GB, sparse) plus 3.3 GB of cached image: about 7 GB in all | | |
-| Disk: one world, base snapshot | | | |
-| Memory: world up, one agent, browser | | | |
-| Restore time, base snapshot (target under 60 s) | | | |
+| Disk: one world, base snapshot | 6.4 GB used in the engine with Gitea, Mattermost, two PostgreSQL databases and the sandbox (images 3.4 GB); snapshot size in M3 | | |
+| Memory: world up, one agent, browser | About 1.3 GB in use with both twins up (Mattermost 215 MB under Rosetta, Gitea 91 MB, databases 30 MB each, gateway 68 MB); agent and browser in M4 | | |
+| Restore time, base snapshot (target under 60 s) | 10.1 s for both twins after arbitrary changes (an issue created, a repository deleted); state identical to the snapshot | | |
+| `mirror build` from scratch (25 people, 6 repositories, 71 commits, 150 issues, 255 comments, 1,940 posts) | 104 s; snapshot 5 s; restore-and-compare 9.6 s | | |
+| `mirror world create` from stage 1 (all eight stages, including the trace check and `mirror doctor`) | 149 s and 142 s on two runs; the two state dumps identical apart from Mattermost's own `system-bot`, which the product creates at a varying moment and the dump leaves out | | |
 | `mirror up` (sandbox with two stub apps, images cached) | about 10 s | | |
 | `mirror doctor` | 39 s | | |
 | Event delay, gateway to host `events.jsonl` (budget 2 s) | | | |
-| Emulated images and added latency | Rosetta works for amd64 images (alpine, checked). Latency to be measured with Mattermost in M2 | | |
+| Emulated images and added latency | Mattermost (amd64 only) runs under Rosetta: median 12 ms for `/api/v4/system/ping` through the gateway | | |
+| `mirror up` with Gitea and Mattermost (images cached) | 73 s, most of it Mattermost starting under Rosetta | | |
 | First `mirror engine setup` | 354 s on a first-generation Apple Silicon Mac; a repeat run takes about 1 s | | |
 | Clock offset, engine to host | +0.07 s after setup; over 30 minutes idle, 31 samples, never more than 0.163 s (limit 1 s); no host sleep | | |
 

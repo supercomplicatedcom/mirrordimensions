@@ -46,6 +46,18 @@ uv run mirror engine destroy   # remove it and everything it created
 
 On macOS the engine is a Lima VM using Apple's Virtualization.framework. It needs Rosetta for Linux (`softwareupdate --install-rosetta`). On Linux it is a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor directly on the host. Windows is experimental and not yet enabled.
 
+## A world
+
+```sh
+uv run mirror world new northfield --template software-team   # or --systems "Gitea, Mattermost, Jira"
+cd northfield
+uv run mirror world create      # eight stages: company, network, systems, data, traces, snapshot, checks, ready
+uv run mirror reset             # back to the base snapshot, exactly, in about ten seconds
+uv run mirror catalog search crm
+```
+
+The company is generated from the seed: about 25 people, 6 repositories with history, 150 issues and 2,000 chat messages over 180 days, with stale tickets, a duplicate, an abandoned repository and someone who has left. Systems without a twin yet are recorded in the definition and left out of creation.
+
 ## The sealed network
 
 ```sh
@@ -54,7 +66,19 @@ uv run mirror doctor   # egress, separation, inside-out, naming, transparency an
 uv run mirror down
 ```
 
-Until twins arrive (M2), each app in `mirror.yaml` is served by a stub web server behind the gateway.
+Apps whose product has a twin (Gitea, Mattermost) run the real product behind the gateway; any other app is served by a stand-in page.
+
+## Systems and rules
+
+```sh
+uv run mirror system list                    # systems, surfaces and rules
+uv run mirror system show code --surfaces    # every portal and endpoint, and which rules customize it
+uv run mirror system try code GET /api/v1/user   # the surface, the rules that fire, the answer
+uv run mirror set rule code --file slow-search.yaml
+uv run mirror unset rule code slow-search
+```
+
+Rules change what a system accepts or returns (latency, failures, rate limits, field edits, planted text, fixed responses). They apply from the next `mirror up` or run and are never visible to the agent.
 
 Every command accepts `--json` and exits 0 on success, 1 when a check fails, and 2 on a usage or configuration error.
 

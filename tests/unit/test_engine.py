@@ -109,3 +109,22 @@ def test_destroy_removes_only_pinned_cache_entries() -> None:
     # Known value: SHA-256 of the pinned arm64 image URL, as Lima names its cache folder.
     assert any(e.name.startswith("274d59968f7fc401") for e in entries)
     assert all(e.parent.name == "by-url-sha256" for e in entries)
+
+
+def test_microvm_turns_on_nested_virtualization_and_adds_the_runtime() -> None:
+    plain = YAML(typ="safe").load(render_config(RESOURCES, "aarch64", "vz"))
+    nested_text = render_config(RESOURCES, "aarch64", "vz", nested=True)
+    nested = YAML(typ="safe").load(nested_text)
+    assert plain["nestedVirtualization"] is False
+    assert nested["nestedVirtualization"] is True
+    assert "containerd-shim-kata-fc-v2" in nested_text
+    assert "__KATA_SHA256" not in nested_text
+    assert "__FC_SHA256" not in nested_text
+    script = nested_text[nested_text.index("provision:") :]
+    assert re.findall(r"\{\{[^}]*\}\}", script) == ["{{.User}}"]
+
+
+def test_kata_archives_are_pinned() -> None:
+    assert set(pins.KATA_SHA256) == {"arm64", "amd64"}
+    for sha in pins.KATA_SHA256.values():
+        assert re.fullmatch(r"[0-9a-f]{64}", sha)

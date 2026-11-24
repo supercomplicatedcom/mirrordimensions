@@ -106,7 +106,7 @@ class Collector:
         out: Path,
         bridges: dict[str, str],
         clock_offset_s: float = 0.0,
-        names: tuple[str, str, str] = ("edge-proxy-02", "ns1", "klog"),
+        names: tuple[str, ...] = ("edge-proxy-02", "ns1", "klog", "ns2"),
     ) -> None:
         self.docker = docker
         self.out = out
@@ -121,11 +121,12 @@ class Collector:
     def start(self) -> None:
         make_dir(self.out.parent, owner_only=True)
         since = int(time.time() + self.offset)
-        gateway, dns, relay = self.names
+        gateway, dns, relay, *more = self.names
         parsers: list[tuple[str, Callable[[str], dict[str, Any] | None]]] = [
             (gateway, parse_gateway),
             (dns, parse_dns),
             (relay, lambda line: parse_kmsg(line, self.bridges)),
+            *((name, parse_dns) for name in more),
         ]
         for name, parser in parsers:
             thread = threading.Thread(target=self._follow, args=(name, parser, since), daemon=True)
