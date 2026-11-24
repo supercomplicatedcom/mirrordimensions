@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from mirrordimensions.agents import hosted
+from mirrordimensions.agents import browser, hosted
 from mirrordimensions.config.agent import Agent
 
 __all__ = ["Agent"]
@@ -20,7 +20,7 @@ from mirrordimensions.engine.docker_api import Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.files import write_text
 from mirrordimensions.network import sandbox
-from mirrordimensions.network.events import Collector
+from mirrordimensions.network.events import Collector, browser_parser
 from mirrordimensions.project import Project
 from mirrordimensions.service.sandbox import _docker, _manifest, app_secrets  # pyright: ignore[reportPrivateUsage]
 from mirrordimensions.twins.base import Identity, get_twin
@@ -47,6 +47,9 @@ class HostedOutcome(BaseModel):
     exit_code: int
     output: str
     exchanges: list[Exchange]
+    browser_host: str | None = None  # browser agents: the managed browser's host name
+    browser_events: list[dict[str, Any]] = []
+    screenshots: str | None = None  # folder holding the observer's screenshots
 
 
 def agent_files(project: Project) -> dict[str, Path]:
@@ -232,14 +235,14 @@ def ensure_image(docker: Docker, agent: Agent) -> str | None:
 def run_hosted(
     project: Project, name: str, allow_emulated: bool = False, timeout_s: int = 300
 ) -> HostedOutcome:
-    """Issue the agent's identity, start its container as deployed, let it finish, and
-    return what the gateway saw it do."""
+    """Run a hosted or browser agent once: issue its identity, start it as deployed (with
+    the managed browser for browser agents), let it finish, and return what was captured."""
     agent, _ = load_agent(project, name)
-    if agent.mode != "hosted":
+    if agent.mode not in ("hosted", "browser"):
         raise MirrorError(
             f"{name} is a {agent.mode} agent.",
-            "Only hosted agents run in a container of their own.",
-            "Use the browser runner for browser agents.",
+            "Remote agents run on their vendor's platform and reach the world through its MCP ingress.",
+            "Remote agents arrive in M7.5.",
         )
     manifest = _manifest(project)
     plan = sandbox.plan_from(manifest)
@@ -262,23 +265,34 @@ def run_hosted(
         platform, reduced = f"linux/{arch}", f"image is {arch}, emulated on {native}"
     person, identities = issue(project, agent, docker)
     where = hosted.placement(plan, agent.name)
-    # The agent's own variables win; model keys default to placeholders the gateway replaces.
-    env = {**hosted.model_placeholders(plan), **hosted.environment(agent.env, identities)}
+    ca_pem = (project.state_dir / "ca" / "root-ca.crt").read_bytes()
+    desk = browser.placement(plan, agent.name) if agent.mode == "browser" else None
+    if desk is None:
+        # The agent's own variables win; model keys default to placeholders the gateway replaces.
+        env = {**hosted.model_placeholders(plan), **hosted.environment(agent.env, identities)}
+    else:
+        env = {
+            **hosted.model_placeholders(plan),
+            **browser.environment(agent.env, identities, desk),
+        }
     bridges = {
         f"br-{docker.network_id(n)[:12]}": n for n in (sandbox.LAN, sandbox.APPS, sandbox.UPLINK)
     }
     collector = Collector(docker, project.state_dir / "sandbox" / "events.jsonl", bridges, offset)
     collector.start()
-    ca_pem = (project.state_dir / "ca" / "root-ca.crt").read_bytes()
     command = agent.wake.command if agent.wake and agent.wake.type == "command" else None
     container = hosted.spec(plan, where, agent.image or "", env, platform)
     if command:
         container.command = command
+    shots = project.state_dir / "sandbox" / "browser" / agent.name
     started = time.time()
     try:
+        if desk is not None:
+            _start_browser(docker, collector, plan, desk, ca_pem, identities, shots, started)
         hosted.start(docker, container, ca_pem)
         result = docker.wait(where.name, timeout_s=timeout_s)
-        time.sleep(1.5)  # the last exchanges reach the collector within a second
+        time.sleep(2.5)  # the last exchanges and screenshots reach the collector
+        clients = {where.ip} | ({desk.ip} if desk else set[str]())
         exchanges = [
             Exchange(
                 method=e["data"]["method"],
@@ -288,11 +302,18 @@ def run_hosted(
             )
             for e in collector.events
             if e.get("type") == "http.exchange"
-            and e["data"].get("client") == where.ip
+            and e["data"].get("client") in clients
             and e["arrived"] - offset >= started
+        ]
+        browser_events = [
+            {"type": e["type"], **e["data"]}
+            for e in collector.events
+            if e.get("source") == "browser" and e["arrived"] - offset >= started
         ]
     finally:
         docker.remove(where.name)
+        if desk is not None:
+            browser.stop(docker, desk)
     return HostedOutcome(
         agent=agent.name,
         person=person.username,
@@ -303,7 +324,79 @@ def run_hosted(
         exit_code=result.exit_code,
         output=result.output[-2000:],
         exchanges=exchanges,
+        browser_host=desk.name if desk else None,
+        browser_events=browser_events,
+        screenshots=str(shots) if desk else None,
     )
+
+
+def _start_browser(
+    docker: Docker,
+    collector: Collector,
+    plan: sandbox.Plan,
+    desk: browser.BrowserPlacement,
+    ca_pem: bytes,
+    identities: dict[str, Identity],
+    shots: Path,
+    after: float,
+) -> None:
+    """Start the managed browser and its observer, and wait until the observer is ready."""
+    image = browser.ensure_image(docker, ca_pem)
+    secrets = [s for i in identities.values() for s in (i.password, i.token)]
+    secrets += [m.credential for m in plan.models if m.credential]
+    browser.start(docker, plan, desk, image, secrets)
+    collector.add_source(desk.observer, browser_parser(shots))
+    ready = collector.wait_for(
+        lambda e: e.get("type") == "browser.observer_ready", after=after - 1, timeout=30
+    )
+    if ready is None:
+        browser.stop(docker, desk)
+        raise MirrorError(
+            "The managed browser did not start.",
+            "Its observer reported nothing within 30 seconds.",
+            "Run: mirror agent check <name>, which names the failing step.",
+        )
+
+
+def add_browser_check(
+    add: Any,
+    project: Project,
+    docker: Docker,
+    plan: sandbox.Plan,
+    desk: browser.BrowserPlacement,
+    identities: dict[str, Identity],
+) -> None:
+    """Start the managed browser and its observer, and drive it from the office network
+    the way the agent will: DevTools answers at the browser's address, through the observer."""
+    name = "The managed browser starts and can be driven"
+    ca_pem = (project.state_dir / "ca" / "root-ca.crt").read_bytes()
+    try:
+        image = browser.ensure_image(docker, ca_pem)
+        browser.start(docker, plan, desk, image, [i.password for i in identities.values()])
+        reply = ""
+        for _ in range(20):  # Chromium is listening within a few seconds
+            probe = docker.run(
+                sandbox.IMAGES["probe"],
+                ["curl", "-sS", "--max-time", "3", f"{desk.cdp_url}/json/version"],
+                network=sandbox.LAN,
+            )
+            reply = probe.output
+            if probe.exit_code == 0 and "webSocketDebuggerUrl" in reply:
+                break
+            time.sleep(1)
+        version = next(
+            (line.split('"')[3] for line in reply.splitlines() if '"Browser"' in line), ""
+        )
+        add(
+            name,
+            bool(version),
+            f"{desk.name} at {desk.cdp_url}, {version}" if version else reply[-200:],
+            "Run: mirror engine check, then try again; the browser image may need rebuilding.",
+        )
+    except MirrorError as exc:
+        add(name, False, exc.what, exc.fix)
+    finally:
+        browser.stop(docker, desk)
 
 
 class PreflightCheck(BaseModel):
@@ -341,8 +434,8 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         f"Run: mirror agent new --resume {name}",
     ):
         return checks
-    if agent.mode != "hosted":
-        add(f"{agent.mode.capitalize()} agents", None, "checked in a later milestone")
+    if agent.mode == "remote":
+        add("Remote agents", None, "remote agents arrive in M7.5")
         return checks
     manifest = _manifest(project)
     plan = sandbox.plan_from(manifest)
@@ -395,8 +488,13 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         "Make those systems visible in mirror.yaml (visibility: granted).",
     )
     where = hosted.placement(plan, agent.name)
+    desk = browser.placement(plan, agent.name) if agent.mode == "browser" else None
     try:
-        env = hosted.environment(agent.env, identities)
+        env = (
+            browser.environment(agent.env, identities, desk)
+            if desk
+            else hosted.environment(agent.env, identities)
+        )
     except MirrorError as exc:
         add("The agent's variables are filled", False, exc.what, exc.fix)
         return checks
@@ -422,9 +520,12 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         )
     finally:
         docker.remove(where.name)
+    if desk is not None:
+        add_browser_check(add, project, docker, plan, desk, identities)
     injected = " ".join(
         [
             where.name,
+            *([desk.name, f"{browser.CDP_ENV}={desk.cdp_url}"] if desk else []),
             hosted.CA_FILE,
             *[
                 f"{k}={v}"
@@ -455,9 +556,10 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         if not plan.model_hosts
         else "model routes arrive later in M4",
     )
-    add(
-        "Coverage channels report captured",
-        True,
-        "http and WebSocket at the gateway, DNS at the resolvers, refused connections at the engine",
+    channels = (
+        "http and WebSocket at the gateway, DNS at the resolvers, refused connections at the engine"
     )
+    if desk is not None:
+        channels += ", DevTools commands, navigations and screenshots at the browser observer"
+    add("Coverage channels report captured", True, channels)
     return checks

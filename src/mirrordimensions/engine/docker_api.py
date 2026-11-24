@@ -50,6 +50,7 @@ class ContainerSpec:
     volumes: dict[str, str] = field(default_factory=dict[str, str])  # named volume -> path
     # Network whose gateway becomes the container's default route (Docker's GwPriority).
     default_route: str | None = None
+    entrypoint: list[str] | None = None
 
 
 @dataclass
@@ -157,6 +158,7 @@ class Docker:
         if first[0] is not None:
             endpoint = self._client.api.create_endpoint_config(ipv4_address=first[1])
             networking = self._client.api.create_networking_config({first[0]: endpoint})
+        shares_network = (spec.network_mode or "").startswith("container:")
         host_config = self._client.api.create_host_config(
             cap_drop=["ALL"],
             cap_add=spec.cap_add or None,
@@ -175,7 +177,9 @@ class Docker:
             spec.image,
             command=spec.command,
             name=spec.name,
-            hostname=spec.hostname or spec.name,
+            # A container sharing another's network namespace takes that one's host name.
+            hostname=None if shares_network else spec.hostname or spec.name,
+            entrypoint=spec.entrypoint,
             labels=spec.labels,
             host_config=host_config,
             networking_config=networking,

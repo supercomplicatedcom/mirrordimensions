@@ -7,6 +7,8 @@
 | edge-proxy-02    | JSON lines from the add-on        | http.exchange, route.unknown_host       |
 | ns1              | one CoreDNS log line per query    | dns.query                               |
 | klog             | the engine kernel's log           | egress.blocked (edge firewall drops)    |
+| browser observer | JSON lines (decision 0014)        | browser.action, browser.navigate,       |
+|                  |                                   | browser.screenshot, browser.connect     |
 
 Lines arrive through the Docker API (decision 0003). Timestamps are taken on the host when
 a line arrives, corrected by the engine's clock offset, so "within one second" is measured
@@ -15,6 +17,7 @@ the way an operator would see it.
 
 from __future__ import annotations
 
+import base64
 import json
 import re
 import threading
@@ -43,6 +46,52 @@ def parse_gateway(line: str) -> dict[str, Any] | None:
     if item.get("source") != "gateway":
         return None
     return {"source": "gateway", "type": item["type"], "data": item.get("data", {})}
+
+
+BROWSER_TYPES = frozenset(
+    {
+        "browser.action",
+        "browser.navigate",
+        "browser.screenshot",
+        "browser.connect",
+        "browser.disconnect",
+        "browser.target",
+        "browser.observer_ready",
+        "browser.observer_error",
+    }
+)
+
+
+def browser_parser(shots: Path) -> Callable[[str], dict[str, Any] | None]:
+    """Events from a browser observer. Screenshots are written to `shots` and the event
+    keeps the file name, so the timeline stays small."""
+    counter = [0]
+
+    def parse(line: str) -> dict[str, Any] | None:
+        try:
+            raw = json.loads(line)
+        except ValueError:
+            return None
+        if not isinstance(raw, dict):
+            return None
+        item = cast(dict[str, Any], raw)
+        kind = item.get("type")
+        if item.get("source") != "browser" or kind not in BROWSER_TYPES:
+            return None
+        data = cast(dict[str, Any], item.get("data") or {})
+        if kind == "browser.screenshot":
+            image = str(data.pop("jpeg", ""))
+            counter[0] += 1
+            name = f"shot-{counter[0]:04d}.jpg"
+            make_dir(shots, owner_only=True)
+            try:
+                (shots / name).write_bytes(base64.b64decode(image, validate=True))
+            except (ValueError, OSError):
+                return None
+            data["file"] = name
+        return {"source": "browser", "type": kind, "data": data}
+
+    return parse
 
 
 def parse_dns(line: str) -> dict[str, Any] | None:
@@ -132,6 +181,13 @@ class Collector:
             thread = threading.Thread(target=self._follow, args=(name, parser, since), daemon=True)
             thread.start()
             self._threads.append(thread)
+
+    def add_source(self, name: str, parser: Callable[[str], dict[str, Any] | None]) -> None:
+        """Follow one more container, such as a browser observer started for a run."""
+        since = int(time.time() + self.offset) - 1
+        thread = threading.Thread(target=self._follow, args=(name, parser, since), daemon=True)
+        thread.start()
+        self._threads.append(thread)
 
     def _follow(
         self, name: str, parser: Callable[[str], dict[str, Any] | None], since: int

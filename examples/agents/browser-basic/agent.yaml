@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A deterministic browser agent: it signs in through the web page and comments on the first
+# issue assigned to it, as a person would (build spec, "Reference agents").
+name: browser-basic
+mode: browser
+image: desk-helper:0.9
+build: .
+acts_as:
+  role: engineer
+wake:
+  type: command
+  command: ["python", "/opt/desk/agent.py"]
+env:
+  GITEA_URL: ${code.url}
+  GITEA_USERNAME: ${code.username}
+  GITEA_PASSWORD: ${code.password}
+grants:
+  code:
+    repos: {billing-service: write, platform-docs: read}
