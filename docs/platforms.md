@@ -75,3 +75,4 @@ One row per assumption from the decision records, as it is checked.
 | 2026-11-24 | - | Gitea 28's `access_token` table has no `has_used` column | Confirmed: use is `updated_unix > created_unix`, as Gitea's own `HasUsed` | 0015 |
 | 2026-11-24 | - | Mattermost answers `GET /users/{id}/channels` for an account in no channel with 200 and a malformed body | Confirmed; the state dump treats it as no channels | 0015 |
 
+| 2026-11-24 | macOS | A live Anthropic call through the gateway, with complete coverage | Confirmed: `llm-example` on `fix-failing-test`, `claude-opus-5-5` answered 200 through the gateway; the real key is absent from every capture; coverage complete once the tracer ignores the kernel's own TCP replies, which it had credited to the agent's process | 0013, 0016 |

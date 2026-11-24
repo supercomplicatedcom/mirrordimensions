@@ -98,6 +98,9 @@ def browser_parser(shots: Path) -> Callable[[str], dict[str, Any] | None]:
     return parse
 
 
+_IP_PROTOCOLS = {1: "ICMP", 6: "TCP", 17: "UDP", 58: "ICMPv6", 132: "SCTP"}
+
+
 def tracer_parser(
     watch: set[str], progress: dict[str, str] | None = None
 ) -> Callable[[str], dict[str, Any] | None]:
@@ -137,16 +140,28 @@ def tracer_parser(
         if probe:
             args = cast(list[dict[str, Any]], probe.get("args") or [])
             first = args[0] if args else {}
-            # TCP: the socket at connect; UDP: the packet as it is sent (an unconnected
-            # socket carries no destination of its own).
+            function = probe.get("function_name")
+            # TCP: the socket at connect; anything else: the packet as it is sent (an
+            # unconnected UDP socket carries no destination of its own).
             sock = cast(dict[str, Any], first.get("sock_arg") or first.get("skb_arg") or {})
+            if function == "tcp_connect":
+                proto = "TCP"
+            else:
+                number = sock.get("proto")
+                proto = _IP_PROTOCOLS.get(number, str(number)) if isinstance(number, int) else "UDP"
+                if proto == "TCP":
+                    # The kernel's own TCP replies (acknowledgements and resets for other
+                    # connections) leave through ip_send_skb from interrupt context, and are
+                    # credited to whichever process was running. A container's own TCP
+                    # connections are traced at tcp_connect.
+                    return None
             return {
                 "source": "host",
                 "type": "socket.connect",
                 "data": {
                     **base,
-                    "function": probe.get("function_name"),
-                    "proto": "TCP" if probe.get("function_name") == "tcp_connect" else "UDP",
+                    "function": function,
+                    "proto": proto,
                     "dst": sock.get("daddr"),
                     "dport": sock.get("dport"),
                 },

@@ -27,7 +27,8 @@ Measured in the engine (Ubuntu 26.04, kernel 7.0, arm64, Docker 29.10):
 
    Anything else is unexplained, and the run's coverage is incomplete. This keeps the spec's intent, "independent sources agree", with a test that does not need a tolerance.
 4. **Reconciliation 3** lists every program the container ran, and which of them opened sockets, matched through reconciliation 2.
-5. **Without the tracer**, the `host` channel is `not_captured` and both reconciliations fail. The run is marked `coverage: incomplete` and exits with code 4, and its result says so plainly.
+5. **`ip_send_skb` reports only packets that are not TCP.** The kernel's own TCP replies (acknowledgements and resets for other connections, such as the gateway's upstream) leave through `ip_send_skb` from interrupt context, and Tetragon credits them to whichever process was running (seen live on 2026-11-24, with the packets' protocol `IPPROTO_TCP` and source the gateway's uplink address). A container's own TCP connections are traced at `tcp_connect`, so TCP packets at `ip_send_skb` are ignored and the others keep their real protocol.
+6. **Without the tracer**, the `host` channel is `not_captured` and both reconciliations fail. The run is marked `coverage: incomplete` and exits with code 4, and its result says so plainly.
 
 ## Consequences
 

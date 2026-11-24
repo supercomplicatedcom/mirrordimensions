@@ -53,4 +53,11 @@ The self-hosted route was tested against a stub inference server outside Docker'
 - **A direct connection from the agent to the stub was blocked** and recorded as `egress.blocked`.
 - **From the gateway itself, only the route's one address and port was reachable.** Another port on the same host, the engine, and a public address all timed out.
 
-**Not verified: a live cloud provider call.** It needs the owner's API key. `examples/agents/llm-example` is built and ready for that run.
+**A live cloud provider call** (owner's Mac and Anthropic key, 2026-11-24). `examples/agents/llm-example` ran `fix-failing-test` with a `provider: anthropic` route:
+
+- The engine firewall held exactly one triple for the route: the gateway's uplink address to `api.anthropic.com`'s pinned address on 443.
+- The agent called `claude-opus-5-5` through the gateway and got a 200 answer (148 tokens in, 220 out). The answer was captured as `model.exchange` with its body.
+- The real key appears nowhere in the run's captures or results. Credential headers were recorded as `[redacted]`.
+- Coverage was complete: every connection the agent's container opened went to the gateway or the resolver.
+
+`mirror agent check` also passed for the route; Anthropic answered the empty probe with a 400, not a 401. Streaming against a cloud provider is still to be run live.

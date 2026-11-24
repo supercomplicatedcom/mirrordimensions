@@ -229,3 +229,30 @@ def test_tracer_events_for_watched_containers_only() -> None:
     )
     assert parse(json.dumps(other)) is None
     assert parse('level=info msg="Listening for events..."') is None
+
+
+def test_kernel_tcp_replies_are_not_credited_to_the_running_process() -> None:
+    """Seen live: the kernel's TCP acknowledgements for the gateway's upstream connection
+    leave through ip_send_skb in interrupt context and carry whichever process was running.
+    Only the packet's own protocol tells them apart from the container's UDP."""
+    watch = {"2389872190b14671bee7c64295556caabcdef"}
+    parse = tracer_parser(watch)
+    process = {"docker": "2389872190b14671bee7c64295556ca", "binary": "/usr/local/bin/python"}
+
+    def send(proto: int, daddr: str, dport: int) -> str:
+        skb = {"saddr": "10.42.0.10", "daddr": daddr, "dport": dport, "proto": proto}
+        return json.dumps(
+            {
+                "process_kprobe": {
+                    "function_name": "ip_send_skb",
+                    "process": process,
+                    "args": [{"skb_arg": skb}],
+                }
+            }
+        )
+
+    assert parse(send(6, "160.79.104.10", 443)) is None
+    udp = parse(send(17, "10.40.0.53", 53))
+    assert udp is not None and udp["data"]["proto"] == "UDP" and udp["data"]["dport"] == 53
+    icmp = parse(send(1, "1.1.1.1", 0))
+    assert icmp is not None and icmp["data"]["proto"] == "ICMP"
