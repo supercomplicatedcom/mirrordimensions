@@ -142,6 +142,19 @@ def validate(project: Project) -> list[Problem]:
     manifest, found = load_model(project.manifest_path, Manifest)
     problems += [p.model_copy(update={"file": MANIFEST}) for p in found]
     app_ids = {a.id for a in manifest.apps} if manifest else set[str]()
+    if manifest is not None:
+        from mirrordimensions.service.systems import validate_rule
+
+        for app in manifest.apps:
+            for rule in app.rules:
+                for message in validate_rule(app, rule.model_dump(exclude_none=True)):
+                    problems.append(
+                        Problem(
+                            file=MANIFEST,
+                            line=line_in(project.manifest_path, ("apps",)),
+                            message=message,
+                        )
+                    )
 
     def files(folder: Path) -> list[Path]:
         if not folder.is_dir():

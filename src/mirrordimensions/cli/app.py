@@ -212,6 +212,164 @@ def doctor(ctx: typer.Context) -> None:
         raise typer.Exit(1)
 
 
+system_app = typer.Typer(help="Systems: surfaces, settings, data and rules.", no_args_is_help=True)
+app.add_typer(system_app, name="system")
+set_app = typer.Typer(help="Edit mirror.yaml.", no_args_is_help=True)
+app.add_typer(set_app, name="set")
+unset_app = typer.Typer(help="Remove from mirror.yaml.", no_args_is_help=True)
+app.add_typer(unset_app, name="unset")
+
+
+@system_app.command("list")
+def system_list(ctx: typer.Context) -> None:
+    """Systems with product, hostname, and counts of surfaces and rules."""
+    from mirrordimensions.service import systems
+
+    st = _state(ctx)
+    result = systems.list_systems(service.load_project(st.start()))
+    if st.out.json_mode:
+        st.out.document([r.model_dump() for r in result])
+        return
+    for r in result:
+        product = r.product or r.kind or "?"
+        kind = "" if r.twin else "  (no twin yet: a stand-in page)"
+        st.out.line(
+            f"  {r.id:<8}{product:<12}{r.hostname:<34}{r.visibility:<9}{r.surfaces:>3} surfaces"
+            f"{r.rules:>3} rules{kind}"
+        )
+
+
+@system_app.command("show")
+def system_show(
+    ctx: typer.Context,
+    app_id: Annotated[str, typer.Argument(help="The system's id in mirror.yaml.")],
+    surfaces: Annotated[
+        bool, typer.Option("--surfaces", help="List every portal and endpoint.")
+    ] = False,
+) -> None:
+    """Settings, data shape, and each portal and endpoint with whether it is customized."""
+    from mirrordimensions.service import systems
+
+    st = _state(ctx)
+    detail = systems.show_system(service.load_project(st.start()), app_id)
+    if st.out.json_mode:
+        st.out.document(detail)
+        return
+    s = detail.summary
+    st.out.line(f"{s.id} · {s.product or s.kind} · {s.hostname} · {s.visibility}")
+    st.out.line(
+        f"{'Settings':<10}"
+        + (", ".join(f"{k}={v}" for k, v in detail.settings.items()) or "defaults")
+    )
+    st.out.line(
+        f"{'Data':<10}" + (", ".join(f"{k}={v}" for k, v in detail.data.items()) or "defaults")
+    )
+    st.out.line(f"{'Rules':<10}" + (", ".join(r["name"] for r in detail.rules) or "none"))
+    if surfaces:
+        for sf in detail.surfaces:
+            custom = f"  [{', '.join(sf.customized_by)}]" if sf.customized_by else ""
+            st.out.line(f"  {sf.kind:<9}{sf.method:<7}{sf.path:<58}{sf.sentence}{custom}")
+    else:
+        customized = sum(1 for sf in detail.surfaces if sf.customized_by)
+        st.out.line(
+            f"{'Surfaces':<10}{len(detail.surfaces)} ({customized} customized); "
+            "list them with --surfaces"
+        )
+
+
+@system_app.command("rules")
+def system_rules(ctx: typer.Context, app_id: Annotated[str, typer.Argument()]) -> None:
+    """Active rules, in the order they apply."""
+    from mirrordimensions.service import systems
+
+    st = _state(ctx)
+    rules = systems.list_rules(service.load_project(st.start()), app_id)
+    if st.out.json_mode:
+        st.out.document(rules)
+        return
+    for i, r in enumerate(rules, 1):
+        st.out.line(
+            f"  {i}. {r['name']}: match {r.get('match')}"
+            + (f", input {r['input']}" if r.get("input") else "")
+            + (f", output {r['output']}" if r.get("output") else "")
+        )
+    if not rules:
+        st.out.line("No rules.")
+
+
+@system_app.command("try")
+def system_try(
+    ctx: typer.Context,
+    app_id: Annotated[str, typer.Argument()],
+    method: Annotated[str, typer.Argument()],
+    path: Annotated[str, typer.Argument()],
+    body: Annotated[
+        Path | None, typer.Option("--body", help="A file with the request body.")
+    ] = None,
+) -> None:
+    """Dry run: the matching surface, the rules that fire, and the answer the agent would get."""
+    from mirrordimensions.service import sandbox as sandbox_svc
+    from mirrordimensions.service import systems
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    data = body.read_bytes() if body else b""
+    try:
+        fetch = sandbox_svc.admin_fetcher(project, app_id)
+    except MirrorError:
+        fetch = None
+    result = systems.try_request(project, app_id, method, path, data, fetch)
+    if st.out.json_mode:
+        st.out.document(result)
+        return
+    st.out.line(
+        f"{'Surface':<10}{result.surface}" + (f" · {result.resource}" if result.resource else "")
+    )
+    st.out.line(f"{'Sentence':<10}{result.sentence}")
+    fired = (
+        ", ".join(f"{r['rule']} ({', '.join(r['changed'])})" for r in result.rules_fired) or "none"
+    )
+    st.out.line(f"{'Rules':<10}{fired}")
+    source = (
+        "from a rule"
+        if result.from_rule
+        else "from the product (asked as its administrator until M4)"
+    )
+    st.out.line(f"{'Answer':<10}{result.status}, {source}")
+    st.out.line(result.body[:1500])
+
+
+@set_app.command("rule")
+def set_rule_cmd(
+    ctx: typer.Context,
+    app_id: Annotated[str, typer.Argument()],
+    file: Annotated[Path, typer.Option("--file", help="A YAML file with one rule.")],
+) -> None:
+    """Add or replace a rule in mirror.yaml. Takes effect on the next run; no rebuild."""
+    from ruamel.yaml import YAML as _YAML
+
+    from mirrordimensions.service import systems
+
+    st = _state(ctx)
+    rule = _YAML(typ="safe").load(file.read_text(encoding="utf-8"))  # pyright: ignore[reportUnknownMemberType]
+    systems.set_rule(service.load_project(st.start()), app_id, rule)
+    st.out.ok(f"rule {rule['name']} set on {app_id}; it applies from the next mirror up or run")
+
+
+@unset_app.command("rule")
+def unset_rule_cmd(
+    ctx: typer.Context,
+    app_id: Annotated[str, typer.Argument()],
+    name: Annotated[str, typer.Argument()],
+) -> None:
+    """Remove a rule from mirror.yaml."""
+    from mirrordimensions.service import systems
+
+    st = _state(ctx)
+    systems.remove_rule(service.load_project(st.start()), app_id, name)
+    st.out.ok(f"rule {name} removed from {app_id}")
+
+
 engine_app = typer.Typer(help="The engine: the Linux VM every world runs in.", no_args_is_help=True)
 app.add_typer(engine_app, name="engine")
 

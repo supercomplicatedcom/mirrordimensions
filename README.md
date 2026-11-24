@@ -54,7 +54,19 @@ uv run mirror doctor   # egress, separation, inside-out, naming, transparency an
 uv run mirror down
 ```
 
-Until twins arrive (M2), each app in `mirror.yaml` is served by a stub web server behind the gateway.
+Apps whose product has a twin (Gitea, Mattermost) run the real product behind the gateway; any other app is served by a stand-in page.
+
+## Systems and rules
+
+```sh
+uv run mirror system list                    # systems, surfaces and rules
+uv run mirror system show code --surfaces    # every portal and endpoint, and which rules customize it
+uv run mirror system try code GET /api/v1/user   # the surface, the rules that fire, the answer
+uv run mirror set rule code --file slow-search.yaml
+uv run mirror unset rule code slow-search
+```
+
+Rules change what a system accepts or returns (latency, failures, rate limits, field edits, planted text, fixed responses). They apply from the next `mirror up` or run and are never visible to the agent.
 
 Every command accepts `--json` and exits 0 on success, 1 when a check fails, and 2 on a usage or configuration error.
 
