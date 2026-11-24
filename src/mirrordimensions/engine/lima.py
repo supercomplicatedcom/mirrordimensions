@@ -36,6 +36,8 @@ from mirrordimensions.hostos.files import make_dir, set_owner_only, write_text
 from mirrordimensions.hostos.info import host_arch, host_os
 
 INSTANCE = "engine"
+# Which provisioning was applied since the engine last booted (/run is cleared at boot).
+APPLIED_MARKER = "/run/engine/applied.sha"
 StepFn = Callable[[str], None] | None
 
 
@@ -301,10 +303,13 @@ class LimaEngine:
         return self.shell("test", "-f", "/var/lib/engine/microvm").returncode == 0
 
     def _reprovision_if_changed(self, on_step: StepFn = None) -> None:
-        """Re-apply provisioning when this version's script differs from the engine's."""
+        """Re-apply provisioning unless this version's script was applied since the engine
+        last booted. Lima re-runs the provisioning saved when the engine was created at
+        every boot, which can be older than this version's, so the marker lives in /run
+        (cleared at boot) and the first use after a boot always re-applies."""
         script = self.provision_script()
         wanted = hashlib.sha256(script.encode()).hexdigest()
-        have = self.shell("sudo", "cat", "/var/lib/engine/applied.sha").stdout.strip()
+        have = self.shell("sudo", "cat", APPLIED_MARKER).stdout.strip()
         if have == wanted:
             return
         _note(on_step, "Updating the engine's configuration")
@@ -323,7 +328,7 @@ class LimaEngine:
                 "\n".join(done.stderr.strip().splitlines()[-5:]),
                 "Run mirror engine setup again. If it repeats: mirror engine destroy, then setup.",
             )
-        self.shell("sudo", "sh", "-c", f"echo {wanted} > /var/lib/engine/applied.sha")
+        self.shell("sudo", "sh", "-c", f"mkdir -p /run/engine && echo {wanted} > {APPLIED_MARKER}")
 
     def stop(self) -> None:
         if self._instance() is not None:
@@ -348,6 +353,9 @@ class LimaEngine:
         return self._limactl("shell", "--workdir", "/", INSTANCE, "--", *command, timeout=timeout)
 
     def set_egress_allow(self, entries: list[EgressEntry]) -> None:
+        # The firewall must be this version's before anything is opened in it (mirror up),
+        # however the engine was booted.
+        self._reprovision_if_changed()
         for command in egress_allow_commands(entries):
             done = self.shell("sudo", *command, timeout=60)
             if done.returncode != 0:
