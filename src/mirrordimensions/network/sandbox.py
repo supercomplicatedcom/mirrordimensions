@@ -27,6 +27,7 @@ from pathlib import Path
 
 from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
+from mirrordimensions.errors import MirrorError
 from mirrordimensions.mcp.world import toolset
 from mirrordimensions.mcp.world.toolset import Toolset
 from mirrordimensions.network.certs import Leaf
@@ -498,6 +499,8 @@ def up(
         docker.create(spec)
         docker.start(spec.name)
         names.append(spec.name)
+        if spec.name == TRACER_NAME:
+            _wait_for_tracer(docker)
     relay = Relay(docker)
     for app in plan.apps:
         twin = get_twin(app.product)
@@ -509,6 +512,28 @@ def up(
         if callable(on_step):
             on_step(f"{app.product} ready at {app.hostname}")
     return names
+
+
+def _wait_for_tracer(docker: Docker, timeout_s: float = 90.0) -> None:
+    """Return once the tracer is listening: a run must not start before its agent can be
+    watched, and the tracer's start-up work (reading every process, loading its programs)
+    should be over before anything is measured."""
+    import time
+
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        recent = docker.logs(TRACER_NAME, tail=400)
+        # Ready once it says so, or once events flow (its own lines and events share a stream).
+        if "Listening for events" in recent or '"process_exec"' in recent:
+            return
+        if not docker.is_running(TRACER_NAME):
+            break
+        time.sleep(1)
+    raise MirrorError(
+        "The engine's tracer did not start.",
+        docker.logs(TRACER_NAME, tail=5)[-300:],
+        "Run: mirror engine check; runs need it for complete coverage.",
+    )
 
 
 def _blank_secrets(plan: Plan) -> dict[str, str]:

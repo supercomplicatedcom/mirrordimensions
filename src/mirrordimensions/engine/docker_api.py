@@ -303,10 +303,11 @@ class Docker:
             output=bytes(logs).decode("utf-8", "replace"),
         )
 
-    def logs(self, name: str) -> str:
-        """A container's output so far (standard output and error)."""
+    def logs(self, name: str, tail: int | None = None, stdout: bool = True) -> str:
+        """A container's output so far (standard output and error), or its last `tail` lines;
+        `stdout=False` for its diagnostics only."""
         try:
-            raw = self._client.api.logs(name, stdout=True, stderr=True)
+            raw = self._client.api.logs(name, stdout=stdout, stderr=True, tail=tail or "all")
         except DockerException:
             return ""
         return bytes(raw).decode("utf-8", "replace")
