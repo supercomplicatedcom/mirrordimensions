@@ -29,10 +29,25 @@ EVENT_TYPES: dict[str, frozenset[str]] = {
     "gateway": frozenset(
         {"http.exchange", "ws.frame", "tls.handshake", "route.unknown_host", "rule.applied"}
     ),
-    "model": frozenset({"model.request", "model.response"}),
+    # One `model.exchange` per call (decision 0013), naming the HTTP exchange that holds the
+    # bodies; `model.refused` and `model.hosted_tools` when the gateway acts on a request.
+    "model": frozenset(
+        {"model.request", "model.response", "model.exchange", "model.refused", "model.hosted_tools"}
+    ),
     "dns": frozenset({"dns.query"}),
     "egress": frozenset({"egress.blocked"}),
-    "browser": frozenset({"browser.navigate", "browser.action", "browser.screenshot"}),
+    "browser": frozenset(
+        {
+            "browser.navigate",
+            "browser.action",
+            "browser.screenshot",
+            "browser.connect",
+            "browser.disconnect",
+            "browser.target",
+            "browser.observer_ready",
+            "browser.observer_error",
+        }
+    ),
     "host": frozenset({"process.exec", "socket.connect"}),
     "state": frozenset({"state.diff"}),
     "evaluator": frozenset({"check.result", "side_effect.unexpected", "suspicion.flag"}),

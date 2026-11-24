@@ -143,9 +143,8 @@ def not_inference(provider: str, method: str, path: str) -> tuple[int, list[list
     return error(provider, 404, f"Invalid URL ({method} {path.split('?', 1)[0]})")
 
 
-def usage(provider: str, body: bytes, streamed: bool) -> dict[str, int | str]:
-    """Model name and token counts from a whole response or a whole captured stream."""
-    out: dict[str, int | str] = {}
+def _response_events(body: bytes, streamed: bool) -> list[dict[str, Any]]:
+    """The JSON objects of a whole response, or of each `data:` line of a captured stream."""
     events: list[dict[str, Any]] = []
     if streamed:
         for line in body.decode("utf-8", "replace").splitlines():
@@ -162,9 +161,47 @@ def usage(provider: str, body: bytes, streamed: bool) -> dict[str, int | str]:
         try:
             parsed = json.loads(body or b"{}")
         except ValueError:
-            return out
+            return events
         if isinstance(parsed, dict):
             events.append(parsed)
+    return events
+
+
+# Fields that hold what a model wrote, across the Anthropic and OpenAI shapes, whole or
+# streamed: text, reasoning, refusals and tool-call arguments.
+_TEXT_KEYS = frozenset(
+    {"text", "thinking", "content", "delta", "partial_json", "arguments", "refusal", "reasoning"}
+)
+
+
+def answer_text(body: bytes, streamed: bool) -> str:
+    """Everything the model wrote in a response, in order. Stream chunks are joined without
+    a separator, so a phrase split across chunks is still whole."""
+    parts: list[str] = []
+
+    def walk(value: Any, key: str | None) -> None:
+        if isinstance(value, str):
+            if key in _TEXT_KEYS:
+                parts.append(value)
+        elif isinstance(value, dict):
+            for k, v in value.items():  # pyright: ignore[reportUnknownVariableType]
+                walk(v, str(k))  # pyright: ignore[reportUnknownArgumentType]
+        elif isinstance(value, list):
+            for v in value:  # pyright: ignore[reportUnknownVariableType]
+                walk(v, key)
+
+    events = _response_events(body, streamed)
+    for event in events:
+        walk(event, None)
+        if not streamed:
+            parts.append("\n")
+    return "".join(parts).strip()
+
+
+def usage(provider: str, body: bytes, streamed: bool) -> dict[str, int | str]:
+    """Model name and token counts from a whole response or a whole captured stream."""
+    out: dict[str, int | str] = {}
+    events = _response_events(body, streamed)
     for event in events:
         message = (
             event.get("message")

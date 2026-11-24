@@ -272,16 +272,24 @@ class Edge:
 
             flow.response.stream = tee
 
-    def _model_exchange(self, flow: http.HTTPFlow, body: bytes, streamed: bool) -> None:
+    def _model_exchange(
+        self, flow: http.HTTPFlow, seq: int, token: str, body: bytes, streamed: bool
+    ) -> None:
+        """One model call, after its HTTP exchange (`exchange`), which holds the raw bodies.
+        The text the model wrote is stored on its own (`answer_ref`) for the suspicion scan
+        and the report."""
         mr_name = flow.metadata["edge_model"]
         host = (flow.request.host_header or "").split(":")[0].lower()
         mr = self.model_routes.get(host)
         if mr is None or flow.response is None:
             return
         found = models.usage(mr.provider, body, streamed)
+        answer = models.answer_text(body, streamed)
         _emit(
             "model.exchange",
             {
+                "exchange": seq,
+                "client": flow.client_conn.peername[0],
                 "route": mr_name,
                 "provider": mr.provider,
                 "host": host,
@@ -293,6 +301,7 @@ class Edge:
                     (time.monotonic() - flow.metadata.get("edge_start", time.monotonic())) * 1000, 1
                 ),
                 **found,
+                "answer_ref": self._store(token, "answer", answer.encode("utf-8")),
             },
         )
 
@@ -309,7 +318,7 @@ class Edge:
             out.append([n, v])
         return out
 
-    def _store(self, seq_hint: int, suffix: str, content: bytes | None) -> str | None:
+    def _store(self, seq_hint: str, suffix: str, content: bytes | None) -> str | None:
         if not content:
             return None
         for secret in self.secrets:
@@ -332,17 +341,6 @@ class Edge:
         resp_body = resp.raw_content if resp else None
         if "edge_stream" in flow.metadata:
             resp_body = bytes(flow.metadata["edge_stream"])
-        if (
-            "edge_model" in flow.metadata
-            and resp is not None
-            and "edge_refused" not in flow.metadata
-        ):
-            plain = resp_body or b""
-            enc = resp.headers.get("content-encoding")
-            if enc:
-                with contextlib.suppress(ValueError):
-                    plain = encoding.decode(plain, enc)
-            self._model_exchange(flow, plain, "edge_stream" in flow.metadata)
         token = f"{int(time.time() * 1000)}-{id(flow) & 0xFFFFFF:06x}"
         seq = _emit(
             "http.exchange",
@@ -360,6 +358,17 @@ class Edge:
                 "duration_ms": round((time.monotonic() - start) * 1000, 1),
             },
         )
+        if (
+            "edge_model" in flow.metadata
+            and resp is not None
+            and "edge_refused" not in flow.metadata
+        ):
+            plain = resp_body or b""
+            enc = resp.headers.get("content-encoding")
+            if enc:
+                with contextlib.suppress(ValueError):
+                    plain = encoding.decode(plain, enc)
+            self._model_exchange(flow, seq, token, plain, "edge_stream" in flow.metadata)
         host = (req.host_header or "").split(":")[0].lower()
         mcp = self.routes.get(host, {}).get("mcp")
         if mcp is not None and resp is not None:

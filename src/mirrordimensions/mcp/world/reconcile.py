@@ -37,7 +37,7 @@ def reconcile(events: list[dict[str, Any]], mcp_hosts: set[str], front_ips: set[
     order = {
         e["data"].get("gateway_seq"): i
         for i, e in enumerate(events)
-        if e.get("source") == "gateway"
+        if "gateway_seq" in e.get("data", {})
     }
     for event in events:
         if event.get("type") != "mcp.call":
