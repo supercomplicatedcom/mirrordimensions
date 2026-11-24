@@ -31,10 +31,12 @@ To be measured in M0.5 (empty engine) and M2 (prototype world with both twins, b
 | Disk: one world, base snapshot | | | |
 | Memory: world up, one agent, browser | | | |
 | Restore time, base snapshot (target under 60 s) | | | |
+| `mirror up` (sandbox with two stub apps, images cached) | about 10 s | | |
+| `mirror doctor` | 39 s | | |
 | Event delay, gateway to host `events.jsonl` (budget 2 s) | | | |
 | Emulated images and added latency | Rosetta works for amd64 images (alpine, checked). Latency to be measured with Mattermost in M2 | | |
 | First `mirror engine setup` | 354 s on a first-generation Apple Silicon Mac; a repeat run takes about 1 s | | |
-| Clock offset, engine to host | +0.07 s after setup; 30-minute idle result below | | |
+| Clock offset, engine to host | +0.07 s after setup; over 30 minutes idle, 31 samples, never more than 0.163 s (limit 1 s); no host sleep | | |
 
 ## Verification log
 
@@ -52,4 +54,6 @@ One row per assumption from the decision records, as it is checked.
 | 2026-11-23 | macOS | The Rosetta runtime is shared into the guest over virtiofs (`/mnt/lima-rosetta`) | Confirmed; not writable even by root in the guest. Allowed as the only share, and checked on every `mirror engine check` | 0004 |
 | 2026-11-23 | macOS | The guest reaches the host's loopback at 192.168.5.2 | Confirmed (positive control); containers cannot, because of the edge firewall | 0004 |
 | 2026-11-23 | macOS | Lima's download cache can be moved | No: it is always the OS cache folder (`~/Library/Caches/lima`). `mirror engine destroy` removes only the engine's own entries | 0002 |
+| 2026-11-23 | macOS | The sealed network (M1): `mirror doctor` passes every check | Confirmed: egress events in 0.03–0.05 s, gateway adds 2.6 ms, isolation `full` | 0011 |
+| 2026-11-23 | macOS | IPv6 attempts reach the firewall | Not at first: no IPv6 route out, and neighbour discovery was dropped. Fixed with a prerouting rule and by allowing neighbour discovery | 0011 |
 | 2026-11-23 | macOS | gVisor hides the engine's kernel name | Yes, but gVisor reports `4.19.0-gvisor`: a tell of its own (docs/tells.md, row 5) | 0004 |

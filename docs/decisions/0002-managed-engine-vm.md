@@ -1,6 +1,6 @@
 # 0002. All containers run in a mirror-managed Linux VM, the engine
 
-Status: Accepted (owner) · Date: 2026-11-22 · Milestone: M0.5
+Status: Accepted (owner) · Date: 2026-11-22 · Milestone: M0.5 · gVisor as the agent runtime superseded by 0010
 
 ## Context
 

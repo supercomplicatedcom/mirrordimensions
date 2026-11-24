@@ -80,7 +80,9 @@ jobs:
           sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
           rm -f "${file}" checksums.txt gitleaks
       - name: Scan the full history
-        run: gitleaks git --redact --no-banner --verbose .
+        # This branch's own history; other branches are scanned on their own runs
+        # with their own allowlists.
+        run: gitleaks git --redact --no-banner --verbose --log-opts="--full-history HEAD" .
       - run: uv sync --locked
       - name: Self-test (a fake credential is rejected by the hook and the scan)
         run: uv run python scripts/gitleaks_selftest.py
@@ -101,7 +103,7 @@ jobs:
         run: python3 scripts/check_dco.py "$BASE" "$HEAD"
 
   engine-linux:
-    name: Engine (Linux, lima with KVM)
+    name: Engine and sealed network (Linux, lima with KVM)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -122,9 +124,21 @@ jobs:
         run: uv run mirror engine setup --cpus 2 --memory 4 --disk 30
       - name: mirror engine check
         run: uv run mirror engine check
+      - name: mirror init, up, doctor (the sealed network)
+        run: |
+          set -euo pipefail
+          uv run mirror init "$RUNNER_TEMP/world" --seed 48213
+          cd "$RUNNER_TEMP/world"
+          uv run --project "$GITHUB_WORKSPACE" mirror up
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor
       - name: mirror engine status
         if: always()
         run: uv run mirror engine status
+      - name: Guest provisioning log (on failure)
+        if: failure()
+        run: |
+          export LIMA_HOME="$HOME/.local/share/mirrordimensions/lima-home"
+          "$HOME/.local/share/mirrordimensions/lima/2.3.0/bin/limactl" shell engine -- sudo tail -80 /var/log/cloud-init-output.log || true
       - name: mirror engine destroy
         if: always()
         run: uv run mirror engine destroy --yes

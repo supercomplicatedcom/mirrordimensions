@@ -67,9 +67,14 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106"]
 "scripts/**" = ["S101"]
+# Pinned image digests and the shell commands the probes run read better unwrapped.
+"src/mirrordimensions/network/egress_check.py" = ["E501"]
+"src/mirrordimensions/network/sandbox.py" = ["E501"]
 
 [tool.pyright]
 include = ["src/mirrordimensions"]
+# Files copied into engine containers, run there against that container's own libraries.
+exclude = ["src/mirrordimensions/network/payloads"]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
 

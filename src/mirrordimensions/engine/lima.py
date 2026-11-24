@@ -168,7 +168,12 @@ class LimaEngine:
         if self._instance() is None:
             _note(on_step, "Creating the engine VM (first run downloads Ubuntu and packages)")
             done = self._limactl(
-                "start", f"--name={INSTANCE}", "--tty=false", str(self.config_path), timeout=1800
+                "start",
+                f"--name={INSTANCE}",
+                "--tty=false",
+                "--timeout=30m",
+                str(self.config_path),
+                timeout=2400,
             )
             if done.returncode != 0:
                 raise _start_error(done)
@@ -184,11 +189,44 @@ class LimaEngine:
             )
         if inst.get("status") != "Running":
             _note(on_step, "Starting the engine")
-            done = self._limactl("start", INSTANCE, "--tty=false", timeout=900)
+            done = self._limactl("start", INSTANCE, "--tty=false", "--timeout=15m", timeout=1200)
             if done.returncode != 0:
                 raise _start_error(done)
         self._restrict_socket()
+        self._reprovision_if_changed(on_step)
         return self.status()
+
+    def provision_script(self) -> str:
+        script = (
+            files("mirrordimensions.engine.provision").joinpath("provision.sh").read_text("utf-8")
+        )
+        user = self.shell("id", "-un").stdout.strip()
+        return script.replace("__ENGINE_USER__", user)
+
+    def _reprovision_if_changed(self, on_step: StepFn = None) -> None:
+        """Re-apply provisioning when this version's script differs from the engine's."""
+        script = self.provision_script()
+        wanted = hashlib.sha256(script.encode()).hexdigest()
+        have = self.shell("sudo", "cat", "/var/lib/engine/applied.sha").stdout.strip()
+        if have == wanted:
+            return
+        _note(on_step, "Updating the engine's configuration")
+        done = subprocess.run(
+            [str(self.limactl), "shell", "--workdir", "/", INSTANCE, "--", "sudo", "bash", "-s"],
+            input=script,
+            env=self._env(),
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=1200,
+        )
+        if done.returncode != 0:
+            raise MirrorError(
+                "Updating the engine failed.",
+                "\n".join(done.stderr.strip().splitlines()[-5:]),
+                "Run mirror engine setup again. If it repeats: mirror engine destroy, then setup.",
+            )
+        self.shell("sudo", "sh", "-c", f"echo {wanted} > /var/lib/engine/applied.sha")
 
     def stop(self) -> None:
         if self._instance() is not None:
