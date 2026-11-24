@@ -5,13 +5,14 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
 from ruamel.yaml import YAML
 
 from mirrordimensions.engine import pins
 from mirrordimensions.engine.base import Resources
-from mirrordimensions.engine.lima import cache_entries, render_config
+from mirrordimensions.engine.lima import APPLIED_MARKER, LimaEngine, cache_entries, render_config
 from mirrordimensions.engine.registry import ALLOWED, default_driver
 from mirrordimensions.engine.wsl import WSL_CONF, WslEngine, docker_tls_dropin, provision_script
 from mirrordimensions.errors import MirrorError
@@ -128,3 +129,26 @@ def test_kata_archives_are_pinned() -> None:
     assert set(pins.KATA_SHA256) == {"arm64", "amd64"}
     for sha in pins.KATA_SHA256.values():
         assert re.fullmatch(r"[0-9a-f]{64}", sha)
+
+
+def test_the_firewall_is_brought_up_to_date_before_routes_are_opened(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Lima re-runs the engine's original provisioning at every boot, so the record of
+    what was applied must not outlive a boot, and mirror up checks it before opening."""
+    assert APPLIED_MARKER.startswith("/run/")
+    engine = LimaEngine(root=tmp_path)
+    calls: list[str] = []
+
+    def provision(on_step: object = None) -> None:
+        calls.append("provision")
+
+    monkeypatch.setattr(engine, "_reprovision_if_changed", provision)
+
+    def shell(*command: str, timeout: float = 60) -> object:
+        calls.append(" ".join(command[1:3]))
+        return type("Done", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+    monkeypatch.setattr(engine, "shell", shell)
+    engine.set_egress_allow([("10.42.0.10", "160.79.104.10", 443)])
+    assert calls[0] == "provision" and calls[1:] == ["nft flush", "nft add"]
