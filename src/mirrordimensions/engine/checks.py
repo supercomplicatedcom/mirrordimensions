@@ -294,6 +294,14 @@ def microvm_checks(shell: Callable[..., subprocess.CompletedProcess[str]]) -> li
             detail=f"its own kernel {guest_kernel} (engine: {host_kernel})",
         )
     )
+    cmdline = parts[1].strip() if len(parts) > 1 else "(not read)"
+    out.append(
+        CheckResult(
+            name="The guest kernel command line is hidden",
+            outcome="pass" if not cmdline else "fail",
+            detail="/proc/cmdline is masked" if not cmdline else cmdline[:200],
+        )
+    )
     seen = run.stdout.lower()
     tells = [t for t in KATA_TELLS if t in seen]
     out.append(
