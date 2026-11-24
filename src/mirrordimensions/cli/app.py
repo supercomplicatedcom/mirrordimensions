@@ -163,7 +163,8 @@ def status(ctx: typer.Context) -> None:
 
 @app.command()
 def up(ctx: typer.Context) -> None:
-    """Start the sealed network for this project (M1: stub servers stand in for twins)."""
+    """Start the sealed network for this project: the resolver, the gateway and every system
+    (a stand-in page for systems without a twin)."""
     from mirrordimensions.service import sandbox as svc
 
     st = _state(ctx)
