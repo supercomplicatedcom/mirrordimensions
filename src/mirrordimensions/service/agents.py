@@ -414,6 +414,89 @@ def _start_browser(
         )
 
 
+def _model_checks(add: Any, docker: Docker, plan: sandbox.Plan, agent: Agent) -> None:
+    """From the agent's network, through the gateway: each model route answers, with the
+    real credential added outside. The probe sends an empty request, which providers reject
+    before any model runs, so it costs nothing."""
+    import os
+
+    from mirrordimensions.service.sandbox import open_model_routes
+
+    name = "The model is reachable through its route"
+    routes = [m for m in plan.models if agent.model in (None, m.name)]
+    if agent.model and not routes:
+        add(
+            name,
+            False,
+            f"no route called {agent.model!r}",
+            "Add it to mirror.yaml (models:) or fix model: in the agent file.",
+        )
+        return
+    if not routes:
+        add(name, None, "no model route in mirror.yaml")
+        return
+    try:
+        open_model_routes(plan, os.environ)
+    except MirrorError as exc:
+        add(name, False, exc.what, exc.fix)
+        return
+    for route in routes:
+        path = "/v1/messages" if route.provider == "anthropic" else "/v1/chat/completions"
+        probe = docker.run(
+            sandbox.IMAGES["probe"],
+            [
+                "curl",
+                "-sk",
+                "-m",
+                "20",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{http_code}",
+                "--resolve",
+                f"{route.host}:443:{plan.addr.gw_lan}",
+                "-X",
+                "POST",
+                "-H",
+                "content-type: application/json",
+                "-d",
+                "{}",
+                f"https://{route.host}{path}",
+            ],
+            network=sandbox.LAN,
+        )
+        status = probe.output.strip()[-3:]
+        if status in ("000", "") or not status.isdigit():
+            add(
+                f"{name}: {route.name}",
+                False,
+                f"no answer from {route.host}",
+                "Run: mirror up, then check the upstream is running.",
+            )
+        elif status in ("401", "403"):
+            add(
+                f"{name}: {route.name}",
+                False,
+                f"{route.host} refused the credential ({status})",
+                f"Check {route.credential_env} holds a valid key.",
+            )
+        else:
+            add(
+                f"{name}: {route.name}",
+                True,
+                f"{route.host} answered {status} with the real credential added at the gateway",
+            )
+        add(
+            f"Provider-hosted tools: {route.name}",
+            True,
+            {
+                "block": "blocked",
+                "flag": "forwarded and flagged: coverage incomplete",
+                "allow": "allowed, stated in the report",
+            }[route.hosted_tools],
+        )
+
+
 def add_browser_check(
     add: Any,
     project: Project,
@@ -605,13 +688,7 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         ", ".join(refers_operator) or "no host-local addresses",
         "Remove references to the host from the agent's variables.",
     )
-    add(
-        "The model is reachable through its route",
-        None,
-        "no models in mirror.yaml yet"
-        if not plan.model_hosts
-        else "model routes arrive later in M4",
-    )
+    _model_checks(add, docker, plan, agent)
     channels = (
         "http and WebSocket at the gateway, DNS at the resolvers, refused connections at the engine"
     )
