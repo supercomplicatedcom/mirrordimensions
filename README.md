@@ -46,6 +46,18 @@ uv run mirror engine destroy   # remove it and everything it created
 
 On macOS the engine is a Lima VM using Apple's Virtualization.framework. It needs Rosetta for Linux (`softwareupdate --install-rosetta`). On Linux it is a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor directly on the host. Windows is experimental and not yet enabled.
 
+## A world
+
+```sh
+uv run mirror world new northfield --template software-team   # or --systems "Gitea, Mattermost, Jira"
+cd northfield
+uv run mirror world create      # eight stages: company, network, systems, data, traces, snapshot, checks, ready
+uv run mirror reset             # back to the base snapshot, exactly, in about ten seconds
+uv run mirror catalog search crm
+```
+
+The company is generated from the seed: about 25 people, 6 repositories with history, 150 issues and 2,000 chat messages over 180 days, with stale tickets, a duplicate, an abandoned repository and someone who has left. Systems without a twin yet are recorded in the definition and left out of creation.
+
 ## The sealed network
 
 ```sh

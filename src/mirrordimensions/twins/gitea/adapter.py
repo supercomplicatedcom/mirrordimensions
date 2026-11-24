@@ -15,12 +15,16 @@ from __future__ import annotations
 
 import contextlib
 import time
-from typing import Any
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import Identity, TwinContext
 from mirrordimensions.twins.relay import Relay
+
+if TYPE_CHECKING:
+    from mirrordimensions.world.model import World
 
 IMAGE = "gitea/gitea:28.4.0-rootless@sha256:15ab7fadb44981a2b781f40c712cad07066197f395100ea1c6326e14e5bb073a"
 DB_IMAGE = (
@@ -281,6 +285,38 @@ class Gitea:
                 )
 
     # -- state -----------------------------------------------------------------
+
+    def seed(
+        self, docker: Docker, relay: Relay, ctx: TwinContext, world: World, now: datetime
+    ) -> dict[str, int]:
+        from mirrordimensions.twins.gitea.seed import GiteaSeeder
+
+        return GiteaSeeder(self, relay, ctx, docker).seed(world, now)
+
+    def setup_traces(self, docker: Docker, relay: Relay, ctx: TwinContext) -> list[str]:
+        from mirrordimensions.twins.gitea.seed import PUSH_TIME
+
+        checks = {
+            "access tokens": "SELECT count(*) FROM access_token",
+            "push entries in the activity feed not at their commit's time": (
+                "SELECT count(*) FROM action WHERE op_type=5 AND content LIKE '{%'"  # noqa: S608 (constant SQL)
+                f" AND created_unix <> {PUSH_TIME}"
+            ),
+            "repository creations in the activity feed not at the repository's time": (
+                "SELECT count(*) FROM action a JOIN repository r ON r.id=a.repo_id"
+                " WHERE a.op_type=1 AND a.created_unix <> r.created_unix"
+            ),
+            "mirror-sync entries": "SELECT count(*) FROM action WHERE op_type=18",
+            "system notices": "SELECT count(*) FROM notice",
+        }
+        found: list[str] = []
+        for what, query in checks.items():
+            out = docker.exec(
+                ctx.db_container, ["psql", "-U", "gitea", "-d", "gitea", "-tAc", query]
+            )
+            if out.exit_code != 0 or out.output.strip() != "0":
+                found.append(f"gitea: {what} ({out.output.strip()[:80]})")
+        return found
 
     def dump_state(self, relay: Relay, ctx: TwinContext) -> dict[str, Any]:
         """What a user could observe, normalized and sorted so identical worlds dump identically."""

@@ -202,6 +202,19 @@ class Docker:
     def start(self, name: str) -> None:
         self._client.api.start(name)
 
+    def stop(self, name: str, timeout_s: int = 20) -> None:
+        with contextlib.suppress(DockerException):
+            self._client.api.stop(name, timeout=timeout_s)
+
+    def wait(self, name: str, timeout_s: int = 600) -> RunOutput:
+        """Wait for a container to exit; return its exit code and output."""
+        result: Any = self._client.api.wait(name, timeout=timeout_s)
+        logs = self._client.api.logs(name, stdout=True, stderr=True)
+        return RunOutput(
+            exit_code=int(result.get("StatusCode", -1)),
+            output=bytes(logs).decode("utf-8", "replace"),
+        )
+
     def remove(self, name: str) -> None:
         with contextlib.suppress(DockerException):
             self._client.api.remove_container(name, force=True)

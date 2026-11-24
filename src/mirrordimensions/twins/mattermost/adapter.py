@@ -14,12 +14,17 @@ local mode on for administration through Mattermost's own CLI (mmctl), never ove
 from __future__ import annotations
 
 import json
-from typing import Any
+import re
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import Identity, TwinContext
 from mirrordimensions.twins.relay import Relay
+
+if TYPE_CHECKING:
+    from mirrordimensions.world.model import World
 
 IMAGE = "mattermost/mattermost-team-edition:12.1@sha256:35927b9c535a9eb74f0e45385d3fe5d8308b16e0464031f157a834da8af3ee73"
 DB_IMAGE = (
@@ -27,6 +32,9 @@ DB_IMAGE = (
 )
 PORT = 8065
 ADMIN = "chat-admin"
+
+
+PRODUCT_ACCOUNTS = frozenset({"system-bot"})
 
 
 class Mattermost:
@@ -118,11 +126,8 @@ class Mattermost:
             ctx.app_container, ["mmctl", "--local", "user", "list", "--all", "--format", "json"]
         )
         try:
-            existing = (
-                json.loads(listed.output[listed.output.find("[") :] or "[]")
-                if "[" in listed.output
-                else []
-            )
+            start = listed.output.find("[")
+            existing = json.JSONDecoder().raw_decode(listed.output[start:])[0] if start >= 0 else []
         except ValueError:
             existing = []
         if any(u.get("username") == ADMIN for u in existing or []):
@@ -166,6 +171,17 @@ class Mattermost:
         cached = getattr(self, "_admin_token", None)
         if cached:
             return cached
+        # One control token at a time: revoke any left by an earlier process first.
+        listed = self.docker.exec(
+            ctx.app_container,
+            ["mmctl", "--local", "token", "list", ADMIN, "--all", "--format", "json"],
+        ).output
+        for match in re.finditer(
+            r'"id"\s*:\s*"([a-z0-9]{26})"[^}]*?"description"\s*:\s*"control"', listed
+        ):
+            self.docker.exec(
+                ctx.app_container, ["mmctl", "--local", "token", "revoke", match.group(1)]
+            )
         out = self._mmctl(self.docker, ctx, "token", "generate", ADMIN, "control")
         token = _json_field(out, "token")
         self._admin_token = token
@@ -296,6 +312,34 @@ class Mattermost:
             env={"MATTERMOST_URL": f"https://{ctx.hostname}", "MATTERMOST_TOKEN": token},
         )
 
+    def seed(
+        self, docker: Docker, relay: Relay, ctx: TwinContext, world: World, now: datetime
+    ) -> dict[str, int]:
+        from mirrordimensions.twins.mattermost.seed import seed
+
+        return seed(docker, ctx, world, now)
+
+    def setup_traces(self, docker: Docker, relay: Relay, ctx: TwinContext) -> list[str]:
+        found: list[str] = []
+        checks = {
+            "import jobs": "SELECT count(*) FROM jobs WHERE type LIKE 'import%'",
+            "audit log entries": "SELECT count(*) FROM audits",
+            # The one control token is expected; anything else is seeding's.
+            "access tokens other than the control token": (
+                "SELECT count(*) FROM useraccesstokens WHERE description <> 'control'"
+            ),
+        }
+        for what, query in checks.items():
+            out = docker.exec(
+                ctx.db_container, ["psql", "-U", "mattermost", "-d", "mattermost", "-tAc", query]
+            )
+            if out.exit_code != 0 or out.output.strip() != "0":
+                found.append(f"mattermost: {what} ({out.output.strip()[:80]})")
+        listed = docker.exec(ctx.app_container, ["mmctl", "--local", "import", "list", "available"])
+        if "No import files found" not in listed.output:
+            found.append(f"mattermost: import files left ({listed.output.strip()[:80]})")
+        return found
+
     def dump_state(self, relay: Relay, ctx: TwinContext) -> dict[str, Any]:
         users = sorted(
             (
@@ -305,6 +349,9 @@ class Mattermost:
                     "deleted": bool(u.get("delete_at")),
                 }
                 for u in self._pages(relay, ctx, "/users?sort=")
+                # Mattermost creates its own system-bot when a feature first needs it, at a
+                # moment that varies from run to run; it is the product's, not the world's.
+                if u["username"] not in PRODUCT_ACCOUNTS
             ),
             key=lambda u: u["username"],
         )
@@ -319,10 +366,17 @@ class Mattermost:
                 members = sorted(
                     m["username"] for m in self._pages(relay, ctx, f"/users?in_channel={ch['id']}&")
                 )
-                posts = (
-                    self.api(relay, ctx, "GET", f"/channels/{ch['id']}/posts?per_page=200") or {}
-                )
-                ordered = [posts["posts"][pid] for pid in reversed(posts.get("order", []))]
+                ordered: list[dict[str, Any]] = []
+                page = 0
+                while True:
+                    url = f"/channels/{ch['id']}/posts?per_page=200&page={page}"
+                    posts = self.api(relay, ctx, "GET", url) or {}
+                    batch = [posts["posts"][pid] for pid in posts.get("order", [])]
+                    ordered.extend(batch)
+                    if len(batch) < 200:
+                        break
+                    page += 1
+                ordered.sort(key=lambda p: (p.get("create_at", 0), p.get("message", "")))
                 channels.append(
                     {
                         "name": ch["name"],
@@ -352,7 +406,13 @@ class Mattermost:
         tokens: dict[str, list[str]] = {}
         for u in self._pages(relay, ctx, "/users?sort="):
             listed = self.api(relay, ctx, "GET", f"/users/{u['id']}/tokens") or []
-            active = sorted(t.get("description", "") for t in listed if t.get("is_active", True))
+            # The control plane's own token is machinery, not state a user could have made.
+            active = sorted(
+                t.get("description", "")
+                for t in listed
+                if t.get("is_active", True)
+                and not (u["username"] == ADMIN and t.get("description") == "control")
+            )
             if active:
                 tokens[u["username"]] = active
         return {"product": "mattermost", "users": users, "teams": teams, "tokens": tokens}
