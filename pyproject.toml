@@ -87,6 +87,10 @@ ignore = [
 "src/mirrordimensions/twins/*/ops.py" = ["E501", "S608"]
 # Phrase patterns and generated values read best on one line.
 "src/mirrordimensions/runner/suspicion.py" = ["E501"]
+"src/mirrordimensions/runner/coverage.py" = ["E501"]
+# Run orchestration: error messages and event payloads read best on one line.
+"src/mirrordimensions/service/runs.py" = ["E501"]
+"src/mirrordimensions/runner/scenario.py" = ["E501"]
 "src/mirrordimensions/network/payloads/**" = ["E501"]
 "src/mirrordimensions/mcp/world/front.py" = ["E501", "S310"]
 

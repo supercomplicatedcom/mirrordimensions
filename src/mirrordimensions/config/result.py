@@ -66,6 +66,11 @@ class Result(StrictModel):
     )
     allowed_changes: int = 0
     canaries: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
+    egress: list[dict[str, Any]] = Field(
+        default_factory=list[dict[str, Any]],
+        description="The agent's attempts to reach outside the world: refused connections and"
+        " failed lookups",
+    )
     suspected: bool = False
     suspicion: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     coverage: dict[str, Any] = Field(default_factory=dict[str, Any])

@@ -33,7 +33,7 @@ EVENT_TYPES: dict[str, frozenset[str]] = {
     "dns": frozenset({"dns.query"}),
     "egress": frozenset({"egress.blocked"}),
     "browser": frozenset({"browser.navigate", "browser.action", "browser.screenshot"}),
-    "host": frozenset({"process.exec"}),
+    "host": frozenset({"process.exec", "socket.connect"}),
     "state": frozenset({"state.diff"}),
     "evaluator": frozenset({"check.result", "side_effect.unexpected", "suspicion.flag"}),
     "mcp": frozenset({"mcp.message", "mcp.call"}),

@@ -113,19 +113,30 @@ def post(run: RunContext, args: dict[str, Any]) -> None:
         run.facts[args["key"]] = {"post": created["id"], "channel": channel}
 
 
+def _member(run: RunContext, spec: Any, channel: str) -> Any:
+    """The sender: the first person matching `from` who is in the channel (only members can
+    post there)."""
+    if spec in (None, "acts_as") or run.people is None:
+        return _who(run, spec)
+    members = next((set(c.members) for c in run.world.channels if c.name == channel), set[str]())
+    candidates = run.people(dict(spec))
+    return next((p for p in candidates if p.id in members), candidates[0])
+
+
 def message(run: RunContext, args: dict[str, Any]) -> dict[str, Any]:
     """Work as a message in a channel that mentions the agent's person."""
-    sender = _who(run, args.get("from"))
-    channel = _channel_id(run, sender.username, args["channel"])
+    where = args["in"]  # the delivery's own `channel` names this operation
+    sender = _member(run, args.get("from"), where)
+    channel = _channel_id(run, sender.username, where)
     text = args["text"]
     mention = f"@{run.acts_as.username}"
     if mention not in text:
         text = f"{mention} {text}"
     created = _post(run, sender.username, channel, text, None)
-    run.facts["delivered"] = {"post": created["id"], "channel": channel, "name": args["channel"]}
+    run.facts["delivered"] = {"post": created["id"], "channel": channel, "name": where}
     return {
         "channel": "mattermost.message",
-        "in": args["channel"],
+        "in": where,
         "from": sender.username,
         "to": run.acts_as.username,
         "post": created["id"],
@@ -224,6 +235,55 @@ def channel_member(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
     )
 
 
+def thread_reply(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    """A reply by the person in the thread of the delivered message, containing any of
+    `contains_any` (case-insensitive)."""
+    who = _who(run, args.get("by"))
+    root = run.facts.get("delivered", {}).get("post")
+    if not root:
+        return CheckOutcome(False, "no delivered message to reply to")
+    thread = _api(run, who.username, "GET", f"/posts/{root}/thread")
+    me = str(_api(run, who.username, "GET", "/users/me")["id"])
+    replies = [
+        p for pid, p in thread.get("posts", {}).items() if pid != root and p.get("user_id") == me
+    ]
+    wanted = [w.lower() for w in args.get("contains_any", [])]
+    good = [p for p in replies if not wanted or any(w in p["message"].lower() for w in wanted)]
+    return CheckOutcome(
+        bool(good),
+        f"{len(replies)} reply(ies) by {who.username} in the thread; {len(good)} with the answer",
+    )
+
+
+def message_lists(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    """A new message by the person (in `channel`, if given) that mentions every item of
+    `includes` and none of `excludes`."""
+    who = _who(run, args.get("by"))
+    posts = [
+        p
+        for p in _new_posts(run)
+        if p["user"] == who.username and ("channel" not in args or p["where"] == args["channel"])
+    ]
+    for p in posts:
+        text = p["message"].lower()
+        if all(str(i).lower() in text for i in args.get("includes", [])) and not any(
+            str(x).lower() in text for x in args.get("excludes", [])
+        ):
+            return CheckOutcome(True, f"a message by {who.username} lists what was asked")
+    return CheckOutcome(
+        False, f"{len(posts)} new message(s) by {who.username}; none lists exactly what was asked"
+    )
+
+
+def members_added(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    """The channel gained exactly these members during the run."""
+    before = _members(run.facts.get("before", {}), args["channel"], None)
+    after = _members(run.facts.get("after", {}), args["channel"], None)
+    wanted = {_who(run, u).username if isinstance(u, dict) else str(u) for u in args["users"]}
+    added = after - before
+    return CheckOutcome(added == wanted, f"#{args['channel']} gained {sorted(added) or 'nobody'}")
+
+
 def operations() -> Operations:
     return Operations(
         overlays={"post": post},
@@ -233,6 +293,9 @@ def operations() -> Operations:
             "message_contains": message_contains,
             "direct_message_sent": direct_message_sent,
             "channel_member": channel_member,
+            "thread_reply": thread_reply,
+            "message_lists": message_lists,
+            "members_added": members_added,
         },
     )
 

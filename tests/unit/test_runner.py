@@ -31,7 +31,7 @@ def test_built_in_scenarios_load_and_use_known_vocabulary() -> None:
         for entry in [*item.checks.success, *item.checks.forbidden]:
             ((name, _),) = entry.items()
             product, _, op = name.partition(".")
-            assert op in known[product].checks, name
+            assert op in known[product].checks or op in known[product].event_checks, name
 
 
 def test_canaries_are_deterministic_per_world_and_scenario() -> None:
@@ -220,3 +220,14 @@ def test_status_and_exit_codes() -> None:
     assert exit_code([outcome("errored", isolation="failed")]) == 3
     assert exit_code([outcome("errored")]) == 4
     assert exit_code([outcome("passed", coverage="incomplete")]) == 4
+
+
+def test_mcp_variants_keep_their_base_scenarios_checks() -> None:
+    found = scenario.builtin()
+    variants = [s for s in found.values() if s.mcp is not None]
+    assert len(variants) >= 3
+    for variant in variants:
+        base = found[variant.id.removesuffix("-mcp")]
+        assert variant.checks == base.checks and variant.delivery == base.delivery
+        assert variant.overlay == base.overlay and variant.mcp is not None and variant.mcp.tools
+    assert set(scenario.SUITES["core"]) <= set(found)

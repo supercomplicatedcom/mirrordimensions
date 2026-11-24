@@ -41,9 +41,9 @@ from mirrordimensions.engine.registry import get_engine
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.files import make_dir, write_text
 from mirrordimensions.network import sandbox
-from mirrordimensions.network.events import Collector
+from mirrordimensions.network.events import Collector, tracer_parser
 from mirrordimensions.project import Project
-from mirrordimensions.runner import evaluate, scenario
+from mirrordimensions.runner import coverage, evaluate, ledger, scenario
 from mirrordimensions.service import agents as agents_svc
 from mirrordimensions.service import results
 from mirrordimensions.service import world as world_svc
@@ -120,7 +120,11 @@ class _Run:
         allow_emulated: bool,
         max_minutes: int | None,
         on_step: StepFn,
+        actor: Callable[[RunContext, RunContext], None] | None = None,
+        during: Callable[[RunContext, RunContext], None] | None = None,
     ) -> None:
+        self.actor = actor  # tests only: acts as the person instead of an agent container
+        self.during = during  # tests only: runs while the agent runs (e.g. a hidden write)
         self.project = project
         self.scenario = item
         self.agent = agent.model_copy(update={"acts_as": item.acts_as})
@@ -140,6 +144,16 @@ class _Run:
             "acts_as.name": self.person.name,
             "company": self.world.company,
         }
+        for key, ref in item.cast.items():
+            who = _people(
+                self.world, ref.model_dump(by_alias=True, exclude_none=True), self.person
+            )[0]
+            self.values |= {
+                f"{key}.name": who.name,
+                f"{key}.first": who.name.split()[0],
+                f"{key}.username": who.username,
+                f"{key}.email": who.email,
+            }
         self.facts: dict[str, Any] = {}
         self.result = results.new_result(
             self.run_id,
@@ -150,7 +164,27 @@ class _Run:
             ),
         )
         self.result.scenario, self.result.agent = item.id, agent.name
+        if item.mcp is not None:
+            self._check_mcp(item.mcp.tools)
         self.result.acts_as = f"{self.person.name} ({self.person.username})"
+
+    def _check_mcp(self, needed: list[str]) -> None:
+        """An MCP variant needs an MCP server, granted to the agent, offering these tools."""
+        servers = [
+            a
+            for a in self.plan.apps
+            if a.is_mcp and a.tools is not None and a.id in self.agent.grants
+        ]
+        offered = {t for a in servers for t in (a.tools.names if a.tools else [])}
+        missing = sorted(set(needed) - offered)
+        if not servers or missing:
+            raise MirrorError(
+                f"{self.scenario.id} is an MCP variant; the agent needs an MCP server with {', '.join(needed)}.",
+                f"Missing: {', '.join(missing)}."
+                if servers
+                else "No MCP server in mirror.yaml is granted to the agent.",
+                "Add an mcp-server app (see examples/mcp/eng-tools) and grant it in the agent file.",
+            )
 
     def step(self, text: str) -> None:
         if self.on_step:
@@ -171,6 +205,13 @@ class _Run:
         self.collector.run_id = self.run_id
         self.collector.start()
         self.offset = offset
+        self.watch: set[str] = set()
+        self.tracer = docker.is_running(sandbox.TRACER_NAME)
+        if self.tracer:
+            self.trace_progress: dict[str, str] = {}
+            self.collector.add_source(
+                sandbox.TRACER_NAME, tracer_parser(self.watch, self.trace_progress)
+            )
         self._platform(driver, boundary)
         self.collector.emit(
             "runner",
@@ -198,7 +239,14 @@ class _Run:
                 self.result.platform.emulated.append(self.agent.image or "")
             _, identities = agents_svc.issue(self.project, self.agent, docker)
             self.result.delivery = self._deliver()
+            self._learn_facts()
             self.before = world_svc.dumps(docker, self.plan, self.project)
+            if self.actor is not None:
+                apps = {a.product: a for a in self.plan.apps if get_twin(a.product)}
+                self.actor(self._context(apps["gitea"]), self._context(apps["mattermost"]))
+                self.after = world_svc.dumps(docker, self.plan, self.project)
+                self._evaluate(handle_clients=self._clients())
+                return self._finish(stopped=False, errored=False)
             started = time.time()
             handle = agents_svc.start_agent(
                 self.project,
@@ -209,9 +257,13 @@ class _Run:
                 self.collector,
                 platform,
                 self.dir / "screens",
+                before_start=self._watch,
             )
             if self.agent.wake and self.agent.wake.type == "command":
                 self.collector.emit("runner", "agent.woken", {"command": self.agent.wake.command})
+            if self.during is not None:
+                apps = {a.product: a for a in self.plan.apps if get_twin(a.product)}
+                self.during(self._context(apps["gitea"]), self._context(apps["mattermost"]))
             self.step(f"{self.agent.name} started as {handle.where.name}")
             ended = self._wait(handle, started)
             stopped = ended == "timeout"
@@ -222,6 +274,7 @@ class _Run:
             agents_svc.stop_agent(docker, handle)
             handle = None
             time.sleep(2.0)  # the last captures reach the collector
+            self._tracer_caught_up(time.time())
             self.after = world_svc.dumps(docker, self.plan, self.project)
             self._evaluate(handle_clients=self._clients())
         except MirrorError as exc:
@@ -284,6 +337,27 @@ class _Run:
             return False
         return True
 
+    def _tracer_caught_up(self, stopped: float, timeout: float = 60.0) -> None:
+        """Wait until the tracer has reported events from after the agent stopped, so no
+        process or connection of the agent's arrives after scoring."""
+        if not self.tracer:
+            return
+        from datetime import datetime
+
+        target = stopped + self.offset  # the engine's clock
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            seen = self.trace_progress.get("time")
+            if seen and datetime.fromisoformat(seen.replace("Z", "+00:00")).timestamp() >= target:
+                return
+            time.sleep(0.5)
+        self.trace_lag = True  # the host channel is reported as not captured
+
+    def _watch(self, name: str) -> None:
+        container = self.docker.container_id(name)
+        if container:
+            self.watch.add(container)
+
     def _context(self, app: sandbox.App) -> RunContext:
         def person(spec: dict[str, Any]) -> Person:
             return _people(self.world, spec, self.person)[0]
@@ -322,13 +396,23 @@ class _Run:
         return table[op], self._context(app)
 
     def _overlay(self) -> None:
-        for entry in scenario.render(self.scenario.overlay, self.values):
-            ((name, args),) = entry.items()
+        for raw in self.scenario.overlay:
+            # Each step is filled just before it runs, so it can use what earlier steps made
+            # (`{{ thread.number }}`, `{{ admin_token.value }}`).
+            ((name, args),) = scenario.render(raw, self.values).items()
             fn, rc = self._operation(name, "overlays")
             fn(rc, dict(args or {}))
+            self._learn_facts()
             self.collector.emit("runner", "overlay.applied", {"operation": name})
         if self.scenario.overlay:
             self.step(f"Applied {len(self.scenario.overlay)} overlay step(s)")
+
+    def _learn_facts(self) -> None:
+        for key, fact in self.facts.items():
+            if isinstance(fact, dict) and not key.startswith("_"):
+                for field, value in fact.items():
+                    if isinstance(value, (str, int)):
+                        self.values[f"{key}.{field}"] = str(value)
 
     def _deliver(self) -> dict[str, Any]:
         spec = scenario.render(
@@ -410,8 +494,27 @@ class _Run:
         apps = {a.product: a for a in self.plan.apps if get_twin(a.product)}
         bodies = self._bodies(handle_clients)
 
+        exchanges = [
+            e
+            for e in self.collector.events
+            if e.get("type") == "http.exchange" and e["data"].get("client") in handle_clients
+        ]
+
         def run_check(entry: dict[str, Any], kind: str) -> dict[str, Any]:
             ((name, args),) = scenario.render(entry, self.values).items()
+            product, _, op = name.partition(".")
+            twin = get_twin(product)
+            if twin is not None and op in twin.operations().event_checks:
+                efn, rc = self._operation(name, "event_checks")
+                outcome = efn(rc, dict(args or {}), exchanges)
+                found = outcome.passed
+                record = {"check": name, "kind": kind, "args": shown(args)}
+                record |= {
+                    "passed": (not found) if kind == "forbidden" else found,
+                    "evidence": outcome.evidence,
+                }
+                self.collector.emit("evaluator", "check.result", record)
+                return record
             fn, rc = self._operation(name, "checks")
             app = apps[name.split(".")[0]]
             rc.facts = {
@@ -473,12 +576,113 @@ class _Run:
         travel = evaluate.canary_travel(canary_values, bodies, final, planted)
         self.result.canaries = [{"canary": t.name, "seen": t.places} for t in travel]
 
+        self.result.egress = evaluate.egress(
+            self.collector.events, handle_clients, set(self.plan.resolvable)
+        )
         writes = [(seq, text) for seq, where, text in bodies if not where.startswith("GET ")]
         flags = evaluate.suspicions(writes)
         for flag in flags:
             self.collector.emit("evaluator", "suspicion.flag", flag)
         self.result.suspicion = flags
         self.result.suspected = bool(flags)
+        self._ledger(handle_clients)
+        self._coverage(handle_clients, found)
+
+    def _body(self, ref: str | None) -> bytes:
+        if not ref:
+            return b""
+        return self.docker.read_file(sandbox.GATEWAY_NAME, f"{BODIES}/{ref}") or b""
+
+    def _ledger(self, clients: set[str]) -> None:
+        from mirrordimensions.twins.profile import Profile
+
+        tables = {
+            a.hostname: (a.id, Profile(a.product).table)
+            for a in self.plan.apps
+            if a.product and get_twin(a.product)
+        }
+        rows = ledger.build(
+            self.collector.events, clients, tables, self._body, set(self.plan.model_hosts)
+        )
+        write_text(self.dir / "ledger.json", json.dumps(rows, indent=2) + "\n")
+        self.result.coverage["ledger"] = {"resources": len(rows), "file": "ledger.json"}
+
+    def _coverage(self, clients: set[str], found: list[evaluate.Change]) -> None:
+        events = self.collector.events
+        by_host = {a.hostname: a.id for a in self.plan.apps}
+        writes: dict[str, list[dict[str, Any]]] = {}
+        for e in events:
+            d = e.get("data", {})
+            if (
+                e.get("type") == "http.exchange"
+                and d.get("client") in clients
+                and d.get("method") in coverage.WRITES
+            ):
+                system = by_host.get(str(d.get("host", "")).split(":")[0])
+                if system:
+                    writes.setdefault(system, []).append(d)
+        execs = [e["data"] for e in events if e.get("type") == "process.exec"]
+        sockets = [e["data"] for e in events if e.get("type") == "socket.connect"]
+        refused = {str(e["data"].get("dst")) for e in events if e.get("type") == "egress.blocked"}
+        agent_ip = agents_svc.hosted.placement(self.plan, self.agent.name).ip
+        exchanges = sum(
+            1
+            for e in events
+            if e.get("type") == "http.exchange" and e["data"].get("client") == agent_ip
+        )
+        lookups = sum(
+            1
+            for e in events
+            if e.get("type") == "dns.query" and e["data"].get("client") == agent_ip
+        )
+        connections = coverage.reconcile_connections(
+            sockets,
+            gateway=self.plan.addr.gw_lan,
+            resolver=self.plan.addr.dns_ip,
+            refused=refused,
+            exchanges=exchanges,
+            lookups=lookups,
+        )
+        recs = {
+            "state_against_requests": coverage.reconcile_state(found, writes),
+            "connections_against_captures": connections,
+            "processes_against_image": coverage.reconcile_processes(
+                execs, sockets, connections["passed"]
+            ),
+        }
+        mcp_apps = [a for a in self.plan.apps if a.is_mcp and a.id in self.agent.grants]
+        if mcp_apps:
+            from mirrordimensions.mcp.world import reconcile as mcp_reconcile
+
+            fronts = {a.ip for a in mcp_apps}
+            problems = mcp_reconcile.reconcile(events, {a.hostname for a in mcp_apps}, fronts)
+            problems += mcp_reconcile.unexplained_writes(events, fronts)
+            calls = sum(1 for e in events if e.get("type") == "mcp.call")
+            recs["mcp_calls_against_writes"] = {
+                "passed": not problems,
+                "detail": f"{calls} tool call(s); every write through MCP explained by its call, and every write call by a write",
+                "unexplained": problems,
+            }
+        if not self.tracer:
+            for name in ("connections_against_captures", "processes_against_image"):
+                recs[name] = {
+                    "passed": False,
+                    "detail": "no in-kernel tracer: nothing to reconcile against",
+                }
+        chans = coverage.channels(
+            browser=self.agent.mode == "browser",
+            models=bool(self.plan.models),
+            mcp=any(a.is_mcp and a.id in self.agent.grants for a in self.plan.apps),
+            tracer=self.tracer,
+        )
+        if getattr(self, "trace_lag", False):
+            chans["host"] = {
+                "status": "not_captured",
+                "reason": "the tracer had not reported up to the end of the run",
+            }
+        summary = coverage.summarize(chans, recs)
+        summary["ledger"] = self.result.coverage.get("ledger", {})
+        self.result.coverage = summary
 
     def _finish(self, stopped: bool, errored: bool) -> RunOutcome:
         if self.result.isolation == "failed":
@@ -506,6 +710,23 @@ class _Run:
         )
 
 
+def run_with_actor(
+    project: Project,
+    scenario_id: str,
+    agent_name: str,
+    actor: Callable[[RunContext, RunContext], None] | None = None,
+    during: Callable[[RunContext, RunContext], None] | None = None,
+) -> tuple[RunOutcome, Result]:
+    """For tests: with `actor(code, chat)`, everything around the agent runs and the actor
+    acts as the agent's person directly in the twins; with `during`, the agent runs and the
+    callable acts alongside it."""
+    (item,) = scenario.select(project.root / "scenarios", scenario_id)
+    agent, _ = agents_svc.load_agent(project, agent_name)
+    run_ = _Run(project, item, agent, False, None, None, actor=actor, during=during)
+    outcome = run_.execute()
+    return outcome, run_.result
+
+
 def _digest(parts: dict[str, str]) -> str:
     import hashlib
 
@@ -521,6 +742,11 @@ def _people(world: World, spec: dict[str, Any], acts_as: Person) -> list[Person]
         match = [p for p in current if spec.get("role") in p.roles]
     if spec.get("not") == "acts_as":
         match = [p for p in match if p.id != acts_as.id]
+    for role in spec.get("without") or []:
+        match = [p for p in match if role not in p.roles]
+    for channel in spec.get("outside") or []:
+        members = next((set(c.members) for c in world.channels if c.name == channel), set[str]())
+        match = [p for p in match if p.id not in members]
     if not match:
         raise MirrorError(
             f"Nobody in the company matches {spec}.",

@@ -75,6 +75,10 @@ class CheckOutcome:
 Overlay = Callable[[RunContext, dict[str, Any]], None]
 Delivery = Callable[[RunContext, dict[str, Any]], dict[str, Any]]  # returns what was delivered
 StateCheck = Callable[[RunContext, dict[str, Any]], CheckOutcome]
+# A check over what the agent did, as captured: (context, arguments, the agent's exchanges)
+# -> outcome; `passed` means "found" for forbidden use. Each exchange is an `http.exchange`
+# event with its `seq`.
+EventCheck = Callable[[RunContext, dict[str, Any], list[dict[str, Any]]], CheckOutcome]
 
 
 @dataclass
@@ -85,6 +89,7 @@ class Operations:
     overlays: dict[str, Overlay] = field(default_factory=dict[str, Overlay])
     deliveries: dict[str, Delivery] = field(default_factory=dict[str, Delivery])
     checks: dict[str, StateCheck] = field(default_factory=dict[str, StateCheck])
+    event_checks: dict[str, EventCheck] = field(default_factory=dict[str, EventCheck])
 
 
 @dataclass(frozen=True)

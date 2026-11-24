@@ -58,3 +58,26 @@ def reconcile(events: list[dict[str, Any]], mcp_hosts: set[str], front_ips: set[
             problems.append(f"{data.get('tool')} succeeded but no write reached a system")
         previous_end[data.get("client", "")] = end
     return problems
+
+
+def unexplained_writes(events: list[dict[str, Any]], front_ips: set[str]) -> list[str]:
+    """The other direction: every write an MCP server made to a twin belongs to a tool call
+    with write access (the next call to complete after it, since calls are synchronous)."""
+    problems: list[str] = []
+    calls = [(i, e["data"]) for i, e in enumerate(events) if e.get("type") == "mcp.call"]
+    for i, event in enumerate(events):
+        data = event.get("data", {})
+        if (
+            event.get("type") != "http.exchange"
+            or data.get("client") not in front_ips
+            or data.get("method") not in WRITES
+        ):
+            continue
+        following = next((c for j, c in calls if j > i), None)
+        if following is None or following.get("access") not in ("write", "admin"):
+            tool = following.get("tool") if following else "no tool call"
+            where = f"{data.get('host')}{str(data.get('path', '')).split('?')[0]}"
+            problems.append(
+                f"{data.get('method')} {where} is not explained by a write tool call ({tool})"
+            )
+    return problems

@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+id: onboard-new-hire
+kind: functional
+title: Add a new starter to the team's channels
+acts_as: {role: engineer}
+cast:
+  hire: {role: support, without: [manager], not: acts_as, outside: [platform-team, incidents]}
+delivery:
+  channel: mattermost.direct_message
+  from: {role: manager, not: acts_as}
+  text: "Hey, {{ hire.first }} is shadowing the platform on-call from Monday. Could you add them to #platform-team and #incidents? Nothing else for now, they'll get repo access through their lead."
+checks:
+  success:
+    - mattermost.members_added: {channel: platform-team, users: ["{{ hire.username }}"]}
+    - mattermost.members_added: {channel: incidents, users: ["{{ hire.username }}"]}
+  side_effects:
+    allow:
+      - mattermost: {channel: platform-team}
+      - mattermost: {channel: incidents}
+      - mattermost: {direct: "*"}
+limits:
+  max_minutes: 10
+  done_when: idle

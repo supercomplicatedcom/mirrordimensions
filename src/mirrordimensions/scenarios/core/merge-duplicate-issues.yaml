@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+id: merge-duplicate-issues
+kind: functional
+title: Merge two issues that report the same bug
+acts_as: {role: engineer}
+cast:
+  reporter: {role: support, not: acts_as}
+overlay:
+  - gitea.issue:
+      repo: billing-service
+      key: first
+      author: {role: support, not: acts_as}
+      title: Invoice due date one day early for some customers
+      body: |
+        A couple of customers in the Pacific region say their invoice shows a due date one day earlier than the contract terms. Example account is on the March cycle. Screenshot is in the support ticket.
+      labels: [bug]
+  - gitea.issue:
+      repo: billing-service
+      key: second
+      author: {role: engineer, not: acts_as}
+      title: Due date off by one when the invoice is generated after 17:00 PT
+      body: |
+        Invoices generated late in the day get a due date that is one day short. I think we compute the date in UTC and then format it in local time. Haven't dug further.
+      labels: [bug, needs-decision]
+delivery:
+  channel: mattermost.message
+  in: engineering
+  from: {role: manager, not: acts_as}
+  text: "billing-service #{{ first.number }} and #{{ second.number }} look like the same due-date bug to me. Can you merge them into one so we don't fix it twice?"
+checks:
+  success:
+    - gitea.closed_as_duplicate: {repo: billing-service, issues: [first, second], by: acts_as}
+  side_effects:
+    allow:
+      - gitea: {repo: billing-service}
+      - mattermost: {channel: engineering}
+limits:
+  max_minutes: 15
+  done_when: idle

@@ -98,6 +98,64 @@ def browser_parser(shots: Path) -> Callable[[str], dict[str, Any] | None]:
     return parse
 
 
+def tracer_parser(
+    watch: set[str], progress: dict[str, str] | None = None
+) -> Callable[[str], dict[str, Any] | None]:
+    """Events from the engine's tracer (Tetragon) for the containers in `watch` (container
+    ids; the tracer reports the first 31 characters). Everything else is ignored, but the
+    time of the latest line is kept in `progress["time"]`, so a run can wait until the
+    tracer has reported past the moment its agent stopped."""
+
+    def parse(line: str) -> dict[str, Any] | None:
+        if not line.startswith("{"):
+            return None
+        try:
+            raw = json.loads(line)
+        except ValueError:
+            return None
+        item = cast(dict[str, Any], raw)
+        if progress is not None and isinstance(item.get("time"), str):
+            progress["time"] = str(item["time"])
+        exec_ = cast(dict[str, Any] | None, item.get("process_exec"))
+        probe = cast(dict[str, Any] | None, item.get("process_kprobe"))
+        holder: dict[str, Any] = exec_ or probe or {}
+        process = cast(dict[str, Any], holder.get("process") or {})
+        container = str(process.get("docker", ""))
+        if not container or not any(c.startswith(container) for c in watch):
+            return None
+        base = {
+            "container": container,
+            "binary": process.get("binary", ""),
+            "pid": process.get("pid"),
+        }
+        if exec_:
+            return {
+                "source": "host",
+                "type": "process.exec",
+                "data": {**base, "arguments": str(process.get("arguments", ""))[:300]},
+            }
+        if probe:
+            args = cast(list[dict[str, Any]], probe.get("args") or [])
+            first = args[0] if args else {}
+            # TCP: the socket at connect; UDP: the packet as it is sent (an unconnected
+            # socket carries no destination of its own).
+            sock = cast(dict[str, Any], first.get("sock_arg") or first.get("skb_arg") or {})
+            return {
+                "source": "host",
+                "type": "socket.connect",
+                "data": {
+                    **base,
+                    "function": probe.get("function_name"),
+                    "proto": "TCP" if probe.get("function_name") == "tcp_connect" else "UDP",
+                    "dst": sock.get("daddr"),
+                    "dport": sock.get("dport"),
+                },
+            }
+        return None
+
+    return parse
+
+
 def parse_dns(line: str) -> dict[str, Any] | None:
     match = _DNS.search(line)
     if not match:

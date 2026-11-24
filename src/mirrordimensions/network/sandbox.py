@@ -40,6 +40,8 @@ IMAGES = {
     "stub": "nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de",
     "relay": "alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f",
     "probe": "nicolaka/netshoot:v0.14@sha256:7f08c4aff13ff61a35d30e30c5c1ea8396eac6ab4ce19fd02d5a4b3b5d0d09a2",
+    # Tetragon (Apache-2.0): eBPF process and socket tracing in the engine kernel (0010, 0016).
+    "tracer": "quay.io/cilium/tetragon:v1.8.0@sha256:5ed9088a1582131d71b06c98e0d549a37a71ae63ab13aabefc7a47553c822a9d",
 }
 
 LAN, APPS, UPLINK = "corp-lan", "corp-apps", "corp-uplink"
@@ -147,6 +149,24 @@ class Plan:
 
 
 DNS_NAME, GATEWAY_NAME, RELAY_NAME = "ns1", "edge-proxy-02", "klog"
+TRACER_NAME = "auditd-01"
+TRACER_POLICY = """apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: sockets
+spec:
+  kprobes:
+  - call: "tcp_connect"
+    syscall: false
+    args:
+    - index: 0
+      type: "sock"
+  - call: "ip_send_skb"
+    syscall: false
+    args:
+    - index: 1
+      type: "skb"
+"""
 APPS_DNS_NAME = "ns2"
 
 
@@ -352,6 +372,34 @@ def specs(
             labels=label,
         ),
         relay_spec(APPS, a.relay_ip, [a.apps_dns_ip]),
+        # In the engine's own namespaces, on no network: it watches every container from the
+        # kernel, so nothing is added inside the agent's container (decision 0016).
+        ContainerSpec(
+            name=TRACER_NAME,
+            image=IMAGES["tracer"],
+            entrypoint=["/usr/bin/tetragon"],
+            command=[
+                "--export-filename",
+                "/dev/stdout",
+                # Tetragon rotates its export file at 10 MB by default, and "rotating"
+                # /dev/stdout silently ends the stream; Docker's log rotation bounds it instead.
+                "--export-file-max-size-mb",
+                "1000000",
+                "--export-allowlist",
+                '{"event_set":["PROCESS_EXEC","PROCESS_KPROBE"]}',
+                "--tracing-policy",
+                "/etc/tetragon/sockets.yaml",
+            ],
+            networks={},
+            network_mode="none",
+            privileged=True,
+            pid_mode="host",
+            cgroupns="host",
+            engine_binds={"/sys/kernel": "/sys/kernel"},
+            log_options={"max-size": "50m", "max-file": "3"},
+            files={"/etc/tetragon/sockets.yaml": (TRACER_POLICY.encode(), 0o644)},
+            labels=label,
+        ),
         ContainerSpec(
             name=GATEWAY_NAME,
             image=IMAGES["gateway"],

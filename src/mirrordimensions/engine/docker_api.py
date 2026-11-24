@@ -51,6 +51,13 @@ class ContainerSpec:
     # Network whose gateway becomes the container's default route (Docker's GwPriority).
     default_route: str | None = None
     entrypoint: list[str] | None = None
+    # The engine's own in-kernel tracer only: it watches every container from outside them.
+    # Nothing an agent can reach is ever given these.
+    privileged: bool = False
+    pid_mode: str | None = None  # "host"
+    cgroupns: str | None = None  # "host"
+    engine_binds: dict[str, str] = field(default_factory=dict[str, str])  # engine path -> path
+    log_options: dict[str, str] = field(default_factory=dict[str, str])  # json-file rotation
 
 
 @dataclass
@@ -160,7 +167,7 @@ class Docker:
             networking = self._client.api.create_networking_config({first[0]: endpoint})
         shares_network = (spec.network_mode or "").startswith("container:")
         host_config = self._client.api.create_host_config(
-            cap_drop=["ALL"],
+            cap_drop=None if spec.privileged else ["ALL"],
             cap_add=spec.cap_add or None,
             security_opt=["no-new-privileges"],
             dns=spec.dns,
@@ -168,8 +175,19 @@ class Docker:
             devices=spec.devices or None,
             network_mode=spec.network_mode or (first[0] if first[0] else None),
             restart_policy={"Name": "no"},
-            binds={vol: {"bind": path, "mode": "rw"} for vol, path in spec.volumes.items()} or None,
+            binds={
+                **{vol: {"bind": path, "mode": "rw"} for vol, path in spec.volumes.items()},
+                **{src: {"bind": path, "mode": "ro"} for src, path in spec.engine_binds.items()},
+            }
+            or None,
+            privileged=spec.privileged,
+            pid_mode=spec.pid_mode,
+            log_config=docker_types.LogConfig(type="json-file", config=spec.log_options)
+            if spec.log_options
+            else None,
         )
+        if spec.cgroupns:
+            host_config["CgroupnsMode"] = spec.cgroupns
         if spec.masked_paths is not None:
             # Replaces Docker's default list, so callers pass the defaults too.
             host_config["MaskedPaths"] = spec.masked_paths
@@ -330,6 +348,12 @@ class Docker:
     def changes(self, name: str) -> list[dict[str, Any]]:
         """Files added, changed or deleted in a container since it was created."""
         return list(self._client.api.diff(name) or [])
+
+    def container_id(self, name: str) -> str | None:
+        try:
+            return str(self._client.api.inspect_container(name)["Id"])
+        except DockerException:
+            return None
 
     def is_running(self, name: str) -> bool:
         try:

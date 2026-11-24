@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# The same work and checks, for an agent that has only the company's MCP server.
+variant_of: fix-failing-test
+id: fix-failing-test-mcp
+title: Fix a unit test that fails on main (MCP tools only)
+mcp:
+  tools: [search_issues, get_file_contents, update_file, create_pull_request]

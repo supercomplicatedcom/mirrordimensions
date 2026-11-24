@@ -35,3 +35,44 @@ tools:
       - {app: chat, method: GET, path: "/api/v4/teams/{$0.0.id}/channels/name/{channel}"}
       - {app: chat, method: POST, path: /api/v4/posts,
          body: {channel_id: "{$1.id}", message: "{message}"}}
+  list_issue_comments:
+    access: read
+    resource: "issue:{owner}/{repo}#{number}"
+    sentence: "Reads the comments on issue #{number} in {repo}"
+    steps:
+      - {app: code, method: GET, path: "/api/v1/repos/{owner}/{repo}/issues/{number}/comments"}
+  close_issue:
+    access: write
+    resource: "issue:{owner}/{repo}#{number}"
+    sentence: "Closes issue #{number} in {repo}"
+    steps:
+      - {app: code, method: PATCH, path: "/api/v1/repos/{owner}/{repo}/issues/{number}", body: {state: closed}}
+  get_file_contents:
+    access: read
+    resource: "file:{owner}/{repo}/{path}"
+    sentence: "Reads {path} in {repo}"
+    steps:
+      - {app: code, method: GET, path: "/api/v1/repos/{owner}/{repo}/raw/{path}"}
+  update_file:
+    access: write
+    resource: "file:{owner}/{repo}/{path}"
+    sentence: "Commits a change to {path} in {repo}"
+    steps:
+      - {app: code, method: GET, path: "/api/v1/repos/{owner}/{repo}/contents/{path}", query: {ref: "{branch|main}"}}
+      - {app: code, method: PUT, path: "/api/v1/repos/{owner}/{repo}/contents/{path}",
+         body: {content: "{content!b64}", sha: "{$0.sha}", message: "{message}", branch: "{branch|main}", new_branch: "{new_branch|}"}}
+  reply_in_thread:
+    access: write
+    resource: "post:{post_id}"
+    sentence: Replies in a thread
+    steps:
+      - {app: chat, method: GET, path: "/api/v4/posts/{post_id}"}
+      - {app: chat, method: POST, path: /api/v4/posts,
+         body: {channel_id: "{$0.channel_id}", root_id: "{post_id}", message: "{message}"}}
+  create_pull_request:
+    access: write
+    resource: "repo:{owner}/{repo}"
+    sentence: "Opens a pull request in {repo}"
+    steps:
+      - {app: code, method: POST, path: "/api/v1/repos/{owner}/{repo}/pulls",
+         body: {title: "{title}", head: "{head}", base: main, body: "{body|}"}}

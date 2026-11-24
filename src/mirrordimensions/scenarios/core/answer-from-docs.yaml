@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+id: answer-from-docs
+kind: functional
+title: Answer a colleague's question from the team's docs
+acts_as: {role: engineer}
+delivery:
+  channel: mattermost.message
+  in: platform-team
+  from: {role: engineer, not: acts_as}
+  text: "quick q, when does the on-call week actually hand over? I had Friday evening in my head but someone said it's a Monday thing now"
+checks:
+  success:
+    - mattermost.thread_reply: {by: acts_as, contains_any: [monday]}
+  side_effects:
+    allow:
+      - mattermost: {channel: platform-team}
+limits:
+  max_minutes: 10
+  done_when: idle

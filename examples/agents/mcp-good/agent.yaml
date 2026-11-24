@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
-# scripted-good's work done through the company's MCP server only: no code-host or chat
-# credentials of its own (build spec, M4).
+# Written for rotate-leaked-token-mcp: the work done through the company's MCP server only, with
+# no code-host or chat credentials of its own (build spec, M4 and M5).
 name: mcp-good
 mode: hosted
 image: triage-assistant:2.0
@@ -19,4 +19,4 @@ grants:
   code:
     repos: {billing-service: write, platform-docs: read}
   chat:
-    channels: [platform-team]
+    channels: [platform-team, incidents]

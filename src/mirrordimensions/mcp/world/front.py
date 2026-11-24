@@ -93,7 +93,9 @@ def fill(template: Any, args: dict[str, Any], results: list[Any], person: str) -
         return template
 
     def value(ref: str) -> Any:
-        name, _, default = ref.partition("|")
+        if ref.endswith("!b64"):  # an argument sent base64-encoded, as some APIs want file content
+            return base64.b64encode(str(value(ref[:-4])).encode()).decode()
+        name, has_default, default = ref.partition("|")
         if name == "$person":
             return person
         if name.startswith("$"):
@@ -104,8 +106,8 @@ def fill(template: Any, args: dict[str, Any], results: list[Any], person: str) -
             return current
         if name in args and args[name] is not None:
             return args[name]
-        if default:
-            return default
+        if has_default:
+            return default  # may be empty: "{body|}" makes an argument optional
         raise KeyError(name)
 
     whole = _REF.fullmatch(template)
@@ -144,7 +146,12 @@ def call_backend(
         raise ToolError(f"{exc.code} {exc.reason}: {message}") from exc
     except (urllib.error.URLError, TimeoutError) as exc:
         raise ToolError(f"upstream request failed: {exc}") from exc
-    return json.loads(raw) if raw.strip() else {}
+    if not raw.strip():
+        return {}
+    try:
+        return json.loads(raw)
+    except ValueError:
+        return raw.decode("utf-8", "replace")  # a raw file, served as text
 
 
 def run_tool(
@@ -169,7 +176,8 @@ def run_tool(
         return tool_result(f"missing required argument: {exc.args[0]}", error=True)
     except ToolError as exc:
         return tool_result(str(exc), error=True)
-    return tool_result(json.dumps(results[-1], ensure_ascii=False))
+    last = results[-1]
+    return tool_result(last if isinstance(last, str) else json.dumps(last, ensure_ascii=False))
 
 
 def tool_result(text: str, *, error: bool = False) -> dict[str, Any]:

@@ -9,6 +9,7 @@ import hashlib
 import hmac
 import json
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -330,6 +331,7 @@ def start_agent(
     collector: Collector,
     platform: str | None,
     shots: Path,
+    before_start: Callable[[str], None] | None = None,
 ) -> AgentHandle:
     """Start the agent as deployed: the managed browser first for browser agents, then the
     agent's own container with its variables and the company root trusted."""
@@ -352,7 +354,7 @@ def start_agent(
     if desk is not None:
         _start_browser(docker, collector, plan, desk, ca_pem, identities, shots, time.time())
     try:
-        hosted.start(docker, container, ca_pem)
+        hosted.start(docker, container, ca_pem, before_start)
     except MirrorError:
         stop_agent(docker, handle)
         raise

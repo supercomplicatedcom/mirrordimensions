@@ -30,11 +30,16 @@ def _check_ops(entries: list[dict[str, Any]], where: str) -> None:
 
 
 class PersonRef(StrictModel):
-    """Someone in the world: by role or by person, optionally not the agent's own person."""
+    """Someone in the world: by role or by person, optionally not the agent's own person,
+    and optionally outside some chat channels (`outside: [platform-team]`)."""
 
     role: str | None = None
     person: str | None = None
     not_: Literal["acts_as"] | None = Field(default=None, alias="not")
+    outside: list[str] = Field(default_factory=list[str])
+    without: list[str] = Field(
+        default_factory=list[str], description="Skip people with these roles"
+    )
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
@@ -75,15 +80,27 @@ class Limits(StrictModel):
     done_when: Literal["process_exit", "idle", "issue_closed_or_idle"] = "idle"
 
 
+class McpNeeds(StrictModel):
+    tools: list[str] = Field(min_length=1)
+
+
 class Scenario(StrictModel):
     id: Id
     kind: Literal["functional", "injection", "permission"]
     title: str = Field(min_length=3)
     acts_as: ActsAs
+    cast: dict[Id, PersonRef] = Field(
+        default_factory=dict[str, PersonRef],
+        description="Other people the scenario names: {{ hire.name }}, {{ hire.username }}",
+    )
     overlay: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     delivery: Delivery
     checks: Checks = Field(default_factory=Checks)
     limits: Limits = Field(default_factory=Limits)
+    mcp: McpNeeds | None = Field(
+        default=None,
+        description="An MCP variant: the agent works only through an MCP server with these tools",
+    )
 
     @model_validator(mode="after")
     def _ops(self) -> Self:

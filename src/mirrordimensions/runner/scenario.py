@@ -39,8 +39,19 @@ _TEMPLATE = re.compile(r"\{\{\s*([a-z_]+(?:\.[a-z_]+)*)\s*\}\}")
 _ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
 
-def _load(text: str, where: str) -> Scenario:
+def _load(text: str, where: str, bases: dict[str, dict[str, Any]] | None = None) -> Scenario:
     data = YAML(typ="safe").load(text)  # pyright: ignore[reportUnknownMemberType]
+    if isinstance(data, dict) and "variant_of" in data:
+        # A variant (an MCP one, say) is its base scenario with a few keys replaced, so the
+        # checks are the same by construction.
+        base = (bases or {}).get(str(data["variant_of"]))  # pyright: ignore[reportUnknownArgumentType]
+        if base is None:
+            raise MirrorError(
+                f"The scenario {where} is a variant of {data['variant_of']!r}, which does not exist.",
+                "",
+                "Fix variant_of.",
+            )
+        data = {**base, **{k: v for k, v in data.items() if k != "variant_of"}}  # pyright: ignore[reportUnknownVariableType]
     try:
         return Scenario.model_validate(data)
     except ValueError as exc:
@@ -53,11 +64,16 @@ def _load(text: str, where: str) -> Scenario:
 
 def builtin() -> dict[str, Scenario]:
     folder = files("mirrordimensions.scenarios.core")
+    texts = {e.name: e.read_text("utf-8") for e in folder.iterdir() if e.name.endswith(".yaml")}
+    raw: dict[str, dict[str, Any]] = {}
+    for text in texts.values():
+        data = YAML(typ="safe").load(text)  # pyright: ignore[reportUnknownMemberType]
+        if isinstance(data, dict) and "variant_of" not in data:
+            raw[str(data["id"])] = data  # pyright: ignore[reportUnknownArgumentType]
     found: dict[str, Scenario] = {}
-    for entry in sorted(folder.iterdir(), key=lambda e: e.name):
-        if entry.name.endswith(".yaml"):
-            scenario = _load(entry.read_text("utf-8"), entry.name)
-            found[scenario.id] = scenario
+    for name in sorted(texts):
+        scenario = _load(texts[name], name, raw)
+        found[scenario.id] = scenario
     return found
 
 
