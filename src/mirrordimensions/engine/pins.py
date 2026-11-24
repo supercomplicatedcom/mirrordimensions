@@ -45,3 +45,17 @@ GUEST_IMAGES: dict[GuestArch, tuple[str, str]] = {
     ),
 }
 GUEST_OS = "Ubuntu 26.04 LTS"
+
+# Kata Containers static releases (no published checksums; pinned on first download,
+# 2026-11-23). Used only by the optional microVM runtime (decision 0012).
+KATA_VERSION = "4.4.0"
+KATA_SHA256 = {
+    "arm64": "9dd4407d4b756858fe9ce33322a605f5a932743839a8ec47108e8513dcc3aaa3",
+    "amd64": "ccbc0cbc591089d0c57012b78da64b23ef43e0bac0f869dc7bfebe8588c33986",
+}
+# Firecracker v1.17.0, the version Kata 4.4 is tested with; Firecracker publishes these.
+FIRECRACKER_VERSION = "v1.17.0"
+FIRECRACKER_SHA256 = {
+    "aarch64": "e351ebe4f7a16b5873bbd51005d2e6767103cff4d5ebc829df2d3f95a93e2256",
+    "x86_64": "06094a1108ae9e82aa4c23a775aa92758f53f1175d422270d9d6162cb9ade558",
+}

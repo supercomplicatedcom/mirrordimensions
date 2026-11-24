@@ -8,10 +8,13 @@ Each check starts real containers in the engine and tries what must fail. Every
 
 from __future__ import annotations
 
+import os
+import re
 import socket
 import stat
+import subprocess
 import threading
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from typing import Literal
 
@@ -191,7 +194,116 @@ def run_checks(engine: LimaEngine) -> list[CheckResult]:
 
     # 6. Only allow-listed egress, from one network, leaves the engine; drops are logged.
     results.extend(_egress_checks(engine, docker))
+
+    # 7. The optional microVM runtime (decision 0012), when installed.
+    if engine.has_microvm():
+        results.extend(microvm_checks(engine.shell))
+    else:
+        results.append(
+            CheckResult(
+                name="Firecracker microVM runtime",
+                outcome="skip",
+                detail="not installed (mirror engine setup --microvm, Apple M3+)",
+            )
+        )
     return results
+
+
+MICROVM_IMAGE = (
+    "docker.io/library/alpine:3.22"
+    "@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f"
+)
+KATA_TELLS = ("kata", "agent.", "firecracker", "virtio_mmio", "systemd.unit=kata")
+
+
+def _is_frame(line: str) -> bool:
+    """A backtrace frame (`12: <std::thread::...>`, `at /rustc/...`), not a numbered cause."""
+    bare = line.strip()
+    return bare.startswith("at ") or bool(re.match(r"^\d+: .*(::|<)", bare))
+
+
+def _first_error(text: str) -> str:
+    """The part of a failure worth reading: the first error line and the causes under it,
+    not a backtrace's last frames."""
+    lines = [ln.strip() for ln in text.replace("\\n", "\n").splitlines() if ln.strip()]
+    lines = [ln for ln in lines if not _is_frame(ln)]
+    for i, ln in enumerate(lines):
+        if any(w in ln.lower() for w in ("error", "failed", "fatal")):
+            causes = [c for c in lines[i + 1 :] if re.match(r"^\d+: ", c)]
+            return " / ".join([ln, *causes[:4]])[:600]
+    return (lines[0] if lines else "no output")[:400]
+
+
+def microvm_checks(shell: Callable[..., subprocess.CompletedProcess[str]]) -> list[CheckResult]:
+    """Run a workload in a Firecracker microVM through containerd, and look at what it sees."""
+    out: list[CheckResult] = []
+    pull = shell(
+        "sudo",
+        "ctr",
+        "image",
+        "pull",
+        "--local",
+        "--snapshotter",
+        "devmapper",
+        MICROVM_IMAGE,
+        timeout=600,
+    )
+    if pull.returncode != 0:
+        return [
+            CheckResult(
+                name="Firecracker microVM runtime",
+                outcome="fail",
+                detail=_first_error(pull.stderr or pull.stdout),
+            )
+        ]
+    script = (
+        "uname -r; echo ---; cat /proc/cmdline; echo ---; dmesg 2>&1 | head -5; echo ---; uname -m"
+    )
+    run = shell(
+        "sudo",
+        "ctr",
+        "run",
+        "--rm",
+        "--runtime",
+        "io.containerd.kata-fc.v2",
+        "--snapshotter",
+        "devmapper",
+        MICROVM_IMAGE,
+        f"fc-check-{os.getpid()}",
+        "sh",
+        "-c",
+        script,
+        timeout=600,
+    )
+    host_kernel = shell("uname", "-r").stdout.strip()
+    if run.returncode != 0:
+        return [
+            CheckResult(
+                name="Firecracker microVM runtime",
+                outcome="fail",
+                detail=_first_error(run.stderr or run.stdout),
+            )
+        ]
+    parts = run.stdout.split("---")
+    guest_kernel = parts[0].strip()
+    own_kernel = guest_kernel != host_kernel
+    out.append(
+        CheckResult(
+            name="A workload runs in a Firecracker microVM",
+            outcome="pass" if own_kernel else "fail",
+            detail=f"its own kernel {guest_kernel} (engine: {host_kernel})",
+        )
+    )
+    seen = run.stdout.lower()
+    tells = [t for t in KATA_TELLS if t in seen]
+    out.append(
+        CheckResult(
+            name="The microVM shows no Kata or Firecracker tells",
+            outcome="fail" if tells else "pass",
+            detail=f"found {', '.join(tells)} in uname, /proc/cmdline or dmesg" if tells else "",
+        )
+    )
+    return out
 
 
 def _egress_checks(engine: LimaEngine, docker: Docker) -> list[CheckResult]:

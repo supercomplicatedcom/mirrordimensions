@@ -10,6 +10,7 @@ What runs where, and what has been measured. The rules are in the build spec ("P
 | Linux x64 | `lima` (QEMU and KVM), default | x64 | Dedicated VM | Supported |
 | Linux x64 | `host`, opt-in | x64 | Host | Supported |
 | Windows 11 x64 | `wsl` (dedicated WSL2 distribution) | x64 | Shared VM | **Experimental: not yet verified on real hardware** |
+| macOS on Apple M3 or later, macOS 15+ | `lima` with `--microvm` (nested virtualization; Kata Containers with Firecracker for agents) | arm64 | Dedicated VM, microVM per agent | **Unverified: no M3 available.** The same runtime is verified on a Linux runner in CI |
 
 ## Prerequisites
 

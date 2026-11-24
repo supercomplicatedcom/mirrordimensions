@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import tarfile
@@ -37,12 +38,16 @@ def _note(on_step: StepFn, text: str) -> None:
         on_step(text)
 
 
-def render_config(resources: Resources, guest_arch: pins.GuestArch, vm_type: str) -> str:
+def render_config(
+    resources: Resources, guest_arch: pins.GuestArch, vm_type: str, nested: bool = False
+) -> str:
     """The Lima configuration for the engine VM."""
     template = files("mirrordimensions.engine.provision").joinpath("lima.yaml").read_text("utf-8")
     script = files("mirrordimensions.engine.provision").joinpath("provision.sh").read_text("utf-8")
     # Lima expands Go templates in provisioning scripts; {{.User}} is the guest user.
     script = script.replace("__ENGINE_USER__", "{{.User}}")
+    if nested:
+        script += "\n" + microvm_script()
     location, digest = pins.GUEST_IMAGES[guest_arch]
     images = f'  - location: "{location}"\n    arch: "{guest_arch}"\n    digest: "{digest}"'
     provision = "\n".join(f"      {line}" if line else "" for line in script.splitlines())
@@ -54,10 +59,63 @@ def render_config(resources: Resources, guest_arch: pins.GuestArch, vm_type: str
         "@@IMAGES@@": images,
         "@@ROSETTA@@": "true" if vm_type == "vz" else "false",
         "@@PROVISION@@": provision,
+        "@@NESTED@@": "true" if nested else "false",
     }
     for key, value in values.items():
         template = template.replace(key, value)
     return template
+
+
+def microvm_script() -> str:
+    """The optional microVM runtime's provisioning (Kata Containers with Firecracker)."""
+    script = files("mirrordimensions.engine.provision").joinpath("microvm.sh").read_text("utf-8")
+    for key, value in {
+        "__KATA_SHA256_ARM64__": pins.KATA_SHA256["arm64"],
+        "__KATA_SHA256_AMD64__": pins.KATA_SHA256["amd64"],
+        "__FC_SHA256_AARCH64__": pins.FIRECRACKER_SHA256["aarch64"],
+        "__FC_SHA256_X86_64__": pins.FIRECRACKER_SHA256["x86_64"],
+    }.items():
+        script = script.replace(key, value)
+    return script
+
+
+def nested_virtualization() -> tuple[bool, str]:
+    """Whether this host can give the engine /dev/kvm, and why or why not.
+
+    macOS: Apple M3 or later with macOS 15 or later (Virtualization.framework).
+    Linux: the host's KVM module must allow nesting.
+    """
+    if host_os() == "macos":
+        chip = subprocess.run(
+            ["sysctl", "-n", "machdep.cpu.brand_string"],
+            capture_output=True,
+            text=True,
+            check=False,
+        ).stdout.strip()
+        major = int((platform_mac_version() or "0").split(".")[0] or 0)
+        generation = re.search(r"Apple M(\d+)", chip)
+        if generation is None:
+            return False, f"not an Apple Silicon chip ({chip or 'unknown'})"
+        if int(generation.group(1)) < 3:
+            return False, f"{chip} cannot run nested VMs; Apple M3 or later is needed"
+        if major < 15:
+            return False, f"macOS {major} is too old; macOS 15 or later is needed"
+        return True, f"{chip}, macOS {major}"
+    if host_os() == "linux":
+        for module in ("kvm_intel", "kvm_amd"):
+            param = Path(f"/sys/module/{module}/parameters/nested")
+            if param.is_file():
+                value = param.read_text().strip()
+                ok = value in ("Y", "1")
+                return ok, f"{module} nested={value}"
+        return False, "no KVM module with nesting found"
+    return False, f"{host_os()} has no nested virtualization for the engine"
+
+
+def platform_mac_version() -> str:
+    import platform
+
+    return platform.mac_ver()[0]
 
 
 def default_resources() -> Resources:
@@ -73,6 +131,7 @@ class LimaEngine:
         self.lima_home = self.root / "lima-home"
         self.lima_dir = self.root / "lima" / pins.LIMA_VERSION
         self.config_path = self.root / "engine.lima.yaml"
+        self.microvm = False
 
     # -- paths -----------------------------------------------------------------
 
@@ -151,13 +210,28 @@ class LimaEngine:
 
     # -- the Engine protocol ---------------------------------------------------
 
-    def setup(self, resources: Resources, on_step: StepFn = None) -> EngineStatus:
+    def setup(
+        self, resources: Resources, on_step: StepFn = None, microvm: bool = False
+    ) -> EngineStatus:
         make_dir(self.root, owner_only=True)
         make_dir(self.lima_home, owner_only=True)
         self.ensure_lima(on_step)
         vm_type = "vz" if host_os() == "macos" else "qemu"
         guest_arch: pins.GuestArch = "aarch64" if host_arch() == "arm64" else "x86_64"
-        write_text(self.config_path, render_config(resources, guest_arch, vm_type), owner_only=True)
+        if microvm:
+            supported, why = nested_virtualization()
+            if not supported:
+                raise MirrorError(
+                    "This host cannot run microVM agents.",
+                    f"Firecracker needs nested virtualization in the engine: {why}.",
+                    "Run mirror engine setup without --microvm; agents run as hardened "
+                    "containers in the engine VM (decision 0010).",
+                )
+        write_text(
+            self.config_path,
+            render_config(resources, guest_arch, vm_type, nested=microvm),
+            owner_only=True,
+        )
         done = self._limactl("validate", str(self.config_path))
         if done.returncode != 0:
             raise MirrorError(
@@ -165,7 +239,17 @@ class LimaEngine:
                 done.stderr.strip(),
                 "Report this as a bug.",
             )
-        if self._instance() is None:
+        inst = self._instance()
+        if inst is not None and microvm and not inst.get("config", {}).get("nestedVirtualization"):
+            _note(on_step, "Turning on nested virtualization (the engine restarts)")
+            self._limactl("stop", INSTANCE, timeout=300)
+            done = self._limactl(
+                "edit", INSTANCE, "--set", ".nestedVirtualization = true", "--tty=false"
+            )
+            if done.returncode != 0:
+                raise _start_error(done)
+        self.microvm = microvm
+        if inst is None:
             _note(on_step, "Creating the engine VM (first run downloads Ubuntu and packages)")
             done = self._limactl(
                 "start",
@@ -201,7 +285,14 @@ class LimaEngine:
             files("mirrordimensions.engine.provision").joinpath("provision.sh").read_text("utf-8")
         )
         user = self.shell("id", "-un").stdout.strip()
-        return script.replace("__ENGINE_USER__", user)
+        script = script.replace("__ENGINE_USER__", user)
+        if self.microvm or self.has_microvm():
+            script += "\n" + microvm_script()
+        return script
+
+    def has_microvm(self) -> bool:
+        """Whether the microVM runtime has been installed in this engine."""
+        return self.shell("test", "-f", "/var/lib/engine/microvm").returncode == 0
 
     def _reprovision_if_changed(self, on_step: StepFn = None) -> None:
         """Re-apply provisioning when this version's script differs from the engine's."""
