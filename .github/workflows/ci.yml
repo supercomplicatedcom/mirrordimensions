@@ -121,7 +121,7 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -y -q qemu-system-x86 qemu-utils
       - run: uv sync --locked
       - name: mirror engine setup
-        run: uv run mirror engine setup --cpus 4 --memory 6 --disk 30
+        run: uv run mirror engine setup --cpus 2 --memory 4 --disk 30
       - name: mirror engine check
         run: uv run mirror engine check
       - name: mirror init, up, doctor (the sealed network)
