@@ -1,6 +1,6 @@
 # 0024. The ingress for remote agents: a relay through the Docker API, TLS at your proxy, sign-in as the person
 
-Status: Accepted (owner), points 1 to 3; points 4 to 8 Proposed · Date: 2026-11-25 · Milestone: M7.5
+Status: Accepted (owner), points 1 to 3; points 4 to 9 Proposed · Date: 2026-11-25 · Milestone: M7.5
 
 ## Context
 
@@ -34,11 +34,16 @@ M7.5 lets an agent that runs on a vendor's platform work in a world through its 
 7. **What a remote result covers.** Isolation and boundary are `remote`. Coverage lists `model` and `agent_host` as `not_captured` ("agent runs outside the world"); those two alone do not make coverage incomplete (exit code 4). DNS, egress and the browser are not applicable; HTTP, MCP and state must be captured. The reconciliations are state against requests, MCP calls against writes (on the MCP endpoint only: the server also serves sign-in), and a check that every exchange from the platform came through the ingress. The report's first screen says the result covers only what the agent did to the world.
 8. **Canaries that reach the platform have left the world.** A canary in a response sent through the ingress (`sent out of the world`), or in a tool argument arriving through it (`from outside the world`), is reported with `left_world: true`. Response bodies count only for canary travel, never for forbidden checks: reading a file is not posting it.
 
+9. **Onboarding's remote column.** `mirror agent new --mode remote` and the portal's "Remote gateway" show the same notice (`REMOTE_NOTICE`): leaks are detected, not blocked; the agent's model and platform are outside the record; the public hostname may differ from production. Onboarding goes on only once it is accepted, which the agent file records as `reduced_guarantees: accepted`; a remote agent file without it is invalid.
+   - The model is the vendor's own (no route), and work arrives through the vendor's own trigger (no wake). The role's usual access includes every tool of the world's MCP servers, and at least one must be granted.
+   - The preflight checks that an MCP server it is granted is exposed, the ingress runs for this world, its person can sign in, and nothing the platform is shown names a test. It reports whether the relay is listening, and reports coverage as partial.
+
 ## Consequences
 
 - Exposing a world means running `mirror world expose` beside a reverse proxy the team already operates. Nothing is exposed while it is not running.
 - A world can be reached only by the agent and person it was exposed for: the sign-in page accepts that person alone.
 - A careful agent's remote run still reports the scenario's canary as having left the world when it reads the file holding it: its platform was given the value. That is the honest result; detection, not prevention, is what a remote run offers.
+- Preflighting or running a second remote agent on the same exposed server moves the sign-in to that agent's person; the first one's access token keeps working.
 - Idle time ends a remote run. A platform that pauses for longer than 30 seconds mid-task ends it early; the scenario's `max_minutes` bounds the wait.
 
 ## Alternatives considered

@@ -53,6 +53,13 @@ class Agent(StrictModel):
         default=None, description="The model route in mirror.yaml it calls; omitted when none"
     )
     wake: Wake | None = None
+    reduced_guarantees: Literal["accepted"] | None = Field(
+        default=None,
+        description=(
+            "Remote agents: the operator accepted that leaks are detected, not blocked, and "
+            "that the agent's model and platform are outside the record"
+        ),
+    )
     env: dict[EnvName, str] = Field(default_factory=dict[str, str])
     grants: dict[Id, dict[str, Any]] = Field(default_factory=dict[str, dict[str, Any]])
 
@@ -69,6 +76,11 @@ class Agent(StrictModel):
             missing.append("wake")
         if self.mode == "remote" and self.image:
             raise ValueError("a remote agent runs on its vendor's platform and has no image")
+        if self.mode == "remote" and self.reduced_guarantees != "accepted":
+            raise ValueError(
+                "a remote agent needs reduced_guarantees: accepted (its leaks are detected, "
+                "not blocked; see mirror agent new --mode remote)"
+            )
         if missing:
             raise ValueError(
                 f"missing {', '.join(missing)} (or mark the file status: draft while onboarding)"

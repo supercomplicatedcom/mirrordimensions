@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sys
+import textwrap
 from pathlib import Path
 from typing import Annotated, Any, cast
 
@@ -717,7 +718,14 @@ def agent_new(
         Path | None, typer.Option("--file", help="A complete agent file: register and check it.")
     ] = None,
     resume: Annotated[str | None, typer.Option(help="Resume the draft with this name.")] = None,
-    mode: Annotated[str | None, typer.Option(help="hosted or browser (remote: M7.5).")] = None,
+    mode: Annotated[str | None, typer.Option(help="hosted, browser or remote.")] = None,
+    accept_reduced_guarantees: Annotated[
+        bool,
+        typer.Option(
+            "--accept-reduced-guarantees",
+            help="Remote: accept that leaks are detected, not blocked, and that its model and platform are outside the record.",
+        ),
+    ] = False,
     image: Annotated[str | None, typer.Option(help="The agent's container image.")] = None,
     build: Annotated[
         Path | None, typer.Option(help="Folder with a Dockerfile that builds the image.")
@@ -779,12 +787,29 @@ def agent_new(
     while not draft.done and draft.step <= 5:
         step = draft.step
         fields: dict[str, Any] = {}
+        remote = draft.fields.get("mode") == "remote"
         if step == 1:
             fields["mode"] = ask("How does it connect (hosted, browser, remote)", mode, "hosted")
-            fields["image"] = ask("Container image", image)
-            built = ask("Build it from a folder (blank for none)", str(build) if build else None)
-            if built:
-                fields["build"] = built
+            if fields["mode"] == "remote":
+                st.out.line("")
+                for line in textwrap.wrap(onboard.REMOTE_NOTICE, 86):
+                    st.out.line(f"      {line}")
+                st.out.line("")
+                accepted = accept_reduced_guarantees or (
+                    interactive
+                    and typer.confirm("? Accept these reduced guarantees", default=False)
+                )
+                if accepted:
+                    fields["reduced_guarantees"] = "accepted"
+            else:
+                fields["image"] = ask("Container image", image)
+                built = ask(
+                    "Build it from a folder (blank for none)", str(build) if build else None
+                )
+                if built:
+                    fields["build"] = built
+        elif step == 2 and remote:
+            st.out.line("      model: the vendor's own; no route is configured")
         elif step == 2:
             where = ask(
                 "Where does its model run (cloud, self-hosted, in-sandbox, none)", model, "none"
@@ -828,7 +853,10 @@ def agent_new(
                 fields["grants"] = _parse_grants(grant)
             else:
                 defaults = onboard.role_defaults(
-                    project, acts.get("role") or "", acts.get("person")
+                    project,
+                    acts.get("role") or "",
+                    acts.get("person"),
+                    mode=str(draft.fields.get("mode") or ""),
                 )
                 for line in onboard.describe_grants(defaults) or ["nothing"]:
                     st.out.line(f"      role default: {line}")
@@ -845,6 +873,8 @@ def agent_new(
                 for app_id, extra in _parse_grants(edits).items():
                     merged.setdefault(app_id, {}).update(extra)
                 fields["grants"] = merged
+        elif step == 5 and remote:
+            st.out.line("      work: the vendor's own trigger; it is given its work as anyone is")
         elif step == 5:
             # A browser agent's program usually watches its inbox in the browser (poll), but
             # its image may need a command to start it, as a hosted agent's may.

@@ -47,9 +47,38 @@ def hold_run_lock(root: Path) -> ProjectLock:
     return lock
 
 
+def _add_tools_server(root: Path) -> None:
+    """The company's engineering MCP server, so a remote agent can be onboarded."""
+    import shutil
+
+    shutil.copytree(REPO / "examples" / "mcp" / "eng-tools", root / "tools")
+    path = root / "mirror.yaml"
+    text = path.read_text("utf-8")
+    domain = YAML(typ="safe").load(text)["company"]["domain"]
+    server = (
+        "  - id: tools\n"
+        "    kind: mcp-server\n"
+        f"    hostname: mcp.{domain}\n"
+        "    serves:\n"
+        "      tools_from: {file: tools/tools.json}\n"
+        "      surfaces: tools/surfaces.yaml\n"
+        "      backed_by: [code, chat]\n"
+    )
+    head, sep, tail = text.partition("\napps:\n")
+    assert sep, "mirror.yaml has an apps: list"
+    # Appended after the last app: the first entry that follows `apps:` at column 0 ends it.
+    lines = tail.split("\n")
+    end = next(
+        (i for i, line in enumerate(lines) if line and not line.startswith((" ", "-"))), len(lines)
+    )
+    lines[end:end] = server.rstrip("\n").split("\n")
+    path.write_text(head + sep + "\n".join(lines), encoding="utf-8")
+
+
 def make_project(folder: Path) -> Path:
     root = folder / "northfield-ops"
     init_project(root, seed=SEED)
+    _add_tools_server(root)
     manifest = Manifest.model_validate(
         YAML(typ="safe").load((root / "mirror.yaml").read_text("utf-8"))
     )

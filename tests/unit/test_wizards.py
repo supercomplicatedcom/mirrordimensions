@@ -232,7 +232,9 @@ def test_onboarding_in_the_portal_writes_the_same_agent_file(
         json={"step": 1, "fields": {"mode": "remote"}},
         headers=WRITE,
     )
-    assert wrong.status_code == 400 and "not available yet" in wrong.json()["what"]
+    # A remote agent's reduced guarantees are accepted before onboarding goes on.
+    assert wrong.status_code == 400 and "must be accepted first" in wrong.json()["what"]
+    assert "detected but not blocked" in wrong.json()["why"]
 
 
 def test_a_draft_world_is_not_created(portal: tuple[TestClient, Path]) -> None:

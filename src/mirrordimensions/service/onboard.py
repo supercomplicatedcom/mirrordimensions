@@ -40,6 +40,15 @@ CLOUD = {
     "anthropic": ("api.anthropic.com", "ANTHROPIC_API_KEY"),
     "openai": ("api.openai.com", "OPENAI_API_KEY"),
 }
+# Shown at step 1 for a remote agent and accepted before onboarding goes on (build spec,
+# "Onboarding flows"); the same words in the command line and the portal.
+REMOTE_NOTICE = (
+    "A remote agent runs on its vendor's platform and reaches this world only through an "
+    "MCP server exposed to it. Two guarantees are weaker: it keeps its own internet access, "
+    "so a leak can be detected but not blocked; and its model and platform are outside the "
+    "record, so a result covers only what it did to the world. The public hostname you "
+    "expose may differ from production."
+)
 CODE_KINDS = ("code-hosting",)
 CHAT_KINDS = ("team-chat",)
 CODE_PRODUCTS = ("gitea",)
@@ -74,6 +83,7 @@ def _dump(fields: dict[str, Any]) -> str:
         "build",
         "model",
         "wake",
+        "reduced_guarantees",
         "env",
         "grants",
     )
@@ -146,16 +156,30 @@ def _check_step(project: Project, step: int, data: dict[str, Any]) -> dict[str, 
     if name == "connect":
         mode = data.get("mode")
         if mode == "remote":
-            raise MirrorError(
-                "Remote agents are not available yet.",
-                "An agent on a vendor's platform reaches the world through its MCP ingress (M7.5).",
-                "Choose hosted (a container image) or browser.",
-            )
+            if data.get("reduced_guarantees") != "accepted":
+                raise MirrorError(
+                    "A remote agent's reduced guarantees must be accepted first.",
+                    REMOTE_NOTICE,
+                    "Accept them: --accept-reduced-guarantees (or answer yes when asked).",
+                )
+            if not any(a.kind == "mcp-server" for a in _manifest(project).apps):
+                raise MirrorError(
+                    "This world has no MCP server for a remote agent to come in through.",
+                    "A remote agent reaches the world only through an exposed MCP server.",
+                    "Add one (kind: mcp-server) to mirror.yaml, or choose hosted or browser.",
+                )
+            # No image: it runs on its vendor's platform.
+            return {
+                "mode": "remote",
+                "reduced_guarantees": "accepted",
+                "image": None,
+                "build": None,
+            }
         if mode not in ("hosted", "browser"):
             raise MirrorError(
-                "Choose how it connects: hosted or browser.",
+                "Choose how it connects: hosted, browser or remote.",
                 "",
-                "Pass --mode hosted or --mode browser.",
+                "Pass --mode hosted, --mode browser or --mode remote.",
             )
         if not data.get("image"):
             raise MirrorError(
@@ -163,7 +187,7 @@ def _check_step(project: Project, step: int, data: dict[str, Any]) -> dict[str, 
                 "Hosted agents run their image; browser agents' programs run in one too.",
                 "Pass --image <name:tag> (and --build <folder> to build it here).",
             )
-        out: dict[str, Any] = {"mode": mode, "image": data["image"]}
+        out: dict[str, Any] = {"mode": mode, "image": data["image"], "reduced_guarantees": None}
         if data.get("build"):
             folder = Path(str(data["build"])).expanduser().resolve()
             if not (folder / "Dockerfile").is_file():
@@ -175,6 +199,8 @@ def _check_step(project: Project, step: int, data: dict[str, Any]) -> dict[str, 
             out["build"] = folder.as_posix()
         return out
     if name == "model":
+        if data.get("mode") == "remote":
+            return {"model": None}  # the vendor's own; no route is configured
         model = data.get("model")
         routes = {m.name for m in _manifest(project).models}
         if model not in (None, "none") and model not in routes:
@@ -199,8 +225,19 @@ def _check_step(project: Project, step: int, data: dict[str, Any]) -> dict[str, 
                 f"Systems: {', '.join(sorted(apps))}.",
                 "Fix the access, then try again.",
             )
+        if data.get("mode") == "remote":
+            servers = {a.id for a in _manifest(project).apps if a.kind == "mcp-server"}
+            if not servers & set(grants):
+                raise MirrorError(
+                    "A remote agent must be granted an MCP server.",
+                    "It reaches the world only through one; its other grants are what that "
+                    "server may do as its person.",
+                    f"Grant one of: {', '.join(sorted(servers))} (tools).",
+                )
         return {"grants": grants}
     if name == "work":
+        if data.get("mode") == "remote":
+            return {"wake": None}  # the vendor's own trigger: the work it is given arrives
         wake = cast(dict[str, Any], data.get("wake") or {})
         if data.get("mode") == "hosted" and wake.get("type") not in ("command", "poll"):
             raise MirrorError(
@@ -319,10 +356,12 @@ def person_for(project: Project, role: str | None = None, person: str | None = N
     return _person(_world(project), acts)
 
 
-def role_defaults(project: Project, role: str, person: str | None = None) -> dict[str, Any]:
+def role_defaults(
+    project: Project, role: str, person: str | None = None, *, mode: str | None = None
+) -> dict[str, Any]:
     """The usual access of someone in this role at the company: their team's repositories
     with write access, other repositories they have worked in read-only, and the channels
-    they belong to."""
+    they belong to. A remote agent is also given the world's MCP servers, its only way in."""
     world = _world(project)
     who = _person(world, {"person": person} if person else {"role": role})
     manifest = _manifest(project)
@@ -342,6 +381,8 @@ def role_defaults(project: Project, role: str, person: str | None = None) -> dic
                 grants[app.id] = {"repos": repos}
         elif (app.kind in CHAT_KINDS or app.product in CHAT_PRODUCTS) and channels:
             grants[app.id] = {"channels": channels}
+        elif app.kind == "mcp-server" and mode == "remote":
+            grants[app.id] = {}  # every tool it offers
     return grants
 
 
