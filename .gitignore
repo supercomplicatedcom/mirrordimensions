@@ -13,3 +13,7 @@ build/
 .ruff_cache/
 # Generated project state, never committed
 .mirror/
+# The portal's built front end (built in CI and when the package is built), and test output
+src/mirrordimensions/portal/static/
+src/mirrordimensions/portal/web/test-results/
+src/mirrordimensions/portal/web/playwright-report/

@@ -26,6 +26,23 @@ uv run python scripts/check_licenses.py
 
 CI runs all of these on Linux, macOS and Windows, plus a secret scan and a DCO check.
 
+### The portal's front end
+
+Only needed if you change `src/mirrordimensions/portal/web/` or want the portal from a source checkout. Needs Node 22.
+
+```sh
+cd src/mirrordimensions/portal/web
+npm ci
+npm run typecheck
+npm test                              # unit tests (Vitest)
+npm run build                         # into ../static, which ships in the package
+npx playwright install chromium       # once
+npx playwright test                   # a browser test per screen, with an accessibility check
+uv run python ../../../../scripts/check_web_licenses.py
+```
+
+For live reloading, run `mirror portal --port 7420 --no-open` in a project, open the address it prints once (to sign the browser in), then `npm run dev` and use the address Vite prints.
+
 ## Sign off every commit (DCO)
 
 By signing off you certify the [Developer Certificate of Origin](https://developercertificate.org/): that you wrote the change or have the right to submit it under the project's licence. Use `git commit -s`, which adds:

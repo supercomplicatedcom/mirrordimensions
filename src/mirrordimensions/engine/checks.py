@@ -42,11 +42,12 @@ class CheckResult(BaseModel):
 
 
 @contextmanager
-def host_listener() -> Generator[int]:
-    """A TCP listener on the host's loopback; any connection to it is recorded."""
+def host_listener(port: int = 0) -> Generator[int]:
+    """A TCP listener on the host's loopback; any connection to it is recorded. `port`
+    asks for a particular port (0: any free one)."""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind(("127.0.0.1", 0))
+    server.bind(("127.0.0.1", port))
     server.listen(8)
     server.settimeout(0.5)
     port = server.getsockname()[1]

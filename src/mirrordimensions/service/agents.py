@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from mirrordimensions.agents import browser, hosted
 from mirrordimensions.config.agent import Agent
@@ -126,6 +126,49 @@ def add_agent(project: Project, source: Path) -> Agent:
         )
     write_text(project.agents_dir / f"{agent.name}.yaml", text)
     return agent
+
+
+class AgentSummary(BaseModel):
+    name: str
+    mode: str
+    acts_as: str
+    state: str
+    image: str | None = None
+    systems: list[str] = Field(default_factory=list[str])
+    last_run: str | None = None
+    last_scenario: str | None = None
+    last_status: str | None = None
+
+
+def list_agents(project: Project) -> list[AgentSummary]:
+    """The project's agents, each with the person it acts as and its latest run."""
+    from mirrordimensions.service import runlog
+
+    latest: dict[str, runlog.RunSummary] = {}
+    for r in runlog.list_runs(project):  # newest first
+        if r.agent and r.agent not in latest:
+            latest[r.agent] = r
+    rows: list[AgentSummary] = []
+    for name, path in agent_files(project).items():
+        agent, _ = load_model(path, Agent)
+        if agent is None:
+            continue
+        who = str(agent.acts_as.person or agent.acts_as.role) if agent.acts_as else "nobody yet"
+        last = latest.get(name)
+        rows.append(
+            AgentSummary(
+                name=name,
+                mode=agent.mode,
+                acts_as=who,
+                state=f"draft, step {agent.step} of 6" if agent.status == "draft" else "defined",
+                image=agent.image,
+                systems=sorted(agent.grants),
+                last_run=last.run_id if last else None,
+                last_scenario=last.scenario if last else None,
+                last_status=last.status if last else None,
+            )
+        )
+    return rows
 
 
 def remove_agent(project: Project, name: str) -> None:

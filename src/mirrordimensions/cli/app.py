@@ -450,11 +450,39 @@ def _world_new_interactive(st: State, directory: Path) -> Path:
 
 
 @world_app.command("show")
-def world_show(ctx: typer.Context) -> None:
-    """The definition in plain terms."""
+def world_show(
+    ctx: typer.Context,
+    part: Annotated[
+        str | None,
+        typer.Argument(help="people, projects or canaries: that part of the built company."),
+    ] = None,
+) -> None:
+    """The definition in plain terms, or one part of the built company."""
     from mirrordimensions.service import worlddef
 
     st = _state(ctx)
+    if part is not None:
+        from mirrordimensions.service import company as company_svc
+
+        if part not in ("people", "projects", "canaries"):
+            raise MirrorError(
+                f"{part!r} is not a part of the company.", "", "Use people, projects or canaries."
+            )
+        found = company_svc.company(service.load_project(st.start()), (part,))  # pyright: ignore[reportArgumentType]
+        if st.out.json_mode:
+            st.out.document(found)
+            return
+        if part == "people":
+            for p in found.people:
+                left = "  (left)" if p.left else ""
+                st.out.line(f"  {p.username:<22}{p.name:<26}{p.title}, {p.department}{left}")
+        elif part == "projects":
+            for pr in found.projects:
+                st.out.line(f"  {pr.name:<22}#{pr.channel:<20}{', '.join(pr.repositories)}")
+        else:
+            for c in found.canaries:
+                st.out.line(f"  {c.id:<22}{c.kind:<10}{c.where}")
+        return
     shown = worlddef.show_world(service.load_project(st.start()))
     if st.out.json_mode:
         st.out.document(shown)
@@ -748,23 +776,15 @@ def agent_new(
 @agent_app.command("list")
 def agent_list(ctx: typer.Context) -> None:
     """The project's agents."""
-    from mirrordimensions.config.loader import load_model as _load
     from mirrordimensions.service import agents as agents_svc
 
     st = _state(ctx)
-    project = service.load_project(st.start())
-    rows: list[dict[str, str]] = []
-    for name, path in agents_svc.agent_files(project).items():
-        agent, _ = _load(path, agents_svc.Agent)
-        if agent is not None:
-            who = str(agent.acts_as.person or agent.acts_as.role) if agent.acts_as else "nobody yet"
-            state = f"draft, step {agent.step} of 6" if agent.status == "draft" else "defined"
-            rows.append({"name": name, "mode": agent.mode, "acts_as": who, "state": state})
+    rows = agents_svc.list_agents(service.load_project(st.start()))
     if st.out.json_mode:
-        st.out.document(rows)
+        st.out.document([r.model_dump() for r in rows])
         return
     for r in rows:
-        st.out.line(f"  {r['name']:<20}{r['mode']:<9}{r['acts_as']:<16}{r['state']}")
+        st.out.line(f"  {r.name:<20}{r.mode:<9}{r.acts_as:<16}{r.state}")
     if not rows:
         st.out.line("No agents yet. Run: mirror agent add <file>")
 
@@ -992,8 +1012,13 @@ def unset_rule_cmd(
 @app.command("run")
 def run_command(
     ctx: typer.Context,
-    scenario: Annotated[str, typer.Argument(help="A scenario id, or a suite: core.")],
-    agent: Annotated[str, typer.Option("--agent", help="The agent to run.")],
+    scenario: Annotated[
+        str, typer.Argument(help="A scenario id, or a suite: core. Or: stop <run-id>.")
+    ],
+    target: Annotated[
+        str | None, typer.Argument(help="With stop: the run to end early.", show_default=False)
+    ] = None,
+    agent: Annotated[str | None, typer.Option("--agent", help="The agent to run.")] = None,
     allow_emulated: Annotated[
         bool, typer.Option("--allow-emulated", help="Run an image built for another architecture.")
     ] = False,
@@ -1002,10 +1027,25 @@ def run_command(
     ] = None,
 ) -> None:
     """Run scenarios with an agent: restore, deliver, watch, score. Exit 0 passed, 1 failed,
-    3 isolation failed, 4 the mirror errored or coverage is incomplete."""
+    3 isolation failed, 4 the mirror errored or coverage is incomplete.
+    `mirror run stop <run-id>` ends a run early; it is still scored, and marked stopped."""
     from mirrordimensions.service import runs as runs_svc
 
     st = _state(ctx)
+    if scenario == "stop":
+        if not target:
+            raise MirrorError("Which run?", "", "Run: mirror run stop <run-id>")
+        project = service.load_project(st.start())
+        runs_svc.stop_run(project, target)
+        st.out.ok(f"Asked {target} to stop; it ends within a few seconds and is still scored.")
+        st.out.next_step(f"Follow it: mirror trace {target} --follow")
+        return
+    if target:
+        raise MirrorError(
+            f"Unexpected argument {target!r}.", "", "Run: mirror run <scenario> --agent <name>"
+        )
+    if not agent:
+        raise MirrorError("Which agent?", "", f"Run: mirror run {scenario} --agent <name>")
     project = service.load_project(st.start())
     outcomes = runs_svc.run(
         project,
@@ -1162,6 +1202,115 @@ def report_command(
         raise MirrorError(
             "No browser could be opened.", "", f"Open the file yourself: {path.resolve()}"
         )
+
+
+@app.command("reach")
+def reach_command(
+    ctx: typer.Context,
+    agent: Annotated[str, typer.Argument(help="The agent.")],
+    run: Annotated[str | None, typer.Option("--run", help="Set against this run.")] = None,
+) -> None:
+    """What the agent is granted, and what it used in a run (its latest, by default)."""
+    from mirrordimensions.service import runs as runs_svc
+
+    st = _state(ctx)
+    found = runs_svc.agent_reach(service.load_project(st.start()), agent, run)
+    if st.out.json_mode:
+        st.out.document(found)
+        return
+    st.out.line(
+        f"{found.agent}, acting as {found.acts_as}"
+        + (
+            f", set against {found.run_id} ({found.scenario})"
+            if found.run_id
+            else ", grants only (no run of it kept an access map yet)"
+        )
+    )
+    for title, key, name in (
+        ("Repositories", "repositories", "repo"),
+        ("Channels", "channels", "channel"),
+        ("Tools", "tools", "tool"),
+        ("Hosts", "hosts", "host"),
+    ):
+        rows = cast(list[dict[str, Any]], found.access.get(key) or [])
+        if not rows:
+            continue
+        st.out.line(title)
+        for r in rows:
+            granted = r.get("granted")
+            grant = (
+                "not granted"
+                if granted in (None, False)
+                else "granted"
+                if granted is True
+                else str(granted)
+            )
+            how = ", ".join(cast(list[str], r.get("how") or [])) or (
+                f"{r.get('requests', 0)} request(s)" if r.get("requests") else "not used"
+            )
+            line = f"  {r.get(name)!s:<36}{grant:<14}{how}"
+            if granted in (None, False) and how != "not used":
+                st.out.fail(line.strip())
+            else:
+                st.out.line(line)
+
+
+scenario_app = typer.Typer(help="Scenarios, built-in and the project's own.", no_args_is_help=True)
+app.add_typer(scenario_app, name="scenario")
+
+
+@scenario_app.command("list")
+def scenario_list(ctx: typer.Context) -> None:
+    """Every scenario: id, kind, how the work arrives, and where it comes from."""
+    from mirrordimensions.service import scenarios as scen_svc
+
+    st = _state(ctx)
+    rows = scen_svc.list_scenarios(service.load_project(st.start()))
+    if st.out.json_mode:
+        st.out.document([r.model_dump() for r in rows])
+        return
+    for r in rows:
+        st.out.line(f"  {r.id:<28}{r.kind:<12}{r.delivery_words:<20}{r.source}")
+    st.out.next_step("Run one: mirror run <id> --agent <name>")
+
+
+@scenario_app.command("show")
+def scenario_show(
+    ctx: typer.Context, scenario_id: Annotated[str, typer.Argument(help="A scenario id.")]
+) -> None:
+    """One scenario as the runner reads it."""
+    from ruamel.yaml import YAML
+
+    from mirrordimensions.service import scenarios as scen_svc
+
+    st = _state(ctx)
+    shown = scen_svc.show_scenario(service.load_project(st.start()), scenario_id)
+    if st.out.json_mode:
+        st.out.document(shown)
+        return
+    import io
+
+    buffer = io.StringIO()
+    yaml = YAML()
+    yaml.default_flow_style = False
+    yaml.dump(shown, buffer)  # pyright: ignore[reportUnknownMemberType]
+    st.out.line(buffer.getvalue().rstrip())
+
+
+@app.command("portal")
+def portal_command(
+    ctx: typer.Context,
+    port: Annotated[
+        int, typer.Option("--port", min=1024, max=65535, help="Port on 127.0.0.1.")
+    ] = 7420,
+    no_open: Annotated[bool, typer.Option("--no-open", help="Do not open a browser.")] = False,
+) -> None:
+    """Start the local portal on 127.0.0.1 and print its address. Ctrl-C stops it."""
+    from mirrordimensions.portal import server
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    server.serve(project, port=port, open_browser=not no_open, say=st.out.line)
 
 
 engine_app = typer.Typer(help="The engine: the Linux VM every world runs in.", no_args_is_help=True)

@@ -28,12 +28,13 @@ from __future__ import annotations
 import json
 import re
 import secrets
+import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from mirrordimensions.config.agent import Agent
 from mirrordimensions.config.result import Result, WorldRef
@@ -41,6 +42,7 @@ from mirrordimensions.config.scenario import Scenario
 from mirrordimensions.engine.registry import get_engine
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.files import make_dir, write_text
+from mirrordimensions.hostos.lock import ProjectLock
 from mirrordimensions.network import sandbox
 from mirrordimensions.network.events import Collector, tracer_parser
 from mirrordimensions.project import Project
@@ -62,6 +64,7 @@ from mirrordimensions.world.model import Person, World
 
 IDLE_S = 30.0  # no traffic from the agent for this long: it has finished
 POLL_S = 2.0
+STOP_FILE = "stop"  # written by `mirror run stop` or the portal; the run ends at the next poll
 BODIES = "/home/mitmproxy/spool"  # the gateway's body store
 StepFn = Callable[[str], None] | None
 
@@ -96,7 +99,9 @@ def run(
     allow_emulated: bool = False,
     max_minutes: int | None = None,
     on_step: StepFn = None,
+    on_start: Callable[[str], None] | None = None,
 ) -> list[RunOutcome]:
+    """Run a scenario or a suite. `on_start` is told each run's id as it begins."""
     chosen = scenario.select(project.root / "scenarios", name)
     agent, _ = agents_svc.load_agent(project, agent_name)
     if agent.status == "draft":
@@ -106,11 +111,15 @@ def run(
             f"Run: mirror agent new --resume {agent_name}",
         )
     outcomes: list[RunOutcome] = []
-    for item in chosen:
-        outcome = _Run(project, item, agent, allow_emulated, max_minutes, on_step).execute()
-        outcomes.append(outcome)
-        if outcome.isolation == "failed":
-            break  # nothing else may run on a world that is not sealed
+    with ProjectLock(project.state_dir, "run"):  # runs share one world: one at a time
+        for item in chosen:
+            one = _Run(project, item, agent, allow_emulated, max_minutes, on_step)
+            if on_start is not None:
+                on_start(one.run_id)
+            outcome = one.execute()
+            outcomes.append(outcome)
+            if outcome.isolation == "failed":
+                break  # nothing else may run on a world that is not sealed
     return outcomes
 
 
@@ -269,9 +278,11 @@ class _Run:
                 self.during(self._context(apps["gitea"]), self._context(apps["mattermost"]))
             self.step(f"{self.agent.name} started as {handle.where.name}")
             ended = self._wait(handle, started)
-            stopped = ended == "timeout"
-            if stopped:
+            stopped = ended in ("timeout", "operator")
+            if ended == "timeout":
                 self.result.reason = f"stopped at max_minutes ({int(self.max_s // 60)})"
+            elif ended == "operator":
+                self.result.reason = "stopped by the operator"
             # The agent's own output, for whoever debugs it; never part of the score.
             write_text(self.dir / "agent.log", docker.logs(handle.where.name)[-20000:])
             agents_svc.stop_agent(docker, handle)
@@ -442,6 +453,8 @@ class _Run:
         deadline = started + self.max_s
         last_activity, seen = started, 0
         while time.time() < deadline:
+            if (self.dir / STOP_FILE).exists():
+                return "operator"
             if not self.docker.is_running(handle.where.name):
                 return "exited"
             mine = [
@@ -627,6 +640,26 @@ class _Run:
         self.result.suspected = bool(flags)
         self._ledger(handle_clients)
         self._coverage(handle_clients, found)
+        self._keep_bodies(handle_clients)
+
+    def _keep_bodies(self, clients: set[str]) -> None:
+        """Copy the bodies of the agent's exchanges into the run's `bodies/` folder, where
+        each event's `*_ref` points: the gateway's copies do not outlive the sandbox."""
+        wanted: set[str] = set()
+        for e in self.collector.events:
+            data = e.get("data", {})
+            if data.get("client") not in clients:
+                continue
+            for key in ("req_body_ref", "resp_body_ref", "body_ref", "answer_ref"):
+                ref = data.get(key)
+                if isinstance(ref, str) and ref.startswith("bodies/"):
+                    wanted.add(ref.split("/", 1)[1])
+        if not wanted:
+            return
+        found = self.docker.read_files(sandbox.GATEWAY_NAME, f"{BODIES}/bodies", wanted)
+        make_dir(self.dir / "bodies", owner_only=True)
+        for name, data in found.items():
+            (self.dir / "bodies" / name).write_bytes(data)
 
     def _body(self, ref: str | None) -> bytes:
         if not ref:
@@ -651,23 +684,7 @@ class _Run:
         )
 
     def _grants(self) -> list[access.Grant]:
-        out: list[access.Grant] = []
-        for app in self.plan.apps:
-            grant = self.agent.grants.get(app.id)
-            if grant is None:
-                continue
-            tools = grant.get("tools")
-            out.append(
-                access.Grant(
-                    system=app.id,
-                    host=app.hostname,
-                    owner=self.world.org if grant.get("repos") is not None else "",
-                    repos=grant.get("repos"),
-                    channels=grant.get("channels"),
-                    tools=sorted(tools) if isinstance(tools, dict | list) else None,
-                )
-            )
-        return out
+        return grants_for(self.plan, self.agent, self.world.org)
 
     def _coverage(self, clients: set[str], found: list[evaluate.Change]) -> None:
         events = self.collector.events
@@ -858,7 +875,142 @@ def list_runs(project: Project) -> list[dict[str, Any]]:
     return out
 
 
+def grants_for(plan: sandbox.Plan, agent: Agent, org: str) -> list[access.Grant]:
+    """The agent's grants, system by system, as the access map compares them."""
+    out: list[access.Grant] = []
+    for app in plan.apps:
+        grant = agent.grants.get(app.id)
+        if grant is None:
+            continue
+        tools = grant.get("tools")
+        out.append(
+            access.Grant(
+                system=app.id,
+                host=app.hostname,
+                owner=org if grant.get("repos") is not None else "",
+                repos=grant.get("repos"),
+                channels=grant.get("channels"),
+                tools=sorted(tools) if isinstance(tools, dict | list) else None,
+            )
+        )
+    return out
+
+
+class Reach(BaseModel):
+    agent: str
+    acts_as: str
+    run_id: str | None = Field(description="The run set against the grants, if any")
+    scenario: str | None = None
+    access: dict[str, Any]
+
+
+def agent_reach(project: Project, agent_name: str, run_id: str | None = None) -> Reach:
+    """What the agent is granted, set against what a run used: the given run, else its
+    latest run that kept an access map, else the grants alone."""
+    from mirrordimensions.service import runlog
+
+    agent, _ = agents_svc.load_agent(project, agent_name)
+    world = agents_svc._world(project)  # pyright: ignore[reportPrivateUsage]
+    who = agents_svc.resolve_person(world, agent)
+    candidates = (
+        [run_id]
+        if run_id
+        else [r.run_id for r in runlog.list_runs(project) if r.agent == agent_name and not r.live]
+    )
+    for candidate in candidates:
+        result = load_result(project, candidate)
+        if result.access.get("hosts") is not None:
+            return Reach(
+                agent=agent_name,
+                acts_as=f"{who.name} ({who.username})",
+                run_id=candidate,
+                scenario=result.scenario,
+                access=result.access,
+            )
+    if run_id:
+        raise MirrorError(
+            f"Run {run_id} kept no access map.",
+            "It was recorded before access maps were kept (M6).",
+            f"Run: mirror reach {agent_name}",
+        )
+    plan = world_plan(project)
+    grants = grants_for(plan, agent, world.org)
+    return Reach(
+        agent=agent_name,
+        acts_as=f"{who.name} ({who.username})",
+        run_id=None,
+        access=access.access_map([], set(), [], grants, set(plan.model_hosts)),
+    )
+
+
 _RUN_ID = re.compile(r"^r_[a-z0-9]{4,32}$")
+
+
+class RunHandle(BaseModel):
+    run_id: str
+    scenario: str
+    agent: str
+
+
+_started: dict[str, threading.Thread] = {}
+
+
+def start_run(
+    project: Project, name: str, agent_name: str, *, on_step: StepFn = None, timeout: float = 120.0
+) -> RunHandle:
+    """Start a scenario (or a suite) in the background and return as soon as the first run
+    has an id. The run is the same as `mirror run`: same steps, same result.json."""
+    busy = [t for t in _started.values() if t.is_alive()]
+    if busy:
+        raise MirrorError(
+            "A run is already in progress.",
+            "Runs share one world, so they go one at a time.",
+            "Wait for it to finish, or stop it.",
+        )
+    scenario.select(project.root / "scenarios", name)  # an unknown name fails here, not later
+    agents_svc.load_agent(project, agent_name)
+    first: list[str] = []
+    ready = threading.Event()
+    failure: list[BaseException] = []
+
+    def started(run_id: str) -> None:
+        if not first:
+            first.append(run_id)
+            ready.set()
+
+    def work() -> None:
+        try:
+            run(project, name, agent_name, on_step=on_step, on_start=started)
+        except BaseException as exc:  # noqa: BLE001 (reported to the caller, below)
+            failure.append(exc)
+        finally:
+            ready.set()
+
+    thread = threading.Thread(target=work, name=f"run-{name}", daemon=True)
+    thread.start()
+    ready.wait(timeout)
+    if failure and not first:
+        exc = failure[0]
+        if isinstance(exc, MirrorError):
+            raise exc
+        raise MirrorError("The run could not start.", str(exc)[:300], "Try it with: mirror run")
+    if not first:
+        raise MirrorError("The run did not start in time.", "", "Try it with: mirror run")
+    _started[first[0]] = thread
+    # Answer once the run's first event is written, so whoever asked can read it at once.
+    deadline = time.time() + 30
+    folder = project.state_dir / "runs" / first[0] / "events.jsonl"
+    while time.time() < deadline and not folder.is_file() and thread.is_alive():
+        time.sleep(0.1)
+    return RunHandle(run_id=first[0], scenario=name, agent=agent_name)
+
+
+def stop_run(project: Project, run_id: str) -> None:
+    """Ask a run in progress to end; it is scored and marked `stopped`."""
+    folder = run_dir(project, run_id)
+    if (folder / "result.json").is_file():
+        raise MirrorError(f"Run {run_id} has already ended.", "", "")
+    write_text(folder / STOP_FILE, "stop\n")
 
 
 def run_dir(project: Project, run_id: str) -> Path:

@@ -13,6 +13,7 @@ import os
 import secrets as secrets_module
 import socket
 from collections.abc import Callable, Mapping
+from datetime import UTC, datetime
 
 from mirrordimensions.config.loader import load_model
 from mirrordimensions.config.manifest import Manifest
@@ -171,6 +172,23 @@ def down(project: Project, purge: bool = False) -> None:
         get_engine().set_egress_allow([])  # with the world down, nothing may leave
 
 
+PORTAL_FILE = "portal.json"  # written by `mirror portal` while it serves this project
+
+
+def running_portal_port(project: Project) -> int | None:
+    """The port of this project's portal, if one is serving it."""
+    path = project.state_dir / PORTAL_FILE
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        port = int(data["port"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return port if 0 < port < 65536 else None
+
+
+DOCTOR_FILE = "doctor.json"  # the last report, for the portal's Health screen
+
+
 def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
     plan = world_plan(project)
     docker, driver, boundary, offset = _docker()
@@ -185,9 +203,22 @@ def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
     ca_pem = (project.state_dir / "ca" / "root-ca.crt").read_bytes()
     twin_fetch = _twin_fetcher(project, plan, docker)
     with keep_awake("Checking the sandbox"):
-        return run_doctor(
-            plan, docker, collector, ca_pem, driver, boundary, twin_fetch, latency_budget_ms
+        report = run_doctor(
+            plan,
+            docker,
+            collector,
+            ca_pem,
+            driver,
+            boundary,
+            twin_fetch,
+            latency_budget_ms,
+            portal_port=running_portal_port(project),
         )
+    # Kept for the portal's Health screen, which shows the last check and its age.
+    kept = report.model_dump(mode="json")
+    kept["checked_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    write_text(project.state_dir / DOCTOR_FILE, json.dumps(kept, indent=2) + "\n", owner_only=True)
+    return report
 
 
 def admin_fetcher(project: Project, app_id: str) -> Callable[[str, str, bytes], tuple[int, bytes]]:

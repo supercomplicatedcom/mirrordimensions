@@ -232,6 +232,23 @@ class Docker:
                 tar.addfile(info, io.BytesIO(data))
         self._client.api.put_archive(name, "/", buf.getvalue())
 
+    def read_files(self, name: str, folder: str, wanted: set[str]) -> dict[str, bytes]:
+        """The named files from one folder of a container, fetched as one archive."""
+        try:
+            stream, _ = self._client.api.get_archive(name, folder)
+        except NotFound:
+            return {}
+        raw = b"".join(stream)
+        out: dict[str, bytes] = {}
+        with tarfile.open(fileobj=io.BytesIO(raw)) as tar:
+            for member in tar.getmembers():
+                base = member.name.rsplit("/", 1)[-1]
+                if member.isfile() and base in wanted:
+                    extracted = tar.extractfile(member)
+                    if extracted is not None:
+                        out[base] = extracted.read()
+        return out
+
     def read_file(self, name: str, path: str) -> bytes | None:
         """A file's bytes from a container, created or running; None when it does not exist."""
         try:
