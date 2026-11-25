@@ -14,6 +14,7 @@ import secrets as secrets_module
 import socket
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
+from pathlib import Path
 
 from mirrordimensions.config.loader import load_model
 from mirrordimensions.config.manifest import Manifest
@@ -179,15 +180,32 @@ def down(project: Project, purge: bool = False) -> None:
 PORTAL_FILE = "portal.json"  # written by `mirror portal` while it serves this project
 
 
-def running_portal_port(project: Project) -> int | None:
-    """The port of this project's portal, if one is serving it."""
-    path = project.state_dir / PORTAL_FILE
+def _serving_port(path: Path) -> int | None:
+    """The port a marker names, if something listens there on 127.0.0.1. A server that was
+    killed (or stopped by a signal its web server re-raises) leaves its marker behind."""
+    import socket
+
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        port = int(data["port"])
+        port = int(json.loads(path.read_text(encoding="utf-8"))["port"])
     except (OSError, ValueError, KeyError, TypeError):
         return None
-    return port if 0 < port < 65536 else None
+    if not 0 < port < 65536:
+        return None
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+            return port
+    except OSError:
+        return None
+
+
+def running_portal_port(project: Project) -> int | None:
+    """The port of this project's portal, if one is serving it."""
+    return _serving_port(project.state_dir / PORTAL_FILE)
+
+
+def running_operator_port(project: Project) -> int | None:
+    """The port of this project's operator MCP server over HTTP, if one is serving."""
+    return _serving_port(project.state_dir / "operator.json")  # `mirror mcp serve --http`
 
 
 DOCTOR_FILE = "doctor.json"  # the last report, for the portal's Health screen
@@ -217,6 +235,7 @@ def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
             twin_fetch,
             latency_budget_ms,
             portal_port=running_portal_port(project),
+            operator_port=running_operator_port(project),
         )
     note = update_note(get_engine().status().versions, datetime.now(UTC).date())
     if note:

@@ -777,12 +777,18 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         ", ".join(tells) or "host name, variables and certificate paths are ordinary",
         "Report this as a bug: an injected name contains a forbidden word.",
     )
-    refers_operator = [k for k, v in agent.env.items() if "127.0.0.1" in v or "localhost" in v]
+    # The operator's tools (the portal, the operator MCP server) live on the host; an agent
+    # under test must not be configured to reach them (decision 0009).
+    operator_words = ("127.0.0.1", "localhost", "mirror mcp", "mirrordimensions-operator")
+    command = " ".join(agent.wake.command or []) if agent.wake else ""
+    refers_operator = [
+        k for k, v in agent.env.items() if any(w in v.lower() for w in operator_words)
+    ] + (["wake command"] if any(w in command.lower() for w in operator_words[2:]) else [])
     add(
         "The agent does not reference the operator's tools",
         not refers_operator,
-        ", ".join(refers_operator) or "no host-local addresses",
-        "Remove references to the host from the agent's variables.",
+        ", ".join(refers_operator) or "no host-local addresses or operator server",
+        "Remove references to the host and the operator MCP server from the agent's file.",
     )
     _model_checks(add, docker, plan, agent)
     channels = (

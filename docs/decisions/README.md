@@ -32,6 +32,7 @@ Each file records one architecture or design decision: the context, what was dec
 | [0020](0020-exact-grants.md) | Grants are exact: for a run, the person has only what the agent file grants; a run checks it can reach its work | Accepted (owner) |
 | [0021](0021-editing.md) | Editing: rules, visibility and grants take effect at the next run; what changes the built world waits for a rebuild | Proposed |
 | [0022](0022-wizards.md) | The portal's wizards: new worlds in a folder of your choice, then switch; answers written as they are given | Accepted (owner), point 1 |
+| [0023](0023-operator-mcp.md) | The operator MCP server: the official SDK, run content fenced off as untrusted, a confirmation to act | Proposed |
 | [0019](0019-engine-updates.md) | The engine installs updates only when asked (`mirror engine update`); doctor notes when they are over 14 days old | Accepted (owner) |
 
 Template:

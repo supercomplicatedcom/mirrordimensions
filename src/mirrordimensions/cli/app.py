@@ -1503,6 +1503,45 @@ def portal_command(
     server.serve(project, port=port, open_browser=not no_open, say=st.out.line)
 
 
+mcp_app = typer.Typer(
+    help="The operator MCP server: drive the mirror from an AI tool (decision 0009).",
+    no_args_is_help=True,
+)
+app.add_typer(mcp_app, name="mcp")
+
+
+@mcp_app.command("serve")
+def mcp_serve(
+    ctx: typer.Context,
+    http: Annotated[
+        bool,
+        typer.Option("--http", help="Serve over HTTP on 127.0.0.1 with a token, instead of stdio."),
+    ] = False,
+    port: Annotated[
+        int, typer.Option("--port", min=1024, max=65535, help="Port on 127.0.0.1 (--http).")
+    ] = 7421,
+) -> None:
+    """Serve the operator MCP server for this world. By default over stdio, for an AI tool
+    to launch (no port at all); with --http on 127.0.0.1, with a token in the header.
+    Run content it returns is marked untrusted; tools that act or edit need confirm=true.
+    Nothing destructive is offered."""
+    import secrets as _secrets
+
+    from mirrordimensions.mcp.operator import server
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    if not http:
+        server.serve(project)  # stdout belongs to the protocol: nothing else is printed
+        return
+    token = _secrets.token_urlsafe(24)
+    say = st.out.line
+    say(f"Operator MCP server for {project.root.name} at http://127.0.0.1:{port}/mcp")
+    say(f"Send the header: Authorization: Bearer {token}")
+    say("Only this computer can reach it. Ctrl-C stops it.")
+    server.serve(project, http=True, port=port, token=token)
+
+
 engine_app = typer.Typer(help="The engine: the Linux VM every world runs in.", no_args_is_help=True)
 app.add_typer(engine_app, name="engine")
 
