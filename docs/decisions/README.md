@@ -27,7 +27,7 @@ Each file records one architecture or design decision: the context, what was dec
 | [0014](0014-managed-browser.md) | The managed browser: an observer that shares the browser's network namespace | Proposed |
 | [0015](0015-runner.md) | How a run works: mechanisms that differ from the spec | Proposed |
 | [0016](0016-coverage-tracer.md) | Coverage inside the agent's container: Tetragon in the engine, connections instead of byte counts | Proposed |
-| [0017](0017-portal.md) | The portal: a local server on the service layer, a React front end shipped inside the package, a token kept in a cookie | Proposed |
+| [0017](0017-portal.md) | The portal: a local server on the service layer, a React front end shipped inside the package, a token kept in a cookie | Accepted (owner) |
 
 Template:
 

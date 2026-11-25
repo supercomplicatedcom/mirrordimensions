@@ -1,6 +1,6 @@
 # 0017. The portal: a local server on the service layer, a React front end shipped inside the package, and a token kept in a cookie
 
-Status: Proposed · Date: 2026-11-24 · Milestone: M7
+Status: Accepted (owner), points 2, 3, 4 and 6 · Date: 2026-11-24 · Milestone: M7
 
 ## Context
 
@@ -36,6 +36,13 @@ Three details the spec leaves open matter for safety or for contributors:
    - Vitest covers front-end logic.
    - Playwright runs one browser test per screen against a fixture project (`tests/portal_fixture.py`) served by the real server with the built front end, and each runs axe for WCAG 2.1 A and AA. A serious or critical finding fails the test.
 6. **Delivery in parts.** M7 lands as several pull requests, each mergeable on its own. M7 is accepted when the last one is merged.
+
+**Owner's choices (2026-11-24).** The owner chose four options. Each was offered against its alternative:
+
+- the built files are built, not committed, over committing them or building on first run;
+- Inter and JetBrains Mono are bundled, over the system's fonts;
+- M7 is delivered as five pull requests into `main`, over one;
+- a cookie is set after the first visit, over sending the token with every request.
 
 ## Consequences
 
