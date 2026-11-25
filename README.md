@@ -82,6 +82,15 @@ The report shows the result, each check with its evidence, unexpected changes, w
 mirror portal           # opens http://127.0.0.1:7420/?token=… ; only this computer can reach it
 ```
 
+**8. Or drive it from an AI tool.** The operator MCP server offers the same reads, runs and edits to an AI tool such as Claude Code. Launch it as an MCP server over stdio:
+
+```sh
+mirror --project ~/mirror-worlds/northfield mcp serve        # stdio, for the tool to launch
+mirror --project ~/mirror-worlds/northfield mcp serve --http # or HTTP on 127.0.0.1, with a token
+```
+
+Tools that start runs or edit the world need `confirm=true`, and nothing destructive is offered. Run results contain text written by the agent under test and by injection scenarios, some of it designed to steer an AI: the server returns it only under `run_content`, marked untrusted. Even so, an AI tool reading it can be prompt-injected, so review what it proposes to do.
+
 ## Next steps
 
 - **Other agents.** `examples/agents/` has `scripted-rogue` (misbehaves on purpose, to show every violation is caught), `browser-basic` (works through the web pages), `mcp-good` (works only through the company's MCP server) and `llm-example` (a real model through the model gateway; needs a model route in `mirror.yaml` and the provider's key in your environment). `mirror agent new` writes a file for your own.
@@ -105,6 +114,7 @@ mirror portal           # opens http://127.0.0.1:7420/?token=… ; only this com
 | `mirror run stop <run>`, `mirror reach <agent>` | End a run early (it is still scored); what an agent is granted against what it used |
 | `mirror scenario list\|show`, `mirror world show people\|projects\|canaries` | Scenarios, and the built company |
 | `mirror portal` | The local portal on 127.0.0.1, with a token in its address |
+| `mirror mcp serve [--http]` | The operator MCP server, for an AI tool: stdio, or HTTP on 127.0.0.1 with a token |
 | `mirror system list\|show\|rules\|try`, `mirror set rule`, `mirror unset rule` | Systems, their surfaces, and rules that change what they accept or return |
 | `mirror set visibility <system> <state>`, `mirror set grant <agent> <system>/<name> <grant>` | Edit a system's visibility or an agent's grants; each says when it takes effect |
 | `mirror changes`, `mirror apply` | Edits saved but not in effect yet; put them into effect now (a rebuild if they need one) |

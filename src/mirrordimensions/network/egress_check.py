@@ -413,17 +413,34 @@ HOST_NAMES = "192.168.5.2 host.lima.internal host.docker.internal gateway.docker
 PORTAL_PORT = 7420  # `mirror portal`'s default
 
 
+OPERATOR_PORT = 7421  # `mirror mcp serve --http`'s default
+
+
 def portal_check(probe: Probe, portal_port: int | None) -> Check:
     """The portal is unreachable from the agent's network and the systems' network
     (build spec, "Portal"). Probes the running portal's port, or, when none runs, a
     listener on the portal's default port standing in for it."""
+    return host_service_check(probe, "The portal", "the portal", portal_port, PORTAL_PORT)
+
+
+def operator_check(probe: Probe, operator_port: int | None) -> Check:
+    """The operator MCP server is unreachable likewise (decision 0009). Over stdio it has
+    no port at all; over HTTP it listens on 127.0.0.1."""
+    return host_service_check(
+        probe, "The operator MCP server", "the operator server", operator_port, OPERATOR_PORT
+    )
+
+
+def host_service_check(
+    probe: Probe, title: str, noun: str, running: int | None, default: int
+) -> Check:
     with contextlib.ExitStack() as stack:
-        port = portal_port
-        what = f"the running portal's port {port}"
+        port = running
+        what = f"{noun}'s port {port}"
         if port is None:
             try:
-                port = stack.enter_context(host_listener(PORTAL_PORT))
-                what = f"a stand-in listener on the portal's default port {port}"
+                port = stack.enter_context(host_listener(default))
+                what = f"a stand-in listener on {noun}'s default port {port}"
             except OSError:
                 port = stack.enter_context(host_listener())
                 what = f"a stand-in listener on port {port} (the default port is in use)"
@@ -439,7 +456,7 @@ def portal_check(probe: Probe, portal_port: int | None) -> Check:
             ]
     return Check(
         suite="egress",
-        name="The portal, from the agent's network and the systems' network",
+        name=f"{title}, from the agent's network and the systems' network",
         outcome="fail" if reached else "pass",
         detail=", ".join(reached) or f"{what} on 127.0.0.1: unreachable from both",
     )
@@ -775,6 +792,7 @@ def run_doctor(
     twin_fetch: Callable[[str], None] | None = None,
     latency_budget_ms: float = LATENCY_BUDGET_MS,
     portal_port: int | None = None,
+    operator_port: int | None = None,
 ) -> DoctorReport:
     probe = Probe(docker, ca_pem)
     probe.start(PROBE, LAN, PROBE_IP, [plan.addr.dns_ip])
@@ -783,6 +801,7 @@ def run_doctor(
         checks = [
             *egress_suite(plan, probe, collector, twin_fetch),
             portal_check(probe, portal_port),
+            operator_check(probe, operator_port),
             *separation_suite(plan, probe),
             *inside_out_suite(plan, probe, docker),
             *naming_suite(plan, probe),

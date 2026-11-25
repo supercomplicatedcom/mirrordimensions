@@ -117,6 +117,7 @@ If any of these fails, coverage is `incomplete` and the run exits with code 4, w
 | --- | --- |
 | `cli/` | The `mirror` command: argument parsing and output only |
 | `portal/` | The local portal: `server.py` (the HTTP API over `service/`) and `web/` (the React front end, built into `static/`) |
+| `mcp/operator/` | The operator MCP server (`mirror mcp serve`): the service layer as MCP tools for an operator's AI tool, on the host only (decisions 0009, 0023) |
 | `service/` | What each command does: drives the engine and calls the pure packages |
 | `config/` | The file formats (manifest, agent, scenario, event, result) as typed models |
 | `engine/` | Creating and checking the engine on each host. The only place, with `hostos/`, that knows which OS it runs on |
@@ -127,6 +128,6 @@ If any of these fails, coverage is `incomplete` and the run exits with code 4, w
 | `runner/` | Scenarios, evaluation, the ledger, coverage and the suspicion phrases |
 | `trace/` | The timeline, `mirror trace` lines, the access map and the report |
 | `agents/` | Starting hosted and browser agents |
-| `mcp/` | The world's own MCP servers |
+| `mcp/world/` | The world MCP front, built into the world: standard library only, never importing the service layer or the operator server |
 | `snapshot/` | Saving and restoring the world's volumes |
 | `scenarios/core/` | The built-in scenarios ([writing a scenario](writing-a-scenario.md)) |
