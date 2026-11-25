@@ -797,21 +797,18 @@ def agent_new(
                     merged.setdefault(app_id, {}).update(extra)
                 fields["grants"] = merged
         elif step == 5:
-            if draft.fields.get("mode") == "browser":
-                fields["wake"] = {"type": "poll"}
-                st.out.line(
-                    "      The agent watches its inbox in the browser, signing in as a person would."
-                )
+            # A browser agent's program usually watches its inbox in the browser (poll), but
+            # its image may need a command to start it, as a hosted agent's may.
+            browser = draft.fields.get("mode") == "browser"
+            how = ask("How it notices work (command, poll)", wake, "poll" if browser else "command")
+            if how == "command":
+                run = ask("Command run when work arrives", command)
+                fields["wake"] = {
+                    "type": "command",
+                    "command": shlex.split(run) if run else None,
+                }
             else:
-                how = ask("How it notices work (command, poll)", wake, "command")
-                if how == "command":
-                    run = ask("Command run when work arrives", command)
-                    fields["wake"] = {
-                        "type": "command",
-                        "command": shlex.split(run) if run else None,
-                    }
-                else:
-                    fields["wake"] = {"type": how}
+                fields["wake"] = {"type": how}
         draft = onboard.update_draft(project, agent_name, step, fields)
         st.out.ok(f"Step {step} of 6: {onboard.STEPS[step - 1]}")
     st.out.ok(f"Wrote agents/{agent_name}.yaml")
