@@ -232,6 +232,8 @@ class _Run:
                 "scenario": self.scenario.id,
                 "agent": self.agent.name,
                 "acts_as": self.person.username,
+                # Where the agent's own requests come from, for the live view's steps.
+                "clients": sorted(agent_clients(self.plan, self.agent, servers=False)),
             },
         )
         handle = None
@@ -439,14 +441,7 @@ class _Run:
         return {k: v for k, v in delivered.items() if k not in ("post", "url")}
 
     def _clients(self) -> set[str]:
-        where = agents_svc.hosted.placement(self.plan, self.agent.name)
-        clients = {where.ip}
-        if self.agent.mode == "browser":
-            clients.add(agents_svc.browser.placement(self.plan, self.agent.name).ip)
-        for app in self.plan.apps:
-            if app.is_mcp and app.id in self.agent.grants:
-                clients.add(app.ip)  # the MCP server acts for the agent
-        return clients
+        return agent_clients(self.plan, self.agent)
 
     def _wait(self, handle: agents_svc.AgentHandle, started: float) -> str:
         done_when = self.scenario.limits.done_when
@@ -875,6 +870,19 @@ def list_runs(project: Project) -> list[dict[str, Any]]:
     return out
 
 
+def agent_clients(plan: sandbox.Plan, agent: Agent, *, servers: bool = True) -> set[str]:
+    """The addresses the agent's requests come from: its container, its browser, and (with
+    `servers`) the MCP servers granted to it, which act for it."""
+    clients = {agents_svc.hosted.placement(plan, agent.name).ip}
+    if agent.mode == "browser":
+        clients.add(agents_svc.browser.placement(plan, agent.name).ip)
+    if servers:
+        for app in plan.apps:
+            if app.is_mcp and app.id in agent.grants:
+                clients.add(app.ip)
+    return clients
+
+
 def grants_for(plan: sandbox.Plan, agent: Agent, org: str) -> list[access.Grant]:
     """The agent's grants, system by system, as the access map compares them."""
     out: list[access.Grant] = []
@@ -1007,9 +1015,17 @@ def start_run(
 
 def stop_run(project: Project, run_id: str) -> None:
     """Ask a run in progress to end; it is scored and marked `stopped`."""
+    from mirrordimensions.service import runlog
+
     folder = run_dir(project, run_id)
     if (folder / "result.json").is_file():
         raise MirrorError(f"Run {run_id} has already ended.", "", "")
+    if runlog.current_run(project) != folder.name:
+        raise MirrorError(
+            f"Run {run_id} is not in progress.",
+            "It has no result, and no mirror process is running it: it did not finish.",
+            "Its events are still readable: mirror trace " + folder.name,
+        )
     write_text(folder / STOP_FILE, "stop\n")
 
 

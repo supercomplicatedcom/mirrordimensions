@@ -6,7 +6,7 @@
 // change. While a run is in progress the timeline follows it live.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { API, PortalError, get, send, useApi } from "../api";
 import type { Check, EventPage, Result, RunEvent, RunSummary } from "../types";
 import { ErrorBox, Loading, PageHead, RunStatus, capitalize } from "../ui";
@@ -46,6 +46,16 @@ export function RunDetail() {
   const [jump, setJump] = useState<number>();
   const [stopError, setStopError] = useState<PortalError>();
   const [stopping, setStopping] = useState(false);
+  const [search] = useSearchParams();
+  const asked = Number(search.get("event") ?? "");
+
+  // Opened from the live view with ?event=N: show that event, once the run has loaded.
+  useEffect(() => {
+    if (r && asked > 0) {
+      setSelected(asked);
+      setJump(asked);
+    }
+  }, [r, asked]);
 
   // A run started a moment ago may not be listed yet: look again until it is.
   useEffect(() => {
@@ -84,6 +94,11 @@ export function RunDetail() {
         }
       >
         {summary && <RunStatus status={summary.status} coverage={summary.coverage} />}
+        {summary && (
+          <Link className="button" to={`/runs/${runId}/live`}>
+            {live ? "Watch it live" : "Replay it step by step"}
+          </Link>
+        )}
         {live && (
           <button
             type="button"

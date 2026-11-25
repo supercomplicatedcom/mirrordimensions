@@ -40,6 +40,7 @@ class Surface:
     resource: str | None = None
     access: str | None = None
     sentence: str = ""
+    unnamed: str = ""
     exposes: dict[str, Any] | None = None
     regex: re.Pattern[str] = field(init=False, repr=False)
 
@@ -57,6 +58,7 @@ class Surface:
             resource=d.get("resource"),
             access=d.get("access"),
             sentence=d.get("sentence", ""),
+            unnamed=d.get("unnamed", ""),
             exposes=(d.get("output") or {}).get("exposes"),
         )
 
@@ -67,8 +69,24 @@ class Surface:
         return m.groupdict() if m else None
 
 
+_FIELD = re.compile(r"\{([\w.]+)\+?\}")
+
+
 def _fill(template: str, values: dict[str, Any]) -> str:
-    return _PARAM.sub(lambda m: str(values.get(m.group(1), "?")), template)
+    """`{owner}` from the path, `{body.channel_id}` from the request's JSON body."""
+    return _FIELD.sub(lambda m: str(values.get(m.group(1), "?")), template)
+
+
+def _body_fields(body: bytes) -> dict[str, Any]:
+    if not body or body[:1] not in (b"{", b" ", b"\n"):
+        return {}
+    try:
+        data = json.loads(body)
+    except ValueError:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {f"body.{k}": v for k, v in data.items() if isinstance(v, str | int)}
 
 
 @dataclass
@@ -77,6 +95,16 @@ class Located:
     resource: str | None
     access: str | None
     sentence: str
+    kind: str = "endpoint"
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "surface": self.surface,
+            "kind": self.kind,
+            "resource": self.resource,
+            "access": self.access,
+            "sentence": self.sentence,
+        }
 
 
 class SurfaceTable:
@@ -90,7 +118,20 @@ class SurfaceTable:
                 return surface, params
         return None
 
-    def locate(self, method: str, path: str) -> Located:
+    def locate(
+        self,
+        method: str,
+        path: str,
+        body: bytes = b"",
+        names: dict[str, str] | None = None,
+    ) -> Located:
+        """The surface a request matches, the resource it touches and a plain sentence.
+
+        `body` fills `{body.field}` in the resource; `names` maps resources known only by an
+        id to their names (`channel:k3j…` to `channel:incidents`), learned with `learn`.
+        `{name}` in a sentence is the resource's name. A surface whose resource is an id has
+        an `unnamed` sentence, used until the id's name is known.
+        """
         found = self.find(method, path)
         if found is None:
             return Located(
@@ -98,14 +139,47 @@ class SurfaceTable:
                 resource=None,
                 access=None,
                 sentence=f"{method} {path.split('?')[0]}",
+                kind="unknown",
             )
         surface, params = found
+        values: dict[str, Any] = {**params, **_body_fields(body)}
+        resource = _fill(surface.resource, values) if surface.resource else None
+        if resource is not None and "?" in resource:
+            resource = None  # the request did not name it (no body, or no such field)
+        known = names or {}
+        sentence = surface.sentence
+        if resource is not None and resource in known:
+            resource = known[resource]
+        elif surface.unnamed:
+            sentence = surface.unnamed  # the resource is unnamed, or still only an id
+        if resource is not None:
+            values["name"] = resource.split(":", 1)[-1]
         return Located(
             surface=surface.id,
-            resource=_fill(surface.resource, params) if surface.resource else None,
+            resource=resource,
             access=surface.access,
-            sentence=_fill(surface.sentence, params),
+            sentence=_fill(sentence, values),
+            kind=surface.kind,
         )
+
+    def learn(self, method: str, path: str, body: bytes) -> dict[str, str]:
+        """Names a response revealed: `{"channel:<id>": "channel:<name>"}` for each item of
+        a surface whose `exposes` has an `alias` (the id form) next to its `resource`."""
+        found = self.find(method, path)
+        if found is None or not found[0].exposes or "alias" not in (found[0].exposes or {}):
+            return {}
+        surface, params = found
+        spec = surface.exposes or {}
+        try:
+            data = json.loads(body or b"null")
+        except ValueError:
+            return {}
+        out: dict[str, str] = {}
+        for item in _walk(data, str(spec.get("each", ""))):
+            if isinstance(item, dict):
+                values = {**params, **item}
+                out[_fill(str(spec["alias"]), values)] = _fill(str(spec["resource"]), values)
+        return out
 
     def exposed(self, method: str, path: str, body: bytes) -> list[str]:
         """Every resource whose content a response carried (a search for 30 issues exposes 30)."""

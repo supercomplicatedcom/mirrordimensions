@@ -73,6 +73,18 @@ Every source writes into one file, `.mirror/runs/<run-id>/events.jsonl`, one JSO
 
 The schema is in `src/mirrordimensions/config/events.py`; `mirror schema event` prints it.
 
+Each `http.exchange` to a system with a profile also carries `where`: the surface it matched, the resource it acted on, and a plain sentence ("Posts in #incidents"). The gateway records it as it captures the exchange, from the same profile code the host uses, so a run reads the same live and in replay. `run.start` names the agent's addresses (`clients`).
+
+## Steps and the live view
+
+`trace/steps.py` groups a run's events into steps for the portal's live view and `mirror watch` (decision 0018):
+
+- Requests to one resource within two seconds become one step. A change is never merged into the reads before it.
+- A model call is a `think` step. Refused requests, failed lookups and blocked connections are `blocked` steps.
+- When a forbidden check fails, the step holding the request it names becomes a `violation`.
+
+Steps are sent as soon as they open and again, with the same index, as they grow, so the live view shows each step a fraction of a second after the event that caused it. A finished run replays from the same steps.
+
 ## Coverage
 
 A run is trusted only if everything the agent could do was recorded. Each run's `result.json` has a `coverage` block listing every channel (HTTP, WebSocket, DNS, egress, model, browser, MCP, host, state) as captured or not applicable, and three reconciliations that check the records against each other:

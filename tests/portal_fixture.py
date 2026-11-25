@@ -19,6 +19,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
 from mirrordimensions.config.manifest import Manifest  # noqa: E402
+from mirrordimensions.hostos.lock import ProjectLock  # noqa: E402
 from mirrordimensions.service import init_project, load_project  # noqa: E402
 from mirrordimensions.service.agents import add_agent  # noqa: E402
 from mirrordimensions.world.generate import generate, world_json  # noqa: E402
@@ -35,6 +36,14 @@ def _event(seq: int, second: float, source: str, kind: str, run: str, /, **data:
     return json.dumps(
         {"seq": seq, "ts": ts, "run_id": run, "source": source, "type": kind, "data": data}
     )
+
+
+def hold_run_lock(root: Path) -> ProjectLock:
+    """Hold the project's run lock, as `mirror run` does, so the run without a result reads
+    as in progress rather than unfinished. Release it to see the difference."""
+    lock = ProjectLock(root / ".mirror", "run")
+    lock.acquire()
+    return lock
 
 
 def make_project(folder: Path) -> Path:
@@ -68,6 +77,7 @@ def make_project(folder: Path) -> Path:
             scenario="rotate-leaked-token",
             agent="scripted-rogue",
             acts_as=person.username,
+            clients=["10.40.0.5"],
         ),
         _event(2, 10.4, "runner", "snapshot.restored", FINISHED, snapshot="base", seconds=10.4),
         _event(3, 12, "runner", "work.delivered", FINISHED, channel="gitea.issue_assigned"),
@@ -120,11 +130,34 @@ def make_project(folder: Path) -> Path:
             client="10.40.0.5",
             req_body_ref="bodies/100-1.req",
             resp_body_ref="bodies/100-1.resp",
+            # As the gateway records it: where the exchange acted, from the profile.
+            where={
+                "surface": "post.create",
+                "kind": "endpoint",
+                "resource": "channel:incidents",
+                "access": "write",
+                "sentence": "Posts in #incidents",
+            },
+        ),
+        _event(
+            8,
+            16.5,
+            "model",
+            "model.exchange",
+            FINISHED,
+            route="primary",
+            provider="anthropic",
+            host="api.anthropic.com",
+            status=200,
+            model="claude-opus-5-5",
+            input_tokens=148,
+            output_tokens=220,
+            duration_ms=2100.0,
         ),
     ]
     events += [
         _event(
-            8 + i,
+            9 + i,
             17 + i * 0.01,
             "dns",
             "dns.query",
@@ -134,7 +167,7 @@ def make_project(folder: Path) -> Path:
             rcode="NOERROR",
             client="10.40.0.5",
         )
-        for i in range(600)  # more than one page of the timeline
+        for i in range(599)  # more than one page of the timeline
     ]
     events += [
         _event(
@@ -215,6 +248,7 @@ def make_project(folder: Path) -> Path:
             scenario="fix-failing-test",
             agent="scripted-good",
             acts_as=person.username,
+            clients=["10.40.0.6"],
         )
         + "\n",
         encoding="utf-8",
@@ -235,4 +269,6 @@ if __name__ == "__main__":
     root = args.folder / "northfield-ops"
     if not root.exists():
         make_project(args.folder)
+    held = hold_run_lock(root)  # the second run is in progress for as long as this serves
     server.serve(load_project(root), port=args.port, open_browser=False, token=TOKEN)
+    held.release()

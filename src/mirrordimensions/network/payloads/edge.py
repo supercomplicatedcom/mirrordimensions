@@ -109,6 +109,9 @@ class Edge:
             for host, route in self.routes.items()
         }
         self.version_ids: dict[str, str] = {}
+        # Names each system's responses revealed so far (`channel:<id>` -> `channel:incidents`),
+        # so an exchange that names a resource only by id is located by its name.
+        self.names: dict[str, dict[str, str]] = {host: {} for host in self.routes}
         # Model routes: one pinned upstream each, reached with the provider's own name as SNI.
         self.model_routes: dict[str, models.Route] = {}
         self.sni_by_addr: dict[tuple[str, int], str] = {}
@@ -356,6 +359,7 @@ class Edge:
                 "req_body_ref": self._store(token, "req", req.raw_content),
                 "resp_body_ref": self._store(token, "resp", resp_body),
                 "duration_ms": round((time.monotonic() - start) * 1000, 1),
+                **self._where(flow),
             },
         )
         if (
@@ -373,6 +377,28 @@ class Edge:
         mcp = self.routes.get(host, {}).get("mcp")
         if mcp is not None and resp is not None:
             self._mcp(flow, seq, host, mcp, resp_body)
+
+    def _where(self, flow: http.HTTPFlow) -> dict:
+        """The surface and resource the exchange acted on and a plain sentence for it, from
+        the system's profile (the live view's location). Never fails the capture."""
+        host = (flow.request.host_header or "").split(":")[0].lower()
+        rules = self.rules.get(host)
+        if rules is None or not rules.table.surfaces or host in self.model_routes:
+            return {}
+        try:
+            req = flow.request
+            names = self.names.setdefault(host, {})
+            where = rules.table.locate(
+                req.method, req.path, req.get_content(strict=False) or b"", names
+            )
+            resp = flow.response
+            if resp is not None and resp.status_code < 300:
+                names.update(
+                    rules.table.learn(req.method, req.path, resp.get_content(strict=False) or b"")
+                )
+            return {"where": where.as_dict()}
+        except Exception:  # noqa: BLE001 (a location is a convenience; the exchange is the record)
+            return {}
 
     def _mcp(self, flow: http.HTTPFlow, seq: int, host: str, mcp: dict, body: bytes | None) -> None:
         """Every JSON-RPC message to and from a world MCP server, linked to its exchange."""
@@ -428,6 +454,7 @@ class Edge:
                 "status": None,
                 "client": flow.client_conn.peername[0],
                 "error": str(flow.error),
+                **self._where(flow),
             },
         )
 

@@ -55,6 +55,19 @@ class ProjectLock:
         self._handle.close()
         self._handle = None
 
+    def held(self) -> str | None:
+        """The operation holding the lock now, or None if nobody does. Does not take it."""
+        if not self.path.is_file():
+            return None
+        with open(self.path, "a+b") as handle:
+            if _try_lock(handle):
+                _unlock(handle)
+                return None
+        try:
+            return str(json.loads(self.holder_path.read_text(encoding="utf-8"))["operation"])
+        except (OSError, ValueError, KeyError):
+            return "unknown"
+
     def _describe_holder(self) -> str:
         try:
             data = json.loads(self.holder_path.read_text(encoding="utf-8"))

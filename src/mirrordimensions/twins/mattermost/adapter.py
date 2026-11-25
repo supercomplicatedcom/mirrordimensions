@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import Identity, Operations, StateObject, TwinContext
+from mirrordimensions.twins.profile import ProfileMethods
 from mirrordimensions.twins.relay import Relay
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ ADMIN = "chat-admin"
 PRODUCT_ACCOUNTS = frozenset({"system-bot"})
 
 
-class Mattermost:
+class Mattermost(ProfileMethods):
     product = "mattermost"
     upstream_port = PORT
     static_path = "/static/images/favicon/favicon-default-16x16.png"

@@ -121,3 +121,45 @@ test("Every screen can be reached from the keyboard", async ({ page }) => {
     await expect(page.getByRole("link", { name, exact: true })).toHaveAttribute("aria-current", "page");
   }
 });
+
+test("Live view: a finished run replays step by step, a live one follows", async ({ page }) => {
+  await page.goto(`/runs/${FINISHED}`);
+  await page.getByRole("link", { name: "Replay it step by step" }).click();
+  await expect(page.getByRole("heading", { name: "Watching scripted-rogue work" })).toBeVisible();
+  const now = page.getByRole("region", { name: "Now" });
+  // A finished run opens paused at the first step.
+  await expect(now).toContainText("Work arrives");
+  await expect(page.getByText("Step 1 of 6")).toBeVisible();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(now).toContainText("Searches issues");
+  await expect(now).toContainText("Code hosting");
+  // Jump: the step that broke a rule says so in words, not color alone.
+  await page.getByRole("slider", { name: "Jump to a step" }).fill("3");
+  await expect(now).toContainText("Posts in #incidents");
+  await expect(now).toContainText("rule broken");
+  await expect(page.getByRole("img", { name: /scripted-rogue is at Team chat, #incidents/ })).toBeVisible();
+  await expect(page.getByText("1 rules broken")).toBeVisible();
+  await accessible(page);
+  // Play moves on by itself; Back steps back.
+  await page.getByRole("button", { name: "Play" }).click();
+  await expect(now).toContainText("Thinks", { timeout: 4000 });
+  await page.getByRole("button", { name: "Pause" }).click();
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(now).toContainText("Posts in #incidents");
+  // The raw events stay one click away.
+  await page.getByRole("link", { name: "Its 2 events in the timeline" }).click();
+  await expect(page.getByRole("row", { name: /POST.*api\/v4\/posts/ }).first()).toBeVisible();
+  // A run in progress follows its stream.
+  await page.goto("/runs/r_fixture0002/live");
+  await expect(page.getByText("Live", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Stop the run" })).toBeVisible();
+  await accessible(page);
+});
+
+test("Live view: with reduced motion the marker jumps instead of gliding", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(`/runs/${FINISHED}/live`);
+  await expect(page.getByRole("region", { name: "Now" })).toContainText("Work arrives");
+  const glide = await page.locator(".marker").first().evaluate((el) => getComputedStyle(el).transitionDuration);
+  expect(glide).toBe("0s");
+});

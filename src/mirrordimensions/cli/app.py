@@ -1180,6 +1180,49 @@ def trace_command(
     )
 
 
+MARKS = {"blocked": "blocked", "violation": "rule broken"}
+
+
+def _step_line(step: Any) -> str:
+    mark = MARKS.get(step.kind)
+    tail = f"  [{mark}]" if mark else ""
+    return f"{step.at}  {step.location.label:<34} {step.sentence}{tail}"
+
+
+@app.command("watch")
+def watch_command(
+    ctx: typer.Context,
+    run_id: Annotated[str, typer.Argument(help="A run id from mirror runs, or latest.")],
+) -> None:
+    """Follow a run step by step, as the portal's live view shows it: time, where, what.
+    A finished run is printed whole. --json prints each step as a JSON line."""
+    from mirrordimensions.service import runlog
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    view = runlog.read_steps(project, run_id)
+    if not view.live:
+        if st.out.json_mode:
+            st.out.document([s.model_dump(mode="json") for s in view.steps])
+            return
+        for step in view.steps:
+            st.out.line(_step_line(step))
+        st.out.next_step(f"{len(view.steps)} steps · timeline: mirror trace {view.run_id}")
+        return
+    st.out.line(f"Watching {view.run_id}. Ctrl-C stops watching; the run goes on.")
+    shown: dict[int, str] = {}
+    for step in runlog.follow_steps(project, run_id):
+        if st.out.json_mode:
+            print(step.model_dump_json(), flush=True)
+            continue
+        before = shown.get(step.index)
+        if before is None:
+            st.out.line(_step_line(step))
+        elif before != step.kind and step.kind == "violation":
+            st.out.line(f"{step.at}  {step.location.label:<34} {step.detail}  [rule broken]")
+        shown[step.index] = step.kind
+
+
 @app.command("report")
 def report_command(
     ctx: typer.Context,

@@ -5,6 +5,18 @@
 product: gitea
 surfaces:
   # portals
+  - {id: home.page, kind: portal, match: {method: GET, path: "/"}, sentence: "Opens the home page"}
+  - {id: assets, kind: asset, match: {method: GET, path: "/assets/{path+}"}, sentence: "Loads the page's styles and scripts"}
+  - {id: avatar, kind: asset, match: {method: GET, path: "/avatars/{hash}"}, sentence: "Loads a profile picture"}
+  - {id: user.avatar, kind: asset, match: {method: GET, path: "/user/avatar/{username}/{size}"}, sentence: "Loads a profile picture"}
+  - {id: live.events, kind: background, match: {method: GET, path: "/-/ws"}, sentence: "Opens the live connection"}
+  - {id: repo.search.page, kind: portal, match: {method: GET, path: "/repo/search"}, sentence: "Searches repositories"}
+  - {id: explore.repos, kind: portal, match: {method: GET, path: "/explore/repos"}, sentence: "Browses the repositories"}
+  - {id: dashboard.issues, kind: portal, match: {method: GET, path: "/issues"}, sentence: "Opens its issues"}
+  - {id: link.follow, kind: portal, match: {method: POST, path: "/-/fetch-redirect"}, sentence: "Follows a link"}
+  - {id: heatmap, kind: portal, match: {method: GET, path: "/{username}/-/heatmap"}, resource: "user:{username}", access: read, sentence: "Loads the activity chart for {username}"}
+  - {id: issue.history, kind: portal, match: {method: GET, path: "/{owner}/{repo}/issues/{index}/content-history/overview"}, resource: "issue:{owner}/{repo}#{index}", access: read, sentence: "Checks the edit history of issue #{index}"}
+  - {id: issue.comment.form, kind: portal, match: {method: POST, path: "/{owner}/{repo}/issues/{index}/comments"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Comments on issue #{index}"}
   - {id: signin.page, kind: portal, match: {method: GET, path: "/user/login"}, sentence: "Opens the sign-in page"}
   - {id: signin.submit, kind: portal, match: {method: POST, path: "/user/login"}, sentence: "Signs in"}
   - {id: repo.page, kind: portal, match: {method: GET, path: "/{owner}/{repo}"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Opens {owner}/{repo}"}

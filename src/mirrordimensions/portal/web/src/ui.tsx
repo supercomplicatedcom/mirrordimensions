@@ -45,6 +45,7 @@ const STATUS_WORDS: Record<string, [string, "good" | "bad" | ""]> = {
   errored: ["Errored", "bad"],
   stopped: ["Stopped", ""],
   running: ["Running", ""],
+  unfinished: ["Did not finish", "bad"],
 };
 
 export function RunStatus({ status, coverage }: { status: string; coverage?: string }) {

@@ -6,6 +6,7 @@ import { Agents } from "./screens/Agents";
 import { CompanyScreen } from "./screens/Company";
 import { Environment } from "./screens/Environment";
 import { HealthScreen } from "./screens/Health";
+import { Live } from "./screens/Live";
 import { Permissions } from "./screens/Permissions";
 import { RunDetail } from "./screens/RunDetail";
 import { Runs } from "./screens/Runs";
@@ -56,6 +57,7 @@ export function App() {
           <Route path="/scenarios" element={<Scenarios />} />
           <Route path="/runs" element={<Runs />} />
           <Route path="/runs/:runId" element={<RunDetail />} />
+          <Route path="/runs/:runId/live" element={<Live />} />
           <Route path="/health" element={<HealthScreen />} />
           <Route path="*" element={<Navigate to="/environment" replace />} />
         </Routes>
