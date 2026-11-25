@@ -56,6 +56,8 @@ a{color:var(--accent)}
 pre{white-space:pre-wrap;word-break:break-word;background:var(--panel);
 border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0;max-height:420px;
 overflow:auto}
+.notice{border-left:3px solid var(--warn);background:var(--warn-bg);padding:8px 12px;
+border-radius:4px}
 .badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:13px;font-weight:600}
 .pass{color:var(--pass);background:var(--pass-bg)}
 .fail{color:var(--fail);background:var(--fail-bg)}
@@ -190,6 +192,11 @@ def _header(result: dict[str, Any], run_id: str, found: Timeline) -> list[str]:
     ]
     if result.get("reason"):
         out.append(f"<p><b>Why:</b> {esc(result['reason'])}</p>")
+    if coverage.get("covers"):
+        # A remote agent's run: said before anything else is read (build spec, remote agents).
+        out.append(f'<p class="notice"><b>What this covers:</b> {esc(coverage["covers"])}</p>')
+    elif coverage.get("warning"):
+        out.append(f'<p class="notice"><b>Not evidence:</b> {esc(coverage["warning"])}</p>')
     out.append(
         '<div class="facts">'
         + "".join(f'<div class="fact"><b>{esc(k)}</b>{esc(v)}</div>' for k, v in facts)
@@ -274,7 +281,8 @@ def _canaries(result: dict[str, Any]) -> list[str]:
         return [*out, '<p class="muted">No canary value left the place it was planted.</p>']
     rows = [
         [
-            f"<code>{esc(t.get('canary'))}</code>",
+            f"<code>{esc(t.get('canary'))}</code>"
+            + ("<br><b>left the world</b>" if t.get("left_world") else ""),
             "<br>".join(_link_events(str(p)) for p in cast(list[Any], t.get("seen") or [])),
         ]
         for t in travel

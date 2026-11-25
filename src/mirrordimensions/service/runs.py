@@ -44,7 +44,7 @@ from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.files import make_dir, write_text
 from mirrordimensions.hostos.lock import ProjectLock
 from mirrordimensions.network import sandbox
-from mirrordimensions.network.events import Collector, tracer_parser
+from mirrordimensions.network.events import Collector, parse_ingress, tracer_parser
 from mirrordimensions.project import Project
 from mirrordimensions.runner import coverage, evaluate, ledger, scenario
 from mirrordimensions.service import agents as agents_svc
@@ -225,7 +225,11 @@ class _Run:
             self.collector.add_source(
                 sandbox.TRACER_NAME, tracer_parser(self.watch, self.trace_progress)
             )
-        self._platform(driver, boundary)
+        self.remote = self.agent.mode == "remote"
+        if self.remote:
+            self._check_exposed()
+            self.collector.add_source(sandbox.INGRESS_NAME, parse_ingress)
+        self._platform(driver, "remote" if self.remote else boundary)
         self.collector.emit(
             "runner",
             "run.start",
@@ -240,12 +244,6 @@ class _Run:
         handle = None
         stopped, errored = False, False
         try:
-            if self.agent.mode == "remote":
-                raise MirrorError(
-                    f"{self.agent.name} runs on its vendor's platform.",
-                    "Runs of remote agents through the ingress arrive in M7.5's second part.",
-                    "Expose the world for it meanwhile: mirror world expose",
-                )
             self._check_reach()
             self._check_nothing_waits()
             if not self._isolation():
@@ -266,6 +264,8 @@ class _Run:
             )
             self.step(f"Restored the base snapshot in {seconds}s")
             self._overlay()
+            if self.remote:
+                return self._run_remote()
             platform, reduced = agents_svc.image_platform(docker, self.agent, self.allow_emulated)
             if reduced:
                 self.result.isolation, self.result.isolation_reason = "reduced", reduced
@@ -320,6 +320,59 @@ class _Run:
                 agents_svc.stop_agent(docker, handle)
         return self._finish(stopped=stopped, errored=errored)
 
+    def _check_exposed(self) -> None:
+        """A remote agent reaches the world only through an exposed MCP server it is granted,
+        with the ingress running for this world (decision 0024)."""
+        mine = [a for a in self.plan.exposed if a.id in self.agent.grants]
+        if not mine:
+            raise MirrorError(
+                f"No MCP server is exposed for {self.agent.name}.",
+                "A remote agent reaches the world only through an exposed MCP server.",
+                f"Run: mirror world expose <mcp-server> --hostname <name> --agent {self.agent.name}",
+            )
+        if not self.docker.is_running(sandbox.INGRESS_NAME) or (
+            self.docker.labels(sandbox.INGRESS_NAME).get(sandbox.LABEL) != self.plan.world
+        ):
+            raise MirrorError(
+                "The ingress for this world is not running.",
+                "The sandbox has not restarted since the MCP server was exposed.",
+                "Run: mirror apply",
+            )
+
+    def _run_remote(self) -> RunOutcome:
+        """The agent works from its vendor's platform: the work is delivered as for any
+        agent, and the run lasts until the agent goes idle, the scenario's end condition is
+        met, the operator stops it, or the time limit."""
+        _, _ = agents_svc.issue(self.project, self.agent, self.docker)
+        self.result.delivery = self._deliver()
+        self._learn_facts()
+        self.before = world_svc.dumps(self.docker, self.plan, self.project)
+        exposed = [a for a in self.plan.exposed if a.id in self.agent.grants]
+        self.collector.emit(
+            "runner",
+            "agent.woken",
+            {
+                "remote": [
+                    f"https://{a.remote}{a.tools.endpoint if a.tools else ''}" for a in exposed
+                ]
+            },
+        )
+        self.step(
+            f"Waiting for {self.agent.name} on its platform, through "
+            + ", ".join(str(a.remote) for a in exposed)
+            + f" (up to {int(self.max_s // 60)} min; idle after {int(IDLE_S)}s ends the run)"
+        )
+        ended = self._wait(None, time.time())
+        stopped = ended in ("timeout", "operator")
+        if ended == "timeout":
+            self.result.reason = f"stopped at max_minutes ({int(self.max_s // 60)})"
+        elif ended == "operator":
+            self.result.reason = "stopped by the operator"
+        time.sleep(2.0)  # the last captures reach the collector
+        self.after = world_svc.dumps(self.docker, self.plan, self.project)
+        self._evaluate(handle_clients=self._clients())
+        return self._finish(stopped=stopped, errored=False)
+
     def _platform(self, driver: str, boundary: str) -> None:
         status = get_engine().status()
         p = self.result.platform
@@ -327,12 +380,22 @@ class _Run:
         p.engine_arch = (
             "arm64" if status.arch == "arm64" else ("x64" if status.arch == "x64" else None)
         )
-        p.boundary = boundary if boundary in ("dedicated-vm", "shared-vm", "host") else None  # pyright: ignore[reportAttributeAccessIssue]
+        p.boundary = (
+            boundary if boundary in ("dedicated-vm", "shared-vm", "host", "remote") else None
+        )  # pyright: ignore[reportAttributeAccessIssue]
         p.docker_version = status.versions.get("docker")
         p.runsc_version = status.versions.get("runsc")
         p.guest_kernel = status.versions.get("kernel")
         p.engine_updated = status.versions.get("updated") or None
-        self.result.isolation = "full" if boundary == "dedicated-vm" else "reduced"
+        if boundary == "remote":
+            # The agent keeps its own platform and internet: leaks can be detected, not
+            # blocked (build spec, remote agents).
+            self.result.isolation = "remote"
+            self.result.isolation_reason = (
+                "the agent runs on its vendor's platform and reaches the world through the ingress"
+            )
+        else:
+            self.result.isolation = "full" if boundary == "dedicated-vm" else "reduced"
 
     def _isolation(self) -> bool:
         """The fast subset of doctor: the sandbox is up, and an attempt to reach the internet
@@ -483,24 +546,26 @@ class _Run:
     def _clients(self) -> set[str]:
         return agent_clients(self.plan, self.agent)
 
-    def _wait(self, handle: agents_svc.AgentHandle, started: float) -> str:
+    def _wait(self, handle: agents_svc.AgentHandle | None, started: float) -> str:
         done_when = self.scenario.limits.done_when
         deadline = started + self.max_s
         last_activity, seen = started, 0
         while time.time() < deadline:
             if (self.dir / STOP_FILE).exists():
                 return "operator"
-            if not self.docker.is_running(handle.where.name):
+            if handle is not None and not self.docker.is_running(handle.where.name):
                 return "exited"
+            clients = handle.clients if handle is not None else {sandbox.REMOTE_CLIENT}
             mine = [
                 e
                 for e in self.collector.events
                 if e.get("type") in ("http.exchange", "dns.query", "browser.action")
-                and (e["data"].get("client") in handle.clients)
+                and (e["data"].get("client") in clients)
             ]
             if len(mine) != seen:
                 seen, last_activity = len(mine), time.time()
-            if done_when != "process_exit" and seen and time.time() - last_activity > IDLE_S:
+            idle_ends = done_when != "process_exit" or handle is None  # no process to exit
+            if idle_ends and seen and time.time() - last_activity > IDLE_S:
                 return "idle"
             if (
                 done_when == "issue_closed_or_idle"
@@ -515,21 +580,27 @@ class _Run:
 
     # -- evaluation ----------------------------------------------------------------------
 
-    def _bodies(self, clients: set[str]) -> list[tuple[int, str, str]]:
-        """(event seq, where, text) for every request body the agent sent."""
+    def _bodies(self, clients: set[str], *, given: bool = False) -> list[tuple[int, str, str]]:
+        """(event seq, where, text) for every request body the agent sent. With `given`, the
+        response bodies a remote agent's platform was given instead: they left the world."""
         out: list[tuple[int, str, str]] = []
         for e in self.collector.events:
             data = e.get("data", {})
             if e.get("type") != "http.exchange" or data.get("client") not in clients:
                 continue
+            outside = data.get("via") == "ingress"
+            if given and not outside:
+                continue
             where = (
                 f"{data.get('method')} {data.get('host')}{str(data.get('path', '')).split('?')[0]}"
             )
-            for ref in (data.get("req_body_ref"),):
-                if ref:
-                    raw = self.docker.read_file(sandbox.GATEWAY_NAME, f"{BODIES}/{ref}")
-                    if raw:
-                        out.append((int(e["seq"]), where, raw.decode("utf-8", "replace")))
+            if outside:
+                # Through the ingress: tool arguments the platform sent in from outside, or
+                # (with `given`) what it was sent back.
+                where = f"{'sent out of' if given else 'from outside'} the world: {where}"
+            raw = self._body(data.get("resp_body_ref" if given else "req_body_ref"), data)
+            if raw:
+                out.append((int(e["seq"]), where, raw.decode("utf-8", "replace")))
         return out
 
     def _answers(self, clients: set[str]) -> list[tuple[int, str, str]]:
@@ -652,8 +723,13 @@ class _Run:
             for k, text in _state_text(apps, self.before).items()
             if any(v in text for v in canary_values.values())
         }
-        travel = evaluate.canary_travel(canary_values, bodies, final, planted)
-        self.result.canaries = [{"canary": t.name, "seen": t.places} for t in travel]
+        given = self._bodies(handle_clients, given=True) if getattr(self, "remote", False) else []
+        travel = evaluate.canary_travel(canary_values, sorted(bodies + given), final, planted)
+        self.result.canaries = [
+            {"canary": t.name, "seen": t.places}
+            | ({"left_world": True} if any(_outside(p) for p in t.places) else {})
+            for t in travel
+        ]
 
         self.result.egress = evaluate.egress(
             self.collector.events, handle_clients, set(self.plan.resolvable)
@@ -692,14 +768,21 @@ class _Run:
         if not wanted:
             return
         found = self.docker.read_files(sandbox.GATEWAY_NAME, f"{BODIES}/bodies", wanted)
+        if getattr(self, "remote", False):
+            found |= self.docker.read_files(
+                sandbox.INGRESS_NAME, f"{BODIES}/bodies", wanted - set(found)
+            )
         make_dir(self.dir / "bodies", owner_only=True)
         for name, data in found.items():
             (self.dir / "bodies" / name).write_bytes(data)
 
-    def _body(self, ref: str | None) -> bytes:
+    def _body(self, ref: str | None, data: dict[str, Any] | None = None) -> bytes:
         if not ref:
             return b""
-        return self.docker.read_file(sandbox.GATEWAY_NAME, f"{BODIES}/{ref}") or b""
+        where = (
+            sandbox.INGRESS_NAME if (data or {}).get("via") == "ingress" else sandbox.GATEWAY_NAME
+        )
+        return self.docker.read_file(where, f"{BODIES}/{ref}") or b""
 
     def _ledger(self, clients: set[str]) -> None:
         from mirrordimensions.twins.profile import Profile
@@ -735,6 +818,8 @@ class _Run:
                 system = by_host.get(str(d.get("host", "")).split(":")[0])
                 if system:
                     writes.setdefault(system, []).append(d)
+        if getattr(self, "remote", False):
+            return self._coverage_remote(clients, found, writes)
         execs = [e["data"] for e in events if e.get("type") == "process.exec"]
         sockets = [e["data"] for e in events if e.get("type") == "socket.connect"]
         refused = {str(e["data"].get("dst")) for e in events if e.get("type") == "egress.blocked"}
@@ -774,19 +859,9 @@ class _Run:
                 execs, sockets, connections["passed"]
             ),
         }
-        mcp_apps = [a for a in self.plan.apps if a.is_mcp and a.id in self.agent.grants]
-        if mcp_apps:
-            from mirrordimensions.mcp.world import reconcile as mcp_reconcile
-
-            fronts = {a.ip for a in mcp_apps}
-            problems = mcp_reconcile.reconcile(events, {a.hostname for a in mcp_apps}, fronts)
-            problems += mcp_reconcile.unexplained_writes(events, fronts)
-            calls = sum(1 for e in events if e.get("type") == "mcp.call")
-            recs["mcp_calls_against_writes"] = {
-                "passed": not problems,
-                "detail": f"{calls} tool call(s); every write through MCP explained by its call, and every write call by a write",
-                "unexplained": problems,
-            }
+        mcp = self._mcp_reconciliation(events)
+        if mcp is not None:
+            recs["mcp_calls_against_writes"] = mcp
         if not self.tracer:
             for name in ("connections_against_captures", "processes_against_image"):
                 recs[name] = {
@@ -805,6 +880,78 @@ class _Run:
                 "reason": "the tracer had not reported up to the end of the run",
             }
         summary = coverage.summarize(chans, recs)
+        summary["ledger"] = self.result.coverage.get("ledger", {})
+        self.result.coverage = summary
+
+    def _mcp_reconciliation(self, events: list[dict[str, Any]]) -> dict[str, Any] | None:
+        mcp_apps = [a for a in self.plan.apps if a.is_mcp and a.id in self.agent.grants]
+        if not mcp_apps:
+            return None
+        from mirrordimensions.mcp.world import reconcile as mcp_reconcile
+
+        fronts = {a.ip for a in mcp_apps}
+        hosts = {a.hostname for a in mcp_apps} | {str(a.remote) for a in mcp_apps if a.remote}
+        # Only the MCP endpoint carries JSON-RPC; an exposed server also serves sign-in.
+        endpoints = {a.tools.endpoint for a in mcp_apps if a.tools}
+        problems = mcp_reconcile.reconcile(events, hosts, fronts, endpoints)
+        problems += mcp_reconcile.unexplained_writes(events, fronts)
+        calls = sum(1 for e in events if e.get("type") == "mcp.call")
+        return {
+            "passed": not problems,
+            "detail": f"{calls} tool call(s); every write through MCP explained by its call, and every write call by a write",
+            "unexplained": problems,
+        }
+
+    def _coverage_remote(
+        self,
+        clients: set[str],
+        found: list[evaluate.Change],
+        writes: dict[str, list[dict[str, Any]]],
+    ) -> None:
+        """A remote agent's run covers only what it did to the world (build spec, remote
+        agents): its model and its host are outside, and say so; everything that reached the
+        world must still be captured and reconciled."""
+        events = self.collector.events
+        outside = "agent runs outside the world"
+        recs: dict[str, dict[str, Any]] = {
+            "state_against_requests": coverage.reconcile_state(found, writes),
+        }
+        mcp = self._mcp_reconciliation(events)
+        if mcp is not None:
+            recs["mcp_calls_against_writes"] = mcp
+        through = sum(
+            1
+            for e in events
+            if e.get("type") == "http.exchange" and e["data"].get("client") == sandbox.REMOTE_CLIENT
+        )
+        recs["ingress_only"] = {
+            "passed": all(
+                e["data"].get("via") == "ingress"
+                for e in events
+                if e.get("type") == "http.exchange"
+                and e["data"].get("client") == sandbox.REMOTE_CLIENT
+            ),
+            "detail": f"{through} exchange(s) from the agent's platform, all through the ingress",
+        }
+        na = "the agent runs outside the world and reaches it only through the ingress"
+        chans: dict[str, dict[str, str]] = {
+            "http": {
+                "status": "captured",
+                "where": "ingress and gateway, every exchange with bodies",
+            },
+            "websocket": {
+                "status": "not_applicable",
+                "reason": "the ingress carries MCP over HTTP only",
+            },
+            "dns": {"status": "not_applicable", "reason": na},
+            "egress": {"status": "not_applicable", "reason": na},
+            "model": {"status": "not_captured", "reason": outside},
+            "browser": {"status": "not_applicable", "reason": "not a browser agent"},
+            "mcp": {"status": "captured", "where": "ingress, every JSON-RPC message"},
+            "agent_host": {"status": "not_captured", "reason": outside},
+            "state": {"status": "captured", "where": "state dump of every system before and after"},
+        }
+        summary = coverage.summarize(chans, recs, outside={"model", "agent_host"})
         summary["ledger"] = self.result.coverage.get("ledger", {})
         self.result.coverage = summary
 
@@ -941,10 +1088,19 @@ def check_reach(plan: sandbox.Plan, agent: Agent, scen: Scenario) -> None:
             )
 
 
+def _outside(place: str) -> bool:
+    """A canary seen in an exchange through the ingress has left the world: the agent's
+    platform was given it, or sent it back in a tool argument."""
+    return ": from outside the world: " in place or ": sent out of the world: " in place
+
+
 def agent_clients(plan: sandbox.Plan, agent: Agent, *, servers: bool = True) -> set[str]:
     """The addresses the agent's requests come from: its container, its browser, and (with
     `servers`) the MCP servers granted to it, which act for it."""
-    clients = {agents_svc.hosted.placement(plan, agent.name).ip}
+    if agent.mode == "remote":
+        clients = {sandbox.REMOTE_CLIENT}  # how the ingress names the agent's platform
+    else:
+        clients = {agents_svc.hosted.placement(plan, agent.name).ip}
     if agent.mode == "browser":
         clients.add(agents_svc.browser.placement(plan, agent.name).ip)
     if servers:

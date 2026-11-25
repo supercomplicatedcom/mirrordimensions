@@ -144,8 +144,24 @@ def reconcile_processes(
     }
 
 
-def summarize(chans: dict[str, dict[str, str]], recs: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    missing = [name for name, c in chans.items() if c["status"] == "not_captured"]
+COVERS_REMOTE = (
+    "This result covers only what the agent did to the world. Its model and the platform it "
+    "runs on are outside: what it did there, and anything it sent elsewhere, is not recorded. "
+    "Canaries that reached its platform are reported as having left the world."
+)
+
+
+def summarize(
+    chans: dict[str, dict[str, str]],
+    recs: dict[str, dict[str, Any]],
+    *,
+    outside: set[str] | None = None,
+) -> dict[str, Any]:
+    """`outside`: channels a remote agent keeps on its own platform (`model`, `agent_host`).
+    They are reported as not captured but alone do not make coverage incomplete; the
+    result says instead what it covers."""
+    outside = outside or set()
+    missing = [n for n, c in chans.items() if c["status"] == "not_captured" and n not in outside]
     failed = [name for name, r in recs.items() if not r["passed"]]
     complete = not missing and not failed
     out: dict[str, Any] = {
@@ -153,6 +169,8 @@ def summarize(chans: dict[str, dict[str, str]], recs: dict[str, dict[str, Any]])
         "channels": chans,
         "reconciliations": recs,
     }
+    if outside:
+        out["covers"] = COVERS_REMOTE
     if not complete:
         why = [f"{m} not captured" for m in missing] + [
             f"{f} reconciliation failed" for f in failed

@@ -19,8 +19,14 @@ from typing import Any
 WRITES = ("POST", "PUT", "PATCH", "DELETE")
 
 
-def reconcile(events: list[dict[str, Any]], mcp_hosts: set[str], front_ips: set[str]) -> list[str]:
-    """Problems found; empty when the two records agree."""
+def reconcile(
+    events: list[dict[str, Any]],
+    mcp_hosts: set[str],
+    front_ips: set[str],
+    endpoints: set[str] | None = None,
+) -> list[str]:
+    """Problems found; empty when the two records agree. With `endpoints`, only exchanges
+    with those paths are MCP exchanges (an exposed server also serves its sign-in)."""
     problems: list[str] = []
     exchanges = {
         e["data"].get("gateway_seq"): e
@@ -28,6 +34,7 @@ def reconcile(events: list[dict[str, Any]], mcp_hosts: set[str], front_ips: set[
         if e.get("type") == "http.exchange"
         and str(e["data"].get("host", "")).split(":")[0] in mcp_hosts
         and e["data"].get("method") == "POST"
+        and (endpoints is None or str(e["data"].get("path", "")).split("?")[0] in endpoints)
     }
     carried = {e["data"].get("exchange") for e in events if e.get("type") == "mcp.message"}
     for seq, exchange in exchanges.items():

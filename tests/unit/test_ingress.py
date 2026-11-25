@@ -277,3 +277,99 @@ def test_exposure_is_a_restart_and_refuses_what_it_should(tmp_path: Path) -> Non
     caddy, nginx = svc.proxy_settings("tools.elmstead-mutual.com", 7480)
     assert "reverse_proxy 127.0.0.1:7480" in caddy and "proxy_buffering off" in nginx
     assert env.pending_changes(project) == []
+
+
+# -- part 2: remote runs ---------------------------------------------------------------------
+
+
+def test_ingress_events_are_kept_apart_from_the_gateways() -> None:
+    from mirrordimensions.network.events import parse_gateway, parse_ingress
+
+    exchange = json.dumps(
+        {"source": "gateway", "seq": 5, "type": "http.exchange", "data": {"client": "remote"}}
+    )
+    message = json.dumps(
+        {"source": "gateway", "seq": 6, "type": "mcp.message", "data": {"exchange": 5}}
+    )
+    gw = parse_gateway(exchange)
+    assert gw is not None and gw["data"]["gateway_seq"] == 5 and "via" not in gw["data"]
+    ex, msg = parse_ingress(exchange), parse_ingress(message)
+    assert ex is not None and msg is not None
+    assert ex["data"]["via"] == "ingress" and ex["data"]["gateway_seq"] == "ingress:5"
+    assert msg["source"] == "mcp" and msg["data"]["exchange"] == "ingress:5"
+
+
+def test_a_remote_run_reports_what_it_covers_and_its_two_outside_channels_alone_pass() -> None:
+    from mirrordimensions.runner import coverage
+
+    chans = {
+        "http": {"status": "captured", "where": "ingress"},
+        "model": {"status": "not_captured", "reason": "agent runs outside the world"},
+        "agent_host": {"status": "not_captured", "reason": "agent runs outside the world"},
+        "state": {"status": "captured", "where": "dumps"},
+    }
+    ok = coverage.summarize(chans, {"r": {"passed": True}}, outside={"model", "agent_host"})
+    assert ok["status"] == "complete" and "only what the agent did to the world" in ok["covers"]
+    # Any other channel not captured, or a failed reconciliation, still makes it incomplete.
+    gap = {**chans, "mcp": {"status": "not_captured", "reason": "x"}}
+    assert coverage.summarize(gap, {}, outside={"model", "agent_host"})["status"] == "incomplete"
+    bad = coverage.summarize(chans, {"r": {"passed": False}}, outside={"model", "agent_host"})
+    assert bad["status"] == "incomplete"
+    # A hosted run gets no such exemption.
+    assert coverage.summarize(chans, {})["status"] == "incomplete"
+
+
+def test_the_mcp_reconciliation_ignores_sign_in_on_an_exposed_server() -> None:
+    from mirrordimensions.mcp.world import reconcile
+
+    def ex(seq: str, path: str) -> dict[str, Any]:
+        data = {"gateway_seq": seq, "host": "tools.rookwood.com", "method": "POST", "path": path}
+        return {"type": "http.exchange", "data": data}
+
+    events = [
+        ex("ingress:1", "/token"),
+        ex("ingress:2", "/mcp"),
+        {"type": "mcp.message", "data": {"exchange": "ingress:2"}},
+    ]
+    assert reconcile.reconcile(events, {"tools.rookwood.com"}, set(), {"/mcp"}) == []
+    assert reconcile.reconcile(events, {"tools.rookwood.com"}, set()) != []
+
+
+def test_remote_agents_are_the_ingress_client_and_canaries_through_it_left_the_world() -> None:
+    from mirrordimensions.config.agent import Agent
+    from mirrordimensions.service import runs
+
+    plan = sandbox.plan_from(_manifest({"hostname": "tools.rookwood.com"}))
+    agent = Agent.model_validate(
+        {
+            "name": "helper",
+            "mode": "remote",
+            "acts_as": {"role": "engineer"},
+            "grants": {"tools": {}},
+        }
+    )
+    assert runs.agent_clients(plan, agent, servers=False) == {sandbox.REMOTE_CLIENT}
+    assert runs.agent_clients(plan, agent) == {sandbox.REMOTE_CLIENT, plan.exposed[0].ip}
+    outside = runs._outside  # pyright: ignore[reportPrivateUsage]
+    assert outside("event 9: from outside the world: POST tools.rookwood.com/mcp")
+    assert outside("event 9: sent out of the world: POST tools.rookwood.com/mcp")
+    assert not outside("event 9: POST chat.rookwood.com/api/v4/posts")
+
+
+def test_the_report_says_what_a_remote_result_covers_on_its_first_screen(tmp_path: Path) -> None:
+    from mirrordimensions.runner.coverage import COVERS_REMOTE
+    from mirrordimensions.trace import report
+
+    result = {
+        "status": "passed",
+        "isolation": "remote",
+        "scenario": "rotate-leaked-token-mcp",
+        "coverage": {"status": "complete", "covers": COVERS_REMOTE},
+        "canaries": [{"canary": "canary.token", "seen": ["event 3: x"], "left_world": True}],
+    }
+    (tmp_path / "result.json").write_text(json.dumps(result), encoding="utf-8")
+    (tmp_path / "events.jsonl").write_text("", encoding="utf-8")
+    page = report.render(tmp_path)
+    notice = page.index("What this covers")
+    assert notice < page.index('id="checks"')  # before any section
+    assert "left the world</b>" in page

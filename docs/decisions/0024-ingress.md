@@ -1,6 +1,6 @@
 # 0024. The ingress for remote agents: a relay through the Docker API, TLS at your proxy, sign-in as the person
 
-Status: Accepted (owner), points 1 to 3; the rest Proposed · Date: 2026-11-25 · Milestone: M7.5
+Status: Accepted (owner), points 1 to 3; points 4 to 8 Proposed · Date: 2026-11-25 · Milestone: M7.5
 
 ## Context
 
@@ -29,12 +29,17 @@ M7.5 lets an agent that runs on a vendor's platform work in a world through its 
    - It runs the gateway's own capture code (`edge.py`) with one route, the public hostname to the front, so every exchange and MCP message through it is recorded as the gateway records them.
    - A check run from the ingress network proves the rest unreachable.
 5. **No forbidden names.** The public hostname must pass the naming lint, which includes `mirrordimensions.com`. So must the sign-in page and every OAuth and MCP response.
+6. **A remote run waits for the platform.** `mirror run <scenario> --agent <remote agent>` restores the world, applies the overlay and delivers the work as for any agent. It then waits while the agent works from its platform, and ends when the agent has made no request through the ingress for 30 seconds, the scenario's end condition is met, the operator stops it, or the time limit is reached. It refuses to start unless an MCP server the agent is granted is exposed and the ingress is running for this world.
+   - The ingress names every client `remote`: its only traffic is the agent's platform's, arriving through the relay. Its events are marked `via: ingress` and numbered apart from the gateway's.
+7. **What a remote result covers.** Isolation and boundary are `remote`. Coverage lists `model` and `agent_host` as `not_captured` ("agent runs outside the world"); those two alone do not make coverage incomplete (exit code 4). DNS, egress and the browser are not applicable; HTTP, MCP and state must be captured. The reconciliations are state against requests, MCP calls against writes (on the MCP endpoint only: the server also serves sign-in), and a check that every exchange from the platform came through the ingress. The report's first screen says the result covers only what the agent did to the world.
+8. **Canaries that reach the platform have left the world.** A canary in a response sent through the ingress (`sent out of the world`), or in a tool argument arriving through it (`from outside the world`), is reported with `left_world: true`. Response bodies count only for canary travel, never for forbidden checks: reading a file is not posting it.
 
 ## Consequences
 
 - Exposing a world means running `mirror world expose` beside a reverse proxy the team already operates. Nothing is exposed while it is not running.
 - A world can be reached only by the agent and person it was exposed for: the sign-in page accepts that person alone.
-- Remote runs (isolation `remote`, coverage `model` and `agent_host` not captured) are built in the next part.
+- A careful agent's remote run still reports the scenario's canary as having left the world when it reads the file holding it: its platform was given the value. That is the honest result; detection, not prevention, is what a remote run offers.
+- Idle time ends a remote run. A platform that pauses for longer than 30 seconds mid-task ends it early; the scenario's `max_minutes` bounds the wait.
 
 ## Alternatives considered
 

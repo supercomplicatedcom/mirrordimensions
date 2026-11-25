@@ -100,6 +100,8 @@ A run is trusted only if everything the agent could do was recorded. Each run's 
 
 If any of these fails, coverage is `incomplete` and the run exits with code 4, whatever its checks say.
 
+A remote agent's run (decision 0024) covers only what the agent did to the world. Its model and its host are outside, listed as `model` and `agent_host` not captured; those two alone do not make coverage incomplete, and the report says so on its first screen. Its reconciliations are state against requests, MCP calls against writes, and every exchange from its platform having come through the ingress. A canary its platform was given, or sent back in a tool argument, is reported as having left the world.
+
 ## A run's folder
 
 | File | What it holds |

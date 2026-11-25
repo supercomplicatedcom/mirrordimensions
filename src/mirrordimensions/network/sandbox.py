@@ -50,6 +50,7 @@ LAN, APPS, UPLINK = "corp-lan", "corp-apps", "corp-uplink"
 INGRESS = "corp-dmz"
 INGRESS_NAME = "lb-01"
 INGRESS_PORT = 8080  # on the ingress's own loopback only; the relay reaches it from inside
+REMOTE_CLIENT = "remote"  # how the ingress names its one client, the remote agent
 LABEL = "com.mirrordimensions.world"  # labels are not visible inside containers
 
 
@@ -530,7 +531,8 @@ def ingress_routes(plan: Plan, secrets: list[str]) -> bytes:
             "visibility": "granted",
             "mcp": {"tools": toolset.gateway_surfaces(app.tools) if app.tools else {}},
         }
-    return json.dumps({"routes": routes, "secrets": secrets, "seed": plan.seed}, indent=2).encode()
+    out = {"routes": routes, "secrets": secrets, "seed": plan.seed, "client": REMOTE_CLIENT}
+    return json.dumps(out, indent=2).encode()
 
 
 def ingress_spec(
