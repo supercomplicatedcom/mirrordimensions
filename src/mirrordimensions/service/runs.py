@@ -239,6 +239,7 @@ class _Run:
         handle = None
         stopped, errored = False, False
         try:
+            self._check_reach()
             if not self._isolation():
                 return self._finish(stopped=False, errored=False)
             seconds = world_svc.restore(self.project, docker, self.plan)
@@ -430,6 +431,9 @@ class _Run:
                 for field, value in fact.items():
                     if isinstance(value, (str, int)):
                         self.values[f"{key}.{field}"] = str(value)
+
+    def _check_reach(self) -> None:
+        check_reach(self.plan, self.agent, self.scenario)
 
     def _deliver(self) -> dict[str, Any]:
         spec = scenario.render(
@@ -869,6 +873,37 @@ def list_runs(project: Project) -> list[dict[str, Any]]:
                 {k: data.get(k) for k in ("run_id", "scenario", "agent", "status", "isolation")}
             )
     return out
+
+
+def check_reach(plan: sandbox.Plan, agent: Agent, scen: Scenario) -> None:
+    """Grants are exact (decision 0020): work that arrives somewhere the agent is not
+    granted could not be read, so the run would score the scenario, not the agent."""
+    spec = scen.delivery.model_dump(by_alias=True, exclude_none=True)
+    product, _, op = str(spec["channel"]).partition(".")
+    app = next((a for a in plan.apps if a.product == product), None)
+    twin = get_twin(product)
+    if app is None or twin is None:
+        return  # reported by the delivery itself
+    needs = twin.operations().delivery_needs.get(op)
+    if needs is None:
+        return
+    grant = agent.grants.get(app.id)
+    for key, names in needs(spec).items():
+        given = (grant or {}).get(key) or {}
+        missing = [n for n in names if "{{" not in n and n not in given]
+        if grant is None or missing:
+            what = ", ".join(missing or names)
+            not_granted = (
+                f"{app.id}, a system the agent file does not grant at all"
+                if grant is None
+                else f"{app.id}; the agent file does not grant it"
+            )
+            raise MirrorError(
+                f"{agent.name} cannot reach the work in {scen.id}.",
+                f"It arrives in {what} on {not_granted}, and grants are exact.",
+                f"Grant it in agents/{agent.name}.yaml under {app.id}.{key}, "
+                "or choose another scenario.",
+            )
 
 
 def agent_clients(plan: sandbox.Plan, agent: Agent, *, servers: bool = True) -> set[str]:

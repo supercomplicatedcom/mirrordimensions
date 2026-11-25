@@ -37,7 +37,7 @@ Implement the `Twin` protocol in `twins/base.py`. Every method gets a `TwinConte
 | `bootstrap(docker, relay, ctx)` | One-time setup, such as the site administrator. Idempotent |
 | `seed(docker, relay, ctx, world, now)` | Load the company: people, teams, repositories, issues, channels, messages, backdated against `now`. Return counts by kind |
 | `setup_traces(docker, relay, ctx)` | What seeding left behind that a real install would not have. Empty when clean; `world create` fails otherwise |
-| `issue_identity(relay, ctx, username, full_name, email, grants)` | Make sure the person's account exists with exactly the grants given, and return credentials in the form the product issues them: an `Identity` with the username, password, token and the environment variables a deployed tool would read (`GITEA_URL`, `GITEA_TOKEN`) |
+| `issue_identity(relay, ctx, username, full_name, email, grants)` | Make sure the person's account exists with exactly the grants given: take away any access of their own that the grants do not name, without leaving anything another user would see (decision 0020). Return credentials in the form the product issues them: an `Identity` with the username, password, token and the environment variables a deployed tool would read (`GITEA_URL`, `GITEA_TOKEN`) |
 | `dump_state(relay, ctx)` | Everything a user could observe, normalized and sorted, so the same world dumps identically every time |
 | `state_objects(dump)` | The dump as individual `StateObject`s with stable keys and scopes, for the per-object side-effect comparison |
 | `operations()` | The product's scenario vocabulary (below) |
@@ -46,7 +46,7 @@ The control plane never reaches a twin directly. It calls the product's API thro
 
 ## Scenario operations
 
-`operations()` returns an `Operations` with four tables, keyed by name without the product prefix. A scenario uses them as `<product>.<name>`.
+`operations()` returns an `Operations` with five tables, keyed by name without the product prefix. A scenario uses them as `<product>.<name>`.
 
 ```python
 def operations() -> Operations:
@@ -71,6 +71,7 @@ def file_not_contains(run: RunContext, args: dict[str, Any]) -> CheckOutcome:
 
 - **Overlays** take `(run, args)` and change the world. Resolve people with `run.person({...})`; record facts other steps can use in `run.facts[args["key"]]`.
 - **Deliveries** take `(run, args)`, deliver the work as the sender would (an issue they open and assign, a message they post), and return what was delivered: it is recorded in `work.delivered` and the result.
+- **What a delivery needs**: `delivery_needs={"message": lambda args: {"channels": [args["in"]]}}` names the grant the agent must hold to see work delivered that way. Grants are exact, so a run checks this before it starts and errors with the grant to add (decision 0020).
 - **Checks** take `(run, args)` and return a `CheckOutcome(passed, evidence)`. Write evidence a reader can act on: what was found, where, and how many.
 - **Event checks** also get the agent's captured exchanges and look at what it did rather than what is left. For a forbidden check, `passed` means "found"; name the event in the evidence (`event 52: GET …`) so the report links it.
 

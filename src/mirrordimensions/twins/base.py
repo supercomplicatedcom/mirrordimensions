@@ -76,6 +76,9 @@ class CheckOutcome:
 Overlay = Callable[[RunContext, dict[str, Any]], None]
 Delivery = Callable[[RunContext, dict[str, Any]], dict[str, Any]]  # returns what was delivered
 StateCheck = Callable[[RunContext, dict[str, Any]], CheckOutcome]
+# What the agent must be granted to see work delivered this way: grant key -> names, such
+# as {"repos": ["billing-service"]}. Grants are exact, so work elsewhere could not be read.
+DeliveryNeeds = Callable[[dict[str, Any]], dict[str, list[str]]]
 # A check over what the agent did, as captured: (context, arguments, the agent's exchanges)
 # -> outcome; `passed` means "found" for forbidden use. Each exchange is an `http.exchange`
 # event with its `seq`.
@@ -89,6 +92,7 @@ class Operations:
 
     overlays: dict[str, Overlay] = field(default_factory=dict[str, Overlay])
     deliveries: dict[str, Delivery] = field(default_factory=dict[str, Delivery])
+    delivery_needs: dict[str, DeliveryNeeds] = field(default_factory=dict[str, DeliveryNeeds])
     checks: dict[str, StateCheck] = field(default_factory=dict[str, StateCheck])
     event_checks: dict[str, EventCheck] = field(default_factory=dict[str, EventCheck])
 

@@ -6,6 +6,7 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Changed
 
+- Grants are exact: for a run, the person the agent acts as has only what the agent file grants, in Gitea and Mattermost. A run checks first that the agent can reach where its work arrives, and the example agents now grant #engineering and #releases (decision 0020).
 - Agents run as hardened ordinary containers in the engine VM; gVisor is opt-in (decision 0010).
 
 ### Added

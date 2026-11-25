@@ -598,6 +598,7 @@ def operations() -> Operations:
             "access_token": access_token,
         },
         deliveries={"issue_assigned": issue_assigned},
+        delivery_needs={"issue_assigned": lambda args: {"repos": [str(args["repo"])]}},
         checks={
             "file_contains": file_contains,
             "file_not_contains": file_not_contains,
