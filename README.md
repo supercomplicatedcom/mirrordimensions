@@ -76,7 +76,7 @@ mirror report latest --open                              # the whole run on one 
 
 The report shows the result, each check with its evidence, unexpected changes, where each planted secret travelled, what the agent touched against what it was granted, the timeline, model exchanges and, for browser agents, screenshots. It is one file with nothing to load, so it can be shared as an attachment.
 
-**7. Or use the portal.** The same project in a browser: the environment map, agents, the company, scenarios you can start, runs with their live timeline, and health. A run started there opens in the live view, a map with the agent moving from resource to resource as it works; a finished run replays on the same screen. `mirror watch <run>` prints the same steps in the terminal.
+**7. Or use the portal.** The same project in a browser: the environment map, agents, the company, scenarios you can start, runs with their live timeline, and health. Its wizards define and create a new world (then switch to it) and onboard an agent, writing the same files as `mirror world new` and `mirror agent new`. A run started there opens in the live view, a map with the agent moving from resource to resource as it works; a finished run replays on the same screen. `mirror watch <run>` prints the same steps in the terminal.
 
 ```sh
 mirror portal           # opens http://127.0.0.1:7420/?token=… ; only this computer can reach it

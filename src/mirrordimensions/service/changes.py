@@ -64,11 +64,25 @@ def record_built(project: Project, manifest: Manifest) -> None:
 
 
 def record_applied(
-    project: Project, manifest: Manifest, agent: str | None = None, grants: Any = None
+    project: Project,
+    manifest: Manifest,
+    agent: str | None = None,
+    grants: Any = None,
+    *,
+    restarted: bool = True,
 ) -> None:
     """The rules and visibility the gateway now has, and the grants an agent last ran with."""
     _record_built_if_unchanged(project, manifest)
     current = _read(project, APPLIED_FILE)
+    # Model routes reach the gateway and the firewall only when the sandbox starts; a run
+    # (restarted=False) does not change them.
+    if restarted:
+        current["models"] = [m.model_dump(mode="json") for m in manifest.models]
+    elif "models" not in current:
+        built = _read(project, BUILT_FILE)
+        current["models"] = built.get(
+            "models", [m.model_dump(mode="json") for m in manifest.models]
+        )
     current["apps"] = {
         a.id: {"visibility": a.visibility, "rules": [r.model_dump(mode="json") for r in a.rules]}
         for a in manifest.apps
@@ -236,6 +250,18 @@ def pending_changes(project: Project, manifest: Manifest, agents: dict[str, Any]
                         applies="next run",
                     )
                 )
+    models_live = applied.get("models", built.get("models", []))
+    if models_live != now.get("models", []):
+        out.append(
+            Change(
+                kind="system",
+                target="models",
+                what="Model routes changed",
+                before=models_live,
+                after=now.get("models", []),
+                applies="restart",
+            )
+        )
     last_grants = cast(dict[str, Any], applied.get("grants") or {})
     for agent, last in sorted(last_grants.items()):
         if agent in agents and agents[agent] != last:

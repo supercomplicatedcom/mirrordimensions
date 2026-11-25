@@ -101,7 +101,9 @@ def draft_agent(project: Project, name: str, fields: dict[str, Any] | None = Non
     if existing is not None:
         return existing
     Agent.model_validate({"name": name, "mode": "hosted", "status": "draft", "step": 1})
-    data = {"name": name, "status": "draft", "step": 1, **(fields or {})}
+    # A draft is a valid agent file from the start (hosted until step 1 says otherwise), so
+    # it is listed as "draft, step N of 6" while onboarding is under way.
+    data = {"name": name, "mode": "hosted", "status": "draft", "step": 1, **(fields or {})}
     write_text(_path(project, name), _dump(data))
     return AgentDraft(name=name, step=1, fields=data, path=str(_path(project, name)))
 

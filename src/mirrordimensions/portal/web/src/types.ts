@@ -315,3 +315,58 @@ export interface TryResult {
   body: string;
   from_rule: boolean;
 }
+
+export interface WorldEntry {
+  folder: string;
+  name: string;
+  company: string;
+  state: string;
+  current: boolean;
+}
+
+export interface WorldDraft {
+  seed: number;
+  attempt: number;
+  company: { name: string; domain: string; industry: string } | null;
+  template: string | null;
+  systems: string[] | null;
+  people: number | null;
+  history: number | null;
+  tidiness: "tidy" | "realistic" | "messy";
+  links: Record<string, boolean>;
+  data: Record<string, number>;
+  step: number;
+}
+
+export interface WorldDraftView {
+  folder: string;
+  step: number;
+  draft: WorldDraft;
+  company: { name: string; domain: string; industry: string };
+  systems: { id: string; kind: string; product: string | null; hostname: string; note: string }[];
+  yaml: string;
+  templates: { name: string; description: string }[];
+  command: string;
+}
+
+export interface AgentDraft {
+  name: string;
+  step: number;
+  fields: Record<string, unknown>;
+  path: string;
+}
+
+export interface PreflightCheck {
+  name: string;
+  outcome: "pass" | "fail" | "n/a";
+  detail: string;
+  fix: string;
+}
+
+export interface RoleDefaults {
+  role: string;
+  person: { username: string; name: string; title: string };
+  grants: Record<string, { repos?: Record<string, string>; channels?: string[]; tools?: string[] }>;
+  lines: string[];
+  options: { app_id: string; label: string; key: string; levels: string[]; names: string[] }[];
+}

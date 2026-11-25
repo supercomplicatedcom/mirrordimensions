@@ -252,7 +252,7 @@ class _Run:
                 {ip: self.agent.name for ip in agent_clients(self.plan, self.agent)},
             )
             changes_svc.record_applied(
-                self.project, self.manifest, self.agent.name, self.agent.grants
+                self.project, self.manifest, self.agent.name, self.agent.grants, restarted=False
             )
             seconds = world_svc.restore(self.project, docker, self.plan)
             self.collector.emit(

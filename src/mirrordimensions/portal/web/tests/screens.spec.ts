@@ -215,3 +215,80 @@ test("System: every endpoint with its input and output, and a rule saved from th
   await form.getByRole("button", { name: "Remove rule repo-search" }).click();
   await expect(page.getByRole("row", { name: /GET \/api\/v1\/repos\/search/ })).toContainText("Preconfigured");
 });
+
+test("World wizard: six steps write mirror.yaml as they go, as the command line would", async ({ page }) => {
+  await page.goto("/environment");
+  await page.getByRole("link", { name: "Switch or define a world" }).click();
+  await expect(page.getByRole("heading", { name: "Worlds", level: 1 })).toBeVisible();
+  await expect(page.getByRole("row", { name: /northfield-ops/ })).toContainText("Served now");
+  await accessible(page);
+  await page.getByRole("link", { name: "Define a new world" }).click();
+  await page.getByLabel(/Folder/).fill("acme-ops");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByRole("heading", { name: "How do you want to start?" })).toBeVisible();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { name: "The company" })).toBeVisible();
+  const yaml = page.getByRole("complementary", { name: /mirror.yaml/ });
+  await expect(yaml).toContainText("status: draft");
+  await page.getByLabel("Company name").fill("Halvorsen Freight");
+  await page.getByLabel(/Domain/).fill("halvorsen-freight.com");
+  await page.getByLabel("People").fill("40");
+  await page.getByRole("radio", { name: "Messy" }).check();
+  await accessible(page);
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { name: "The systems attached to it" })).toBeVisible();
+  await expect(page.getByRole("row", { name: /code hosting/i })).toContainText("git.halvorsen-freight.com");
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByLabel("Issues", { exact: true }).fill("90");
+  await page.getByLabel(/announced in a chat channel/).uncheck();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { name: "Review what will be created" })).toBeVisible();
+  await expect(page.getByText("Halvorsen Freight (halvorsen-freight.com), 40 people, 180 days of history, messy data")).toBeVisible();
+  await expect(yaml).toContainText("issues: 90");
+  await expect(yaml).toContainText("--no-announce");
+  await page.getByRole("button", { name: "Looks right" }).click();
+  await expect(page.getByRole("button", { name: "Create world" })).toBeVisible(); // not pressed: it would build a real world
+  await accessible(page);
+  // The draft is listed, and resumes where it was left.
+  await page.goto("/worlds");
+  await page.getByRole("link", { name: "Continue defining acme-ops" }).click();
+  await expect(page.getByRole("heading", { name: /Review|Create/ }).first()).toBeVisible();
+});
+
+test("Onboarding: an agent in six steps, from the role's usual access", async ({ page }) => {
+  await page.goto("/agents");
+  await page.getByRole("link", { name: "Onboard an agent" }).click();
+  await page.getByLabel(/Name/).fill("ops-helper");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByRole("heading", { name: "How does the agent connect?" })).toBeVisible();
+  await page.getByLabel(/Container image/).fill("ops-helper:1.0");
+  await accessible(page);
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("radio", { name: /No model/ }).check();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { name: "Who does it act as?" })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("An account is issued");
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { name: "What can it reach?" })).toBeVisible();
+  // The role's usual access is filled in: some repository is granted already.
+  const grants = page.locator('select[aria-label^="Grant on"]');
+  await expect(grants.first()).toBeVisible();
+  const levels = await grants.evaluateAll((all) => all.map((el) => (el as HTMLSelectElement).value));
+  expect(levels.some((v) => v !== "none")).toBe(true);
+  await page.getByLabel("Grant on #incidents").selectOption("member");
+  await accessible(page);
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByLabel("Command to run").fill("python /opt/helper/run.py");
+  const file = page.getByRole("complementary", { name: /agents\/ops-helper.yaml/ });
+  await page.getByRole("button", { name: "Check and finish" }).click();
+  await expect(page.getByRole("heading", { name: "Is it ready?" })).toBeVisible();
+  await expect(file).toContainText("python");
+  await expect(file).not.toContainText("status: draft");
+  await accessible(page);
+  await page.getByRole("link", { name: "Save and close" }).click();
+  await expect(page.getByRole("row", { name: /ops-helper/ })).toContainText("Ready");
+  // Leave the fixture as it was.
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: "Remove ops-helper" }).click();
+  await expect(page.getByRole("row", { name: /ops-helper/ })).toBeHidden();
+});

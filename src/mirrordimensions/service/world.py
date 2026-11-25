@@ -371,6 +371,12 @@ def create_world(
     from mirrordimensions.service import worlddef
 
     manifest = _manifest(project)
+    if manifest.status == "draft":
+        raise MirrorError(
+            "The world's definition is still a draft.",
+            "Its wizard has not finished: mirror.yaml says status: draft.",
+            "Finish it: mirror world new (or the portal's Worlds page)",
+        )
     record_path = project.state_dir / "create.json"
     record: dict[str, Any] = (
         json.loads(record_path.read_text(encoding="utf-8")) if record_path.is_file() else {}

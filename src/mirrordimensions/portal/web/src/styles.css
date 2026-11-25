@@ -74,7 +74,7 @@ button.small { min-height: 36px; padding: 0 12px; }
 button[aria-pressed="true"] { background: var(--accent-tint); border-color: var(--accent); color: var(--accent-text); }
 button:disabled { opacity: 0.55; cursor: not-allowed; }
 
-select, input[type="search"], input[type="text"] {
+select, input[type="search"], input[type="text"], input[type="number"] {
   min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border-strong);
   background: var(--surface); color: var(--text); font: inherit;
 }
@@ -172,6 +172,26 @@ table.surfaces .tag { white-space: normal; }
 .narrow dl.facts { grid-template-columns: 1fr; gap: 2px; }
 .narrow dl.facts dt { font-size: 12px; margin-top: 8px; }
 .narrow dl.facts dt:first-child { margin-top: 0; }
+
+/* Wizards */
+ol.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+ol.steps button { min-height: 40px; font-weight: 500; }
+ol.steps button.done { border-color: var(--accent); color: var(--accent-text); }
+ol.steps button.now { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.wizard { display: flex; flex-direction: column; gap: 14px; }
+.wizard .field input, .wizard .field select { min-width: 260px; }
+.options { display: flex; flex-wrap: wrap; gap: 10px; }
+.option { flex: 1 1 220px; display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--border-strong); border-radius: 10px; padding: 12px 14px; cursor: pointer; background: var(--surface); }
+.option:has(input:checked) { border-color: var(--accent); background: var(--accent-tint); }
+.option:has(input:disabled) { opacity: 0.6; cursor: not-allowed; }
+.option input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+.option .meta { display: block; font-size: 13px; color: var(--text-2); margin-top: 2px; }
+.wizard-nav { display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+pre.yaml { background: var(--term); color: var(--term-text); border-radius: 8px; padding: 12px; font: 12px/18px var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 560px; overflow: auto; margin: 0; }
+ol.stages { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+ol.stages li { display: flex; gap: 10px; align-items: baseline; }
+.sidebar .world { padding: 0 12px 12px; font-size: 13px; color: var(--text-2); display: flex; flex-direction: column; gap: 2px; }
+.sidebar .world a { padding: 0; min-height: 0; display: inline; color: var(--accent); }
 
 /* The live view */
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
