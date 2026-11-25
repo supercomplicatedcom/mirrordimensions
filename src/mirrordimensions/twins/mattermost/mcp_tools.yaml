@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# The MCP tools Mattermost can serve when an imported MCP server offers a tool by this name
+# (decision 0025). `app: self` is the Mattermost system that backs the server.
+auth: Bearer
+tools:
+  post_message:
+    access: write
+    resource: "channel:{channel}"
+    sentence: "Posts in #{channel}"
+    steps:
+      - {app: self, method: GET, path: /api/v4/users/me/teams}
+      - {app: self, method: GET, path: "/api/v4/teams/{$0.0.id}/channels/name/{channel}"}
+      - {app: self, method: POST, path: /api/v4/posts,
+         body: {channel_id: "{$1.id}", message: "{message}"}}
+  reply_in_thread:
+    access: write
+    resource: "post:{post_id}"
+    sentence: Replies in a thread
+    steps:
+      - {app: self, method: GET, path: "/api/v4/posts/{post_id}"}
+      - {app: self, method: POST, path: /api/v4/posts,
+         body: {channel_id: "{$0.channel_id}", root_id: "{post_id}", message: "{message}"}}

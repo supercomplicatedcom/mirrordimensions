@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# The MCP tools Gitea can serve when an imported MCP server offers a tool by this name
+# (decision 0025). `app: self` is the Gitea system that backs the server; the arguments in
+# braces must be in the imported tool's input schema for the tool to map.
+auth: token
+tools:
+  search_issues:
+    access: read
+    sentence: Searches the issues assigned to it
+    steps:
+      - {app: self, method: GET, path: /api/v1/repos/issues/search,
+         query: {assigned: "true", type: issues, state: "{state|open}", limit: "{limit|20}"}}
+  get_issue:
+    access: read
+    resource: "issue:{owner}/{repo}#{number}"
+    sentence: "Reads issue #{number} in {repo}"
+    steps:
+      - {app: self, method: GET, path: "/api/v1/repos/{owner}/{repo}/issues/{number}"}
+  add_issue_comment:
+    access: write
+    resource: "issue:{owner}/{repo}#{number}"
+    sentence: "Comments on issue #{number} in {repo}"
+    steps:
+      - {app: self, method: POST, path: "/api/v1/repos/{owner}/{repo}/issues/{number}/comments",
+         body: {body: "{body}"}}
+  list_issue_comments:
+    access: read
+    resource: "issue:{owner}/{repo}#{number}"
+    sentence: "Reads the comments on issue #{number} in {repo}"
+    steps:
+      - {app: self, method: GET, path: "/api/v1/repos/{owner}/{repo}/issues/{number}/comments"}
+  close_issue:
+    access: write
+    resource: "issue:{owner}/{repo}#{number}"
+    sentence: "Closes issue #{number} in {repo}"
+    steps:
+      - {app: self, method: PATCH, path: "/api/v1/repos/{owner}/{repo}/issues/{number}", body: {state: closed}}
+  get_file_contents:
+    access: read
+    resource: "file:{owner}/{repo}/{path}"
+    sentence: "Reads {path} in {repo}"
+    steps:
+      - {app: self, method: GET, path: "/api/v1/repos/{owner}/{repo}/raw/{path}"}
+  update_file:
+    access: write
+    resource: "file:{owner}/{repo}/{path}"
+    sentence: "Commits a change to {path} in {repo}"
+    steps:
+      - {app: self, method: GET, path: "/api/v1/repos/{owner}/{repo}/contents/{path}", query: {ref: "{branch|main}"}}
+      - {app: self, method: PUT, path: "/api/v1/repos/{owner}/{repo}/contents/{path}",
+         body: {content: "{content!b64}", sha: "{$0.sha}", message: "{message}", branch: "{branch|main}", new_branch: "{new_branch|}"}}
+  create_pull_request:
+    access: write
+    resource: "repo:{owner}/{repo}"
+    sentence: "Opens a pull request in {repo}"
+    steps:
+      - {app: self, method: POST, path: "/api/v1/repos/{owner}/{repo}/pulls",
+         body: {title: "{title}", head: "{head}", base: main, body: "{body|}"}}

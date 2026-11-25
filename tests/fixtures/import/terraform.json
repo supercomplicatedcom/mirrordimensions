@@ -1,0 +1,69 @@
+{
+  "format_version": "1.0",
+  "terraform_version": "1.9.8",
+  "values": {
+    "outputs": {
+      "db_endpoint": {"value": "orders-db.c9akq1xw2hz4.eu-west-1.rds.amazonaws.com:5432", "type": "string", "sensitive": false},
+      "db_password": {"value": "Tr0ub4dor-northfield-77", "type": "string", "sensitive": true}
+    },
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_route53_record.git", "mode": "managed", "type": "aws_route53_record", "name": "git",
+          "provider_name": "registry.terraform.io/hashicorp/aws", "schema_version": 2,
+          "values": {"name": "git.northfield-logistics.com", "type": "CNAME", "ttl": 300, "records": ["lb-git.northfield-logistics.com"]},
+          "sensitive_values": {"records": [false]}
+        },
+        {
+          "address": "aws_route53_record.chat", "mode": "managed", "type": "aws_route53_record", "name": "chat",
+          "provider_name": "registry.terraform.io/hashicorp/aws", "schema_version": 2,
+          "values": {"name": "chat.northfield-logistics.com", "type": "CNAME", "ttl": 300, "records": ["lb-chat.northfield-logistics.com"]},
+          "sensitive_values": {"records": [false]}
+        },
+        {
+          "address": "aws_sqs_queue.events", "mode": "managed", "type": "aws_sqs_queue", "name": "events",
+          "provider_name": "registry.terraform.io/hashicorp/aws", "schema_version": 0,
+          "values": {"name": "shipment-events", "fifo_queue": false, "visibility_timeout_seconds": 30},
+          "sensitive_values": {}
+        },
+        {
+          "address": "aws_iam_access_key.deploy", "mode": "managed", "type": "aws_iam_access_key", "name": "deploy",
+          "provider_name": "registry.terraform.io/hashicorp/aws", "schema_version": 0,
+          "values": {"id": "AKIAZ7QX3NORTHFIELD1", "secret": "wJ9pQe2Lr7Vt4Ky8Nc3Hs6Bd1Mf5Gz0XaUoTiRe", "status": "Active", "user": "deploy-bot"},
+          "sensitive_values": {"secret": true}
+        },
+        {
+          "address": "gitea_user.release_manager", "mode": "managed", "type": "gitea_user", "name": "release_manager",
+          "provider_name": "registry.terraform.io/go-gitea/gitea", "schema_version": 0,
+          "values": {"username": "priya.raman", "login_name": "priya.raman", "email": "priya.raman@northfield-logistics.com", "full_name": "Priya Raman", "password": "Harbor-Kestrel-2291"},
+          "sensitive_values": {"password": true}
+        }
+      ],
+      "child_modules": [
+        {
+          "address": "module.orders",
+          "resources": [
+            {
+              "address": "module.orders.aws_db_instance.main", "mode": "managed", "type": "aws_db_instance", "name": "main",
+              "provider_name": "registry.terraform.io/hashicorp/aws", "schema_version": 2,
+              "values": {"identifier": "orders-db", "engine": "postgres", "engine_version": "16.4", "username": "orders_admin", "password": "Tr0ub4dor-northfield-77", "instance_class": "db.t4g.medium"},
+              "sensitive_values": {"password": true}
+            },
+            {
+              "address": "module.orders.aws_s3_bucket.labels", "mode": "managed", "type": "aws_s3_bucket", "name": "labels",
+              "provider_name": "registry.terraform.io/hashicorp/aws", "schema_version": 0,
+              "values": {"bucket": "northfield-shipping-labels", "tags": {"team": "fulfilment"}},
+              "sensitive_values": {"tags": {}}
+            },
+            {
+              "address": "module.orders.gitea_repository.orders", "mode": "managed", "type": "gitea_repository", "name": "orders",
+              "provider_name": "registry.terraform.io/go-gitea/gitea", "schema_version": 0,
+              "values": {"name": "orders-service", "username": "fulfilment", "private": true},
+              "sensitive_values": {}
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

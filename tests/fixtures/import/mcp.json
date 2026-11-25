@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "eng-tools": {
+      "type": "http",
+      "url": "https://mcp.northfield-logistics.com/mcp",
+      "headers": {"Authorization": "Bearer ${ENG_TOOLS_TOKEN}"}
+    },
+    "gitea": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "GITEA_HOST", "-e", "GITEA_ACCESS_TOKEN", "docker.gitea.com/gitea-mcp-server"],
+      "env": {
+        "GITEA_HOST": "https://git.northfield-logistics.com",
+        "GITEA_ACCESS_TOKEN": "3f9c2a7be41d8806c5f1e2a9b7d43c6e8f0a1b2c"
+      }
+    },
+    "mattermost": {
+      "command": "npx",
+      "args": ["-y", "@northfield/mcp-server-mattermost"],
+      "env": {
+        "MATTERMOST_URL": "https://chat.northfield-logistics.com",
+        "MATTERMOST_TOKEN": "k7wq3n9xpb1rz5tm8dhy2fcs6a"
+      }
+    }
+  }
+}

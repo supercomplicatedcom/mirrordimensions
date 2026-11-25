@@ -105,6 +105,7 @@ Tools that start runs or edit the world need `confirm=true`, and nothing destruc
 | --- | --- |
 | `mirror engine setup\|check\|status\|start\|stop\|update\|destroy` | The engine. On macOS a Lima VM on Apple's Virtualization.framework; on Linux a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor on the host. Windows is not yet enabled. The engine installs updates only when you run `mirror engine update` |
 | `mirror world new\|create\|show\|status\|clone\|destroy` | Define a world and create it |
+| `mirror world import <file>...`, then `show`, `decide <subject> <value>`, `apply`, `discard` | Describe the world from your own files, read in place on this computer: the agent's MCP configuration and exported tool lists, OpenAPI specifications, Terraform state (`terraform show -json`). Secrets and people are never kept; disagreements between files are settled before anything is written (decision 0025) |
 | `mirror reset`, `mirror snapshot save\|list` | Back to a snapshot, exactly, in about ten seconds |
 | `mirror up`, `mirror down`, `mirror doctor` | The sealed network, and its egress, separation, inside-out, naming, transparency and capture checks |
 | `mirror agent add\|new\|list\|check\|creds\|rm` | Agents under test |

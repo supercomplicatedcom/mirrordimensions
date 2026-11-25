@@ -1,0 +1,23 @@
+openapi: 3.1.0
+info:
+  title: Payments API
+  version: 2.4.0
+  contact:
+    name: Priya Raman
+    email: priya.raman@northfield-logistics.com
+servers:
+  - url: https://{region}.payments.northfield-logistics.com/v2
+    variables:
+      region: {default: eu, enum: [eu, us]}
+paths:
+  /charges:
+    get: {operationId: listCharges, summary: List charges, responses: {"200": {description: OK}}}
+    post: {operationId: createCharge, summary: Create a charge, responses: {"201": {description: Created}}}
+  /charges/{id}:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: string}}
+    get: {operationId: getCharge, summary: Get a charge, responses: {"200": {description: OK}}}
+  /refunds:
+    post: {operationId: createRefund, summary: Refund a charge, responses: {"201": {description: Created}}}
+  /payouts:
+    get: {operationId: listPayouts, summary: List payouts, responses: {"200": {description: OK}}}
