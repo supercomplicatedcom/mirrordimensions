@@ -240,6 +240,12 @@ class _Run:
         handle = None
         stopped, errored = False, False
         try:
+            if self.agent.mode == "remote":
+                raise MirrorError(
+                    f"{self.agent.name} runs on its vendor's platform.",
+                    "Runs of remote agents through the ingress arrive in M7.5's second part.",
+                    "Expose the world for it meanwhile: mirror world expose",
+                )
             self._check_reach()
             self._check_nothing_waits()
             if not self._isolation():

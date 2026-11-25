@@ -20,11 +20,16 @@ from __future__ import annotations
 
 import base64
 import contextlib
+import hashlib
+import hmac
+import html
 import json
 import os
 import re
+import secrets
 import ssl
 import threading
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -192,6 +197,47 @@ def visible_tools(config: dict[str, Any], caller: dict[str, Any]) -> list[dict[s
 # -- HTTP --------------------------------------------------------------------------------
 
 
+# -- OAuth 2.1 for remote clients (decision 0024) -----------------------------------------
+#
+# When the world is exposed, config["oauth"] holds the issuer (the public address), the
+# company's name and, for the one person the agent acts as, a salted password hash and the
+# MCP token to issue. Registered clients and codes live in memory: a restart makes a client
+# register again, as production servers that rotate their stores do.
+
+CODE_TTL = 600
+ACCESS_TTL = 3600
+
+
+class OAuthState:
+    def __init__(self) -> None:
+        self.lock = threading.Lock()
+        self.clients: dict[str, dict[str, Any]] = {}
+        self.codes: dict[str, dict[str, Any]] = {}
+        self.refresh: dict[str, str] = {}  # refresh token -> username
+
+
+def s256(verifier: str) -> str:
+    digest = hashlib.sha256(verifier.encode()).digest()
+    return base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+
+
+def password_ok(person: dict[str, Any], password: str) -> bool:
+    digest = hashlib.sha256((str(person["salt"]) + password).encode()).hexdigest()
+    return hmac.compare_digest(digest, str(person["sha256"]))
+
+
+SIGN_IN = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · {company}</title>
+<style>body{{font-family:system-ui,sans-serif;background:#f4f5f7;margin:0}}main{{max-width:360px;margin:12vh auto;background:#fff;border:1px solid #dcdfe4;border-radius:8px;padding:28px}}h1{{font-size:20px;margin:0 0 4px}}p{{color:#555;margin:0 0 18px;font-size:14px}}label{{display:block;font-size:14px;margin:12px 0 4px}}input{{width:100%;box-sizing:border-box;padding:9px;border:1px solid #c4c8cf;border-radius:6px;font-size:15px}}button{{margin-top:18px;width:100%;padding:10px;background:#1f4fd1;color:#fff;border:0;border-radius:6px;font-size:15px}}.error{{color:#a3261b}}</style>
+</head><body><main><h1>{company}</h1><p>Sign in to allow <b>{client}</b> to use your tools.</p>{message}
+<form method="post" action="/authorize">{hidden}
+<label for="username">Username</label><input id="username" name="username" autocomplete="username" required>
+<label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+<button type="submit">Sign in</button></form></main></body></html>
+"""
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "uvicorn"
     sys_version = ""
@@ -199,6 +245,7 @@ class Handler(BaseHTTPRequestHandler):
     config: Config
     sessions: dict[str, str]  # legacy session id -> negotiated version
     context: ssl.SSLContext
+    oauth: OAuthState
 
     def version_string(self) -> str:
         return self.server_version  # exactly "uvicorn", as the production server sends
@@ -222,12 +269,223 @@ class Handler(BaseHTTPRequestHandler):
     def _not_found(self) -> None:
         self._send(404, {"detail": "Not Found"})
 
+    def _html(self, status: int, page: str) -> None:
+        payload = page.encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def _form(self) -> dict[str, str]:
+        length = int(self.headers.get("Content-Length") or 0)
+        raw = self.rfile.read(length).decode("utf-8", "replace") if length else ""
+        return {k: v[0] for k, v in urllib.parse.parse_qs(raw, keep_blank_values=True).items()}
+
+    # OAuth (decision 0024)
+
+    def _oauth_get(self, oauth: dict[str, Any], path: str) -> bool:
+        issuer = str(oauth["issuer"])
+        if path.startswith("/.well-known/oauth-protected-resource"):
+            self._send(
+                200,
+                {
+                    "resource": f"{issuer}{self.config.get()['endpoint']}",
+                    "authorization_servers": [issuer],
+                    "bearer_methods_supported": ["header"],
+                },
+            )
+            return True
+        if path in ("/.well-known/oauth-authorization-server", "/.well-known/openid-configuration"):
+            self._send(
+                200,
+                {
+                    "issuer": issuer,
+                    "authorization_endpoint": f"{issuer}/authorize",
+                    "token_endpoint": f"{issuer}/token",
+                    "registration_endpoint": f"{issuer}/register",
+                    "response_types_supported": ["code"],
+                    "grant_types_supported": ["authorization_code", "refresh_token"],
+                    "code_challenge_methods_supported": ["S256"],
+                    "token_endpoint_auth_methods_supported": ["none"],
+                    "scopes_supported": ["mcp"],
+                },
+            )
+            return True
+        if path == "/authorize":
+            query = {
+                k: v[0]
+                for k, v in urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).items()
+            }
+            self._authorize_page(oauth, query, "")
+            return True
+        return False
+
+    def _request_problem(self, query: dict[str, str]) -> str:
+        client = self.oauth.clients.get(query.get("client_id", ""))
+        if client is None:
+            return "This application is not registered."
+        if query.get("redirect_uri") not in client["redirect_uris"]:
+            return "The redirect address does not match the application's registration."
+        if query.get("response_type") != "code":
+            return "Unsupported response type."
+        if not query.get("code_challenge") or query.get("code_challenge_method") != "S256":
+            return "A PKCE code challenge (S256) is required."
+        return ""
+
+    def _authorize_page(self, oauth: dict[str, Any], query: dict[str, str], message: str) -> None:
+        problem = self._request_problem(query)
+        company = html.escape(str(oauth.get("company", "")))
+        if problem:
+            self._html(400, f"<!doctype html><title>{company}</title><p>{html.escape(problem)}</p>")
+            return
+        client = self.oauth.clients[query["client_id"]]
+        hidden = "".join(
+            f'<input type="hidden" name="{html.escape(k)}" value="{html.escape(v)}">'
+            for k, v in query.items()
+            if k
+            in (
+                "client_id",
+                "redirect_uri",
+                "response_type",
+                "code_challenge",
+                "code_challenge_method",
+                "state",
+                "scope",
+                "resource",
+            )
+        )
+        notice = f'<p class="error" role="alert">{html.escape(message)}</p>' if message else ""
+        self._html(
+            200 if not message else 401,
+            SIGN_IN.format(
+                company=company,
+                client=html.escape(str(client.get("client_name") or "this application")),
+                message=notice,
+                hidden=hidden,
+            ),
+        )
+
+    def _oauth_post(self, oauth: dict[str, Any], path: str) -> bool:
+        if path == "/register":
+            length = int(self.headers.get("Content-Length") or 0)
+            try:
+                body = json.loads(self.rfile.read(length) or b"{}")
+            except ValueError:
+                body = None
+            uris = body.get("redirect_uris") if isinstance(body, dict) else None
+            if not isinstance(uris, list) or not uris or not all(isinstance(u, str) for u in uris):
+                self._send(
+                    400,
+                    {
+                        "error": "invalid_redirect_uri",
+                        "error_description": "redirect_uris is required",
+                    },
+                )
+                return True
+            client_id = secrets.token_urlsafe(18)
+            client = {
+                "client_id": client_id,
+                "client_id_issued_at": int(time.time()),
+                "client_name": str(body.get("client_name") or ""),
+                "redirect_uris": uris,
+                "grant_types": ["authorization_code", "refresh_token"],
+                "response_types": ["code"],
+                "token_endpoint_auth_method": "none",
+            }
+            with self.oauth.lock:
+                self.oauth.clients[client_id] = client
+            self._send(201, client)
+            return True
+        if path == "/authorize":
+            form = self._form()
+            problem = self._request_problem(form)
+            if problem:
+                self._authorize_page(oauth, form, "")
+                return True
+            person = oauth["people"].get(form.get("username", ""))
+            if person is None or not password_ok(person, form.get("password", "")):
+                self._authorize_page(oauth, form, "Incorrect username or password.")
+                return True
+            code = secrets.token_urlsafe(24)
+            with self.oauth.lock:
+                self.oauth.codes[code] = {
+                    "client_id": form["client_id"],
+                    "redirect_uri": form["redirect_uri"],
+                    "challenge": form["code_challenge"],
+                    "username": form["username"],
+                    "expires": time.time() + CODE_TTL,
+                }
+            target = form["redirect_uri"]
+            joiner = "&" if "?" in target else "?"
+            params = {"code": code, **({"state": form["state"]} if form.get("state") else {})}
+            self.send_response(302)
+            self.send_header("Location", target + joiner + urllib.parse.urlencode(params))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return True
+        if path == "/token":
+            form = self._form()
+            self._token(oauth, form)
+            return True
+        return False
+
+    def _token(self, oauth: dict[str, Any], form: dict[str, str]) -> None:
+        def fail(error: str, why: str) -> None:
+            self._send(
+                400, {"error": error, "error_description": why}, {"Cache-Control": "no-store"}
+            )
+
+        grant = form.get("grant_type")
+        if grant == "authorization_code":
+            with self.oauth.lock:
+                entry = self.oauth.codes.pop(form.get("code", ""), None)
+            if entry is None or entry["expires"] < time.time():
+                return fail("invalid_grant", "The authorization code is invalid or expired")
+            if (
+                form.get("client_id") != entry["client_id"]
+                or form.get("redirect_uri") != entry["redirect_uri"]
+            ):
+                return fail("invalid_grant", "The code was issued to another client")
+            if not hmac.compare_digest(s256(form.get("code_verifier", "")), entry["challenge"]):
+                return fail("invalid_grant", "The code verifier does not match")
+            username = entry["username"]
+        elif grant == "refresh_token":
+            with self.oauth.lock:
+                username = self.oauth.refresh.get(form.get("refresh_token", ""), "")
+            if not username:
+                return fail("invalid_grant", "The refresh token is invalid")
+        else:
+            return fail("unsupported_grant_type", "Use authorization_code or refresh_token")
+        person = oauth["people"].get(username)
+        if person is None:
+            return fail("invalid_grant", "The account is no longer allowed")
+        refresh = secrets.token_urlsafe(32)
+        with self.oauth.lock:
+            self.oauth.refresh[refresh] = username
+        self._send(
+            200,
+            {
+                "access_token": person["token"],
+                "token_type": "Bearer",
+                "expires_in": ACCESS_TTL,
+                "refresh_token": refresh,
+                "scope": "mcp",
+            },
+            {"Cache-Control": "no-store", "Pragma": "no-cache"},
+        )
+
     # routing
 
     def _endpoint(self) -> bool:
         return urllib.parse.urlsplit(self.path).path == self.config.get()["endpoint"]
 
     def do_GET(self) -> None:
+        oauth = self.config.get().get("oauth")
+        if oauth and self._oauth_get(oauth, urllib.parse.urlsplit(self.path).path):
+            return None
         if not self._endpoint():
             return self._not_found()
         self._send(405, None, {"Allow": "POST"})
@@ -241,6 +499,9 @@ class Handler(BaseHTTPRequestHandler):
         self._send(405, None, {"Allow": "POST"})
 
     def do_POST(self) -> None:
+        oauth = self.config.get().get("oauth")
+        if oauth and self._oauth_post(oauth, urllib.parse.urlsplit(self.path).path):
+            return None
         if not self._endpoint():
             return self._not_found()
         config = self.config.get()
@@ -257,10 +518,14 @@ class Handler(BaseHTTPRequestHandler):
         auth = self.headers.get("Authorization", "")
         caller = config["tokens"].get(auth[7:]) if auth.startswith("Bearer ") else None
         if caller is None:
+            challenge = 'Bearer error="invalid_token"'
+            if config.get("oauth"):
+                metadata = f"{config['oauth']['issuer']}/.well-known/oauth-protected-resource"
+                challenge += f', resource_metadata="{metadata}"'
             return self._send(
                 401,
                 {"error": "invalid_token", "error_description": "Missing or invalid access token"},
-                {"WWW-Authenticate": 'Bearer error="invalid_token"'},
+                {"WWW-Authenticate": challenge},
             )
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length) if length else b""
@@ -439,6 +704,7 @@ def main() -> None:
     Handler.config = Config(CONFIG)
     Handler.sessions = {}
     Handler.context = context
+    Handler.oauth = OAuthState()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)  # noqa: S104 (the system network)
     server.daemon_threads = True
     server.serve_forever()

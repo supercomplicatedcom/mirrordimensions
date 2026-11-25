@@ -46,6 +46,10 @@ IMAGES = {
 }
 
 LAN, APPS, UPLINK = "corp-lan", "corp-apps", "corp-uplink"
+# Remote agents (decision 0024): the ingress and the exposed MCP fronts, nothing else.
+INGRESS = "corp-dmz"
+INGRESS_NAME = "lb-01"
+INGRESS_PORT = 8080  # on the ingress's own loopback only; the relay reaches it from inside
 LABEL = "com.mirrordimensions.world"  # labels are not visible inside containers
 
 
@@ -64,12 +68,18 @@ class Address:
     gw_lan: str = "10.40.0.10"
     gw_apps: str = "10.41.0.10"
     gw_uplink: str = "10.42.0.10"
+    ingress_subnet: str = "10.43.0.0/24"
+    ingress_gw: str = "10.43.0.1"
+    ingress_ip: str = "10.43.0.10"
 
     def app_ip(self, index: int) -> str:
         return f"10.41.0.{21 + index}"
 
     def db_ip(self, index: int) -> str:
         return f"10.41.0.{121 + index}"
+
+    def ingress_app_ip(self, index: int) -> str:
+        return f"10.43.0.{21 + index}"
 
 
 @dataclass
@@ -86,6 +96,8 @@ class App:
     rules: list[dict[str, object]] = field(default_factory=list[dict[str, object]])
     kind: str | None = None
     tools: Toolset | None = None  # kind mcp-server: loaded when the plan knows its project
+    remote: str | None = None  # the public hostname it is exposed at (decision 0024)
+    ingress_ip: str = ""  # its address on the ingress network, when exposed
 
     @property
     def is_mcp(self) -> bool:
@@ -136,6 +148,11 @@ class Plan:
     addr: Address = field(default_factory=Address)
     models: list[ModelPlan] = field(default_factory=list[ModelPlan])
     ca_pem: bytes = b""  # the install root, for services in the world that call each other
+
+    @property
+    def exposed(self) -> list[App]:
+        """MCP servers exposed to remote agents through the ingress (decision 0024)."""
+        return [a for a in self.apps if a.is_mcp and a.remote and a.visibility != "absent"]
 
     @property
     def resolvable(self) -> list[str]:
@@ -201,6 +218,8 @@ def plan_from(manifest: Manifest, root: Path | None = None) -> Plan:
             settings=dict(a.settings),
             rules=[r.model_dump(exclude_none=True) for r in a.rules],
             kind=a.kind,
+            remote=a.remote.hostname if a.remote else None,
+            ingress_ip=addr.ingress_app_ip(i) if a.remote else "",
         )
         for i, a in enumerate(manifest.apps)
         if a.build != "unavailable"  # recorded in the definition, left out of creation
@@ -495,7 +514,72 @@ def specs(
                 labels=label,
             )
         )
+    if plan.exposed:
+        out.append(ingress_spec(plan, secrets, label, edge_py, behavior_py, models_py, mcpcap_py))
     return out
+
+
+def ingress_routes(plan: Plan, secrets: list[str]) -> bytes:
+    """The ingress's routes: each exposed MCP server's public hostname, to that front on the
+    ingress network. Nothing else is routed, so any other name is refused."""
+    routes: dict[str, object] = {}
+    for app in plan.exposed:
+        assert app.remote is not None  # noqa: S101 (exposed means it has one)
+        routes[app.remote.lower()] = {
+            "upstream": f"http://{app.ingress_ip}:{MCP_PORT}",
+            "visibility": "granted",
+            "mcp": {"tools": toolset.gateway_surfaces(app.tools) if app.tools else {}},
+        }
+    return json.dumps({"routes": routes, "secrets": secrets, "seed": plan.seed}, indent=2).encode()
+
+
+def ingress_spec(
+    plan: Plan,
+    secrets: list[str],
+    label: dict[str, str],
+    edge_py: bytes,
+    behavior_py: bytes,
+    models_py: bytes,
+    mcpcap_py: bytes,
+) -> ContainerSpec:
+    """The ingress for remote agents (decision 0024): the gateway's capture code, routing the
+    public hostnames to the exposed MCP fronts. It listens on its own loopback only (the
+    relay reaches it through the Docker API) and sits on the ingress network alone with the
+    fronts, which is internal: no twin, resolver, gateway, agent or route out."""
+    return ContainerSpec(
+        name=INGRESS_NAME,
+        image=IMAGES["gateway"],
+        command=[
+            "mitmdump",
+            "--mode",
+            f"reverse:http://127.0.0.1:9@{INGRESS_PORT}",
+            "--listen-host",
+            "127.0.0.1",
+            "--set",
+            "connection_strategy=lazy",
+            "--set",
+            "keep_host_header=true",
+            "--set",
+            "onboarding=false",
+            "--set",
+            "flow_detail=0",
+            "--set",
+            "termlog_verbosity=error",
+            "-s",
+            "/etc/edge/edge.py",
+        ],
+        networks={INGRESS: plan.addr.ingress_ip},
+        # The image's start-up script sets the user it runs as, as the gateway's does.
+        cap_add=["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE", "FOWNER"],
+        files={
+            "/etc/edge/edge.py": (edge_py, 0o644),
+            "/etc/edge/behavior.py": (behavior_py, 0o644),
+            "/etc/edge/models.py": (models_py, 0o644),
+            "/etc/edge/mcpcap.py": (mcpcap_py, 0o644),
+            ROUTES_PATH: (ingress_routes(plan, secrets), 0o644),
+        },
+        labels=label,
+    )
 
 
 MCP_PORT = 8000
@@ -518,7 +602,8 @@ def mcp_front_spec(
     return ContainerSpec(
         name=app.container,
         image=IMAGES["gateway"],  # an image already in the engine with Python 3
-        networks={APPS: app.ip},
+        # An exposed front also joins the ingress network, its only other member the ingress.
+        networks={APPS: app.ip, **({INGRESS: app.ingress_ip} if app in plan.exposed else {})},
         entrypoint=["python3", MCP_SERVER],
         command=[],
         dns=[plan.addr.apps_dns_ip],
@@ -546,6 +631,8 @@ def up(
     docker.ensure_network(LAN, a.lan_subnet, a.lan_gw, ipv6_subnet=a.lan_v6, labels=label)
     docker.ensure_network(APPS, a.apps_subnet, a.apps_gw, labels=label)
     docker.ensure_network(UPLINK, a.uplink_subnet, a.uplink_gw, labels=label)
+    if plan.exposed:
+        docker.ensure_network(INGRESS, a.ingress_subnet, a.ingress_gw, labels=label, internal=True)
     names: list[str] = []
     for spec in specs(plan, leaves, secrets, app_secrets):
         docker.pull(spec.image, platform=spec.platform)
@@ -598,7 +685,7 @@ def _blank_secrets(plan: Plan) -> dict[str, str]:
 def down(docker: Docker, plan: Plan, purge: bool = False) -> None:
     for spec in specs(plan, [], [], _blank_secrets(plan)):
         docker.remove(spec.name)
-    for net in (LAN, APPS, UPLINK):
+    for net in (LAN, APPS, UPLINK, INGRESS):
         docker.remove_network(net)
     if purge:
         for app in plan.apps:

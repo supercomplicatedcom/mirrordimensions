@@ -43,6 +43,8 @@ PROBE = "ws-0142"
 PROBE_IP = "10.40.0.142"
 APPS_PROBE = "ops-jump-01"
 APPS_PROBE_IP = "10.41.0.142"
+INGRESS_PROBE = "lb-check"
+INGRESS_PROBE_IP = "10.43.0.142"
 EVENT_BUDGET_S = 1.0
 
 # Docker's default masked paths, plus the engine's hardware identity (decision 0010).
@@ -431,6 +433,17 @@ def operator_check(probe: Probe, operator_port: int | None) -> Check:
     )
 
 
+RELAY_PORT = 7480  # `mirror world expose`'s default
+
+
+def relay_check(probe: Probe, relay_port: int | None) -> Check:
+    """The relay into the ingress listens on the host's loopback for the reverse proxy; the
+    sandbox must not reach it either (decision 0024)."""
+    return host_service_check(
+        probe, "The relay into the ingress", "the relay", relay_port, RELAY_PORT
+    )
+
+
 def host_service_check(
     probe: Probe, title: str, noun: str, running: int | None, default: int
 ) -> Check:
@@ -460,6 +473,55 @@ def host_service_check(
         outcome="fail" if reached else "pass",
         detail=", ".join(reached) or f"{what} on 127.0.0.1: unreachable from both",
     )
+
+
+def ingress_suite(plan: Plan, probe: Probe) -> list[Check]:
+    """From the ingress network, only the exposed MCP fronts answer (decision 0024): no
+    twin, database, resolver, gateway, agent-network address, engine or host, and no way
+    out. A probe stands where the ingress stands."""
+    from mirrordimensions.network.sandbox import MCP_PORT
+
+    a = plan.addr
+    fronts = [(app.ingress_ip, MCP_PORT) for app in plan.exposed]
+    closed: list[tuple[str, int]] = [
+        (a.ingress_gw, 22),  # the engine itself, by the bridge's address
+        (a.ingress_gw, 2375),
+        (a.gw_apps, 443),
+        (a.gw_lan, 443),
+        (a.dns_ip, 53),
+        (a.apps_dns_ip, 53),
+        (a.relay_ip, 80),
+        ("1.1.1.1", 443),
+        ("192.168.5.2", 22),  # the host, as Lima's user network names it
+    ]
+    for app in plan.apps:
+        closed.append((app.ip, app.port))
+        if app.db_ip:
+            closed.append((app.db_ip, 5432))
+    reached_closed: list[str] = []
+    for host, port in closed:
+        code, _ = probe.sh(INGRESS_PROBE, f"nc -z -w 2 {host} {port}")
+        if code == 0:
+            reached_closed.append(f"{host}:{port}")
+    unreachable_fronts: list[str] = []
+    for host, port in fronts:
+        code, _ = probe.sh(INGRESS_PROBE, f"nc -z -w 3 {host} {port}")
+        if code != 0:
+            unreachable_fronts.append(f"{host}:{port}")
+    return [
+        Check(
+            suite="egress",
+            name="The ingress reaches only the exposed MCP server",
+            outcome="fail" if reached_closed or unreachable_fronts else "pass",
+            detail=(
+                f"reached {', '.join(reached_closed)}"
+                if reached_closed
+                else f"cannot reach the MCP server at {', '.join(unreachable_fronts)}"
+                if unreachable_fronts
+                else f"{len(closed)} other addresses unreachable; the MCP server answers"
+            ),
+        )
+    ]
 
 
 def separation_suite(plan: Plan, probe: Probe) -> list[Check]:
@@ -793,15 +855,22 @@ def run_doctor(
     latency_budget_ms: float = LATENCY_BUDGET_MS,
     portal_port: int | None = None,
     operator_port: int | None = None,
+    relay_port: int | None = None,
 ) -> DoctorReport:
     probe = Probe(docker, ca_pem)
     probe.start(PROBE, LAN, PROBE_IP, [plan.addr.dns_ip])
     probe.start(APPS_PROBE, APPS, APPS_PROBE_IP, None)
+    if plan.exposed:
+        from mirrordimensions.network.sandbox import INGRESS
+
+        probe.start(INGRESS_PROBE, INGRESS, INGRESS_PROBE_IP, None)
     try:
         checks = [
             *egress_suite(plan, probe, collector, twin_fetch),
             portal_check(probe, portal_port),
             operator_check(probe, operator_port),
+            *(ingress_suite(plan, probe) if plan.exposed else []),
+            *([relay_check(probe, relay_port)] if plan.exposed else []),
             *separation_suite(plan, probe),
             *inside_out_suite(plan, probe, docker),
             *naming_suite(plan, probe),
@@ -809,7 +878,7 @@ def run_doctor(
             *capture_suite(plan, probe, collector),
         ]
     finally:
-        probe.stop(PROBE, APPS_PROBE)
+        probe.stop(PROBE, APPS_PROBE, *([INGRESS_PROBE] if plan.exposed else []))
     if any(c.outcome == "fail" for c in checks):
         level: Literal["full", "reduced", "failed"] = "failed"
     elif driver == "lima":

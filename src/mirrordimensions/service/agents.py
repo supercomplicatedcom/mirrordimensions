@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import os
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -283,16 +284,38 @@ def _issue_mcp(
     tokens: dict[str, dict[str, Any]] = config.get("tokens", {})
     config["tokens"] = {t: e for t, e in tokens.items() if e.get("person") != person.username}
     config["tokens"][token] = entry
+    password, url = "", f"https://{app.hostname}{app.tools.endpoint}"
+    if agent.mode == "remote" and app in plan.exposed:
+        # A remote agent's platform connects through OAuth (decision 0024): the person signs
+        # in on the company's page with the password their accounts have, and the token it
+        # is given is this one. Only the remote agent's person can sign in.
+        password = next((identities[b].password for b in app.tools.backends if b in identities), "")
+        if not password:
+            raise MirrorError(
+                f"{agent.name} has no account behind {app.id} to sign in with.",
+                "Its person signs in with the password of the systems the MCP server uses.",
+                f"Grant {agent.name} access to one of: {', '.join(app.tools.backends)}.",
+            )
+        salt = os.urandom(8).hex()
+        config["oauth"] = {
+            "issuer": f"https://{app.remote}",
+            "company": plan.company,
+            "people": {
+                person.username: {
+                    "salt": salt,
+                    "sha256": hashlib.sha256((salt + password).encode()).hexdigest(),
+                    "token": token,
+                }
+            },
+        }
+        url = f"https://{app.remote}{app.tools.endpoint}"
     docker.put_files(app.container, {sandbox.MCP_CONFIG: (json.dumps(config).encode(), 0o644)})
     prefix = app.id.upper().replace("-", "_")
     return Identity(
         username=person.username,
-        password="",
+        password=password,
         token=token,
-        env={
-            f"{prefix}_MCP_URL": f"https://{app.hostname}{app.tools.endpoint}",
-            f"{prefix}_MCP_TOKEN": token,
-        },
+        env={f"{prefix}_MCP_URL": url, f"{prefix}_MCP_TOKEN": token},
     )
 
 

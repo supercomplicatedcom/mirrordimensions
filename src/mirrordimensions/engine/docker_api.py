@@ -154,6 +154,7 @@ class Docker:
         *,
         ipv6_subnet: str | None = None,
         labels: dict[str, str] | None = None,
+        internal: bool = False,
     ) -> None:
         if any(n.name == name for n in self._client.networks.list(names=[name])):
             return
@@ -166,6 +167,7 @@ class Docker:
             ipam=docker_types.IPAMConfig(pool_configs=pools),
             enable_ipv6=bool(ipv6_subnet),
             labels=labels or {},
+            internal=internal,  # no route out of the network at all
             # Never set com.docker.network.bridge.name: the engine firewall matches
             # Docker's own bridge names (br-*), and a custom name would bypass it.
         )
@@ -400,6 +402,15 @@ class Docker:
         except DockerException:
             return {}
         return {str(k): str(v) for k, v in found.items()}
+
+    def exec_socket(self, name: str, command: list[str]) -> Any:
+        """Run a command in a container with its standard input and output joined to the
+        returned socket, without a terminal: what is sent arrives byte for byte; what comes
+        back is framed by Docker (8-byte headers, see `unframe`)."""
+        created = self._client.api.exec_create(
+            name, command, stdin=True, stdout=True, stderr=False, tty=False
+        )
+        return self._client.api.exec_start(created["Id"], socket=True, tty=False)._sock
 
     def is_running(self, name: str) -> bool:
         try:
