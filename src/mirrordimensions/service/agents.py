@@ -655,6 +655,75 @@ def add_browser_check(
         browser.stop(docker, desk)
 
 
+def _remote_checks(
+    add: Any, project: Project, docker: Docker, plan: sandbox.Plan, agent: Agent
+) -> None:
+    """A remote agent's preflight (decision 0024): an MCP server it is granted is exposed and
+    the ingress runs for this world; its person can sign in; nothing it is shown names a test;
+    and coverage is reported as partial."""
+    from mirrordimensions.service.sandbox import _serving_port  # pyright: ignore[reportPrivateUsage]
+    from mirrordimensions.world.denylist import findings
+
+    granted = [a for a in plan.apps if a.is_mcp and a.id in agent.grants]
+    exposed = [a for a in granted if a in plan.exposed]
+    first = granted[0].id if granted else "<mcp-server>"
+    if not add(
+        "An MCP server it is granted is exposed",
+        bool(exposed),
+        ", ".join(f"{a.id} at {a.remote}" for a in exposed),
+        f"Run: mirror world expose {first} --hostname tools.<your-domain> --agent {agent.name}",
+    ):
+        return
+    running = docker.is_running(sandbox.INGRESS_NAME) and (
+        docker.labels(sandbox.INGRESS_NAME).get(sandbox.LABEL) == plan.world
+    )
+    if not add(
+        "The ingress is running for this world",
+        running,
+        f"{sandbox.INGRESS_NAME}, reaching only the exposed MCP server",
+        "Run: mirror apply (the sandbox restarts with the ingress)",
+    ):
+        return
+    try:
+        person, identities = issue(project, agent, docker)
+    except MirrorError as exc:
+        add("Its person can sign in", False, exc.what, exc.fix)
+        return
+    signs_in = all(identities.get(a.id) and identities[a.id].password for a in exposed)
+    add(
+        "Its person can sign in",
+        signs_in,
+        f"as {person.username} on the company's sign-in page, with access to "
+        + ", ".join(sorted(identities)),
+        f"Grant {agent.name} one of the systems the MCP server works in.",
+    )
+    shown = " ".join(
+        [*(str(a.remote) for a in exposed), plan.company, person.username, person.name]
+    )
+    tells = findings(shown)
+    add(
+        "Nothing the platform is shown names a test",
+        not tells,
+        ", ".join(tells) or "the public hostname, company and person are ordinary",
+        "Expose it under another hostname: mirror world expose",
+    )
+    port = _serving_port(project.state_dir / "expose.json")
+    add(
+        "The relay is listening for your reverse proxy",
+        True if port else None,
+        f"127.0.0.1:{port}"
+        if port
+        else f"not running now; start it before the platform connects: mirror world expose {exposed[0].id} --hostname {exposed[0].remote} --agent {agent.name}",
+    )
+    add(
+        "Coverage is partial",
+        True,
+        "captured: HTTP and MCP at the ingress and gateway, and every system's state. Not "
+        "captured: its model and its platform (agent runs outside the world). Leaks are "
+        "detected, not blocked.",
+    )
+
+
 class PreflightCheck(BaseModel):
     name: str
     outcome: str  # pass, fail, n/a
@@ -690,9 +759,6 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         f"Run: mirror agent new --resume {name}",
     ):
         return checks
-    if agent.mode == "remote":
-        add("Remote agents", None, "remote agents arrive in M7.5")
-        return checks
     manifest = _manifest(project)
     plan = project_plan(project, manifest)
     docker, _, _, _ = _docker()
@@ -701,6 +767,9 @@ def check_agent(project: Project, name: str, allow_emulated: bool = False) -> li
         all(docker.is_running(n) for n in (sandbox.DNS_NAME, sandbox.GATEWAY_NAME)),
         fix="Run: mirror up",
     ):
+        return checks
+    if agent.mode == "remote":
+        _remote_checks(add, project, docker, plan, agent)
         return checks
     try:
         arch = ensure_image(docker, agent)

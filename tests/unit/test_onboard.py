@@ -89,13 +89,60 @@ def test_role_defaults_come_from_the_company(project: Project) -> None:
     assert onboard.describe_grants(grants)[0].startswith(f"{code}: ")
 
 
-def test_remote_and_in_sandbox_explain_they_are_not_available(project: Project) -> None:
-    onboard.draft_agent(project, "vendor")
-    with pytest.raises(MirrorError, match="not available yet") as info:
-        onboard.update_draft(project, "vendor", 1, {"mode": "remote", "image": "x"})
-    assert "M7.5" in info.value.why
+def test_in_sandbox_models_explain_they_are_not_available(project: Project) -> None:
     with pytest.raises(MirrorError, match="not available yet"):
         onboard.add_model_route(project, "in-sandbox")
+
+
+def test_a_remote_agent_needs_the_notice_accepted_and_an_mcp_server(project: Project) -> None:
+    onboard.draft_agent(project, "vendor")
+    with pytest.raises(MirrorError, match="must be accepted first") as info:
+        onboard.update_draft(project, "vendor", 1, {"mode": "remote"})
+    assert info.value.why == onboard.REMOTE_NOTICE
+    # This world has no MCP server: there is no way in for it.
+    with pytest.raises(MirrorError, match="no MCP server"):
+        onboard.update_draft(
+            project, "vendor", 1, {"mode": "remote", "reduced_guarantees": "accepted"}
+        )
+
+
+def test_the_remote_column_writes_a_remote_agent_file(tmp_path: Path) -> None:
+    import portal_fixture  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
+    from mirrordimensions.service import load_project
+
+    remote = load_project(portal_fixture.make_project(tmp_path))  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+    onboard.draft_agent(remote, "vendor", {"image": "left:1.0"})
+    accepted = {"mode": "remote", "reduced_guarantees": "accepted"}
+    assert onboard.update_draft(remote, "vendor", 1, accepted).fields.get("image") is None
+    onboard.update_draft(remote, "vendor", 2, {"model": "anthropic"})  # ignored: its own
+    onboard.update_draft(remote, "vendor", 3, {"acts_as": {"role": "engineer"}})
+    defaults = onboard.role_defaults(remote, "engineer", mode="remote")
+    assert defaults["tools"] == {}  # every tool: its only way in
+    assert "tools" not in onboard.role_defaults(remote, "engineer")
+    without = {k: v for k, v in defaults.items() if k != "tools"}
+    with pytest.raises(MirrorError, match="must be granted an MCP server"):
+        onboard.update_draft(remote, "vendor", 4, {"grants": without})
+    onboard.update_draft(remote, "vendor", 4, {"grants": defaults})
+    done = onboard.update_draft(remote, "vendor", 5, {"wake": {"type": "poll"}})
+    agent = agent_file(remote, "vendor")
+    assert done.step == 6 and agent.mode == "remote" and agent.status is None
+    assert agent.reduced_guarantees == "accepted"
+    assert agent.image is None and agent.model is None and agent.wake is None
+
+
+def test_the_command_line_shows_the_notice_and_takes_a_flag(tmp_path: Path) -> None:
+    import portal_fixture  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
+
+    root = portal_fixture.make_project(tmp_path)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+    base = ["--project", str(root), "agent", "new", "vendor", "--mode", "remote", "--no-check"]
+    refused = CliRunner().invoke(app, base)
+    assert refused.exit_code != 0 and "must be accepted first" in str(refused.exception)
+    result = CliRunner().invoke(app, [*base, "--accept-reduced-guarantees", "--role", "engineer"])
+    assert result.exit_code == 0, result.output
+    assert "detected but not blocked" in " ".join(result.output.split())
+    assert "the vendor's own" in result.output
+    text = (root / "agents" / "vendor.yaml").read_text(encoding="utf-8")  # pyright: ignore[reportUnknownMemberType]
+    assert "mode: remote" in text and "reduced_guarantees: accepted" in text and "tools:" in text
 
 
 def test_a_model_route_is_added_to_mirror_yaml_keeping_its_comments(project: Project) -> None:

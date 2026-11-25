@@ -345,6 +345,7 @@ def test_remote_agents_are_the_ingress_client_and_canaries_through_it_left_the_w
             "name": "helper",
             "mode": "remote",
             "acts_as": {"role": "engineer"},
+            "reduced_guarantees": "accepted",
             "grants": {"tools": {}},
         }
     )

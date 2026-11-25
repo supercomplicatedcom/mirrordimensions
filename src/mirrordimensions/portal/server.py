@@ -156,6 +156,11 @@ def _grant_choices(project: Project) -> list[GrantChoice]:
             names = sorted(r.name for r in world.repositories)
         elif key == "channels":
             names = sorted(c.name for c in world.channels if c.name != "town-square")
+        elif key == "tools":
+            from mirrordimensions.service.sandbox import world_plan
+
+            planned = next((a for a in world_plan(project, manifest).apps if a.id == app.id), None)
+            names = list(planned.tools.names) if planned and planned.tools else []
         else:
             continue
         out.append(
@@ -498,9 +503,11 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
         return onboard_svc.update_draft(holder.project, name, body.step, fields)
 
     @app.get(f"{api}/roles/{{role}}/defaults")
-    def get_role_defaults(role: str, person: str | None = None) -> RoleDefaults:  # pyright: ignore[reportUnusedFunction]
+    def get_role_defaults(  # pyright: ignore[reportUnusedFunction]
+        role: str, person: str | None = None, mode: str | None = None
+    ) -> RoleDefaults:
         who = onboard_svc.person_for(holder.project, role, person)
-        grants = onboard_svc.role_defaults(holder.project, role, person)
+        grants = onboard_svc.role_defaults(holder.project, role, person, mode=mode)
         return RoleDefaults(
             role=role,
             person={"username": who.username, "name": who.name, "title": who.title},
@@ -508,6 +515,10 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
             lines=onboard_svc.describe_grants(grants),
             options=_grant_choices(holder.project),
         )
+
+    @app.get(f"{api}/onboarding/remote-notice")
+    def get_remote_notice() -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
+        return {"notice": onboard_svc.REMOTE_NOTICE}
 
     @app.post(f"{api}/agents/{{name}}/check")
     def post_agent_check(name: str) -> list[agents_svc.PreflightCheck]:  # pyright: ignore[reportUnusedFunction]
