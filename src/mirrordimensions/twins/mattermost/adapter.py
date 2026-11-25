@@ -36,6 +36,9 @@ ADMIN = "chat-admin"
 
 
 PRODUCT_ACCOUNTS = frozenset({"system-bot"})
+DEFAULT_CHANNEL = "town-square"  # every team member is in it and cannot leave
+JOIN_LEAVE = frozenset({"system_join_channel", "system_leave_channel"})
+MEMBERSHIP_POSTS = JOIN_LEAVE | {"system_add_to_channel", "system_remove_from_channel"}
 
 
 class Mattermost(ProfileMethods):
@@ -241,6 +244,23 @@ class Mattermost(ProfileMethods):
         )
         return str(created["id"])
 
+    def _quiet_membership(
+        self, relay: Relay, ctx: TwinContext, channels: list[str], user_id: str, username: str
+    ) -> None:
+        """Remove the announcements Mattermost posts when the person is added to or removed
+        from a channel. Setting up a run's access is not something the company did."""
+        for channel_id in channels:
+            recent = self.api(relay, ctx, "GET", f"/channels/{channel_id}/posts?per_page=20")
+            for post in (recent or {}).get("posts", {}).values():
+                props = post.get("props") or {}
+                about = {
+                    props.get("addedUserId"),
+                    props.get("removedUserId"),
+                    props.get("username") if post.get("type") in JOIN_LEAVE else None,
+                }
+                if post.get("type") in MEMBERSHIP_POSTS and (user_id in about or username in about):
+                    self.api(relay, ctx, "DELETE", f"/posts/{post['id']}")
+
     def issue_identity(
         self,
         relay: Relay,
@@ -292,8 +312,12 @@ class Mattermost(ProfileMethods):
                 {"team_id": team_id, "user_id": user_id},
                 ok=(200, 201),
             )
-            for channel in grants.get("channels", []):
-                channel_id = self.ensure_channel(relay, ctx, team_id, str(channel))
+            # Exact grants (decision 0020): the granted channels and the team's default one,
+            # which Mattermost lets nobody leave; direct messages are the person's own.
+            granted = {str(c) for c in grants.get("channels", [])} | {DEFAULT_CHANNEL}
+            changed: list[str] = []
+            for channel in sorted(granted - {DEFAULT_CHANNEL}):
+                channel_id = self.ensure_channel(relay, ctx, team_id, channel)
                 self.api(
                     relay,
                     ctx,
@@ -302,6 +326,13 @@ class Mattermost(ProfileMethods):
                     {"user_id": user_id},
                     ok=(200, 201),
                 )
+                changed.append(channel_id)
+            mine = self.api(relay, ctx, "GET", f"/users/{user_id}/teams/{team_id}/channels")
+            for ch in mine or []:
+                if ch.get("type") in ("O", "P") and ch.get("name") not in granted:
+                    self.api(relay, ctx, "DELETE", f"/channels/{ch['id']}/members/{user_id}")
+                    changed.append(str(ch["id"]))
+            self._quiet_membership(relay, ctx, changed, user_id, username)
         for tok in self.api(relay, ctx, "GET", f"/users/{user_id}/tokens") or []:
             if tok.get("description") == "automation":
                 self.api(relay, ctx, "POST", "/users/tokens/revoke", {"token_id": tok["id"]})

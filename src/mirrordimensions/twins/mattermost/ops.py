@@ -288,6 +288,7 @@ def operations() -> Operations:
     return Operations(
         overlays={"post": post},
         deliveries={"message": message, "direct_message": direct_message},
+        delivery_needs={"message": lambda args: {"channels": [str(args["in"])]}},
         checks={
             "message_posted": message_posted,
             "message_contains": message_contains,

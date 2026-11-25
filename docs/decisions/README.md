@@ -29,6 +29,7 @@ Each file records one architecture or design decision: the context, what was dec
 | [0016](0016-coverage-tracer.md) | Coverage inside the agent's container: Tetragon in the engine, connections instead of byte counts | Proposed |
 | [0017](0017-portal.md) | The portal: a local server on the service layer, a React front end shipped inside the package, a token kept in a cookie | Accepted (owner) |
 | [0018](0018-live-view.md) | The live view: locations recorded by the gateway at capture, steps sent as they open and again as they change | Proposed |
+| [0020](0020-exact-grants.md) | Grants are exact: for a run, the person has only what the agent file grants; a run checks it can reach its work | Accepted (owner) |
 
 Template:
 

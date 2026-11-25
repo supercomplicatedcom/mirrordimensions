@@ -15,4 +15,4 @@ grants:
   code:
     repos: {billing-service: write, platform-docs: read}
   chat:
-    channels: [platform-team, incidents]
+    channels: [platform-team, incidents, engineering, releases]

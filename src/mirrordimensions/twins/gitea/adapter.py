@@ -197,6 +197,11 @@ class Gitea(ProfileMethods):
             )
         repos: dict[str, str] = dict(grants.get("repos", {}))
         owner = grants.get("owner")
+        # Exact grants (decision 0020): the person keeps no access of their own, so a team
+        # that covers every repository would make a grant meaningless.
+        self._only_granted(
+            relay, ctx, username, str(owner), {r if "/" in r else f"{owner}/{r}" for r in repos}
+        )
         for repo, level in repos.items():
             if level not in PERMISSIONS:
                 raise MirrorError(
@@ -414,6 +419,28 @@ class Gitea(ProfileMethods):
         from mirrordimensions.twins.gitea import ops
 
         return ops.state_objects(dump)
+
+    def _only_granted(
+        self, relay: Relay, ctx: TwinContext, username: str, owner: str, granted: set[str]
+    ) -> None:
+        """Take the person out of the organization's teams and off every repository the
+        grants do not name. Neither leaves anything another user can see."""
+        base, admin = self._base(ctx), self._admin(ctx)
+        for team in self._all(relay, ctx, f"/orgs/{owner}/teams"):
+            member = relay.request(
+                "GET", f"{base}/api/v1/teams/{team['id']}/members/{username}", basic=admin
+            )
+            if member.status == 200:
+                self.api(relay, ctx, "DELETE", f"/teams/{team['id']}/members/{username}")
+        for repo in self._all(relay, ctx, f"/orgs/{owner}/repos"):
+            full = str(repo["full_name"])
+            if full in granted:
+                continue
+            collaborator = relay.request(
+                "GET", f"{base}/api/v1/repos/{full}/collaborators/{username}", basic=admin
+            )
+            if collaborator.status == 204:
+                self.api(relay, ctx, "DELETE", f"/repos/{full}/collaborators/{username}")
 
     def _permission(self, relay: Relay, ctx: TwinContext, repo: str, login: str) -> str:
         resp = relay.request(
