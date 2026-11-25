@@ -36,7 +36,7 @@ export function Scenarios() {
     setError(undefined);
     try {
       const handle = await send<RunHandle>("POST", "/runs", { scenario: name, agent });
-      navigate(`/runs/${handle.run_id}`);
+      navigate(`/runs/${handle.run_id}/live`);
     } catch (err) {
       if (err instanceof PortalError) setError(err);
     } finally {

@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import Identity, Operations, StateObject, TwinContext
+from mirrordimensions.twins.profile import ProfileMethods
 from mirrordimensions.twins.relay import Relay
 
 if TYPE_CHECKING:
@@ -35,7 +36,7 @@ ADMIN = "git-admin"
 PERMISSIONS = {"read": "read", "write": "write", "admin": "admin"}
 
 
-class Gitea:
+class Gitea(ProfileMethods):
     product = "gitea"
     upstream_port = PORT
     static_path = "/assets/img/logo.svg"

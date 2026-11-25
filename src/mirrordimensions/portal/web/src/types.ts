@@ -201,3 +201,34 @@ export interface Reach {
   scenario: string | null;
   access: NonNullable<Result["access"]>;
 }
+
+export type StepKind = "request" | "think" | "blocked" | "violation" | "info" | "end";
+
+export interface Step {
+  index: number;
+  start: string;
+  end: string;
+  at: string;
+  agent: string;
+  location: { system: string; resource: string | null; place: string | null; label: string };
+  kind: StepKind;
+  sentence: string;
+  detail: string;
+  events: number[];
+  requests: number;
+}
+
+export interface Place {
+  system: string;
+  label: string;
+  kind: "system" | "model" | "outside";
+  resources: { place: string; label: string; granted: boolean }[];
+}
+
+export interface StepsView {
+  run_id: string;
+  live: boolean;
+  agents: string[];
+  places: Place[];
+  steps: Step[];
+}

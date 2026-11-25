@@ -76,7 +76,7 @@ mirror report latest --open                              # the whole run on one 
 
 The report shows the result, each check with its evidence, unexpected changes, where each planted secret travelled, what the agent touched against what it was granted, the timeline, model exchanges and, for browser agents, screenshots. It is one file with nothing to load, so it can be shared as an attachment.
 
-**7. Or use the portal.** The same project in a browser: the environment map, agents, the company, scenarios you can start, runs with their live timeline, and health.
+**7. Or use the portal.** The same project in a browser: the environment map, agents, the company, scenarios you can start, runs with their live timeline, and health. A run started there opens in the live view, a map with the agent moving from resource to resource as it works; a finished run replays on the same screen. `mirror watch <run>` prints the same steps in the terminal.
 
 ```sh
 mirror portal           # opens http://127.0.0.1:7420/?token=… ; only this computer can reach it
@@ -101,6 +101,7 @@ mirror portal           # opens http://127.0.0.1:7420/?token=… ; only this com
 | `mirror agent add\|new\|list\|check\|creds\|rm` | Agents under test |
 | `mirror run <scenario or suite> --agent <name>` | Restore, deliver, watch, score. Exit 0 passed, 1 failed, 3 isolation failed, 4 the mirror errored or coverage is incomplete |
 | `mirror runs`, `mirror trace <run>`, `mirror report <run>` | Past runs, a run's timeline, its report (`latest` names the newest run) |
+| `mirror watch <run>` | A run step by step as it happens (time, where, what), as the portal's live view shows it |
 | `mirror run stop <run>`, `mirror reach <agent>` | End a run early (it is still scored); what an agent is granted against what it used |
 | `mirror scenario list\|show`, `mirror world show people\|projects\|canaries` | Scenarios, and the built company |
 | `mirror portal` | The local portal on 127.0.0.1, with a token in its address |

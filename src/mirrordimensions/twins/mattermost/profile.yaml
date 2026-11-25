@@ -9,16 +9,16 @@ surfaces:
   - {id: user.self, kind: endpoint, match: {method: GET, path: "/api/v4/users/me"}, sentence: "Checks who it is signed in as"}
   - {id: user.read, kind: endpoint, match: {method: GET, path: "/api/v4/users/{user_id}"}, resource: "user:{user_id}", access: read, sentence: "Looks up a colleague"}
   - {id: user.by_name, kind: endpoint, match: {method: GET, path: "/api/v4/users/username/{username}"}, resource: "user:{username}", access: read, sentence: "Looks up {username}"}
-  - {id: team.list, kind: endpoint, match: {method: GET, path: "/api/v4/users/me/teams"}, sentence: "Lists its teams", output: {exposes: {each: "[]", resource: "team:{name}"}}}
-  - {id: channel.list, kind: endpoint, match: {method: GET, path: "/api/v4/users/me/teams/{team_id}/channels"}, sentence: "Lists its channels", output: {exposes: {each: "[]", resource: "channel:{name}"}}}
-  - {id: channel.by_name, kind: endpoint, match: {method: GET, path: "/api/v4/teams/{team_id}/channels/name/{name}"}, resource: "channel:{name}", access: read, sentence: "Opens #{name}"}
-  - {id: channel.posts, kind: endpoint, match: {method: GET, path: "/api/v4/channels/{channel_id}/posts"}, resource: "channel:{channel_id}", access: read, sentence: "Reads a channel", output: {exposes: {each: "posts.*", resource: "post:{id}"}}}
+  - {id: team.list, kind: endpoint, match: {method: GET, path: "/api/v4/users/me/teams"}, sentence: "Lists its teams", output: {exposes: {each: "[]", resource: "team:{name}", alias: "team:{id}"}}}
+  - {id: channel.list, kind: endpoint, match: {method: GET, path: "/api/v4/users/me/teams/{team_id}/channels"}, sentence: "Lists its channels", output: {exposes: {each: "[]", resource: "channel:{name}", alias: "channel:{id}"}}}
+  - {id: channel.by_name, kind: endpoint, match: {method: GET, path: "/api/v4/teams/{team_id}/channels/name/{name}"}, resource: "channel:{name}", access: read, sentence: "Opens #{name}", output: {exposes: {each: "", resource: "channel:{name}", alias: "channel:{id}"}}}
+  - {id: channel.posts, kind: endpoint, match: {method: GET, path: "/api/v4/channels/{channel_id}/posts"}, resource: "channel:{channel_id}", access: read, sentence: "Reads #{name}", unnamed: "Reads a channel", output: {exposes: {each: "posts.*", resource: "post:{id}"}}}
   - {id: thread.read, kind: endpoint, match: {method: GET, path: "/api/v4/posts/{post_id}/thread"}, resource: "post:{post_id}", access: read, sentence: "Reads a thread", output: {exposes: {each: "posts.*", resource: "post:{id}"}}}
-  - {id: post.create, kind: endpoint, match: {method: POST, path: "/api/v4/posts"}, access: write, sentence: "Posts a message"}
+  - {id: post.create, kind: endpoint, match: {method: POST, path: "/api/v4/posts"}, resource: "channel:{body.channel_id}", access: write, sentence: "Posts in #{name}", unnamed: "Posts a message"}
   - {id: post.edit, kind: endpoint, match: {method: PUT, path: "/api/v4/posts/{post_id}"}, resource: "post:{post_id}", access: write, sentence: "Edits a message"}
   - {id: post.search, kind: endpoint, match: {method: POST, path: "/api/v4/teams/{team_id}/posts/search"}, sentence: "Searches messages", output: {exposes: {each: "posts.*", resource: "post:{id}"}}}
   - {id: dm.create, kind: endpoint, match: {method: POST, path: "/api/v4/channels/direct"}, access: write, sentence: "Starts a direct message"}
-  - {id: channel.member.add, kind: endpoint, match: {method: POST, path: "/api/v4/channels/{channel_id}/members"}, resource: "channel:{channel_id}", access: admin, sentence: "Adds someone to a channel"}
+  - {id: channel.member.add, kind: endpoint, match: {method: POST, path: "/api/v4/channels/{channel_id}/members"}, resource: "channel:{channel_id}", access: admin, sentence: "Adds someone to #{name}", unnamed: "Adds someone to a channel"}
   - {id: team.member.add, kind: endpoint, match: {method: POST, path: "/api/v4/teams/{team_id}/members"}, resource: "team:{team_id}", access: admin, sentence: "Adds someone to a team"}
   - {id: file.read, kind: endpoint, match: {method: GET, path: "/api/v4/files/{file_id}"}, resource: "file:{file_id}", access: read, sentence: "Downloads a shared file"}
 defaults:

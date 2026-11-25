@@ -13,6 +13,7 @@ from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.twins.relay import Relay
 
 if TYPE_CHECKING:
+    from mirrordimensions.twins.profile import ResourceRef
     from mirrordimensions.world.model import Person, World
 
 
@@ -136,6 +137,14 @@ class Twin(Protocol):
 
     def state_objects(self, dump: dict[str, Any]) -> list[StateObject]:
         """A state dump as individual objects, for the per-object side-effect comparison."""
+        ...
+
+    def locate(self, exchange: dict[str, Any]) -> ResourceRef | None:
+        """The surface and resource an exchange acted on (generated from the profile)."""
+        ...
+
+    def describe(self, exchange: dict[str, Any]) -> str:
+        """What the exchange did, in a few plain words ("Reads config/settings.py")."""
         ...
 
 

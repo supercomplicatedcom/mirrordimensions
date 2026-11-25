@@ -47,6 +47,7 @@ from mirrordimensions.service import runs as runs_svc
 from mirrordimensions.service import sandbox as sandbox_svc
 from mirrordimensions.service import scenarios as scen_svc
 from mirrordimensions.service import world as world_svc
+from mirrordimensions.trace import steps as steps_mod
 from mirrordimensions.trace import timeline
 
 HOST = "127.0.0.1"
@@ -269,6 +270,22 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
             headers={"x-accel-buffering": "no"},
         )
 
+    @app.get(f"{api}/runs/{{run_id}}/steps")
+    def get_steps(run_id: str) -> runlog.StepsView:  # pyright: ignore[reportUnusedFunction]
+        return runlog.read_steps(project, run_id)
+
+    @app.get(f"{api}/runs/{{run_id}}/steps/stream")
+    async def stream_steps(  # pyright: ignore[reportUnusedFunction]
+        request: Request, run_id: str
+    ) -> StreamingResponse:
+        folder = runs_svc.run_dir(project, run_id)
+        ctx, _ = runlog.step_context(project, run_id)
+        return StreamingResponse(
+            _sse_steps(request, folder / "events.jsonl", ctx),
+            media_type="text/event-stream",
+            headers={"x-accel-buffering": "no"},
+        )
+
     @app.get(f"{api}/runs/{{run_id}}/bodies/{{kind}}/{{name}}")
     def get_body(run_id: str, kind: str, name: str) -> Response:  # pyright: ignore[reportUnusedFunction]
         data, media = runlog.read_body(project, run_id, f"{kind}/{name}")
@@ -334,10 +351,10 @@ def _filter(source: str, kind: str, text: str) -> timeline.Filter | None:
     return timeline.Filter(sources, types, text)
 
 
-async def _sse(request: Request, path: Path, keep: timeline.Filter | None) -> AsyncIterator[bytes]:
-    """Each event as one server-sent event, from the first, until the run ends or the page
-    goes away. A comment every few seconds keeps idle connections open."""
-    offset, pending, start, quiet = 0, "", None, 0.0
+async def _lines(request: Request, path: Path) -> AsyncIterator[dict[str, Any] | None]:
+    """Each event written to the run's file, from the first, until the run ends or the page
+    goes away; None every few quiet seconds, so the caller can keep the connection open."""
+    offset, pending, quiet = 0, "", 0.0
     while not await request.is_disconnected():
         chunk = ""
         if path.is_file():
@@ -347,7 +364,6 @@ async def _sse(request: Request, path: Path, keep: timeline.Filter | None) -> As
                 offset = handle.tell()
         pending += chunk
         *lines, pending = pending.split("\n")
-        ended = False
         for line in lines:
             try:
                 event = json.loads(line)
@@ -356,20 +372,48 @@ async def _sse(request: Request, path: Path, keep: timeline.Filter | None) -> As
             if not isinstance(event, dict):
                 continue
             item: dict[str, Any] = event  # pyright: ignore[reportUnknownVariableType]
-            if start is None and item.get("type") == "run.start":
-                start = timeline.parse_ts(item)
-            if keep is None or keep(item):
-                shown = runlog.shown(item, start or timeline.parse_ts(item))
-                yield f"id: {item.get('seq')}\nevent: event\ndata: {json.dumps(shown)}\n\n".encode()
-            ended = ended or item.get("type") == "run.end"
-        if ended:
-            yield b"event: end\ndata: {}\n\n"
-            return
+            yield item
+            if item.get("type") == "run.end":
+                return
         quiet = 0.0 if lines else quiet + POLL_S
         if quiet >= 10:
             quiet = 0.0
-            yield b": still here\n\n"
+            yield None
         await asyncio.sleep(POLL_S)
+
+
+END = b"event: end\ndata: {}\n\n"
+KEEPALIVE = b": still here\n\n"
+
+
+async def _sse(request: Request, path: Path, keep: timeline.Filter | None) -> AsyncIterator[bytes]:
+    """Each event as one server-sent event, until the run ends."""
+    start = None
+    async for item in _lines(request, path):
+        if item is None:
+            yield KEEPALIVE
+            continue
+        if start is None and item.get("type") == "run.start":
+            start = timeline.parse_ts(item)
+        if keep is None or keep(item):
+            shown = runlog.shown(item, start or timeline.parse_ts(item))
+            yield f"id: {item.get('seq')}\nevent: event\ndata: {json.dumps(shown)}\n\n".encode()
+        if item.get("type") == "run.end":
+            yield END
+
+
+async def _sse_steps(request: Request, path: Path, ctx: steps_mod.Context) -> AsyncIterator[bytes]:
+    """Each step as it opens and again each time it changes (the same index), until the run
+    ends: a step reaches the page as soon as the event that caused it is written."""
+    stepper = steps_mod.Stepper(ctx)
+    async for item in _lines(request, path):
+        if item is None:
+            yield KEEPALIVE
+            continue
+        for step in stepper.feed(item):
+            yield f"event: step\ndata: {step.model_dump_json()}\n\n".encode()
+        if item.get("type") == "run.end":
+            yield END
 
 
 def serve(

@@ -72,7 +72,8 @@ def _manifest(project: Project) -> Manifest:
     return manifest
 
 
-def _label(kind: str | None, product: str | None, app_id: str) -> str:
+def system_label(kind: str | None, product: str | None, app_id: str) -> str:
+    """A system's name in plain words, by its kind: `Code hosting`, `Team chat`."""
     if kind and kind in KIND_LABELS:
         return KIND_LABELS[kind]
     if kind:
@@ -130,7 +131,7 @@ def environment_graph(project: Project) -> Graph:
             Node(
                 id=f"system:{app.id}",
                 kind="system",
-                label=_label(app.kind, app.product, app.id),
+                label=system_label(app.kind, app.product, app.id),
                 detail=(app.product or "").capitalize() if app.product else (app.kind or ""),
                 hostname=app.hostname,
                 product=app.product,

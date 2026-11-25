@@ -93,7 +93,11 @@ errors:
 
 - `match` is a method and a path pattern; `{name+}` matches several segments.
 - `resource` and `access` (read, write, admin) say what a request touches. Name repositories as `owner/name` (`repo:`, `file:`, `issue:`, `pull:`, `branch:`) and chat channels as `channel:<name>`, so the access map can group them.
-- `output.exposes` lists what a response carries: a search that returns thirty issues exposes thirty issues.
+- `output.exposes` lists what a response carries: a search that returns thirty issues exposes thirty issues. Add `alias` when the items also have an id the product uses elsewhere (`alias: "channel:{id}"` next to `resource: "channel:{name}"`); later requests that name the id are then located, and described, by the name.
+- `sentence` is what the live view and `mirror watch` say for the request. It may use the path's names, `{name}` (the resource's name, once known) and `{body.field}` (a field of the request's JSON body, which also works in `resource`). When the resource can still be an unknown id, give an `unnamed` sentence too ("Posts a message" for "Posts in #{name}").
+- `kind` is `endpoint`, `portal` (a page), `asset` (styles, scripts, pictures) or `background` (a page's live connection). Assets and background requests are drawn as part of the page that loaded them.
+- Every surface needs an example request in `SHAPES` in `tests/unit/test_behavior.py`, with the resource and sentence it should produce; the test fails until it has one.
+- The adapter inherits `locate(exchange)` and `describe(exchange)` from `ProfileMethods`; there is nothing to write for them.
 - `errors` are the product's own answers, copied from the real product, so a rule that refuses a request looks exactly like the product refusing it.
 
 ## Testing

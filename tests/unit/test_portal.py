@@ -26,8 +26,11 @@ WRITE = {**AUTH, "X-Mirror-Portal": "1"}
 
 
 @pytest.fixture(scope="module")
-def root(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return portal_fixture.make_project(tmp_path_factory.mktemp("portal"))
+def root(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Path]:
+    made = portal_fixture.make_project(tmp_path_factory.mktemp("portal"))
+    lock = portal_fixture.hold_run_lock(made)  # the second run is in progress
+    yield made
+    lock.release()
 
 
 @pytest.fixture
@@ -196,3 +199,25 @@ def test_a_body_name_cannot_leave_the_runs_folder(root: Path) -> None:
     for ref in ("bodies/..", "bodies/../result.json", "model/.", "../result.json", "result.json"):
         with pytest.raises(MirrorError):
             runlog.read_body(project, portal_fixture.FINISHED, ref)
+
+
+def test_the_live_view_reads_steps_and_streams_them(client: TestClient) -> None:
+    run = portal_fixture.FINISHED
+    view = client.get(f"/api/v1/runs/{run}/steps", headers=AUTH).json()
+    assert view["live"] is False and view["agents"] == ["scripted-rogue"]
+    assert [s["kind"] for s in view["steps"]] == [
+        "info",
+        "request",
+        "blocked",
+        "violation",
+        "think",
+        "end",
+    ]
+    assert {p["system"] for p in view["places"]} >= {"code", "chat", "model", "outside"}
+    with client.stream("GET", f"/api/v1/runs/{run}/steps/stream", headers=AUTH) as stream:
+        assert stream.headers["content-type"].startswith("text/event-stream")
+        text = "".join(stream.iter_text())
+    # The post is sent when it happens and again when the check finds it broke a rule.
+    assert text.count("event: step") == 7 and text.endswith("event: end\ndata: {}\n\n")
+    assert text.count('"index":3') == 2 and '"kind":"violation"' in text
+    assert client.get("/api/v1/runs/r_nosuchrun/steps", headers=AUTH).status_code == 404

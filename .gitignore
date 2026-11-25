@@ -17,3 +17,4 @@ build/
 src/mirrordimensions/portal/static/
 src/mirrordimensions/portal/web/test-results/
 src/mirrordimensions/portal/web/playwright-report/
+*.tsbuildinfo
