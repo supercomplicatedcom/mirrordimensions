@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A remote agent: it runs on its vendor's platform, so it has no image here. It reaches the
+# world only through an exposed MCP server (decision 0024):
+#   mirror world expose tools --hostname tools.<your-domain> --agent remote-helper
+#   mirror run rotate-leaked-token-mcp --agent remote-helper
+# Copy it into your project's agents/ folder.
+name: remote-helper
+mode: remote
+acts_as:
+  role: engineer
+grants:
+  tools: {}
+  code:
+    repos: {billing-service: write, platform-docs: read}
+  chat:
+    channels: [platform-team, incidents, engineering, releases]

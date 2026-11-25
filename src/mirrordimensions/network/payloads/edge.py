@@ -116,6 +116,9 @@ class Edge:
         self.secrets: list[str] = [s for s in config.get("secrets", []) if s]
         # Which agent each address belongs to in this run, for rules scoped to one agent.
         self.identities: dict[str, str] = dict(config.get("identities", {}))
+        # The ingress names every client "remote": its only traffic is the remote agent's,
+        # arriving through the relay from its own loopback (decision 0024).
+        self.client_label: str | None = config.get("client")
         seed = int(config.get("seed", 0))
         self.rules = {
             host: behavior.Rules(
@@ -144,6 +147,9 @@ class Edge:
                 upstream = urlsplit(route["upstream"])
                 self.sni_by_addr[(upstream.hostname, upstream.port)] = spec.get("sni", host)
         self.loaded = stamp  # only once all of it loaded: a failed read is tried again
+
+    def _client(self, conn) -> str:
+        return self.client_label or conn.peername[0]
 
     def _reload_if_changed(self) -> None:
         try:
@@ -191,7 +197,7 @@ class Edge:
             data.ignore_connection = True
             _emit(
                 "route.unknown_host",
-                {"sni": sni or None, "client": data.context.client.peername[0]},
+                {"sni": sni or None, "client": self._client(data.context.client)},
             )
 
     # -- routing -----------------------------------------------------------------
@@ -205,7 +211,11 @@ class Edge:
         if route is None or (sni and sni != host):
             _emit(
                 "route.unknown_host",
-                {"host": host or None, "sni": sni or None, "client": flow.client_conn.peername[0]},
+                {
+                    "host": host or None,
+                    "sni": sni or None,
+                    "client": self._client(flow.client_conn),
+                },
             )
             flow.kill()
             return
@@ -221,7 +231,7 @@ class Edge:
             path=flow.request.path,
             headers=dict(flow.request.headers),
             body=flow.request.raw_content or b"",
-            identity=self.identities.get(flow.client_conn.peername[0]),
+            identity=self.identities.get(self._client(flow.client_conn)),
         )
         outcome = rules.apply(req, time.time())
         for applied in outcome.applied:
@@ -247,7 +257,7 @@ class Edge:
         flow.request.headers["X-Forwarded-Proto"] = (
             "https" if flow.client_conn.tls_established else "http"
         )
-        flow.request.headers["X-Forwarded-For"] = flow.client_conn.peername[0]
+        flow.request.headers["X-Forwarded-For"] = self._client(flow.client_conn)
 
     def _model_request(self, flow: http.HTTPFlow, host: str, route: dict) -> None:
         """A call to the model: inference only, hosted tools as configured, the real
@@ -323,7 +333,7 @@ class Edge:
             "model.exchange",
             {
                 "exchange": seq,
-                "client": flow.client_conn.peername[0],
+                "client": self._client(flow.client_conn),
                 "route": mr_name,
                 "provider": mr.provider,
                 "host": host,
@@ -383,7 +393,7 @@ class Edge:
                 "host": req.host_header,
                 "path": req.path,
                 "status": resp.status_code if resp else None,
-                "client": flow.client_conn.peername[0],
+                "client": self._client(flow.client_conn),
                 "http_version": req.http_version,
                 "req_headers": self._redact(req.headers),
                 "resp_headers": self._redact(resp.headers) if resp else [],
@@ -450,7 +460,7 @@ class Edge:
         for kind, data in found:
             _emit(
                 kind,
-                {"exchange": seq, "host": host, "client": flow.client_conn.peername[0], **data},
+                {"exchange": seq, "host": host, "client": self._client(flow.client_conn), **data},
             )
 
     def websocket_message(self, flow: http.HTTPFlow) -> None:
@@ -470,7 +480,7 @@ class Edge:
                 "direction": "client" if message.from_client else "server",
                 "text": message.is_text,
                 "length": len(content),
-                "client": flow.client_conn.peername[0],
+                "client": self._client(flow.client_conn),
                 "body_ref": self._store(token, "ws", content),
             },
         )
@@ -483,7 +493,7 @@ class Edge:
                 "host": flow.request.host_header,
                 "path": flow.request.path,
                 "status": None,
-                "client": flow.client_conn.peername[0],
+                "client": self._client(flow.client_conn),
                 "error": str(flow.error),
                 **self._where(flow),
             },

@@ -56,6 +56,21 @@ def parse_gateway(line: str) -> dict[str, Any] | None:
     return {"source": source, "type": kind, "data": data}
 
 
+def parse_ingress(line: str) -> dict[str, Any] | None:
+    """The ingress runs the gateway's capture code (decision 0024). Its events are the
+    gateway's kinds, marked `via: ingress`, and its own numbering is kept apart from the
+    gateway's so MCP events still name the exchange that carried them."""
+    event = parse_gateway(line)
+    if event is None:
+        return None
+    data = event["data"]
+    data["via"] = "ingress"
+    data["gateway_seq"] = f"ingress:{data.get('gateway_seq')}"
+    if data.get("exchange") is not None:
+        data["exchange"] = f"ingress:{data['exchange']}"
+    return event
+
+
 BROWSER_TYPES = frozenset(
     {
         "browser.action",
