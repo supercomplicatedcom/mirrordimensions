@@ -16,6 +16,7 @@ from mirrordimensions.engine.base import (
     EgressEntry,
     EngineStatus,
     Resources,
+    UpdateOutcome,
     egress_allow_commands,
 )
 from mirrordimensions.errors import MirrorError
@@ -54,6 +55,13 @@ class HostEngine:
 
     def docker_endpoint(self) -> DockerEndpoint:
         return DockerEndpoint(url=f"unix://{SOCKET}")
+
+    def update(self) -> UpdateOutcome:
+        raise MirrorError(
+            "The host engine has no guest of its own to update.",
+            "It is Docker Engine on this Linux host, whose packages are yours to manage.",
+            "Update the host with its package manager, with no run going.",
+        )
 
     def set_egress_allow(self, entries: list[EgressEntry]) -> None:
         # Host mode runs the firewall on this machine; changing it needs passwordless sudo.

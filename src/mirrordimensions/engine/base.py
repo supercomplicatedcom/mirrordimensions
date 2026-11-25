@@ -4,9 +4,10 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Literal, Protocol
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Resources(BaseModel):
@@ -28,6 +29,41 @@ class EngineStatus(BaseModel):
     versions: dict[str, str] = {}
     resources: Resources | None = None
     clock_offset_s: float | None = None
+
+
+# Updates are installed when asked, never by themselves (provision.sh). After this many
+# days without one, `mirror doctor` and `mirror engine status` say so.
+UPDATE_DAYS = 14
+
+
+class UpdateOutcome(BaseModel):
+    upgraded: list[str] = Field(description="Packages updated, as `name version`")
+    reboot_required: bool = Field(description="A new kernel or library waits for a restart")
+    kernel: str = ""
+
+
+def update_age_days(versions: dict[str, str], today: date) -> int | None:
+    """Days since the engine's packages were last updated, from `versions["updated"]`."""
+    try:
+        return (today - date.fromisoformat(versions.get("updated", ""))).days
+    except ValueError:
+        return None
+
+
+def update_note(versions: dict[str, str], today: date) -> str | None:
+    """A sentence when the engine is due an update or a restart, else None."""
+    age = update_age_days(versions, today)
+    if versions.get("reboot") == "yes":
+        return (
+            "The engine installed updates that take effect when it restarts: "
+            "mirror engine stop, then mirror engine start (with no run going)."
+        )
+    if age is not None and age > UPDATE_DAYS:
+        return (
+            f"The engine's packages were last updated {age} days ago. "
+            "Bring the sandbox down and run: mirror engine update"
+        )
+    return None
 
 
 EgressEntry = tuple[str, str, int]  # (source subnet, destination address, TCP port)
@@ -56,3 +92,4 @@ class Engine(Protocol):
     def docker_endpoint(self) -> DockerEndpoint: ...
     def clock_offset(self) -> float: ...
     def set_egress_allow(self, entries: list[EgressEntry]) -> None: ...
+    def update(self) -> UpdateOutcome: ...
