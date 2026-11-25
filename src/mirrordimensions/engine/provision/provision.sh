@@ -26,6 +26,18 @@ if [ ! -f "$STATE/packages" ]; then
   apt-get update -q
   apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-compose-plugin runsc
   touch "$STATE/packages"
+  date -u +%Y-%m-%d > "$STATE/updated"
+fi
+
+# Updates are installed only when asked (`mirror engine update`), never by themselves:
+# an update could restart Docker during a run, and two runs should not differ by a kernel
+# nobody chose. `mirror doctor` says when the last update is more than 14 days old.
+systemctl disable --now apt-daily.timer apt-daily-upgrade.timer 2>/dev/null || true
+systemctl disable --now unattended-upgrades.service 2>/dev/null || true
+printf 'APT::Periodic::Update-Package-Lists "0";\nAPT::Periodic::Unattended-Upgrade "0";\n' \
+  > /etc/apt/apt.conf.d/20auto-upgrades
+if command -v snap >/dev/null 2>&1; then
+  snap refresh --hold >/dev/null 2>&1 || true
 fi
 
 # Docker is restarted only if its configuration changed, so re-applying this script

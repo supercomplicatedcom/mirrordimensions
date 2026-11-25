@@ -28,6 +28,7 @@ from mirrordimensions.engine.base import (
     EgressEntry,
     EngineStatus,
     Resources,
+    UpdateOutcome,
     egress_allow_commands,
 )
 from mirrordimensions.errors import MirrorError
@@ -352,6 +353,33 @@ class LimaEngine:
         """Run a command in the guest, for the host admin and the engine's own checks."""
         return self._limactl("shell", "--workdir", "/", INSTANCE, "--", *command, timeout=timeout)
 
+    def update(self) -> UpdateOutcome:
+        """Install the guest's pending updates now, in the engine's own network namespace
+        (never a container's). The caller makes sure the sandbox is down."""
+        script = (
+            "set -e; export DEBIAN_FRONTEND=noninteractive; "
+            "apt-get update -q >/dev/null; "
+            "apt-get -s -o Debug::NoLocking=1 full-upgrade | awk '/^Inst /{print $2\" \"$4}' "
+            "| tr -d '(' > /run/engine-upgrading; "
+            "apt-get -y -q -o Dpkg::Options::=--force-confold full-upgrade >/dev/null; "
+            "date -u +%Y-%m-%d > /var/lib/engine/updated; "
+            "cat /run/engine-upgrading; "
+            "test -f /var/run/reboot-required && echo REBOOT || true"
+        )
+        done = self.shell("sudo", "sh", "-c", script, timeout=1800)
+        if done.returncode != 0:
+            raise MirrorError(
+                "The engine's update did not finish.",
+                (done.stderr or done.stdout).strip()[-400:],
+                "Check the engine can reach its package mirrors, then run it again.",
+            )
+        lines = [line.strip() for line in done.stdout.splitlines() if line.strip()]
+        return UpdateOutcome(
+            upgraded=[line for line in lines if line != "REBOOT"],
+            reboot_required="REBOOT" in lines,
+            kernel=self._versions().get("kernel", ""),
+        )
+
     def set_egress_allow(self, entries: list[EgressEntry]) -> None:
         # The firewall must be this version's before anything is opened in it (mirror up),
         # however the engine was booted.
@@ -401,7 +429,12 @@ class LimaEngine:
             "printf 'docker=%s\\n' "
             "\"$(docker version --format '{{.Server.Version}}' 2>/dev/null)\"; "
             "printf 'runsc=%s\\n' \"$(runsc --version 2>/dev/null | head -1 | awk '{print $3}')\"; "
-            ". /etc/os-release; printf 'guest=%s\\n' \"$PRETTY_NAME\""
+            ". /etc/os-release; printf 'guest=%s\\n' \"$PRETTY_NAME\"; "
+            # When packages were last updated (an engine provisioned before the stamp
+            # existed: when its packages were installed), and whether a restart is due.
+            "printf 'updated=%s\\n' \"$(cat /var/lib/engine/updated 2>/dev/null || "
+            'date -u -r /var/lib/engine/packages +%Y-%m-%d 2>/dev/null)"; '
+            "printf 'reboot=%s\\n' \"$(test -f /var/run/reboot-required && echo yes || echo no)\""
         )
         done = self.shell("sh", "-c", script)
         out: dict[str, str] = {}

@@ -17,6 +17,7 @@ from mirrordimensions.engine.base import (
     EgressEntry,
     EngineStatus,
     Resources,
+    UpdateOutcome,
     egress_allow_commands,
 )
 from mirrordimensions.errors import MirrorError
@@ -94,6 +95,13 @@ class WslEngine:
 
     def docker_endpoint(self) -> DockerEndpoint:
         return DockerEndpoint(url=f"tcp://127.0.0.1:{DOCKER_PORT}", tls_dir=str(self.tls_dir))
+
+    def update(self) -> UpdateOutcome:
+        raise MirrorError(
+            "Updating the WSL engine is not available yet.",
+            "The Windows engine is configuration only in this version.",
+            "",
+        )
 
     def set_egress_allow(self, entries: list[EgressEntry]) -> None:
         for command in egress_allow_commands(entries):

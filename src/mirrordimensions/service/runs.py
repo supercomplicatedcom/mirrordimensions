@@ -312,6 +312,7 @@ class _Run:
         p.docker_version = status.versions.get("docker")
         p.runsc_version = status.versions.get("runsc")
         p.guest_kernel = status.versions.get("kernel")
+        p.engine_updated = status.versions.get("updated") or None
         self.result.isolation = "full" if boundary == "dedicated-vm" else "reduced"
 
     def _isolation(self) -> bool:
