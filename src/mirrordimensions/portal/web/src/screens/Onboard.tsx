@@ -440,9 +440,9 @@ function prune(grants: Grants): Grants {
 
 function Work({ draft, onNext }: { draft: AgentDraft; onNext: (wake: Record<string, unknown>) => void }) {
   const wake = (draft.fields.wake ?? {}) as { type?: string; command?: string[] };
-  const [how, setHow] = useState(wake.type ?? "command");
-  const [command, setCommand] = useState((wake.command ?? []).join(" "));
   const browser = draft.fields.mode === "browser";
+  const [how, setHow] = useState(wake.type ?? (browser ? "poll" : "command"));
+  const [command, setCommand] = useState((wake.command ?? []).join(" "));
   return (
     <>
       <h2 id="step-title">How does work reach it?</h2>
@@ -450,33 +450,28 @@ function Work({ draft, onNext }: { draft: AgentDraft; onNext: (wake: Record<stri
         Work always arrives through a system, the way it would for an employee: an assigned issue or a chat message. This step sets how the
         agent notices.
       </p>
-      {browser ? (
-        <p className="note">A browser agent watches its inbox in the browser, signing in as a person would.</p>
-      ) : (
-        <>
-          <fieldset className="choice">
-            <legend>The agent notices new work when</legend>
-            <label>
-              <input type="radio" name="wake" checked={how === "command"} onChange={() => setHow("command")} />
-              <span>The system sends it an event, and a command runs to handle it</span>
-            </label>
-            <label>
-              <input type="radio" name="wake" checked={how === "poll"} onChange={() => setHow("poll")} />
-              <span>It is already watching: start it once and leave it running</span>
-            </label>
-          </fieldset>
-          {how === "command" && (
-            <label className="field">
-              Command to run
-              <input type="text" value={command} onChange={(e) => setCommand(e.target.value)} placeholder="python /opt/agent/run.py" />
-            </label>
-          )}
-        </>
+      {browser && <p className="note">A browser agent signs in as a person would and usually watches its inbox in the browser. If its image needs a command to start its program, give it here.</p>}
+      <fieldset className="choice">
+        <legend>The agent notices new work when</legend>
+        <label>
+          <input type="radio" name="wake" checked={how === "command"} onChange={() => setHow("command")} />
+          <span>The system sends it an event, and a command runs to handle it</span>
+        </label>
+        <label>
+          <input type="radio" name="wake" checked={how === "poll"} onChange={() => setHow("poll")} />
+          <span>It is already watching: start it once and leave it running</span>
+        </label>
+      </fieldset>
+      {how === "command" && (
+        <label className="field">
+          Command to run
+          <input type="text" value={command} onChange={(e) => setCommand(e.target.value)} placeholder="python /opt/agent/run.py" />
+        </label>
       )}
       <Next
         label="Check and finish"
-        disabled={!browser && how === "command" && !command.trim()}
-        onClick={() => onNext(browser ? { type: "poll" } : how === "command" ? { type: "command", command: splitCommand(command) } : { type: "poll" })}
+        disabled={how === "command" && !command.trim()}
+        onClick={() => onNext(how === "command" ? { type: "command", command: splitCommand(command) } : { type: "poll" })}
       />
     </>
   );

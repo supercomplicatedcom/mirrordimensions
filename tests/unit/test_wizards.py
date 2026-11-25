@@ -246,3 +246,34 @@ def test_a_draft_world_is_not_created(portal: tuple[TestClient, Path]) -> None:
     )
     with pytest.raises(MirrorError, match="still a draft"):
         world_svc.create_world(load_project(root.parent / "half"))
+
+
+def test_a_browser_agent_is_onboarded_the_same_way_in_both(
+    portal: tuple[TestClient, Path], tmp_path: Path
+) -> None:
+    """A browser agent's program may need a command to start it, as a hosted one's may."""
+    client, root = portal
+    client.post("/api/v1/agents/drafts", json={"name": "desk"}, headers=WRITE)
+    for n, body in (
+        (1, {"fields": {"mode": "browser", "image": "desk-helper:0.9"}}),
+        (2, {"model": {"where": "none"}}),
+        (3, {"fields": {"acts_as": {"role": "engineer"}}}),
+        (4, {"fields": {"grants": {"code": {"repos": {"billing-service": "write"}}}}}),
+        (5, {"fields": {"wake": {"type": "command", "command": ["python", "/opt/desk/agent.py"]}}}),
+    ):
+        answer = client.patch("/api/v1/agents/drafts/desk", json={"step": n, **body}, headers=WRITE)
+        assert answer.status_code == 200, answer.text
+    by_portal = (root / "agents" / "desk.yaml").read_text(encoding="utf-8")
+    assert "mode: browser" in by_portal and "/opt/desk/agent.py" in by_portal
+    other = portal_fixture.make_project(tmp_path / "copy")
+    out = CliRunner().invoke(
+        cli,
+        [
+            "--project", str(other), "agent", "new", "desk",
+            "--mode", "browser", "--image", "desk-helper:0.9", "--model", "none",
+            "--role", "engineer", "--grant", "code.repos.billing-service=write",
+            "--wake", "command", "--command", "python /opt/desk/agent.py", "--no-check",
+        ],
+    )  # fmt: skip
+    assert out.exit_code == 0, out.output
+    assert (other / "agents" / "desk.yaml").read_text(encoding="utf-8") == by_portal
