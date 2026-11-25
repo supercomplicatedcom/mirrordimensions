@@ -114,6 +114,7 @@ Tools that start runs or edit the world need `confirm=true`, and nothing destruc
 | `mirror run stop <run>`, `mirror reach <agent>` | End a run early (it is still scored); what an agent is granted against what it used |
 | `mirror scenario list\|show`, `mirror world show people\|projects\|canaries` | Scenarios, and the built company |
 | `mirror portal` | The local portal on 127.0.0.1, with a token in its address |
+| `mirror world expose <mcp-server> --hostname <name> --agent <remote agent>`, `mirror world unexpose` | Expose a world MCP server to an agent on a vendor's platform, through your own reverse proxy (it holds the certificate); relays until Ctrl-C (decision 0024) |
 | `mirror mcp serve [--http]` | The operator MCP server, for an AI tool: stdio, or HTTP on 127.0.0.1 with a token |
 | `mirror system list\|show\|rules\|try`, `mirror set rule`, `mirror unset rule` | Systems, their surfaces, and rules that change what they accept or return |
 | `mirror set visibility <system> <state>`, `mirror set grant <agent> <system>/<name> <grant>` | Edit a system's visibility or an agent's grants; each says when it takes effect |

@@ -80,7 +80,12 @@ def definition_hash(manifest: Manifest) -> dict[str, str]:
 
     # Visibility between granted, denied and present takes effect at the next run, like
     # rules; only which systems are absent changes what is built (decision 0021).
-    systems = [a.model_dump(exclude={"rules", "visibility"}) for a in manifest.apps]
+    # Exposure to remote agents (decision 0024) changes the sandbox, not what is built.
+    # The field is set to None rather than left out, so a world built before it existed
+    # hashes the same.
+    systems = [
+        {**a.model_dump(exclude={"rules", "visibility"}), "remote": None} for a in manifest.apps
+    ]
     return {
         "company": h(manifest.company.model_dump()),
         "systems": h(systems),

@@ -78,6 +78,7 @@ def record_applied(
     # (restarted=False) does not change them.
     if restarted:
         current["models"] = [m.model_dump(mode="json") for m in manifest.models]
+        current["exposed"] = _exposed(manifest)
     elif "models" not in current:
         built = _read(project, BUILT_FILE)
         current["models"] = built.get(
@@ -112,6 +113,10 @@ def _record_built_if_unchanged(project: Project, manifest: Manifest) -> None:
         write_text(
             project.state_dir / BUILT_FILE, json.dumps(dump, indent=2) + "\n", owner_only=True
         )
+
+
+def _exposed(manifest: Manifest) -> dict[str, str]:
+    return {a.id: a.remote.hostname for a in manifest.apps if a.remote is not None}
 
 
 def _visibility_applies(before: str, after: str, built: str) -> Applies:
@@ -221,7 +226,7 @@ def pending_changes(project: Project, manifest: Manifest, agents: dict[str, Any]
                 )
             )
             continue
-        ignore = ("rules", "visibility")
+        ignore = ("rules", "visibility", "remote")
         if {k: v for k, v in old.items() if k not in ignore} != {
             k: v for k, v in new.items() if k not in ignore
         }:
@@ -250,6 +255,28 @@ def pending_changes(project: Project, manifest: Manifest, agents: dict[str, Any]
                         applies="next run",
                     )
                 )
+    exposed_live = cast(dict[str, str], applied.get("exposed") or {})
+    for app_id, host in sorted(_exposed(manifest).items()):
+        if exposed_live.get(app_id) != host:
+            out.append(
+                Change(
+                    kind="system",
+                    target=app_id,
+                    what=f"{app_id}: exposed to remote agents at {host}",
+                    after=host,
+                    applies="restart",
+                )
+            )
+    for app_id in sorted(set(exposed_live) - set(_exposed(manifest))):
+        out.append(
+            Change(
+                kind="system",
+                target=app_id,
+                what=f"{app_id}: no longer exposed",
+                before=exposed_live[app_id],
+                applies="restart",
+            )
+        )
     models_live = applied.get("models", built.get("models", []))
     if models_live != now.get("models", []):
         out.append(

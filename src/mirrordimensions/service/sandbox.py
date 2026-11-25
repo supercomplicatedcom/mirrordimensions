@@ -236,6 +236,7 @@ def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
             latency_budget_ms,
             portal_port=running_portal_port(project),
             operator_port=running_operator_port(project),
+            relay_port=_serving_port(project.state_dir / "expose.json"),
         )
     note = update_note(get_engine().status().versions, datetime.now(UTC).date())
     if note:

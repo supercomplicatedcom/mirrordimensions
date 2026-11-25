@@ -497,6 +497,55 @@ def _world_new_interactive(st: State, directory: Path) -> Path:
     return worlddef.finish_draft(directory, draft)
 
 
+@world_app.command("expose")
+def world_expose(
+    ctx: typer.Context,
+    app_id: Annotated[str, typer.Argument(help="The world MCP server to expose.")],
+    hostname: Annotated[
+        str, typer.Option("--hostname", help="The public name your reverse proxy serves.")
+    ],
+    agent: Annotated[str, typer.Option("--agent", help="The remote agent it is exposed for.")],
+    port: Annotated[
+        int, typer.Option("--port", min=1024, max=65535, help="The relay's port on 127.0.0.1.")
+    ] = 7480,
+) -> None:
+    """Expose a world MCP server to a remote agent: bring up the ingress, issue the agent's
+    sign-in, print the reverse-proxy settings, and relay connections until Ctrl-C."""
+    from mirrordimensions.service import expose as svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    done = svc.expose(project, app_id, hostname, agent, port=port, on_step=st.out.line)
+    if st.out.json_mode:
+        st.out.document(done)
+    else:
+        st.out.ok(f"{app_id} is exposed for {agent}")
+        st.out.line(f"{'Connector':<11}{done.public_url}")
+        st.out.line(f"{'Sign in as':<11}{done.username}  (password: {done.password})")
+        st.out.line(f"{'Relay':<11}{done.local}: point your reverse proxy here")
+        st.out.line("")
+        st.out.line("Caddy:")
+        st.out.line(done.caddy)
+        st.out.line("nginx (with your certificate's paths):")
+        st.out.line(done.nginx)
+        st.out.line(
+            "Relaying. Ctrl-C stops it; nothing is reachable from outside while it is stopped."
+        )
+    svc.relay(project, port)
+
+
+@world_app.command("unexpose")
+def world_unexpose(
+    ctx: typer.Context,
+    app_id: Annotated[str, typer.Argument(help="The exposed MCP server.")],
+) -> None:
+    """Stop exposing a world MCP server. The ingress goes at the next sandbox restart."""
+    from mirrordimensions.service import expose as svc
+
+    st = _state(ctx)
+    _show_change(st, svc.unexpose(service.load_project(st.start()), app_id))
+
+
 @world_app.command("show")
 def world_show(
     ctx: typer.Context,
