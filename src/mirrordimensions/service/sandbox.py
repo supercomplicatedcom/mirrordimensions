@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 
 from mirrordimensions.config.loader import load_model
 from mirrordimensions.config.manifest import Manifest
+from mirrordimensions.engine.base import update_note
 from mirrordimensions.engine.docker_api import Docker
 from mirrordimensions.engine.registry import get_engine
 from mirrordimensions.errors import MirrorError
@@ -214,6 +215,9 @@ def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
             latency_budget_ms,
             portal_port=running_portal_port(project),
         )
+    note = update_note(get_engine().status().versions, datetime.now(UTC).date())
+    if note:
+        report.notes.append(note)
     # Kept for the portal's Health screen, which shows the last check and its age.
     kept = report.model_dump(mode="json")
     kept["checked_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

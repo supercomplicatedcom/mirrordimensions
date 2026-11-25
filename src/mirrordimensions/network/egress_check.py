@@ -24,7 +24,7 @@ import time
 from collections.abc import Callable
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from mirrordimensions.engine.checks import host_listener
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
@@ -76,6 +76,8 @@ class DoctorReport(BaseModel):
     isolation: Literal["full", "reduced", "failed"]
     boundary: str
     checks: list[Check]
+    # Worth knowing, not an isolation failure: the engine is due an update, for one.
+    notes: list[str] = Field(default_factory=list[str])
 
     @property
     def failed(self) -> list[Check]:

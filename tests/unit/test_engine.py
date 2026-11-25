@@ -8,13 +8,14 @@ import json
 import re
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 from ruamel.yaml import YAML
 
 from mirrordimensions.engine import pins
-from mirrordimensions.engine.base import Resources
+from mirrordimensions.engine.base import EngineStatus, Resources, UpdateOutcome
 from mirrordimensions.engine.lima import (
     APPLIED_MARKER,
     LimaEngine,
@@ -193,3 +194,124 @@ def test_the_firewall_is_brought_up_to_date_before_routes_are_opened(
     monkeypatch.setattr(engine, "shell", shell)
     engine.set_egress_allow([("10.42.0.10", "160.79.104.10", 443)])
     assert calls[0] == "provision" and calls[1:] == ["nft flush", "nft add"]
+
+
+# -- updates: only when asked (decision 0019) -------------------------------------------
+
+
+def test_the_engine_never_installs_updates_by_itself() -> None:
+    text = render_config(RESOURCES, "aarch64", "vz")
+    assert YAML(typ="safe").load(text)["upgradePackages"] is False
+    script = text[text.index("provision:") :]
+    assert "systemctl disable --now apt-daily.timer apt-daily-upgrade.timer" in script
+    assert "unattended-upgrades.service" in script
+    assert 'APT::Periodic::Unattended-Upgrade "0"' in script
+    assert 'date -u +%Y-%m-%d > "$STATE/updated"' in script  # the first install counts
+
+
+def test_update_age_and_the_note_it_gives() -> None:
+    from datetime import date
+
+    from mirrordimensions.engine.base import UPDATE_DAYS, update_age_days, update_note
+
+    today = date(2026, 11, 24)
+    assert update_age_days({"updated": "2026-11-10"}, today) == 14
+    assert update_age_days({}, today) is None
+    assert update_note({"updated": "2026-11-10", "reboot": "no"}, today) is None  # 14 days: fine
+    late = update_note({"updated": "2026-11-09", "reboot": "no"}, today)
+    assert late is not None and f"{UPDATE_DAYS + 1} days ago" in late
+    assert "mirror engine update" in late
+    due = update_note({"updated": "2026-11-24", "reboot": "yes"}, today)
+    assert due is not None and "restarts" in due
+    assert update_note({"updated": "not a date"}, today) is None
+
+
+class _Engine:
+    """Just enough of an engine to update, recording what was asked of it."""
+
+    name = "lima"
+
+    def __init__(self, running: int, reboot: bool) -> None:
+        self.running = running
+        self.reboot = reboot
+        self.calls: list[str] = []
+
+    def status(self) -> EngineStatus:
+        return EngineStatus(driver="lima", state="running", versions={"kernel": "7.0.0-44"})
+
+    def docker_endpoint(self) -> object:
+        return object()
+
+    def update(self) -> UpdateOutcome:
+        self.calls.append("update")
+        return UpdateOutcome(
+            upgraded=["linux-image 7.0.0-45"], reboot_required=self.reboot, kernel="7.0.0-44"
+        )
+
+    def stop(self) -> None:
+        self.calls.append("stop")
+
+    def start(self, on_step: object = None) -> EngineStatus:
+        self.calls.append("start")
+        return EngineStatus(
+            driver="lima", state="running", versions={"kernel": "7.0.0-45", "reboot": "no"}
+        )
+
+
+@pytest.fixture
+def fake_engine(monkeypatch: pytest.MonkeyPatch) -> Callable[..., _Engine]:
+    from mirrordimensions.service import engine as svc
+
+    made: dict[str, _Engine] = {}
+
+    def install(running: int = 0, reboot: bool = False) -> _Engine:
+        engine = _Engine(running, reboot)
+        made["engine"] = engine
+        monkeypatch.setattr(svc, "get_engine", lambda: engine)
+
+        class _Docker:
+            def __init__(self, _endpoint: object) -> None:
+                pass
+
+            def info(self) -> dict[str, int]:
+                return {"ContainersRunning": engine.running}
+
+        monkeypatch.setattr("mirrordimensions.engine.docker_api.Docker", _Docker)
+        return engine
+
+    return install
+
+
+def test_an_update_is_refused_while_anything_runs_in_the_engine(
+    fake_engine: Callable[..., _Engine],
+) -> None:
+    from mirrordimensions.service import engine as svc
+
+    engine = fake_engine(running=3)
+    with pytest.raises(MirrorError, match="3 container"):
+        svc.update_engine()
+    assert engine.calls == []
+
+
+def test_an_update_restarts_the_engine_only_when_asked_and_needed(
+    fake_engine: Callable[..., _Engine],
+) -> None:
+    from mirrordimensions.service import engine as svc
+
+    engine = fake_engine(reboot=True)
+    outcome = svc.update_engine()
+    assert engine.calls == ["update"] and outcome.reboot_required
+    engine = fake_engine(reboot=True)
+    outcome = svc.update_engine(restart=True)
+    assert engine.calls == ["update", "stop", "start"]
+    assert outcome.kernel == "7.0.0-45" and not outcome.reboot_required
+    engine = fake_engine(reboot=False)
+    svc.update_engine(restart=True)
+    assert engine.calls == ["update"]  # nothing to restart for
+
+
+def test_the_host_driver_leaves_updates_to_the_host() -> None:
+    from mirrordimensions.engine.host import HostEngine
+
+    with pytest.raises(MirrorError, match="no guest of its own"):
+        HostEngine().update()

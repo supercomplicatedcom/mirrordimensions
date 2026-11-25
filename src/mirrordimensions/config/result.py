@@ -34,6 +34,9 @@ class Platform(StrictModel):
     engine_driver: Literal["lima", "wsl", "host"] | None = None
     engine_arch: Arch | None = None
     guest_kernel: str | None = None
+    engine_updated: str | None = Field(
+        default=None, description="When the engine's packages were last updated (YYYY-MM-DD)"
+    )
     docker_version: str | None = None
     runsc_version: str | None = None
     boundary: Literal["dedicated-vm", "shared-vm", "host", "remote"] | None = None

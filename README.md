@@ -94,7 +94,7 @@ mirror portal           # opens http://127.0.0.1:7420/?token=… ; only this com
 
 | Command | What it does |
 | --- | --- |
-| `mirror engine setup\|check\|status\|start\|stop\|destroy` | The engine. On macOS a Lima VM on Apple's Virtualization.framework; on Linux a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor on the host. Windows is not yet enabled |
+| `mirror engine setup\|check\|status\|start\|stop\|update\|destroy` | The engine. On macOS a Lima VM on Apple's Virtualization.framework; on Linux a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor on the host. Windows is not yet enabled. The engine installs updates only when you run `mirror engine update` |
 | `mirror world new\|create\|show\|status\|clone\|destroy` | Define a world and create it |
 | `mirror reset`, `mirror snapshot save\|list` | Back to a snapshot, exactly, in about ten seconds |
 | `mirror up`, `mirror down`, `mirror doctor` | The sealed network, and its egress, separation, inside-out, naming, transparency and capture checks |

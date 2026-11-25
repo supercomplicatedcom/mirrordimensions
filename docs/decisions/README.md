@@ -30,6 +30,7 @@ Each file records one architecture or design decision: the context, what was dec
 | [0017](0017-portal.md) | The portal: a local server on the service layer, a React front end shipped inside the package, a token kept in a cookie | Accepted (owner) |
 | [0018](0018-live-view.md) | The live view: locations recorded by the gateway at capture, steps sent as they open and again as they change | Proposed |
 | [0020](0020-exact-grants.md) | Grants are exact: for a run, the person has only what the agent file grants; a run checks it can reach its work | Accepted (owner) |
+| [0019](0019-engine-updates.md) | The engine installs updates only when asked (`mirror engine update`); doctor notes when they are over 14 days old | Accepted (owner) |
 
 Template:
 

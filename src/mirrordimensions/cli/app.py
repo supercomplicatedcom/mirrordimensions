@@ -223,6 +223,8 @@ def doctor(
             else:
                 st.out.ok(text)
         st.out.line(f"Isolation: {report.isolation} ({report.boundary})")
+        for note in report.notes:
+            st.out.line(f"{'note':<6}{note}")
     if report.isolation == "failed":
         raise typer.Exit(1)
 
@@ -1442,7 +1444,7 @@ def engine_destroy(
 
 @engine_app.command("check")
 def engine_check(ctx: typer.Context) -> None:
-    """Prove the engine's guarantees: gVisor, Rosetta, private endpoint, no host access, egress."""
+    """Prove the engine's guarantees: its own kernel, private endpoint, no host access, egress."""
     from mirrordimensions.service import engine as svc
 
     st = _state(ctx)
@@ -1460,6 +1462,36 @@ def engine_check(ctx: typer.Context) -> None:
                 st.out.ok(line)
     if any(r.outcome == "fail" for r in results):
         raise typer.Exit(1)
+
+
+@engine_app.command("update")
+def engine_update(
+    ctx: typer.Context,
+    restart: Annotated[
+        bool,
+        typer.Option("--restart", help="Restart the engine if the update needs it (a new kernel)."),
+    ] = False,
+) -> None:
+    """Install the engine's package updates now. It never installs them by itself; run this
+    with the sandbox down (mirror down). The next runs record the new kernel."""
+    from mirrordimensions.service import engine as svc
+
+    st = _state(ctx)
+    outcome = svc.update_engine(restart=restart, on_step=st.out.line)
+    if st.out.json_mode:
+        st.out.document(outcome)
+        return
+    if outcome.upgraded:
+        st.out.ok(f"{len(outcome.upgraded)} package(s) updated")
+        for line in outcome.upgraded:
+            st.out.line(f"      {line}")
+    else:
+        st.out.ok("the engine's packages were already up to date")
+    st.out.line(f"{'Kernel':<10}{outcome.kernel}")
+    if outcome.reboot_required:
+        st.out.next_step("A restart finishes the update: mirror engine update --restart")
+    else:
+        st.out.next_step("Then: mirror up")
 
 
 @engine_app.command(
@@ -1484,7 +1516,9 @@ def engine_shell(ctx: typer.Context) -> None:
 
 
 def _show_engine(st: State, status: object) -> None:
-    from mirrordimensions.engine.base import EngineStatus
+    from datetime import UTC, datetime
+
+    from mirrordimensions.engine.base import EngineStatus, update_age_days, update_note
 
     assert isinstance(status, EngineStatus)  # noqa: S101
     if st.out.json_mode:
@@ -1499,12 +1533,18 @@ def _show_engine(st: State, status: object) -> None:
     if s.resources:
         r = s.resources
         st.out.line(f"{'Size':<10}{r.cpus} CPUs · {r.memory_gb} GB memory · {r.disk_gb} GB disk")
-    if s.versions:
-        st.out.line(
-            f"{'Versions':<10}" + " · ".join(f"{k} {v}" for k, v in sorted(s.versions.items()))
-        )
+    shown = {k: v for k, v in s.versions.items() if k not in ("updated", "reboot")}
+    if shown:
+        st.out.line(f"{'Versions':<10}" + " · ".join(f"{k} {v}" for k, v in sorted(shown.items())))
+    if s.versions.get("updated"):
+        age = update_age_days(s.versions, datetime.now(UTC).date())
+        restart = " · a restart is due" if s.versions.get("reboot") == "yes" else ""
+        st.out.line(f"{'Updated':<10}{s.versions['updated']} ({age} days ago){restart}")
     if s.clock_offset_s is not None:
         st.out.line(f"{'Clock':<10}{s.clock_offset_s:+.3f} s from the host")
+    note = update_note(s.versions, datetime.now(UTC).date())
+    if note:
+        st.out.line(f"{'Note':<10}{note}")
 
 
 def main() -> None:

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from mirrordimensions.engine.base import EngineStatus, Resources
+from mirrordimensions.engine.base import EngineStatus, Resources, UpdateOutcome
 from mirrordimensions.engine.checks import CheckResult, run_checks
 from mirrordimensions.engine.lima import LimaEngine, default_resources
 from mirrordimensions.engine.registry import DriverName, get_engine, remember
@@ -70,3 +70,43 @@ def check_engine() -> list[CheckResult]:
         )
     with keep_awake("Checking the engine"):
         return run_checks(engine)
+
+
+def _quiet(_text: str) -> None:
+    return None
+
+
+def update_engine(*, restart: bool = False, on_step: StepFn = None) -> UpdateOutcome:
+    """Install the engine's pending package updates (decision 0019).
+
+    Only while nothing runs in it: an update can restart Docker, which would stop a run or
+    a world. With `restart`, an engine that needs a restart for the update (a new kernel)
+    is stopped and started again."""
+    from mirrordimensions.engine.docker_api import Docker
+
+    engine = get_engine()
+    status = engine.status()
+    if status.state != "running":
+        raise MirrorError(
+            "The engine is not running.",
+            f"Its state is {status.state}; updates are installed in a running engine.",
+            "Run: mirror engine start",
+        )
+    running = int(Docker(engine.docker_endpoint()).info().get("ContainersRunning", 0))
+    if running:
+        raise MirrorError(
+            f"{running} container(s) are running in the engine.",
+            "An update can restart Docker, which would stop a run or a world part-way.",
+            "Wait for any run to end, then run: mirror down",
+        )
+    say = on_step or _quiet
+    say("Installing the engine's updates (this can take a few minutes)")
+    with keep_awake("Updating the engine"):
+        outcome = engine.update()
+        if outcome.reboot_required and restart:
+            say("Restarting the engine to finish the update")
+            engine.stop()
+            started = engine.start(on_step)
+            outcome.kernel = started.versions.get("kernel", outcome.kernel)
+            outcome.reboot_required = started.versions.get("reboot") == "yes"
+    return outcome
