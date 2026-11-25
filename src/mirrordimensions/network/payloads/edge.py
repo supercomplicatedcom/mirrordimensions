@@ -93,11 +93,29 @@ import mcpcap  # noqa: E402  (world MCP servers: mcp.message and mcp.call events
 import models  # noqa: E402  (model routes: inference only, credentials, hosted tools)
 
 
+def _stamp() -> tuple[int, int, int]:
+    """When routes.json last changed. Copying a file in sets its modification time to the
+    second; the change time is the kernel's own, to the nanosecond."""
+    st = ROUTES.stat()
+    return (st.st_mtime_ns, st.st_ctime_ns, st.st_size)
+
+
 class Edge:
     def __init__(self) -> None:
+        self.loaded: tuple[int, int, int] = (0, 0, 0)
+        self._load()
+        BODIES.mkdir(parents=True, exist_ok=True)
+
+    def _load(self) -> None:
+        """Read routes.json: each system's route, surfaces, rules and visibility. The control
+        plane rewrites it before each run, so rules edited since `mirror up` apply to the
+        next run, and each run's rules start from the same state (decision 0021)."""
+        stamp = _stamp()
         config = json.loads(ROUTES.read_text())
         self.routes: dict[str, dict] = {k.lower(): v for k, v in config["routes"].items()}
         self.secrets: list[str] = [s for s in config.get("secrets", []) if s]
+        # Which agent each address belongs to in this run, for rules scoped to one agent.
+        self.identities: dict[str, str] = dict(config.get("identities", {}))
         seed = int(config.get("seed", 0))
         self.rules = {
             host: behavior.Rules(
@@ -108,7 +126,7 @@ class Edge:
             )
             for host, route in self.routes.items()
         }
-        self.version_ids: dict[str, str] = {}
+        self.version_ids: dict[str, str] = getattr(self, "version_ids", {})
         # Names each system's responses revealed so far (`channel:<id>` -> `channel:incidents`),
         # so an exchange that names a resource only by id is located by its name.
         self.names: dict[str, dict[str, str]] = {host: {} for host in self.routes}
@@ -125,7 +143,17 @@ class Edge:
                 )
                 upstream = urlsplit(route["upstream"])
                 self.sni_by_addr[(upstream.hostname, upstream.port)] = spec.get("sni", host)
-        BODIES.mkdir(parents=True, exist_ok=True)
+        self.loaded = stamp  # only once all of it loaded: a failed read is tried again
+
+    def _reload_if_changed(self) -> None:
+        try:
+            changed = _stamp() != self.loaded
+        except OSError:
+            return
+        if changed:
+            # A half-written file fails to load; the next request tries again.
+            with contextlib.suppress(OSError, ValueError, KeyError):
+                self._load()
 
     def _respond(self, flow: http.HTTPFlow, host: str, answer) -> None:
         """Answer as the product would: its headers in its order, Content-Length last."""
@@ -155,6 +183,7 @@ class Edge:
     # -- refusal of unknown names ------------------------------------------------
 
     def tls_clienthello(self, data: tls.ClientHelloData) -> None:
+        self._reload_if_changed()
         sni = (data.client_hello.sni or "").lower()
         if sni not in self.routes:
             # The listener's default upstream is a closed local port, so passing the
@@ -168,6 +197,7 @@ class Edge:
     # -- routing -----------------------------------------------------------------
 
     async def request(self, flow: http.HTTPFlow) -> None:
+        self._reload_if_changed()
         flow.metadata["edge_start"] = time.monotonic()
         host = (flow.request.host_header or "").split(":")[0].lower()
         sni = (flow.client_conn.sni or "").lower()
@@ -191,6 +221,7 @@ class Edge:
             path=flow.request.path,
             headers=dict(flow.request.headers),
             body=flow.request.raw_content or b"",
+            identity=self.identities.get(flow.client_conn.peername[0]),
         )
         outcome = rules.apply(req, time.time())
         for applied in outcome.applied:

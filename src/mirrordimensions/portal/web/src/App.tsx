@@ -11,6 +11,7 @@ import { Permissions } from "./screens/Permissions";
 import { RunDetail } from "./screens/RunDetail";
 import { Runs } from "./screens/Runs";
 import { Scenarios } from "./screens/Scenarios";
+import { SystemScreen } from "./screens/System";
 
 export const SECTIONS: [string, string][] = [
   ["/environment", "Environment"],
@@ -50,6 +51,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/environment" replace />} />
           <Route path="/environment" element={<Environment />} />
+          <Route path="/environment/systems/:appId" element={<SystemScreen />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/permissions" element={<Permissions />} />
           <Route path="/permissions/:agent" element={<Permissions />} />

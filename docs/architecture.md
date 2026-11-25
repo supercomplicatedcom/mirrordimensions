@@ -75,6 +75,10 @@ The schema is in `src/mirrordimensions/config/events.py`; `mirror schema event` 
 
 Each `http.exchange` to a system with a profile also carries `where`: the surface it matched, the resource it acted on, and a plain sentence ("Posts in #incidents"). The gateway records it as it captures the exchange, from the same profile code the host uses, so a run reads the same live and in replay. `run.start` names the agent's addresses (`clients`).
 
+## Editing
+
+Edits are written to `mirror.yaml` or the agent's file at once (decision 0021). Rules, visibility between granted, denied and present, and grants take effect at the next run: each run hands the gateway its current routes, and the gateway reloads them, so nothing has to be restarted. A system made absent or brought back restarts the sandbox. Its settings, the company and its data change what is built, so they wait for a rebuild. `mirror changes` lists what is saved but not yet in effect, measured against `.mirror/built.json` and `.mirror/applied.json`; `mirror apply` puts it into effect now.
+
 ## Steps and the live view
 
 `trace/steps.py` groups a run's events into steps for the portal's live view and `mirror watch` (decision 0018):

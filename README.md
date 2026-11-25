@@ -106,10 +106,12 @@ mirror portal           # opens http://127.0.0.1:7420/?token=… ; only this com
 | `mirror scenario list\|show`, `mirror world show people\|projects\|canaries` | Scenarios, and the built company |
 | `mirror portal` | The local portal on 127.0.0.1, with a token in its address |
 | `mirror system list\|show\|rules\|try`, `mirror set rule`, `mirror unset rule` | Systems, their surfaces, and rules that change what they accept or return |
+| `mirror set visibility <system> <state>`, `mirror set grant <agent> <system>/<name> <grant>` | Edit a system's visibility or an agent's grants; each says when it takes effect |
+| `mirror changes`, `mirror apply` | Edits saved but not in effect yet; put them into effect now (a rebuild if they need one) |
 | `mirror catalog search\|show\|list\|stats` | The app catalog |
 | `mirror init`, `validate`, `status`, `schema` | Projects and their file formats |
 
-The company is generated from the seed: about 25 people, 6 repositories with history, 150 issues and 2,000 chat messages over 180 days, with stale tickets, a duplicate, an abandoned repository and someone who has left. Apps whose product has a twin (Gitea, Mattermost) run the real product behind the gateway; any other app is served by a stand-in page. Rules (latency, failures, rate limits, field edits, planted text, fixed responses) apply from the next `mirror up` or run and are never visible to the agent.
+The company is generated from the seed: about 25 people, 6 repositories with history, 150 issues and 2,000 chat messages over 180 days, with stale tickets, a duplicate, an abandoned repository and someone who has left. Apps whose product has a twin (Gitea, Mattermost) run the real product behind the gateway; any other app is served by a stand-in page. Rules (latency, failures, rate limits, field edits, planted text, fixed responses) apply from the next run and are never visible to the agent; so do visibility and grant edits. Making a system absent, or bringing one back, restarts the sandbox when you run `mirror apply`.
 
 Every command accepts `--json` and exits 0 on success, 1 when a check fails, and 2 on a usage or configuration error.
 

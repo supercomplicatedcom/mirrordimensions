@@ -4,12 +4,13 @@
 
 from __future__ import annotations
 
+import re
 import time
 from io import StringIO
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 
 # ruamel.yaml's round-trip API is only partly annotated.
@@ -17,8 +18,9 @@ from ruamel.yaml import YAML
 from mirrordimensions.config.loader import load_model, read_yaml
 from mirrordimensions.config.manifest import App, Manifest, Rule
 from mirrordimensions.errors import MirrorError
-from mirrordimensions.network.payloads.behavior import Request, Rules, edit_response
+from mirrordimensions.network.payloads.behavior import Request, Rules, Surface, edit_response
 from mirrordimensions.project import Project
+from mirrordimensions.service.changes import Change
 from mirrordimensions.twins.base import get_twin
 from mirrordimensions.twins.profile import Profile
 
@@ -43,6 +45,8 @@ class SurfaceInfo(BaseModel):
     access: str | None
     sentence: str
     customized_by: list[str]
+    takes: str = Field(default="", description="What a request carries, in plain words")
+    gives: str = Field(default="", description="What the answer carries, in plain words")
 
 
 class SystemDetail(BaseModel):
@@ -51,6 +55,9 @@ class SystemDetail(BaseModel):
     data: dict[str, Any]
     surfaces: list[SurfaceInfo]
     rules: list[dict[str, Any]]
+    errors: list[str] = Field(
+        default_factory=list[str], description="The product's own errors a rule can answer with"
+    )
 
 
 class TryResult(BaseModel):
@@ -105,6 +112,61 @@ def list_systems(project: Project) -> list[SystemSummary]:
     return [_summary(a) for a in _manifest(project).apps]
 
 
+KIND_WORDS = {
+    "repo": "repository",
+    "file": "file",
+    "issue": "issue",
+    "pull": "pull request",
+    "branch": "branch",
+    "comment": "comment",
+    "user": "profile",
+    "channel": "channel",
+    "post": "message",
+    "team": "team",
+}
+PLURALS = {
+    "repo": "repositories",
+    "branch": "branches",
+    "pull": "pull requests",
+    "post": "messages",
+}
+_NAMES = re.compile(r"\{(\w+)\+?\}")
+
+
+def describe_io(surface: Surface) -> tuple[str, str]:
+    """What a surface takes in and gives back, in plain words, from the profile alone: the
+    names in its path, a body for a change, and what its answer exposes."""
+    names = [n.replace("_", " ") for n in _NAMES.findall(surface.path)]
+    takes = ", ".join(names)
+    git = ".git/" in surface.path
+    if surface.method in ("POST", "PUT", "PATCH"):
+        body = "a form" if surface.kind == "portal" else "git's own data" if git else "a JSON body"
+        takes = f"{takes} and {body}" if takes else body
+    takes = takes[:1].upper() + takes[1:] if takes else "Nothing"
+    kind = (surface.resource or "").split(":", 1)[0]
+    exposes = surface.exposes or {}
+    listed = str(exposes.get("resource", "")).split(":", 1)[0]
+    if git:
+        gives = "Repository data, as git sends it"
+    elif surface.kind == "portal":
+        gives = "A page"
+    elif surface.kind == "asset":
+        gives = "A file for the page"
+    elif surface.kind == "background" or surface.path.endswith("/websocket"):
+        gives = "A live connection"
+    elif exposes and exposes.get("each") not in ("", None):
+        gives = f"A list of {PLURALS.get(listed, (listed or 'item') + 's')}"
+    elif kind and surface.method == "GET":
+        gives = f"The {KIND_WORDS.get(kind, kind)}"
+    elif kind and surface.method == "DELETE":
+        gives = "Confirmation"
+    elif kind:
+        gives = f"The {KIND_WORDS.get(kind, kind)}, as changed"
+    else:
+        gives = "An answer"
+    return takes, gives
+
+
 def show_system(project: Project, app_id: str) -> SystemDetail:
     app = _app(_manifest(project), app_id)
     rules = [r.model_dump(exclude_none=True) for r in app.rules]
@@ -132,6 +194,8 @@ def show_system(project: Project, app_id: str) -> SystemDetail:
                     access=s.access,
                     sentence=s.sentence,
                     customized_by=fired,
+                    takes=describe_io(s)[0],
+                    gives=describe_io(s)[1],
                 )
             )
     return SystemDetail(
@@ -140,6 +204,7 @@ def show_system(project: Project, app_id: str) -> SystemDetail:
         data=dict(app.data),
         surfaces=surfaces,
         rules=rules,
+        errors=sorted(Profile(app.product).errors) if app.product and get_twin(app.product) else [],
     )
 
 
@@ -167,7 +232,7 @@ def validate_rule(app: App, rule: dict[str, Any]) -> list[str]:
     return problems
 
 
-def _edit_manifest(project: Project, edit: Any) -> str:
+def edit_manifest(project: Project, edit: Any) -> str:
     """Change mirror.yaml in place, keeping comments and key order; return the new text."""
     yaml = YAML(typ="rt")
     yaml.preserve_quotes = True
@@ -185,9 +250,28 @@ def _edit_manifest(project: Project, edit: Any) -> str:
     return text
 
 
-def set_rule(project: Project, app_id: str, rule: dict[str, Any]) -> None:
+def _rule_change(app: App, name: str, before: Any, after: Any) -> Change:
+    from mirrordimensions.service.environment import system_label
+
+    verb = "added" if before is None else "removed" if after is None else "changed"
+    return Change(
+        kind="rule",
+        target=app.id,
+        what=f"{system_label(app.kind, app.product, app.id)}: rule {name} {verb}",
+        before=before,
+        after=after,
+        applies="next run",
+    )
+
+
+def set_rule(project: Project, app_id: str, rule: dict[str, Any]) -> Change:
+    """Add or replace a rule; it takes effect at the next run (decision 0021)."""
     Rule.model_validate(rule)
     app = _app(_manifest(project), app_id)
+    before = next(
+        (r.model_dump(mode="json", exclude_none=True) for r in app.rules if r.name == rule["name"]),
+        None,
+    )
     problems = validate_rule(app, rule)
     if problems:
         raise MirrorError(
@@ -204,11 +288,15 @@ def set_rule(project: Project, app_id: str, rule: dict[str, Any]) -> None:
                         return
                 rules.append(rule)
 
-    _edit_manifest(project, edit)
+    edit_manifest(project, edit)
+    return _rule_change(app, str(rule["name"]), before, rule)
 
 
-def remove_rule(project: Project, app_id: str, name: str) -> None:
-    _app(_manifest(project), app_id)
+def remove_rule(project: Project, app_id: str, name: str) -> Change:
+    app = _app(_manifest(project), app_id)
+    before = next(
+        (r.model_dump(mode="json", exclude_none=True) for r in app.rules if r.name == name), None
+    )
 
     def edit(data: Any) -> None:
         for entry in data["apps"]:
@@ -224,7 +312,8 @@ def remove_rule(project: Project, app_id: str, name: str) -> None:
                 if not entry["rules"]:
                     del entry["rules"]
 
-    _edit_manifest(project, edit)
+    edit_manifest(project, edit)
+    return _rule_change(app, name, before, None)
 
 
 def try_request(

@@ -163,3 +163,55 @@ test("Live view: with reduced motion the marker jumps instead of gliding", async
   const glide = await page.locator(".marker").first().evaluate((el) => getComputedStyle(el).transitionDuration);
   expect(glide).toBe("0s");
 });
+
+// Edits change the fixture project, so each test below puts back what it changed.
+
+test("Environment: changing a system's visibility saves it and shows it as pending", async ({ page }) => {
+  await page.goto("/environment");
+  const map = page.getByRole("region", { name: "Environment map" });
+  await map.getByRole("button", { name: /Team chat/ }).click();
+  const panel = page.getByRole("complementary", { name: "Selected" });
+  await panel.getByRole("radio", { name: /Denied/ }).check();
+  await expect(panel.getByRole("status")).toContainText("takes effect at the next run");
+  const pending = page.getByRole("region", { name: /not in effect yet/ });
+  await expect(pending).toContainText("Team chat: visibility granted to denied");
+  await expect(pending).toContainText("Next run");
+  await expect(map.getByRole("button", { name: /Team chat/ })).toContainText("Denied");
+  await accessible(page);
+  await panel.getByRole("radio", { name: /Granted/ }).check();
+  await expect(pending).toBeHidden();
+});
+
+test("Permissions: a grant is edited and saved to the agent file", async ({ page }) => {
+  await page.goto("/permissions/scripted-good");
+  const grant = page.getByLabel("Grant on infra-config");
+  await expect(grant).toHaveValue("none");
+  await grant.selectOption("read");
+  await expect(page.getByRole("status").filter({ hasText: "Saved to the agent file" })).toContainText("code/infra-config none to read");
+  await expect(page.getByLabel("Grant on infra-config")).toHaveValue("read");
+  await expect(page.getByLabel("Grant on #incidents")).toHaveValue("member");
+  await accessible(page);
+  await page.getByLabel("Grant on infra-config").selectOption("none");
+  await expect(page.getByLabel("Grant on infra-config")).toHaveValue("none");
+});
+
+test("System: every endpoint with its input and output, and a rule saved from the form", async ({ page }) => {
+  await page.goto("/environment");
+  await page.getByRole("region", { name: "Environment map" }).getByRole("button", { name: /Code hosting/ }).click();
+  await page.getByRole("link", { name: "Inputs and outputs of Code hosting" }).click();
+  await expect(page.getByRole("heading", { name: "Code hosting: inputs and outputs", level: 1 })).toBeVisible();
+  const row = page.getByRole("row", { name: /GET \/api\/v1\/repos\/search/ });
+  await expect(row).toContainText("A list of repositories");
+  await expect(row).toContainText("Preconfigured");
+  await row.getByRole("button").click();
+  const form = page.getByRole("complementary", { name: "Selected endpoint" });
+  await form.getByLabel("Added delay from, ms").fill("800");
+  await form.getByLabel("to, ms").fill("2500");
+  await form.getByRole("button", { name: "Save rule" }).click();
+  await expect(form.getByRole("status").first()).toContainText("rule repo-search added");
+  await expect(page.getByRole("row", { name: /GET \/api\/v1\/repos\/search/ })).toContainText("Customized: slow, 0.8 s to 2.5 s");
+  await expect(page.getByRole("region", { name: /not in effect yet/ })).toContainText("Code hosting: rule repo-search added");
+  await accessible(page);
+  await form.getByRole("button", { name: "Remove rule repo-search" }).click();
+  await expect(page.getByRole("row", { name: /GET \/api\/v1\/repos\/search/ })).toContainText("Preconfigured");
+});

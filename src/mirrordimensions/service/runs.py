@@ -48,6 +48,7 @@ from mirrordimensions.network.events import Collector, tracer_parser
 from mirrordimensions.project import Project
 from mirrordimensions.runner import coverage, evaluate, ledger, scenario
 from mirrordimensions.service import agents as agents_svc
+from mirrordimensions.service import changes as changes_svc
 from mirrordimensions.service import results
 from mirrordimensions.service import world as world_svc
 from mirrordimensions.service.sandbox import (
@@ -240,8 +241,19 @@ class _Run:
         stopped, errored = False, False
         try:
             self._check_reach()
+            self._check_nothing_waits()
             if not self._isolation():
                 return self._finish(stopped=False, errored=False)
+            # Rules and visibility as the files have them now; the agent's grants are read
+            # from its file when its identity is issued below (decision 0021).
+            sandbox.refresh_routes(
+                docker,
+                self.plan,
+                {ip: self.agent.name for ip in agent_clients(self.plan, self.agent)},
+            )
+            changes_svc.record_applied(
+                self.project, self.manifest, self.agent.name, self.agent.grants
+            )
             seconds = world_svc.restore(self.project, docker, self.plan)
             self.collector.emit(
                 "runner", "snapshot.restored", {"snapshot": "base", "seconds": seconds}
@@ -431,6 +443,23 @@ class _Run:
                 for field, value in fact.items():
                     if isinstance(value, (str, int)):
                         self.values[f"{key}.{field}"] = str(value)
+
+    def _check_nothing_waits(self) -> None:
+        """A system made absent, or brought back, changes the sandbox itself: a run before
+        that is applied would test a visibility the files no longer say (decision 0021)."""
+        from mirrordimensions.service.environment import pending_changes
+
+        waiting = [
+            c
+            for c in pending_changes(self.project)
+            if c.kind == "visibility" and c.applies != "next run"
+        ]
+        if waiting:
+            raise MirrorError(
+                "A visibility change is saved but not in effect.",
+                "; ".join(c.what for c in waiting) + ". It changes the sandbox itself.",
+                "Run: mirror apply",
+            )
 
     def _check_reach(self) -> None:
         check_reach(self.plan, self.agent, self.scenario)

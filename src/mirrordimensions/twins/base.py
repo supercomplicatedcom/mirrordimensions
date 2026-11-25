@@ -108,6 +108,8 @@ class StateObject:
 
 class Twin(Protocol):
     product: str
+    grant_key: str  # the key an agent file's grants use for this product
+    grant_levels: tuple[str, ...]  # the levels it accepts; one level means "member" or not
     upstream_port: int
     static_path: str  # a file served identically every time, for the transparency check
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 import sys
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -221,3 +222,124 @@ def test_the_live_view_reads_steps_and_streams_them(client: TestClient) -> None:
     assert text.count("event: step") == 7 and text.endswith("event: end\ndata: {}\n\n")
     assert text.count('"index":3') == 2 and '"kind":"violation"' in text
     assert client.get("/api/v1/runs/r_nosuchrun/steps", headers=AUTH).status_code == 404
+
+
+@pytest.fixture
+def editable(tmp_path: Path) -> Iterator[tuple[TestClient, Path]]:
+    """A project of its own, just built, for tests that edit it."""
+    from mirrordimensions.service.agents import _manifest  # pyright: ignore[reportPrivateUsage]
+    from mirrordimensions.service.changes import record_built
+
+    made = portal_fixture.make_project(tmp_path / "own")
+    record_built(load_project(made), _manifest(load_project(made)))
+    static = tmp_path / "static"
+    static.mkdir()
+    (static / "index.html").write_text("<!doctype html>", encoding="utf-8")
+    app = server.create_app(load_project(made), portal_fixture.TOKEN, PORT, static)
+    with TestClient(app, base_url=BASE) as c:
+        yield c, made
+
+
+def test_visibility_edits_become_pending_changes(editable: tuple[TestClient, Path]) -> None:
+    client, made = editable
+    assert client.get("/api/v1/changes", headers=AUTH).json() == []
+    assert (
+        client.patch(
+            "/api/v1/environment/apps/chat", json={"visibility": "denied"}, headers=AUTH
+        ).status_code
+        == 403
+    )
+    change = client.patch(
+        "/api/v1/environment/apps/chat", json={"visibility": "denied"}, headers=WRITE
+    ).json()
+    assert (change["after"], change["applies"]) == ("denied", "next run")
+    assert "visibility: denied" in (made / "mirror.yaml").read_text(encoding="utf-8")
+    pending = client.get("/api/v1/changes", headers=AUTH).json()
+    assert [c["what"] for c in pending] == ["Team chat: visibility granted to denied"]
+    assert client.get("/api/v1/project", headers=AUTH).json()["pending_changes"] == 1
+    graph = client.get("/api/v1/environment/graph", headers=AUTH).json()
+    chat = next(n for n in graph["nodes"] if n["id"] == "system:chat")
+    assert chat["visibility"] == "denied"
+    bad = client.patch(
+        "/api/v1/environment/apps/chat", json={"visibility": "hidden"}, headers=WRITE
+    )
+    assert bad.status_code == 400 and "not a visibility" in bad.json()["what"]
+
+
+def test_the_portal_and_the_command_line_make_the_same_edit(
+    editable: tuple[TestClient, Path], tmp_path: Path
+) -> None:
+    from typer.testing import CliRunner
+
+    from mirrordimensions.cli.app import app as cli
+
+    client, made = editable
+    client.patch("/api/v1/environment/apps/chat", json={"visibility": "present"}, headers=WRITE)
+    by_portal = (made / "mirror.yaml").read_text(encoding="utf-8")
+    other = portal_fixture.make_project(tmp_path / "cli")
+    out = CliRunner().invoke(cli, ["--project", str(other), "set", "visibility", "chat", "present"])
+    assert out.exit_code == 0, out.output
+    assert (other / "mirror.yaml").read_text(encoding="utf-8") == by_portal
+
+
+def test_grants_and_rules_are_edited_through_the_portal(editable: tuple[TestClient, Path]) -> None:
+    client, made = editable
+    change = client.patch(
+        "/api/v1/agents/scripted-good/grants",
+        json={"resource": "code/infra-config", "grant": "read"},
+        headers=WRITE,
+    ).json()
+    assert (change["before"], change["after"]) == (None, "read")
+    assert "infra-config: read" in (made / "agents" / "scripted-good.yaml").read_text("utf-8")
+    systems = {s["id"]: s for s in client.get("/api/v1/systems", headers=AUTH).json()}
+    assert systems["code"]["twin"] and systems["code"]["rules"] == 0
+    rule = {"match": {"surface": "repo.search"}, "output": {"delay_ms": [800, 2500]}}
+    saved = client.put("/api/v1/systems/code/rules/slow-search", json=rule, headers=WRITE).json()
+    assert (
+        saved["applies"] == "next run" and saved["what"] == "Code hosting: rule slow-search added"
+    )
+    detail = client.get("/api/v1/systems/code", headers=AUTH).json()
+    search = next(s for s in detail["surfaces"] if s["id"] == "repo.search")
+    assert search["customized_by"] == ["slow-search"]
+    # A rule that answers by itself is shown without asking the product.
+    failing = {"match": {"surface": "repo.read"}, "output": {"fail": {"rate": 1.0}}}
+    client.put("/api/v1/systems/code/rules/always-down", json=failing, headers=WRITE)
+    tried = client.post(
+        "/api/v1/systems/code/try",
+        json={"method": "GET", "path": "/api/v1/repos/elmstead/billing-service"},
+        headers=WRITE,
+    ).json()
+    assert tried["from_rule"] and tried["status"] == 502
+    assert tried["rules_fired"] == [{"rule": "always-down", "changed": ["fail"]}]
+    wrong = client.put(
+        "/api/v1/systems/code/rules/other", json={**rule, "name": "x"}, headers=WRITE
+    )
+    assert wrong.status_code == 400
+    invalid = client.put(
+        "/api/v1/systems/code/rules/broken", json={"match": {"surface": "nope"}}, headers=WRITE
+    )
+    assert invalid.status_code == 400
+    gone = client.delete("/api/v1/systems/code/rules/slow-search", headers=WRITE).json()
+    assert gone["after"] is None
+
+
+def test_applying_changes_streams_its_steps(
+    editable: tuple[TestClient, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from mirrordimensions.service import environment as env
+
+    client, _ = editable
+
+    def fake(_project: object, on_step: Any = None) -> env.ApplyResult:
+        on_step("Rebuilding from the first stage the changes affect")
+        on_step("2. Set up the sealed network")
+        return env.ApplyResult(rebuilt=True, applied=[], waiting=[])
+
+    monkeypatch.setattr(env, "apply_changes", fake)
+    assert client.post("/api/v1/build", headers=AUTH).status_code == 403
+    started = client.post("/api/v1/build", headers=WRITE)
+    assert started.status_code == 200 and started.json()["error"] is None
+    with client.stream("GET", "/api/v1/build/stream", headers=AUTH) as stream:
+        text = "".join(stream.iter_text())
+    assert text.count("event: step") == 2 and '"rebuilt":true' in text
+    assert client.get("/api/v1/build", headers=AUTH).json()["running"] is False

@@ -162,6 +162,9 @@ def up(project: Project, on_step: StepFn = None) -> list[str]:
             app_secrets=app_secrets(project, manifest),
             on_step=on_step,
         )
+        from mirrordimensions.service.changes import record_applied
+
+        record_applied(project, manifest)  # the gateway has these rules and visibility now
     return names
 
 
@@ -237,6 +240,13 @@ def admin_fetcher(project: Project, app_id: str) -> Callable[[str, str, bytes], 
             f"{app_id} has no twin.",
             "Only systems with a twin can be tried.",
             "Run: mirror system list",
+        )
+    if docker.labels(sandbox.GATEWAY_NAME).get(sandbox.LABEL) != plan.world:
+        # Every world's sandbox uses the same container names: never ask another world's.
+        raise MirrorError(
+            "The sandbox is not up.",
+            f"No sandbox of {plan.world} is running in the engine.",
+            "Run: mirror up",
         )
     relay = Relay(docker)
     ctx = sandbox.twin_context(plan, app, app_secrets(project, manifest))

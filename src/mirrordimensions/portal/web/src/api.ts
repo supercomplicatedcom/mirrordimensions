@@ -32,7 +32,7 @@ export async function get<T>(path: string): Promise<T> {
   return parse<T>(await fetch(API + path, { credentials: "same-origin" }));
 }
 
-export async function send<T>(method: "POST" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
+export async function send<T>(method: "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
   return parse<T>(
     await fetch(API + path, {
       method,

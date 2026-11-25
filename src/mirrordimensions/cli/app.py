@@ -855,7 +855,7 @@ def agent_check(
 
 system_app = typer.Typer(help="Systems: surfaces, settings, data and rules.", no_args_is_help=True)
 app.add_typer(system_app, name="system")
-set_app = typer.Typer(help="Edit mirror.yaml.", no_args_is_help=True)
+set_app = typer.Typer(help="Edit mirror.yaml and agent files.", no_args_is_help=True)
 app.add_typer(set_app, name="set")
 unset_app = typer.Typer(help="Remove from mirror.yaml.", no_args_is_help=True)
 app.add_typer(unset_app, name="unset")
@@ -994,7 +994,106 @@ def set_rule_cmd(
     st = _state(ctx)
     rule = _YAML(typ="safe").load(file.read_text(encoding="utf-8"))  # pyright: ignore[reportUnknownMemberType]
     systems.set_rule(service.load_project(st.start()), app_id, rule)
-    st.out.ok(f"rule {rule['name']} set on {app_id}; it applies from the next mirror up or run")
+    st.out.ok(f"rule {rule['name']} set on {app_id}; it applies from the next run")
+
+
+def _show_change(st: State, change: Any) -> None:
+    if st.out.json_mode:
+        st.out.document(change)
+        return
+    if change.before == change.after:
+        st.out.ok(f"{change.what}: already so, nothing changed")
+        return
+    st.out.ok(change.what)
+    when = {
+        "next run": "at the next run",
+        "restart": "when the sandbox restarts: mirror apply",
+        "rebuild": "after a rebuild: mirror apply",
+    }[change.applies]
+    st.out.next_step(f"Saved. It takes effect {when}. Pending: mirror changes")
+
+
+@set_app.command("visibility")
+def set_visibility_cmd(
+    ctx: typer.Context,
+    app_id: Annotated[str, typer.Argument(help="A system id from mirror system list.")],
+    state: Annotated[str, typer.Argument(help="granted, denied, present or absent.")],
+) -> None:
+    """Set what every agent sees of a system. Between granted, denied and present it applies
+    at the next run; to or from absent, after a rebuild. Nothing is rebuilt now."""
+    from mirrordimensions.service import environment as env
+
+    st = _state(ctx)
+    _show_change(st, env.set_visibility(service.load_project(st.start()), app_id, state))
+
+
+@set_app.command("grant")
+def set_grant_cmd(
+    ctx: typer.Context,
+    agent: Annotated[str, typer.Argument(help="An agent from mirror agent list.")],
+    resource: Annotated[
+        str,
+        typer.Argument(
+            help="<system>/<name>, such as code/billing-service or chat/incidents; "
+            "or a system alone."
+        ),
+    ],
+    grant: Annotated[
+        str,
+        typer.Argument(
+            help="read, write or admin for a repository; member for a channel; allowed for "
+            "a tool; granted for a whole system; none to take it away."
+        ),
+    ],
+) -> None:
+    """Set one grant in an agent file. Grants are exact; it applies at the agent's next run."""
+    from mirrordimensions.service import environment as env
+
+    st = _state(ctx)
+    _show_change(st, env.set_grant(service.load_project(st.start()), agent, resource, grant))
+
+
+@app.command("changes")
+def changes_cmd(ctx: typer.Context) -> None:
+    """Edits saved to mirror.yaml or agent files that are not in effect yet, and when each
+    takes effect."""
+    from mirrordimensions.service import environment as env
+
+    st = _state(ctx)
+    found = env.pending_changes(service.load_project(st.start()))
+    if st.out.json_mode:
+        st.out.document([c.model_dump(mode="json") for c in found])
+        return
+    if not found:
+        st.out.ok("nothing pending: everything saved is in effect")
+        return
+    for change in found:
+        st.out.line(f"{change.applies:<10}{change.what}")
+    if any(c.applies == "rebuild" for c in found):
+        st.out.next_step("Rebuild what needs it: mirror apply")
+    elif any(c.applies == "restart" for c in found):
+        st.out.next_step("Restart the sandbox with them: mirror apply")
+    else:
+        st.out.next_step("These take effect at the next run, or now with: mirror apply")
+
+
+@app.command("apply")
+def apply_cmd(ctx: typer.Context) -> None:
+    """Put pending changes into effect now: rebuild from the first stage they affect, and
+    hand a running gateway the current rules and visibility."""
+    from mirrordimensions.service import environment as env
+
+    st = _state(ctx)
+    result = env.apply_changes(service.load_project(st.start()), on_step=st.out.line)
+    if st.out.json_mode:
+        st.out.document(result)
+        return
+    for change in result.applied:
+        st.out.ok(change.what)
+    for change in result.waiting:
+        st.out.line(f"{'next run':<10}{change.what}")
+    if not result.applied and not result.waiting:
+        st.out.ok("nothing was pending")
 
 
 @unset_app.command("rule")

@@ -4,9 +4,11 @@
 // layout is computed from the graph (left to right: agents, gateway, systems), so the same
 // environment always draws the same way. A table view lists the same systems.
 
-import { type CSSProperties, useMemo, useState } from "react";
-import { useApi } from "../api";
-import type { Graph, GraphNode, Result, RunSummary } from "../types";
+import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { PortalError, send, useApi } from "../api";
+import { PendingChanges } from "../pending";
+import type { Change, Graph, GraphNode, Result, RunSummary } from "../types";
 import { ErrorBox, Loading, PageHead, VISIBILITY_WORDS, capitalize } from "../ui";
 
 const COLUMN_X = [24, 316, 608];
@@ -54,6 +56,12 @@ export function Environment() {
   const [selected, setSelected] = useState<string>();
   const [overlayRun, setOverlayRun] = useState<string>("");
   const overlay = useApi<Result>(overlayRun ? `/runs/${overlayRun}` : null);
+  const [tick, setTick] = useState(0);
+  const reloadGraph = graph.reload;
+  const edited = useCallback(() => {
+    setTick((t) => t + 1);
+    reloadGraph();
+  }, [reloadGraph]);
 
   const touched = useMemo(() => {
     const byHost = new Map<string, number>();
@@ -72,6 +80,7 @@ export function Environment() {
         </span>
       </PageHead>
       <ErrorBox error={graph.error ?? project.error} />
+      <PendingChanges tick={tick} onApplied={edited} />
       <div className="toolbar" role="group" aria-label="Show layer">
         <span className="note" style={{ alignSelf: "center", marginRight: 4 }}>
           Show layer
@@ -114,7 +123,7 @@ export function Environment() {
             </p>
           </section>
           <aside className="card narrow" aria-label="Selected">
-            <Detail node={graph.data.nodes.find((n) => n.id === selected)} touched={touched} overlay={overlayRun} />
+            <Detail key={selected ?? ""} node={graph.data.nodes.find((n) => n.id === selected)} touched={touched} overlay={overlayRun} onEdited={edited} />
           </aside>
         </div>
       )}
@@ -216,7 +225,21 @@ function TableView({ graph, touched, overlay }: { graph: Graph; touched: Map<str
   );
 }
 
-function Detail({ node, touched, overlay }: { node: GraphNode | undefined; touched: Map<string, number>; overlay: string }) {
+function Detail({
+  node,
+  touched,
+  overlay,
+  onEdited,
+}: {
+  node: GraphNode | undefined;
+  touched: Map<string, number>;
+  overlay: string;
+  onEdited: () => void;
+}) {
+  const [saved, setSaved] = useState<Change>();
+  const [error, setError] = useState<PortalError>();
+  const [choice, setChoice] = useState(node?.visibility ?? undefined);
+  useEffect(() => setChoice(node?.visibility ?? undefined), [node?.visibility]);
   if (!node) {
     return (
       <>
@@ -247,14 +270,6 @@ function Detail({ node, touched, overlay }: { node: GraphNode | undefined; touch
             <dd className="mono">{node.hostname}</dd>
           </>
         )}
-        {node.visibility && (
-          <>
-            <dt>Visibility</dt>
-            <dd>
-              {VISIBILITY_WORDS[node.visibility]?.[0]}: {VISIBILITY_WORDS[node.visibility]?.[1]}
-            </dd>
-          </>
-        )}
         {node.kind === "system" && (
           <>
             <dt>Granted to</dt>
@@ -274,8 +289,56 @@ function Detail({ node, touched, overlay }: { node: GraphNode | undefined; touch
           </>
         )}
       </dl>
+      {node.kind === "system" && node.visibility && (
+        <fieldset className="choice">
+          <legend>Visibility, for every agent</legend>
+          {Object.entries(VISIBILITY_WORDS).map(([key, [word, meaning]]) => (
+            <label key={key}>
+              <input
+                type="radio"
+                name={`visibility-${node.id}`}
+                value={key}
+                checked={choice === key}
+                onChange={() => {
+                  setError(undefined);
+                  setChoice(key);
+                  send<Change>("PATCH", `/environment/apps/${node.id.slice("system:".length)}`, { visibility: key })
+                    .then((c) => {
+                      setSaved(c);
+                      onEdited();
+                    })
+                    .catch((err: unknown) => {
+                      setChoice(node.visibility ?? undefined);
+                      if (err instanceof PortalError) setError(err);
+                    });
+                }}
+              />
+              <span>
+                <b>{word}</b> <span className="muted">{meaning}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {saved && (
+        <p role="status" className="note">
+          Saved to mirror.yaml.{" "}
+          {saved.applies === "rebuild"
+            ? "It needs a rebuild."
+            : saved.applies === "restart"
+              ? "It takes effect when the sandbox restarts."
+              : "It takes effect at the next run."}
+        </p>
+      )}
+      <ErrorBox error={error} />
+      {node.kind === "system" && node.built_as === "real software" && node.product && (
+        <p style={{ marginTop: 12 }}>
+          <Link to={`/environment/systems/${node.id.slice("system:".length)}`}>Inputs and outputs of {node.label}</Link>
+        </p>
+      )}
       <p className="note" style={{ marginTop: 16 }}>
-        Changes are written to mirror.yaml. Nothing is rebuilt until you choose to rebuild.
+        Changes are written to mirror.yaml. Visibility, rules and grants take effect at the next run; making a system absent, or bringing
+        one back, restarts the sandbox when you apply it.
       </p>
     </>
   );

@@ -229,7 +229,7 @@ def add_model_route(
     name: str | None = None,
 ) -> str:
     """Add a model route to mirror.yaml (or find the one already there); return its name."""
-    from mirrordimensions.service.systems import _edit_manifest  # pyright: ignore[reportPrivateUsage]
+    from mirrordimensions.service.systems import edit_manifest  # pyright: ignore[reportPrivateUsage]
 
     if where == "in-sandbox":
         raise MirrorError(
@@ -284,7 +284,7 @@ def add_model_route(
     def edit(data: Any) -> None:
         data.setdefault("models", []).append(route)
 
-    _edit_manifest(project, edit)
+    edit_manifest(project, edit)
     return str(route["name"])
 
 
