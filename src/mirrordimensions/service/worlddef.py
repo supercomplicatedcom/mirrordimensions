@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from mirrordimensions.catalog.index import match_systems
 from mirrordimensions.config.loader import load_model
@@ -137,8 +137,16 @@ def resume_stage(
     return min(int(record.get("last_stage", 0)) + 1, affected)
 
 
+Tidiness = Literal["tidy", "realistic", "messy"]
+DATA_DEFAULTS = {"repositories": 6, "issues": 150, "messages": 2000, "canaries": 3}
+LINK_DEFAULTS = {"announce": True, "incidents": True}
+WIZARD_STEPS = ("start", "company", "systems", "links", "review", "create")
+
+
 class Draft(BaseModel):
-    """Answers so far to `mirror world new`, kept so an interrupted session resumes."""
+    """Answers so far to the world wizard (`mirror world new` or the portal), kept so an
+    interrupted session resumes. Each saved answer also rewrites mirror.yaml with
+    `status: draft`, so the definition can be read, and validates, at every step."""
 
     seed: int
     attempt: int = 0
@@ -147,6 +155,10 @@ class Draft(BaseModel):
     systems: list[str] | None = None
     people: int | None = None
     history: int | None = None
+    tidiness: Tidiness = "realistic"
+    links: dict[str, bool] = Field(default_factory=lambda: dict(LINK_DEFAULTS))
+    data: dict[str, int] = Field(default_factory=lambda: dict(DATA_DEFAULTS))
+    step: int = 1  # the portal wizard's step reached, 1-6
 
 
 QUESTIONS = ("company", "shape", "people", "history")
@@ -164,8 +176,22 @@ def load_draft(root: Path) -> Draft:
 
 
 def save_draft(root: Path, draft: Draft) -> None:
+    """Keep the answers, and write mirror.yaml as it stands (`status: draft`) once there is
+    a company to write it for."""
+    root = root.resolve()
+    existing = root / MANIFEST
+    if existing.is_file() and not _is_draft(existing):
+        raise MirrorError(
+            f"{root} already holds a world.", f"{MANIFEST} exists there.", "Choose another folder."
+        )
     make_dir(draft_path(root).parent, owner_only=True)
     write_text(draft_path(root), draft.model_dump_json(indent=2) + "\n", owner_only=True)
+    if draft.company is not None:
+        write_text(existing, render_world(root, draft, status="draft"))
+
+
+def _is_draft(path: Path) -> bool:
+    return any(line.strip() == "status: draft" for line in path.read_text("utf-8").splitlines())
 
 
 def next_question(draft: Draft) -> str | None:
@@ -188,17 +214,78 @@ def finish_draft(root: Path, draft: Draft) -> Path:
             f"Still to answer: {next_question(draft)}.",
             "Run: mirror world new",
         )
-    made = new_world(
-        root,
-        draft.template,
-        draft.systems,
-        draft.people or 25,
-        draft.history or 180,
-        draft.seed,
-        company=draft.company,
-    )
+    made = _write_world(root, draft)
     draft_path(root).unlink(missing_ok=True)
     return made
+
+
+def render_world(root: Path, draft: Draft, status: Literal["draft", "defined"]) -> str:
+    """The mirror.yaml a draft describes. The command line and the portal both write this,
+    so the same answers give the same file."""
+    company = draft.company or suggest_company(draft.seed, attempt=draft.attempt)
+    text = render_manifest(slug(root.name) or slug(company.name), company, draft.seed)
+    text = text.replace("  size: 25\n", f"  size: {draft.people or 25}\n")
+    text = text.replace("  history_days: 180\n", f"  history_days: {draft.history or 180}\n")
+    text = text.replace("  tidiness: realistic\n", f"  tidiness: {draft.tidiness}\n")
+    if status == "draft":
+        text = text.replace("\nname: ", "\nstatus: draft\nname: ", 1)
+    data = {**DATA_DEFAULTS, **draft.data}
+    for key, default in DATA_DEFAULTS.items():
+        text = text.replace(f"  {key}: {default}\n", f"  {key}: {int(data[key])}\n")
+    links = {**LINK_DEFAULTS, **draft.links}
+    if not links["announce"]:
+        text = text.replace("  - announce: {from: code, to: chat, channel: engineering}\n", "")
+    if not links["incidents"]:
+        text = text.replace("  - incidents: {in: [chat, code]}\n", "")
+    if not any(links.values()):
+        text = text.replace("links:\n", "links: []\n")
+    template = draft.template if draft.template or draft.systems else "software-team"
+    if draft.systems and not draft.template:
+        apps: list[str] = []
+        for i, match in enumerate(match_systems(draft.systems)):
+            if match.entry is None:
+                apps.append(f"  # {match.query}: not in the catalog; left out\n")
+                continue
+            e = match.entry
+            host = f"{HOSTNAME_PREFIX.get(e.kind, slug(e.name)[:12])}.{company.domain}"
+            line = f"  - id: {slug(e.kind)[:20] or f'app{i}'}\n    kind: {e.kind}\n    product: {e.slug}\n    hostname: {host}\n    visibility: granted\n"
+            if not match.buildable:
+                line += "    build: unavailable    # no twin yet: recorded, not created\n"
+            apps.append(line)
+        start = text.index("apps:\n") + len("apps:\n")
+        end = text.index("links:")
+        text = text[:start] + "".join(apps) + text[end:]
+    elif template not in TEMPLATES:
+        raise MirrorError(
+            f"Unknown template {template!r}.",
+            f"Templates: {', '.join(TEMPLATES)}.",
+            "Run: mirror world new --template software-team",
+        )
+    return text
+
+
+def _write_world(root: Path, draft: Draft) -> Path:
+    root = root.resolve()
+    existing = root / MANIFEST
+    if existing.exists() and not _is_draft(existing):
+        raise MirrorError(
+            f"{root} already holds a world.", f"{MANIFEST} exists there.", "Choose another folder."
+        )
+    text = render_world(root, draft, status="defined")
+    company = draft.company or suggest_company(draft.seed, attempt=draft.attempt)
+    make_dir(root)
+    write_text(existing, text)
+    write_text(root / ".gitignore", PROJECT_GITIGNORE)
+    make_dir(root / "agents")
+    make_dir(root / STATE_DIR, owner_only=True)
+    if not (root / STATE_DIR / "ca" / "root-ca.crt").is_file():
+        create_root_ca(root / STATE_DIR / "ca", company.name, draft.seed)
+    load = load_model(existing, Manifest)
+    if load[0] is None:
+        raise MirrorError(
+            "The new definition is not valid.", load[1][0].render(), "Report this as a bug."
+        )
+    return root
 
 
 def new_world(
@@ -210,54 +297,24 @@ def new_world(
     seed: int | None = None,
     industry: str | None = None,
     company: CompanySuggestion | None = None,
+    tidiness: Tidiness = "realistic",
+    data: dict[str, int] | None = None,
+    links: dict[str, bool] | None = None,
 ) -> Path:
-    """Write a definition: a template, or named systems matched against the catalog."""
-    root = path.resolve()
-    if (root / MANIFEST).exists():
-        raise MirrorError(
-            f"{root} already holds a world.", f"{MANIFEST} exists there.", "Choose another folder."
-        )
-    if template is None and not systems:
-        template = "software-team"
-    if template is not None and template not in TEMPLATES:
-        raise MirrorError(
-            f"Unknown template {template!r}.",
-            f"Templates: {', '.join(TEMPLATES)}.",
-            "Run: mirror world new --template software-team",
-        )
+    """Write a definition in one go: a template, or named systems matched against the catalog."""
     seed = seed if seed is not None else secrets.randbelow(900_000) + 100_000
-    company = company or suggest_company(seed, industry)
-    text = render_manifest(slug(root.name) or slug(company.name), company, seed)
-    text = text.replace("  size: 25\n", f"  size: {people}\n").replace(
-        "  history_days: 180\n", f"  history_days: {history}\n"
+    draft = Draft(
+        seed=seed,
+        company=company or suggest_company(seed, industry),
+        template=template if template or systems else "software-team",
+        systems=systems,
+        people=people,
+        history=history,
+        tidiness=tidiness,
+        data={**DATA_DEFAULTS, **(data or {})},
+        links={**LINK_DEFAULTS, **(links or {})},
     )
-    if systems:
-        apps: list[str] = []
-        for i, match in enumerate(match_systems(systems)):
-            if match.entry is None:
-                apps.append(f"  # {match.query}: not in the catalog; left out\n")
-                continue
-            e = match.entry
-            host = f"{HOSTNAME_PREFIX.get(e.kind, slug(e.name)[:12])}.{company.domain}"
-            line = f"  - id: {slug(e.kind)[:20] or f'app{i}'}\n    kind: {e.kind}\n    product: {e.slug}\n    hostname: {host}\n    visibility: granted\n"
-            if not match.buildable:
-                line += "    build: unavailable    # no twin yet: recorded, not created\n"
-            apps.append(line)
-        start = text.index("apps:\n") + len("apps:\n")
-        end = text.index("links:\n")
-        text = text[:start] + "".join(apps) + text[end:]
-    make_dir(root)
-    write_text(root / MANIFEST, text)
-    write_text(root / ".gitignore", PROJECT_GITIGNORE)
-    make_dir(root / "agents")
-    make_dir(root / STATE_DIR, owner_only=True)
-    create_root_ca(root / STATE_DIR / "ca", company.name, seed)
-    load = load_model(root / MANIFEST, Manifest)
-    if load[0] is None:
-        raise MirrorError(
-            "The new definition is not valid.", load[1][0].render(), "Report this as a bug."
-        )
-    return root
+    return _write_world(path, draft)
 
 
 def world_status(project: Project) -> WorldStatus:

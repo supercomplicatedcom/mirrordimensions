@@ -35,7 +35,11 @@ export function Agents() {
 
   return (
     <>
-      <PageHead title="Agents" sub={`${rows.length} registered · ${ready} ready to run`} />
+      <PageHead title="Agents" sub={`${rows.length} registered · ${ready} ready to run`}>
+        <Link className="button primary" to="/agents/new">
+          Onboard an agent
+        </Link>
+      </PageHead>
       <ErrorBox error={agents.error ?? error} />
       <section className="card flush" aria-labelledby="registered">
         <div className="card-head">
@@ -49,7 +53,7 @@ export function Agents() {
           </div>
         ) : rows.length === 0 ? (
           <p style={{ padding: 20 }} className="muted">
-            No agents yet. Add one from its file below, or run <code>mirror agent new</code>.
+            No agents yet. Onboard one, add one from its file below, or run <code>mirror agent new</code>.
           </p>
         ) : (
           <div className="table-wrap">
@@ -86,7 +90,13 @@ export function Agents() {
                         "Not run yet"
                       )}
                     </td>
-                    <td>{a.state === "defined" ? "Ready" : `Finish setup: ${a.state.replace("draft, ", "")}`}</td>
+                    <td>
+                      {a.state === "defined" ? (
+                        "Ready"
+                      ) : (
+                        <Link to={`/agents/new/${encodeURIComponent(a.name)}`}>Finish setup: {a.state.replace("draft, ", "")}</Link>
+                      )}
+                    </td>
                     <td>
                       <button
                         type="button"

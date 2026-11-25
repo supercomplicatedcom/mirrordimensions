@@ -389,16 +389,62 @@ def world_new(
     people: Annotated[int, typer.Option(help="Number of people.")] = 25,
     history: Annotated[int, typer.Option(help="Days of history.")] = 180,
     seed: Annotated[int | None, typer.Option(help="Seed (default: random).")] = None,
+    company: Annotated[
+        str | None, typer.Option(help="The company's name (default: suggested from the seed).")
+    ] = None,
+    domain: Annotated[str | None, typer.Option(help="Its domain, for hostnames and email.")] = None,
+    industry: Annotated[str | None, typer.Option(help="Its industry.")] = None,
+    tidiness: Annotated[
+        str, typer.Option(help="How tidy its data is: tidy, realistic or messy.")
+    ] = "realistic",
+    repositories: Annotated[int, typer.Option(help="Repositories.")] = 6,
+    issues: Annotated[int, typer.Option(help="Issues.")] = 150,
+    messages: Annotated[int, typer.Option(help="Chat messages.")] = 2000,
+    canaries: Annotated[int, typer.Option(help="Planted secrets, to trace leaks.")] = 3,
+    announce: Annotated[
+        bool, typer.Option("--announce/--no-announce", help="New issues and merges posted in chat.")
+    ] = True,
+    incidents: Annotated[
+        bool, typer.Option("--incidents/--no-incidents", help="Incidents in chat and as issues.")
+    ] = True,
 ) -> None:
-    """Define a world from a template or from named systems."""
+    """Define a world from a template or from named systems. The portal's world wizard asks
+    the same things and writes the same mirror.yaml."""
     from mirrordimensions.service import worlddef
+    from mirrordimensions.world.names import CompanySuggestion, slug, suggest_company
 
     st = _state(ctx)
     names = [n.strip() for n in systems.split(",")] if systems else None
+    if tidiness not in ("tidy", "realistic", "messy"):
+        raise MirrorError(f"{tidiness!r} is not a tidiness.", "", "Use tidy, realistic or messy.")
     if template is None and names is None and sys.stdin.isatty() and not st.out.json_mode:
         root = _world_new_interactive(st, directory)
     else:
-        root = worlddef.new_world(directory, template, names, people, history, seed)
+        offer: CompanySuggestion | None = None
+        if company or domain or industry:
+            base = suggest_company(seed or 0, industry)
+            name = company or base.name
+            offer = CompanySuggestion(
+                name=name, domain=domain or f"{slug(name)}.com", industry=industry or base.industry
+            )
+        root = worlddef.new_world(
+            directory,
+            template,
+            names,
+            people,
+            history,
+            seed,
+            industry,
+            company=offer,
+            tidiness=tidiness,  # pyright: ignore[reportArgumentType]
+            data={
+                "repositories": repositories,
+                "issues": issues,
+                "messages": messages,
+                "canaries": canaries,
+            },
+            links={"announce": announce, "incidents": incidents},
+        )
     shown = worlddef.show_world(Project(root=root))
     st.out.ok(f"World defined in {root}")
     st.out.line(f"{'Company':<10}{shown['company']}")

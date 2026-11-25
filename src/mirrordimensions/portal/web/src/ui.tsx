@@ -77,3 +77,29 @@ export const VISIBILITY_WORDS: Record<string, [string, string]> = {
 export function capitalize(text: string): string {
   return text ? text[0]!.toUpperCase() + text.slice(1) : text;
 }
+
+/** A wizard's steps: each one already reached can be revisited. */
+export function Steps(props: { steps: string[]; current: number; reached: number; onGo: (n: number) => void; label: string }) {
+  return (
+    <nav aria-label={props.label}>
+      <ol className="steps">
+        {props.steps.map((s, i) => {
+          const n = i + 1;
+          return (
+            <li key={s}>
+              <button
+                type="button"
+                className={n === props.current ? "now" : n <= props.reached ? "done" : ""}
+                aria-current={n === props.current ? "step" : undefined}
+                disabled={n > props.reached}
+                onClick={() => props.onGo(n)}
+              >
+                {n}. {s}
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}

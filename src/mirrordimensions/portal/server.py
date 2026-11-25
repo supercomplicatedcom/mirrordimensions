@@ -34,22 +34,24 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from mirrordimensions.errors import LockHeldError, MirrorError
 from mirrordimensions.hostos.files import write_text
-from mirrordimensions.project import Project
+from mirrordimensions.project import MANIFEST, Project
 from mirrordimensions.service import agents as agents_svc
 from mirrordimensions.service import changes as changes_svc
 from mirrordimensions.service import company as company_svc
 from mirrordimensions.service import environment as env_svc
 from mirrordimensions.service import health as health_svc
-from mirrordimensions.service import runlog
+from mirrordimensions.service import load_project, runlog
+from mirrordimensions.service import onboard as onboard_svc
 from mirrordimensions.service import runs as runs_svc
 from mirrordimensions.service import sandbox as sandbox_svc
 from mirrordimensions.service import scenarios as scen_svc
 from mirrordimensions.service import systems as systems_svc
 from mirrordimensions.service import world as world_svc
+from mirrordimensions.service import worlds as worlds_svc
 from mirrordimensions.trace import steps as steps_mod
 from mirrordimensions.trace import timeline
 
@@ -75,6 +77,26 @@ class StartRun(BaseModel):
     agent: str
 
 
+class PortalState:
+    """Which world the portal serves now. Switching moves the marker `mirror doctor` reads
+    to find the portal's port, so the egress check probes the portal of the world it checks."""
+
+    def __init__(self, project: Project, port: int) -> None:
+        self.project = project
+        self.port = port
+
+    def switch(self, project: Project) -> None:
+        marker = self.project.state_dir / sandbox_svc.PORTAL_FILE
+        if marker.is_file():
+            marker.unlink(missing_ok=True)
+            write_text(
+                project.state_dir / sandbox_svc.PORTAL_FILE,
+                json.dumps({"port": self.port, "pid": os.getpid()}) + "\n",
+                owner_only=True,
+            )
+        self.project = project
+
+
 class SetVisibility(BaseModel):
     visibility: str
 
@@ -91,12 +113,117 @@ class TryRequest(BaseModel):
 
 
 class BuildJob(BaseModel):
-    """`mirror apply` started from the portal: its steps so far, then its result."""
+    """A long operation started from the portal (applying changes, creating a world): its
+    steps so far, then its result."""
 
     running: bool = False
     steps: list[str] = []
-    result: env_svc.ApplyResult | None = None
+    result: Any = None
     error: dict[str, str] | None = None
+
+
+def _start(job: BuildJob, what: str, work: Callable[[], Any]) -> BuildJob:
+    """Run `work` in the background, recording its steps and its result or error."""
+    if job.running:
+        raise MirrorError(f"{what} is already under way.", "", "Wait for it to finish.")
+    job.running, job.steps, job.result, job.error = True, [], None, None
+
+    def run() -> None:
+        try:
+            job.result = work()
+        except MirrorError as exc:
+            job.error = {"what": exc.what, "why": exc.why, "fix": exc.fix}
+        except Exception as exc:  # noqa: BLE001 (shown to the person who started it)
+            job.error = {"what": f"{what} failed.", "why": str(exc), "fix": ""}
+        finally:
+            job.running = False
+
+    threading.Thread(target=run, name=what, daemon=True).start()
+    return job
+
+
+def _grant_choices(project: Project) -> list[GrantChoice]:
+    """Every repository and channel of the world, under the system that grants it."""
+    from mirrordimensions.service.agents import _manifest, _world  # pyright: ignore[reportPrivateUsage]
+
+    manifest, world = _manifest(project), _world(project)
+    out: list[GrantChoice] = []
+    for app in manifest.apps:
+        if app.visibility == "absent" or app.build == "unavailable":
+            continue
+        key, levels = env_svc.grant_vocabulary(manifest, app.id)
+        if key == "repos":
+            names = sorted(r.name for r in world.repositories)
+        elif key == "channels":
+            names = sorted(c.name for c in world.channels if c.name != "town-square")
+        else:
+            continue
+        out.append(
+            GrantChoice(
+                app_id=app.id,
+                label=env_svc.system_label(app.kind, app.product, app.id),
+                key=key,
+                levels=list(levels),
+                names=names,
+            )
+        )
+    return out
+
+
+async def _job_events(request: Request, job: BuildJob) -> AsyncIterator[bytes]:
+    sent = 0
+    while not await request.is_disconnected():
+        while sent < len(job.steps):
+            yield f"event: step\ndata: {json.dumps(job.steps[sent])}\n\n".encode()
+            sent += 1
+        if not job.running:
+            yield f"event: end\ndata: {job.model_dump_json()}\n\n".encode()
+            return
+        await asyncio.sleep(POLL_S)
+
+
+class Folder(BaseModel):
+    folder: str
+
+
+class WorldDraftUpdate(BaseModel):
+    folder: str
+    fields: worlds_svc.DraftFields
+
+
+class NewAgent(BaseModel):
+    name: str
+
+
+class ModelChoice(BaseModel):
+    where: str = Field(description="cloud, self-hosted, in-sandbox or none")
+    provider: str | None = None
+    host: str | None = None
+    upstream: str | None = None
+    credential_env: str | None = None
+    hosted_tools: str = "block"
+
+
+class AgentStep(BaseModel):
+    step: int
+    fields: dict[str, Any] = {}
+    model: ModelChoice | None = None
+
+
+class GrantChoice(BaseModel):
+    app_id: str
+    label: str
+    key: str
+    levels: list[str]
+    names: list[str]
+
+
+class RoleDefaults(BaseModel):
+    role: str
+    person: dict[str, str]
+    grants: dict[str, Any]
+    lines: list[str]
+    options: list[GrantChoice] = Field(description="What could be granted, system by system")
 
 
 class AddAgent(BaseModel):
@@ -191,6 +318,9 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
         openapi_url="/api/v1/openapi.json",
     )
     app.middleware("http")(guard(token, port))
+    # The world the portal serves; the world wizard can point it at another (decision 0022).
+    holder = PortalState(project=project, port=port)
+    app.state.portal = holder
 
     @app.exception_handler(LockHeldError)
     async def _locked(_: Request, exc: LockHeldError) -> JSONResponse:  # pyright: ignore[reportUnusedFunction]
@@ -205,73 +335,62 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
 
     @app.get(f"{api}/project")
     def get_project() -> ProjectInfo:  # pyright: ignore[reportUnusedFunction]
-        h = health_svc.health(project, containers=False)
+        h = health_svc.health(holder.project, containers=False)
         return ProjectInfo(
             name=h.project,
             state=h.state,
-            root=str(project.root),
+            root=str(holder.project.root),
             isolation=(h.doctor or {}).get("isolation"),
-            pending_changes=len(env_svc.pending_changes(project)),
+            pending_changes=len(env_svc.pending_changes(holder.project)),
         )
 
     @app.get(f"{api}/environment/graph")
     def get_graph() -> env_svc.Graph:  # pyright: ignore[reportUnusedFunction]
-        return env_svc.environment_graph(project)
+        return env_svc.environment_graph(holder.project)
 
     @app.get(f"{api}/agents")
     def get_agents() -> list[agents_svc.AgentSummary]:  # pyright: ignore[reportUnusedFunction]
-        return agents_svc.list_agents(project)
+        return agents_svc.list_agents(holder.project)
 
     @app.post(f"{api}/agents")
     def post_agent(body: AddAgent) -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
-        agent = agents_svc.add_agent(project, Path(body.path).expanduser())
+        agent = agents_svc.add_agent(holder.project, Path(body.path).expanduser())
         return {"name": agent.name}
 
     @app.delete(f"{api}/agents/{{name}}")
     def delete_agent(name: str) -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
-        agents_svc.remove_agent(project, name)
+        agents_svc.remove_agent(holder.project, name)
         return {"removed": name}
 
     @app.get(f"{api}/agents/{{name}}/reach")
     def get_reach(name: str, run: str | None = None) -> runs_svc.Reach:  # pyright: ignore[reportUnusedFunction]
-        return runs_svc.agent_reach(project, name, run)
+        return runs_svc.agent_reach(holder.project, name, run)
 
     @app.get(f"{api}/agents/{{name}}/grants")
     def get_grants(name: str) -> list[env_svc.GrantSystem]:  # pyright: ignore[reportUnusedFunction]
-        return env_svc.grant_options(project, name)
+        return env_svc.grant_options(holder.project, name)
 
     @app.patch(f"{api}/agents/{{name}}/grants")
     def patch_grant(name: str, body: SetGrant) -> changes_svc.Change:  # pyright: ignore[reportUnusedFunction]
-        return env_svc.set_grant(project, name, body.resource, body.grant)
+        return env_svc.set_grant(holder.project, name, body.resource, body.grant)
 
     @app.patch(f"{api}/environment/apps/{{app_id}}")
     def patch_app(app_id: str, body: SetVisibility) -> changes_svc.Change:  # pyright: ignore[reportUnusedFunction]
-        return env_svc.set_visibility(project, app_id, body.visibility)
+        return env_svc.set_visibility(holder.project, app_id, body.visibility)
 
     @app.get(f"{api}/changes")
     def get_changes() -> list[changes_svc.Change]:  # pyright: ignore[reportUnusedFunction]
-        return env_svc.pending_changes(project)
+        return env_svc.pending_changes(holder.project)
 
     job = BuildJob()
 
     @app.post(f"{api}/build")
     def post_build() -> BuildJob:  # pyright: ignore[reportUnusedFunction]
-        if job.running:
-            raise MirrorError("Changes are already being applied.", "", "Wait for it to finish.")
-        job.running, job.steps, job.result, job.error = True, [], None, None
-
-        def work() -> None:
-            try:
-                job.result = env_svc.apply_changes(project, on_step=job.steps.append)
-            except MirrorError as exc:
-                job.error = {"what": exc.what, "why": exc.why, "fix": exc.fix}
-            except Exception as exc:  # noqa: BLE001 (shown to the person who started it)
-                job.error = {"what": "Applying the changes failed.", "why": str(exc), "fix": ""}
-            finally:
-                job.running = False
-
-        threading.Thread(target=work, name="apply", daemon=True).start()
-        return job
+        return _start(
+            job,
+            "Applying the changes",
+            lambda: env_svc.apply_changes(holder.project, on_step=job.steps.append),
+        )
 
     @app.get(f"{api}/build")
     def get_build() -> BuildJob:  # pyright: ignore[reportUnusedFunction]
@@ -279,28 +398,128 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
 
     @app.get(f"{api}/build/stream")
     async def stream_build(request: Request) -> StreamingResponse:  # pyright: ignore[reportUnusedFunction]
-        async def events() -> AsyncIterator[bytes]:
-            sent = 0
-            while not await request.is_disconnected():
-                while sent < len(job.steps):
-                    yield f"event: step\ndata: {json.dumps(job.steps[sent])}\n\n".encode()
-                    sent += 1
-                if not job.running:
-                    yield f"event: end\ndata: {job.model_dump_json()}\n\n".encode()
-                    return
-                await asyncio.sleep(POLL_S)
-
         return StreamingResponse(
-            events(), media_type="text/event-stream", headers={"x-accel-buffering": "no"}
+            _job_events(request, job),
+            media_type="text/event-stream",
+            headers={"x-accel-buffering": "no"},
         )
+
+    # -- worlds: the list, switching, and the world wizard (decision 0022) --------------
+
+    creating = BuildJob()
+
+    def _quiet_engine() -> None:
+        if job.running or creating.running or runlog.running(holder.project):
+            raise MirrorError(
+                "Something is running in this world.",
+                "Wait for the run, or for changes being applied, to finish.",
+                "",
+            )
+
+    @app.get(f"{api}/worlds")
+    def get_worlds() -> list[worlds_svc.WorldEntry]:  # pyright: ignore[reportUnusedFunction]
+        return worlds_svc.list_worlds(holder.project)
+
+    @app.post(f"{api}/worlds/switch")
+    def post_switch(body: Folder) -> worlds_svc.WorldEntry:  # pyright: ignore[reportUnusedFunction]
+        _quiet_engine()
+        root = worlds_svc.resolve_folder(holder.project, body.folder)
+        if not (root / MANIFEST).is_file():
+            raise MirrorError(f"There is no world in {root}.", "", "Choose one from the list.")
+        holder.switch(load_project(root))
+        return next(w for w in worlds_svc.list_worlds(holder.project) if w.current)
+
+    @app.post(f"{api}/worlds/draft")
+    def post_world_draft(body: Folder) -> worlds_svc.WorldDraftView:  # pyright: ignore[reportUnusedFunction]
+        return worlds_svc.open_draft(holder.project, body.folder)
+
+    @app.patch(f"{api}/worlds/draft")
+    def patch_world_draft(body: WorldDraftUpdate) -> worlds_svc.WorldDraftView:  # pyright: ignore[reportUnusedFunction]
+        return worlds_svc.update_draft(holder.project, body.folder, body.fields)
+
+    @app.post(f"{api}/worlds/create")
+    def post_world_create(body: Folder) -> BuildJob:  # pyright: ignore[reportUnusedFunction]
+        _quiet_engine()
+        origin = holder.project
+
+        def work() -> dict[str, Any]:
+            root = worlds_svc.finish(origin, body.folder)
+            creating.steps.append(f"Defined in {root}")
+            made = load_project(root)
+            last = world_svc.create_world(made, on_stage=creating.steps.append)
+            holder.switch(made)  # the portal now serves the new world
+            return {"folder": str(root), "last_stage": last}
+
+        return _start(creating, "Creating the world", work)
+
+    @app.get(f"{api}/worlds/create")
+    def get_world_create() -> BuildJob:  # pyright: ignore[reportUnusedFunction]
+        return creating
+
+    @app.get(f"{api}/worlds/create/stream")
+    async def stream_world_create(request: Request) -> StreamingResponse:  # pyright: ignore[reportUnusedFunction]
+        return StreamingResponse(
+            _job_events(request, creating),
+            media_type="text/event-stream",
+            headers={"x-accel-buffering": "no"},
+        )
+
+    # -- onboarding an agent: the six steps of `mirror agent new` ------------------------
+
+    @app.post(f"{api}/agents/drafts")
+    def post_agent_draft(body: NewAgent) -> onboard_svc.AgentDraft:  # pyright: ignore[reportUnusedFunction]
+        return onboard_svc.draft_agent(holder.project, body.name)
+
+    @app.get(f"{api}/agents/drafts/{{name}}")
+    def get_agent_draft(name: str) -> onboard_svc.AgentDraft:  # pyright: ignore[reportUnusedFunction]
+        found = onboard_svc.load_draft(holder.project, name)
+        if found is None:
+            raise MirrorError(f"There is no agent called {name!r}.", "", "Start onboarding it.")
+        return found
+
+    @app.patch(f"{api}/agents/drafts/{{name}}")
+    def patch_agent_draft(name: str, body: AgentStep) -> onboard_svc.AgentDraft:  # pyright: ignore[reportUnusedFunction]
+        fields = dict(body.fields)
+        if body.model is not None:
+            m = body.model
+            fields["model"] = (
+                None
+                if m.where == "none"
+                else onboard_svc.add_model_route(
+                    holder.project,
+                    m.where,
+                    provider=m.provider,
+                    host=m.host,
+                    upstream=m.upstream,
+                    credential_env=m.credential_env,
+                    hosted_tools=m.hosted_tools,
+                )
+            )
+        return onboard_svc.update_draft(holder.project, name, body.step, fields)
+
+    @app.get(f"{api}/roles/{{role}}/defaults")
+    def get_role_defaults(role: str, person: str | None = None) -> RoleDefaults:  # pyright: ignore[reportUnusedFunction]
+        who = onboard_svc.person_for(holder.project, role, person)
+        grants = onboard_svc.role_defaults(holder.project, role, person)
+        return RoleDefaults(
+            role=role,
+            person={"username": who.username, "name": who.name, "title": who.title},
+            grants=grants,
+            lines=onboard_svc.describe_grants(grants),
+            options=_grant_choices(holder.project),
+        )
+
+    @app.post(f"{api}/agents/{{name}}/check")
+    def post_agent_check(name: str) -> list[agents_svc.PreflightCheck]:  # pyright: ignore[reportUnusedFunction]
+        return agents_svc.check_agent(holder.project, name)
 
     @app.get(f"{api}/systems")
     def get_systems() -> list[systems_svc.SystemSummary]:  # pyright: ignore[reportUnusedFunction]
-        return systems_svc.list_systems(project)
+        return systems_svc.list_systems(holder.project)
 
     @app.get(f"{api}/systems/{{app_id}}")
     def get_system(app_id: str) -> systems_svc.SystemDetail:  # pyright: ignore[reportUnusedFunction]
-        return systems_svc.show_system(project, app_id)
+        return systems_svc.show_system(holder.project, app_id)
 
     @app.put(f"{api}/systems/{{app_id}}/rules/{{name}}")
     def put_rule(app_id: str, name: str, rule: dict[str, Any]) -> changes_svc.Change:  # pyright: ignore[reportUnusedFunction]
@@ -310,26 +529,26 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
                 f"The address names {name!r}; the rule says {rule.get('name')!r}.",
                 "",
             )
-        return systems_svc.set_rule(project, app_id, {**rule, "name": name})
+        return systems_svc.set_rule(holder.project, app_id, {**rule, "name": name})
 
     @app.delete(f"{api}/systems/{{app_id}}/rules/{{name}}")
     def delete_rule(app_id: str, name: str) -> changes_svc.Change:  # pyright: ignore[reportUnusedFunction]
-        return systems_svc.remove_rule(project, app_id, name)
+        return systems_svc.remove_rule(holder.project, app_id, name)
 
     @app.post(f"{api}/systems/{{app_id}}/try")
     def post_try(app_id: str, body: TryRequest) -> systems_svc.TryResult:  # pyright: ignore[reportUnusedFunction]
         fetch = None
         try:
-            fetch = sandbox_svc.admin_fetcher(project, app_id)
+            fetch = sandbox_svc.admin_fetcher(holder.project, app_id)
         except MirrorError:
             fetch = None  # the sandbox is down: a rule's own answer can still be shown
         return systems_svc.try_request(
-            project, app_id, body.method, body.path, body.body.encode(), fetch
+            holder.project, app_id, body.method, body.path, body.body.encode(), fetch
         )
 
     @app.get(f"{api}/world")
     def get_world() -> company_svc.Company:  # pyright: ignore[reportUnusedFunction]
-        return company_svc.company(project)
+        return company_svc.company(holder.project)
 
     @app.get(f"{api}/world/{{part}}")
     def get_world_part(part: str) -> company_svc.Company:  # pyright: ignore[reportUnusedFunction]
@@ -337,27 +556,27 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
             raise MirrorError(
                 f"There is no part {part!r}.", "Parts: people, projects, canaries.", ""
             )
-        return company_svc.company(project, (part,))  # pyright: ignore[reportArgumentType]
+        return company_svc.company(holder.project, (part,))  # pyright: ignore[reportArgumentType]
 
     @app.get(f"{api}/scenarios")
     def get_scenarios() -> list[scen_svc.ScenarioSummary]:  # pyright: ignore[reportUnusedFunction]
-        return scen_svc.list_scenarios(project)
+        return scen_svc.list_scenarios(holder.project)
 
     @app.get(f"{api}/runs")
     def get_runs() -> list[runlog.RunSummary]:  # pyright: ignore[reportUnusedFunction]
-        return runlog.list_runs(project)
+        return runlog.list_runs(holder.project)
 
     @app.post(f"{api}/runs")
     def post_run(body: StartRun) -> runs_svc.RunHandle:  # pyright: ignore[reportUnusedFunction]
-        return runs_svc.start_run(project, body.scenario, body.agent)
+        return runs_svc.start_run(holder.project, body.scenario, body.agent)
 
     @app.get(f"{api}/runs/{{run_id}}")
     def get_run(run_id: str) -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
-        return runlog.get_result(project, run_id)
+        return runlog.get_result(holder.project, run_id)
 
     @app.post(f"{api}/runs/{{run_id}}/stop")
     def post_stop(run_id: str) -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
-        runs_svc.stop_run(project, run_id)
+        runs_svc.stop_run(holder.project, run_id)
         return {"stopping": run_id}
 
     @app.get(f"{api}/runs/{{run_id}}/events")
@@ -370,7 +589,9 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
         limit: int = runlog.PAGE,
         around: int | None = None,
     ) -> runlog.EventPage:
-        return runlog.read_events(project, run_id, _filter(source, type, q), offset, limit, around)
+        return runlog.read_events(
+            holder.project, run_id, _filter(source, type, q), offset, limit, around
+        )
 
     @app.get(f"{api}/runs/{{run_id}}/events/stream")
     async def stream_events(  # pyright: ignore[reportUnusedFunction]
@@ -380,7 +601,7 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
         type: str = "",
         q: str = "",
     ) -> StreamingResponse:
-        folder = runs_svc.run_dir(project, run_id)
+        folder = runs_svc.run_dir(holder.project, run_id)
         keep = _filter(source, type, q)
         return StreamingResponse(
             _sse(request, folder / "events.jsonl", keep),
@@ -390,14 +611,14 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
 
     @app.get(f"{api}/runs/{{run_id}}/steps")
     def get_steps(run_id: str) -> runlog.StepsView:  # pyright: ignore[reportUnusedFunction]
-        return runlog.read_steps(project, run_id)
+        return runlog.read_steps(holder.project, run_id)
 
     @app.get(f"{api}/runs/{{run_id}}/steps/stream")
     async def stream_steps(  # pyright: ignore[reportUnusedFunction]
         request: Request, run_id: str
     ) -> StreamingResponse:
-        folder = runs_svc.run_dir(project, run_id)
-        ctx, _ = runlog.step_context(project, run_id)
+        folder = runs_svc.run_dir(holder.project, run_id)
+        ctx, _ = runlog.step_context(holder.project, run_id)
         return StreamingResponse(
             _sse_steps(request, folder / "events.jsonl", ctx),
             media_type="text/event-stream",
@@ -406,7 +627,7 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
 
     @app.get(f"{api}/runs/{{run_id}}/bodies/{{kind}}/{{name}}")
     def get_body(run_id: str, kind: str, name: str) -> Response:  # pyright: ignore[reportUnusedFunction]
-        data, media = runlog.read_body(project, run_id, f"{kind}/{name}")
+        data, media = runlog.read_body(holder.project, run_id, f"{kind}/{name}")
         # Shown as text, never rendered: an agent wrote much of it.
         return Response(
             data,
@@ -419,20 +640,20 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
 
     @app.get(f"{api}/runs/{{run_id}}/report")
     def get_report(run_id: str) -> Response:  # pyright: ignore[reportUnusedFunction]
-        path = runs_svc.write_report(project, run_id)
+        path = runs_svc.write_report(holder.project, run_id)
         return FileResponse(path, media_type="text/html")
 
     @app.get(f"{api}/health")
     def get_health() -> health_svc.Health:  # pyright: ignore[reportUnusedFunction]
-        return health_svc.health(project)
+        return health_svc.health(holder.project)
 
     @app.post(f"{api}/health/doctor")
     def post_doctor() -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
-        return health_svc.run_doctor(project)
+        return health_svc.run_doctor(holder.project)
 
     @app.post(f"{api}/snapshots/{{name}}/restore")
     def post_restore(name: str) -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
-        return world_svc.reset(project, name).model_dump(mode="json")
+        return world_svc.reset(holder.project, name).model_dump(mode="json")
 
     @app.get("/{path:path}")
     def front_end(path: str) -> Response:  # pyright: ignore[reportUnusedFunction]
@@ -563,4 +784,5 @@ def serve(
             "Another program may use that port. Try: mirror portal --port <another>",
         ) from exc
     finally:
-        marker.unlink(missing_ok=True)
+        current: PortalState = app.state.portal
+        (current.project.state_dir / sandbox_svc.PORTAL_FILE).unlink(missing_ok=True)
