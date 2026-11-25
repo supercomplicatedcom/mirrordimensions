@@ -66,10 +66,31 @@ class RunOutput:
     output: str
 
 
+def _send_no_credentials(_headers: dict[str, str]) -> None:
+    return None
+
+
+def _forget_user_config(api: Any) -> None:
+    """docker-py reads the user's own ~/.docker/config.json: its registry credentials and
+    credential helpers (sent to the daemon with every build) and its proxy settings
+    (added to every container it creates). The engine is the mirror's, not the user's:
+    nothing of their Docker set-up may reach it or the agents (CLAUDE.md, Platforms)."""
+    from docker.auth import AuthConfig
+    from docker.utils.proxy import ProxyConfig
+
+    api._general_configs = {}
+    api._auth_configs = AuthConfig({})
+    api._proxy_configs = ProxyConfig()
+    # A build reloads credentials from the user's file whenever it holds none; the engine's
+    # builds and pulls need none (agent images are built from local files).
+    api._set_auth_headers = _send_no_credentials
+
+
 class Docker:
     def __init__(self, endpoint: DockerEndpoint) -> None:
         try:
             self._client: Any = docker.DockerClient(base_url=endpoint.url, timeout=120)
+            _forget_user_config(self._client.api)
             self._client.ping()
         except DockerException as exc:
             raise MirrorError(
@@ -372,6 +393,13 @@ class Docker:
             return str(self._client.api.inspect_container(name)["Id"])
         except DockerException:
             return None
+
+    def labels(self, name: str) -> dict[str, str]:
+        try:
+            found = self._client.api.inspect_container(name)["Config"].get("Labels") or {}
+        except DockerException:
+            return {}
+        return {str(k): str(v) for k, v in found.items()}
 
     def is_running(self, name: str) -> bool:
         try:

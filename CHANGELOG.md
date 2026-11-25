@@ -6,11 +6,13 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Changed
 
+- The engine's Docker client no longer reads the user's `~/.docker/config.json`: no registry credentials, credential helpers or proxy settings reach the engine or its containers (decision 0021).
 - Grants are exact: for a run, the person the agent acts as has only what the agent file grants, in Gitea and Mattermost. A run checks first that the agent can reach where its work arrives, and the example agents now grant #engineering and #releases (decision 0020).
 - Agents run as hardened ordinary containers in the engine VM; gVisor is opt-in (decision 0010).
 
 ### Added
 
+- M7, part 3: editing. `mirror set visibility`, `mirror set grant`, `mirror changes` and `mirror apply`; in the portal, visibility on Environment, grants on Permissions, a System screen listing every portal and endpoint with what it takes in and gives back, a rule form and a dry run, and pending changes with Apply and its progress. Rules, visibility and grants now take effect at the next run without restarting the sandbox, and rules scoped to one agent fire for it (decision 0021).
 - `mirror engine update [--restart]`: the engine installs updates only when asked, never by itself. `mirror engine status` shows the last update, `mirror doctor` notes when it is over 14 days old, and results record `engine_updated` (decision 0019).
 - M7, part 2: the live view. Each exchange is located by the gateway as it is captured (`where`: surface, resource, sentence), from profiles that now learn names from responses and read request bodies. Runs are grouped into steps (`trace/steps.py`), served at `GET /runs/{id}/steps` and streamed at `GET /runs/{id}/steps/stream` as each step opens and grows. The portal's live view draws the agent's marker and trail on a map of its grants, with play, pause, step and jump, and honours reduced motion. `mirror watch <run>` prints the same steps. The adapters have `locate(exchange)` and `describe(exchange)`, and every surface of both profiles is tested with an example request (decision 0018).
 - M3 world and reset: a seeded generator (byte-identical `world.json` for a seed, events first, realistic mess, runnable code, planted canaries); seeding into Gitea through its API as each person with backdated commits and history, and into Mattermost through its bulk import; seeding traces removed; snapshots inside the engine with `mirror build`, `mirror reset` and `mirror snapshot save|list`, each verified by comparing state dumps; `mirror world new|show|status|create|clone|destroy`; the app catalog (500 entries plus the two buildable twins) with `mirror catalog search|show|list|stats`.

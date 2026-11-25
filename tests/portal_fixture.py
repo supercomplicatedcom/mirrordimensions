@@ -22,6 +22,7 @@ from mirrordimensions.config.manifest import Manifest  # noqa: E402
 from mirrordimensions.hostos.lock import ProjectLock  # noqa: E402
 from mirrordimensions.service import init_project, load_project  # noqa: E402
 from mirrordimensions.service.agents import add_agent  # noqa: E402
+from mirrordimensions.service.changes import record_built  # noqa: E402
 from mirrordimensions.world.generate import generate, world_json  # noqa: E402
 
 TOKEN = "test-token"
@@ -253,6 +254,8 @@ def make_project(folder: Path) -> Path:
         + "\n",
         encoding="utf-8",
     )
+    # As if the world had been built from this definition: edits show as pending changes.
+    record_built(load_project(root), manifest)
     return root
 
 

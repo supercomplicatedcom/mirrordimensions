@@ -36,6 +36,7 @@ HOSTNAME_PREFIX = {
     "identity": "sso",
 }
 WorldState = Literal["draft", "defined", "creating", "ready", "stale", "failed"]
+SNAPSHOT_STAGE = 6  # "Save the base snapshot": from here the world is built as defined
 STAGES = [
     "Generate the company",
     "Set up the sealed network",
@@ -77,11 +78,20 @@ def definition_hash(manifest: Manifest) -> dict[str, str]:
             :12
         ]
 
+    # Visibility between granted, denied and present takes effect at the next run, like
+    # rules; only which systems are absent changes what is built (decision 0021).
+    systems = [a.model_dump(exclude={"rules", "visibility"}) for a in manifest.apps]
     return {
         "company": h(manifest.company.model_dump()),
-        "systems": h([a.model_dump(exclude={"rules"}) for a in manifest.apps]),
+        "systems": h(systems),
+        # Systems left out of the build: one brought back needs building; one left out
+        # later only needs the sandbox restarted, since its data is in the snapshot.
+        "absent": ",".join(sorted(a.id for a in manifest.apps if a.visibility == "absent")),
+        # How "systems" was hashed before, so a world built then is not taken for stale.
+        "systems_v1": h([a.model_dump(exclude={"rules"}) for a in manifest.apps]),
         "data": h(manifest.data.model_dump() if manifest.data else None),
         "rules": h([[r.model_dump() for r in a.rules] for a in manifest.apps]),
+        "visibility": h({a.id: a.visibility for a in manifest.apps}),
     }
 
 
@@ -89,8 +99,14 @@ def first_stage_affected(old: dict[str, str], new: dict[str, str]) -> int:
     """1-based stage to resume from: company -> 1, systems -> 2, data -> 4, rules -> none (9)."""
     if old.get("company") != new["company"]:
         return 1
-    if old.get("systems") != new["systems"]:
-        return 2
+    if "absent" in old:
+        if old.get("systems") != new["systems"]:
+            return 2
+        was_absent = set(filter(None, str(old["absent"]).split(",")))
+        if was_absent - set(filter(None, new.get("absent", "").split(","))):
+            return 2  # a system the world was built without is wanted now
+    elif old.get("systems") not in (new["systems"], new.get("systems_v1")):
+        return 2  # recorded before "absent" was kept: visibility was in the systems hash
     if old.get("data") != new["data"]:
         return 4
     return 9
@@ -287,6 +303,10 @@ def record_stage(
     path = project.state_dir / "create.json"
     record = {"last_stage": stage, "hashes": definition_hash(manifest), "failed": failed}
     write_text(path, json.dumps(record, indent=2) + "\n", owner_only=True)
+    if failed is None and stage == SNAPSHOT_STAGE:
+        from mirrordimensions.service.changes import record_built
+
+        record_built(project, manifest)
 
 
 def clone_world(src: Path, dst: Path, new_seed: bool = False) -> Path:

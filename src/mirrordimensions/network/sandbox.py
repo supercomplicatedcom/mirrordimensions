@@ -271,6 +271,45 @@ def routes_json(plan: Plan, secrets: list[str]) -> bytes:
     return json.dumps({"routes": routes, "secrets": redact, "seed": plan.seed}, indent=2).encode()
 
 
+ROUTES_PATH = "/etc/edge/routes.json"
+
+
+def refreshed_routes(current: bytes, plan: Plan, identities: dict[str, str] | None = None) -> bytes:
+    """The gateway's routes with each system's visibility, surfaces and rules as the plan has
+    them now. Model routes and redaction stay as `mirror up` resolved them, and a system
+    is only updated, never added or removed: that changes DNS and containers, which only
+    `mirror up` does."""
+    data = json.loads(current)
+    fresh = json.loads(routes_json(plan, []))["routes"]
+    for host, route in fresh.items():
+        if host in data["routes"] and "model" not in route:
+            data["routes"][host] = route
+    # Whose requests come from which address in this run, for rules scoped to one agent.
+    data["identities"] = dict(identities or {})
+    return json.dumps(data, indent=2).encode()
+
+
+def refresh_routes(docker: Docker, plan: Plan, identities: dict[str, str] | None = None) -> None:
+    """Hand the running gateway the current rules and visibility; it reloads them before
+    its next request (decision 0021)."""
+    owner = docker.labels(GATEWAY_NAME).get(LABEL)
+    if owner != plan.world:
+        raise MirrorError(
+            f"The sandbox running in the engine is {owner or 'another world'}'s, not {plan.world}'s.",
+            "Rules and visibility go only to this world's own gateway.",
+            "Bring that sandbox down and this one up: mirror down, then mirror up here.",
+        )
+    current = docker.read_file(GATEWAY_NAME, ROUTES_PATH)
+    if current is None:
+        raise MirrorError(
+            "The gateway has no routes file.",
+            "The sandbox is not up as expected.",
+            "Run: mirror up",
+        )
+    fresh = refreshed_routes(current, plan, identities)
+    docker.put_files(GATEWAY_NAME, {ROUTES_PATH: (fresh, 0o644)})
+
+
 def egress_entries(plan: Plan) -> list[tuple[str, str, int]]:
     """What the edge firewall lets out: the gateway's uplink address to each model route's
     one upstream address and port. Nothing else leaves the engine."""
@@ -428,7 +467,7 @@ def specs(
                 "/etc/edge/behavior.py": (behavior_py, 0o644),
                 "/etc/edge/models.py": (models_py, 0o644),
                 "/etc/edge/mcpcap.py": (mcpcap_py, 0o644),
-                "/etc/edge/routes.json": (routes_json(plan, secrets), 0o644),
+                ROUTES_PATH: (routes_json(plan, secrets), 0o644),
                 **{f"/etc/edge/certs/{leaf.hostname}.pem": (leaf.pem, 0o644) for leaf in leaves},
             },
             labels=label,

@@ -30,6 +30,7 @@ Implement the `Twin` protocol in `twins/base.py`. Every method gets a `TwinConte
 | Member | What it does |
 | --- | --- |
 | `product`, `upstream_port` | The product's name in `mirror.yaml` and the port its web server listens on. The gateway serves it at `https://<hostname>` |
+| `grant_key`, `grant_levels` | What an agent file grants in this product and at which levels: `repos` with `("read", "write", "admin")`, or `channels` with `("member",)`. `mirror set grant` and the Permissions screen offer exactly these |
 | `static_path` | A file the product serves identically every time, for the transparency check |
 | `containers(ctx)` | The product's containers (and its database's) as `ContainerSpec`s, on `ctx.network` at the addresses in `ctx`, with `ctx.dns`. Pin images by digest |
 | `volumes(ctx)` | Every volume it writes to, named with `ctx.volume_prefix`. Snapshots save and restore exactly these |

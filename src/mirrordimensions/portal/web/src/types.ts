@@ -232,3 +232,86 @@ export interface StepsView {
   places: Place[];
   steps: Step[];
 }
+
+export interface Change {
+  kind: "company" | "data" | "system" | "visibility" | "rule" | "grant";
+  target: string;
+  what: string;
+  before: unknown;
+  after: unknown;
+  applies: "next run" | "restart" | "rebuild";
+}
+
+export interface ApplyResult {
+  rebuilt: boolean;
+  applied: Change[];
+  waiting: Change[];
+}
+
+export interface BuildJob {
+  running: boolean;
+  steps: string[];
+  result: ApplyResult | null;
+  error: ApiError | null;
+}
+
+export interface GrantSystem {
+  app_id: string;
+  label: string;
+  key: string | null;
+  levels: string[];
+  granted: boolean;
+  items: { name: string; label: string; grant: string | null }[];
+}
+
+export interface SystemSummary {
+  id: string;
+  kind: string | null;
+  product: string | null;
+  hostname: string;
+  visibility: string;
+  surfaces: number;
+  rules: number;
+  twin: boolean;
+}
+
+export interface Surface {
+  id: string;
+  kind: string;
+  method: string;
+  path: string;
+  resource: string | null;
+  access: string | null;
+  sentence: string;
+  customized_by: string[];
+  takes: string;
+  gives: string;
+}
+
+export interface Rule {
+  name: string;
+  match: Record<string, unknown>;
+  input?: Record<string, unknown> | null;
+  output?: Record<string, unknown> | null;
+  when?: Record<string, unknown> | null;
+}
+
+export interface SystemDetail {
+  summary: SystemSummary;
+  settings: Record<string, unknown>;
+  data: Record<string, unknown>;
+  surfaces: Surface[];
+  rules: Rule[];
+  errors: string[];
+}
+
+export interface TryResult {
+  surface: string;
+  resource: string | null;
+  sentence: string;
+  rules_fired: { rule: string; changed: string[] }[];
+  status: number;
+  headers: string[][];
+  body: string;
+  from_rule: boolean;
+}

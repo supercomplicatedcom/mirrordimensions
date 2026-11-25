@@ -25,6 +25,7 @@ import hmac
 import json
 import os
 import secrets
+import threading
 import webbrowser
 from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
@@ -39,6 +40,7 @@ from mirrordimensions.errors import LockHeldError, MirrorError
 from mirrordimensions.hostos.files import write_text
 from mirrordimensions.project import Project
 from mirrordimensions.service import agents as agents_svc
+from mirrordimensions.service import changes as changes_svc
 from mirrordimensions.service import company as company_svc
 from mirrordimensions.service import environment as env_svc
 from mirrordimensions.service import health as health_svc
@@ -46,6 +48,7 @@ from mirrordimensions.service import runlog
 from mirrordimensions.service import runs as runs_svc
 from mirrordimensions.service import sandbox as sandbox_svc
 from mirrordimensions.service import scenarios as scen_svc
+from mirrordimensions.service import systems as systems_svc
 from mirrordimensions.service import world as world_svc
 from mirrordimensions.trace import steps as steps_mod
 from mirrordimensions.trace import timeline
@@ -70,6 +73,30 @@ class ProjectInfo(BaseModel):
 class StartRun(BaseModel):
     scenario: str
     agent: str
+
+
+class SetVisibility(BaseModel):
+    visibility: str
+
+
+class SetGrant(BaseModel):
+    resource: str
+    grant: str
+
+
+class TryRequest(BaseModel):
+    method: str
+    path: str
+    body: str = ""
+
+
+class BuildJob(BaseModel):
+    """`mirror apply` started from the portal: its steps so far, then its result."""
+
+    running: bool = False
+    steps: list[str] = []
+    result: env_svc.ApplyResult | None = None
+    error: dict[str, str] | None = None
 
 
 class AddAgent(BaseModel):
@@ -184,7 +211,7 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
             state=h.state,
             root=str(project.root),
             isolation=(h.doctor or {}).get("isolation"),
-            pending_changes=0,
+            pending_changes=len(env_svc.pending_changes(project)),
         )
 
     @app.get(f"{api}/environment/graph")
@@ -208,6 +235,97 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
     @app.get(f"{api}/agents/{{name}}/reach")
     def get_reach(name: str, run: str | None = None) -> runs_svc.Reach:  # pyright: ignore[reportUnusedFunction]
         return runs_svc.agent_reach(project, name, run)
+
+    @app.get(f"{api}/agents/{{name}}/grants")
+    def get_grants(name: str) -> list[env_svc.GrantSystem]:  # pyright: ignore[reportUnusedFunction]
+        return env_svc.grant_options(project, name)
+
+    @app.patch(f"{api}/agents/{{name}}/grants")
+    def patch_grant(name: str, body: SetGrant) -> changes_svc.Change:  # pyright: ignore[reportUnusedFunction]
+        return env_svc.set_grant(project, name, body.resource, body.grant)
+
+    @app.patch(f"{api}/environment/apps/{{app_id}}")
+    def patch_app(app_id: str, body: SetVisibility) -> changes_svc.Change:  # pyright: ignore[reportUnusedFunction]
+        return env_svc.set_visibility(project, app_id, body.visibility)
+
+    @app.get(f"{api}/changes")
+    def get_changes() -> list[changes_svc.Change]:  # pyright: ignore[reportUnusedFunction]
+        return env_svc.pending_changes(project)
+
+    job = BuildJob()
+
+    @app.post(f"{api}/build")
+    def post_build() -> BuildJob:  # pyright: ignore[reportUnusedFunction]
+        if job.running:
+            raise MirrorError("Changes are already being applied.", "", "Wait for it to finish.")
+        job.running, job.steps, job.result, job.error = True, [], None, None
+
+        def work() -> None:
+            try:
+                job.result = env_svc.apply_changes(project, on_step=job.steps.append)
+            except MirrorError as exc:
+                job.error = {"what": exc.what, "why": exc.why, "fix": exc.fix}
+            except Exception as exc:  # noqa: BLE001 (shown to the person who started it)
+                job.error = {"what": "Applying the changes failed.", "why": str(exc), "fix": ""}
+            finally:
+                job.running = False
+
+        threading.Thread(target=work, name="apply", daemon=True).start()
+        return job
+
+    @app.get(f"{api}/build")
+    def get_build() -> BuildJob:  # pyright: ignore[reportUnusedFunction]
+        return job
+
+    @app.get(f"{api}/build/stream")
+    async def stream_build(request: Request) -> StreamingResponse:  # pyright: ignore[reportUnusedFunction]
+        async def events() -> AsyncIterator[bytes]:
+            sent = 0
+            while not await request.is_disconnected():
+                while sent < len(job.steps):
+                    yield f"event: step\ndata: {json.dumps(job.steps[sent])}\n\n".encode()
+                    sent += 1
+                if not job.running:
+                    yield f"event: end\ndata: {job.model_dump_json()}\n\n".encode()
+                    return
+                await asyncio.sleep(POLL_S)
+
+        return StreamingResponse(
+            events(), media_type="text/event-stream", headers={"x-accel-buffering": "no"}
+        )
+
+    @app.get(f"{api}/systems")
+    def get_systems() -> list[systems_svc.SystemSummary]:  # pyright: ignore[reportUnusedFunction]
+        return systems_svc.list_systems(project)
+
+    @app.get(f"{api}/systems/{{app_id}}")
+    def get_system(app_id: str) -> systems_svc.SystemDetail:  # pyright: ignore[reportUnusedFunction]
+        return systems_svc.show_system(project, app_id)
+
+    @app.put(f"{api}/systems/{{app_id}}/rules/{{name}}")
+    def put_rule(app_id: str, name: str, rule: dict[str, Any]) -> changes_svc.Change:  # pyright: ignore[reportUnusedFunction]
+        if rule.get("name", name) != name:
+            raise MirrorError(
+                "The rule's name does not match its address.",
+                f"The address names {name!r}; the rule says {rule.get('name')!r}.",
+                "",
+            )
+        return systems_svc.set_rule(project, app_id, {**rule, "name": name})
+
+    @app.delete(f"{api}/systems/{{app_id}}/rules/{{name}}")
+    def delete_rule(app_id: str, name: str) -> changes_svc.Change:  # pyright: ignore[reportUnusedFunction]
+        return systems_svc.remove_rule(project, app_id, name)
+
+    @app.post(f"{api}/systems/{{app_id}}/try")
+    def post_try(app_id: str, body: TryRequest) -> systems_svc.TryResult:  # pyright: ignore[reportUnusedFunction]
+        fetch = None
+        try:
+            fetch = sandbox_svc.admin_fetcher(project, app_id)
+        except MirrorError:
+            fetch = None  # the sandbox is down: a rule's own answer can still be shown
+        return systems_svc.try_request(
+            project, app_id, body.method, body.path, body.body.encode(), fetch
+        )
 
     @app.get(f"{api}/world")
     def get_world() -> company_svc.Company:  # pyright: ignore[reportUnusedFunction]

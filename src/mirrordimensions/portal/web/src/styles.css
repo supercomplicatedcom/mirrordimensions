@@ -150,6 +150,29 @@ dl.facts.stacked dt:first-child { margin-top: 0; }
 }
 .live-dot::before { content: "● "; color: var(--accent); }
 
+/* Editing: pending changes, choices, the rule form */
+.card.pending { border-color: var(--accent); display: flex; flex-direction: column; gap: 10px; }
+.pending-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.build-steps { margin: 0; padding-left: 20px; font-family: var(--mono); font-size: 13px; }
+fieldset.choice { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px 14px; margin: 12px 0 0; display: flex; flex-direction: column; gap: 8px; }
+fieldset.choice legend { font-weight: 600; padding: 0 4px; }
+fieldset.choice > label:not(.field) { display: flex; gap: 10px; align-items: flex-start; min-height: 32px; cursor: pointer; }
+fieldset.choice input[type="radio"] { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex: none; }
+.field-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.field-row .field { flex: 1 1 120px; }
+.rule-form { display: flex; flex-direction: column; gap: 10px; }
+.rule-form .field input, .rule-form .field select { width: 100%; }
+.rule-form .mono { overflow-wrap: anywhere; }
+textarea { border-radius: 8px; border: 1px solid var(--border-strong); padding: 8px 12px; font: 13px/18px var(--mono); width: 100%; }
+button.link { border: 0; background: none; padding: 0; min-height: 32px; color: var(--accent); text-align: left; font-weight: 600; }
+button.link[aria-pressed="true"] { color: var(--accent-text); text-decoration: underline; background: none; }
+table.surfaces td, table.surfaces th { font-size: 13px; padding: 8px 10px; }
+table.surfaces .mono { overflow-wrap: anywhere; }
+table.surfaces .tag { white-space: normal; }
+.narrow dl.facts { grid-template-columns: 1fr; gap: 2px; }
+.narrow dl.facts dt { font-size: 12px; margin-top: 8px; }
+.narrow dl.facts dt:first-child { margin-top: 0; }
+
 /* The live view */
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .live-scroll { overflow-x: auto; }

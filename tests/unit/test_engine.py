@@ -315,3 +315,35 @@ def test_the_host_driver_leaves_updates_to_the_host() -> None:
 
     with pytest.raises(MirrorError, match="no guest of its own"):
         HostEngine().update()
+
+
+def test_the_engine_client_uses_nothing_from_the_users_docker_config(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Registry credentials, credential helpers and proxies in ~/.docker/config.json are the
+    user's: they must not reach the engine's Docker, its builds, or any container."""
+    import docker as docker_sdk
+
+    from mirrordimensions.engine import docker_api
+
+    config = tmp_path / "config.json"
+    config.write_text(
+        json.dumps(
+            {
+                "auths": {"registry.example.test": {"auth": "dXNlcjpwYXNz"}},
+                "credHelpers": {"gcr.io": "gcloud"},
+                "proxies": {"default": {"httpProxy": "http://proxy.example.test:3128"}},
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DOCKER_CONFIG", str(tmp_path))
+    api = docker_sdk.APIClient(base_url="unix:///nonexistent.sock", version="1.45")
+    assert api._auth_configs.auths and api._proxy_configs.http  # pyright: ignore[reportPrivateUsage]
+    docker_api._forget_user_config(api)  # pyright: ignore[reportPrivateUsage]
+    assert not api._auth_configs.auths and not api._proxy_configs.http  # pyright: ignore[reportPrivateUsage]
+    headers: dict[str, str] = {}
+    api._set_auth_headers(headers)  # pyright: ignore[reportPrivateUsage]
+    assert headers == {}  # nothing is read back from the file for a build
+    environment = api._proxy_configs.inject_proxy_environment(["A=1"])  # pyright: ignore[reportPrivateUsage]
+    assert environment == ["A=1"]

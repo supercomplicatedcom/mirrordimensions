@@ -234,7 +234,9 @@ def issue(
     relay = Relay(docker)
     identities: dict[str, Identity] = {}
     for app in plan.apps:
-        if app.id not in agent.grants:
+        # Absent: not in the mirror. Present: running, but not in the agent's tools, so it
+        # gets no credentials there (build spec, visibility states).
+        if app.id not in agent.grants or app.visibility in ("absent", "present"):
             continue
         twin = get_twin(app.product)
         if twin is None:

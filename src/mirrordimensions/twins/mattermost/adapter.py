@@ -43,6 +43,9 @@ MEMBERSHIP_POSTS = JOIN_LEAVE | {"system_add_to_channel", "system_remove_from_ch
 
 class Mattermost(ProfileMethods):
     product = "mattermost"
+    # What an agent file grants here: channels, by membership (`mirror set grant`).
+    grant_key: str = "channels"
+    grant_levels: tuple[str, ...] = ("member",)
     upstream_port = PORT
     static_path = "/static/images/favicon/favicon-default-16x16.png"
 

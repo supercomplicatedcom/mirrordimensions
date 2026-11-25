@@ -262,6 +262,9 @@ def build(project: Project, force: bool = False, on_step: StepFn = None) -> Buil
         run = _Run(project, force, on_step)
         for stage in run.stages():
             stage()
+        from mirrordimensions.service.changes import record_built
+
+        record_built(project, _manifest(project))
     assert run.result is not None  # noqa: S101
     return run.result
 
@@ -389,7 +392,9 @@ def create_world(
             )
 
     with ProjectLock(project.state_dir, "build"), keep_awake("Creating the world"):
-        run = _Run(project, force=start == 1 and bool(record), on_step=None)
+        # From stage 2 the systems start over: setting up a system that is already seeded
+        # leaves traces (Mattermost writes audit entries) that seeding would have removed.
+        run = _Run(project, force=start <= 2 and bool(record), on_step=None)
         stages = [*run.stages(), checks, lambda: None]
         return run_stages(
             stages,

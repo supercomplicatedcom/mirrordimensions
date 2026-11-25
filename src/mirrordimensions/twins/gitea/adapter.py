@@ -38,6 +38,9 @@ PERMISSIONS = {"read": "read", "write": "write", "admin": "admin"}
 
 class Gitea(ProfileMethods):
     product = "gitea"
+    # What an agent file grants here: repositories, each at one level (`mirror set grant`).
+    grant_key: str = "repos"
+    grant_levels: tuple[str, ...] = ("read", "write", "admin")
     upstream_port = PORT
     static_path = "/assets/img/logo.svg"
 
