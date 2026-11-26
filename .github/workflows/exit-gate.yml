@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+#
+# The prototype exit gate on a clean Linux x64 machine (build spec, "Prototype exit gate"):
+# the README's steps from a fresh runner to every core scenario run and scored, with
+# `mirror doctor` reporting full isolation. Started by hand only: `llm-example` calls a real
+# model, so it needs the ANTHROPIC_API_KEY repository secret, and no other job does.
+name: Exit gate (Linux x64)
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: The agent to run the core suite with
+        type: choice
+        options: [llm-example, scripted-good]
+        default: llm-example
+
+permissions:
+  contents: read
+
+concurrency:
+  group: exit-gate
+  cancel-in-progress: false
+
+jobs:
+  clean-linux:
+    name: Clone to scored core suite (Linux x64, lima with KVM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      WORLD: ${{ github.workspace }}/../world
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+      - name: Room on the runner (the engine and a world need about 15 GB)
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+      - name: Enable KVM and install QEMU
+        run: |
+          set -euo pipefail
+          ls -l /dev/kvm
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+          sudo apt-get update -q && sudo apt-get install -y -q qemu-system-x86 qemu-utils
+      - name: Install
+        run: uv sync --locked
+      - name: mirror engine setup
+        run: uv run mirror engine setup --cpus 4 --memory 12 --disk 60
+      - name: mirror engine check
+        run: uv run mirror engine check
+      - name: mirror init
+        run: uv run mirror init "$WORLD"
+      - name: mirror build
+        working-directory: ${{ env.WORLD }}
+        run: uv run --project "$GITHUB_WORKSPACE" mirror build
+      - name: mirror up, doctor
+        working-directory: ${{ env.WORLD }}
+        run: |
+          set -euo pipefail
+          uv run --project "$GITHUB_WORKSPACE" mirror up
+          # A VM nested in GitHub's own adds 8 to 12 ms at the gateway; this runner allows 20
+          # (owner's decision, 2026-11-24, docs/platforms.md).
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor --latency-budget-ms 20 | tee doctor.txt
+          grep -q "Isolation: full" doctor.txt
+      - name: Add the agent and its model route
+        working-directory: ${{ env.WORLD }}
+        env:
+          AGENT: ${{ inputs.agent }}
+        run: |
+          set -euo pipefail
+          if [ "$AGENT" = llm-example ]; then
+            uv run --project "$GITHUB_WORKSPACE" python "$GITHUB_WORKSPACE/scripts/exit_gate.py" route mirror.yaml
+          fi
+          uv run --project "$GITHUB_WORKSPACE" mirror agent add "$GITHUB_WORKSPACE/examples/agents/$AGENT/agent.yaml"
+      - name: mirror run core
+        working-directory: ${{ env.WORLD }}
+        env:
+          AGENT: ${{ inputs.agent }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # The agent need not pass every scenario; every one must reach a scored result.
+        run: |
+          set -uo pipefail
+          uv run --project "$GITHUB_WORKSPACE" mirror run core --agent "$AGENT" | tee run.txt
+          code=${PIPESTATUS[0]}
+          [ "$code" -le 1 ] || exit "$code"
+          uv run --project "$GITHUB_WORKSPACE" python "$GITHUB_WORKSPACE/scripts/exit_gate.py" results .
+      - name: Keep the results and reports (never the project's keys)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: exit-gate-linux
+          path: |
+            ${{ env.WORLD }}/doctor.txt
+            ${{ env.WORLD }}/run.txt
+            ${{ env.WORLD }}/.mirror/runs/*/result.json
+            ${{ env.WORLD }}/.mirror/runs/*/report.html
+          if-no-files-found: warn
+      - name: mirror engine status
+        if: always()
+        run: uv run mirror engine status
+      - name: mirror engine destroy
+        if: always()
+        run: uv run mirror engine destroy --yes
