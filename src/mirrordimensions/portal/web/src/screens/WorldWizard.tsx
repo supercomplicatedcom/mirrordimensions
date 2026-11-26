@@ -24,7 +24,7 @@ const STAGES = [
 ];
 const INDUSTRIES = ["logistics", "software", "financial services", "healthcare", "retail", "manufacturing", "insurance"];
 
-type Start = "template" | "systems";
+type Start = "template" | "systems" | "import";
 
 export function WorldWizard() {
   const [search] = useSearchParams();
@@ -46,7 +46,8 @@ export function WorldWizard() {
       .then((v) => {
         setView(v);
         setStep(Math.min(v.step, 5));
-        if (v.draft.systems && !v.draft.template) {
+        if (v.draft.imported) setStart("import");
+        else if (v.draft.systems && !v.draft.template) {
           setStart("systems");
           setSystemsText(v.draft.systems.join(", "));
         }
@@ -143,14 +144,35 @@ export function WorldWizard() {
                       </span>
                     </label>
                     <label className="option">
-                      <input type="radio" name="start" disabled />
+                      <input type="radio" name="start" checked={start === "import"} onChange={() => setStart("import")} />
                       <span>
                         <b>Import a description</b>
-                        <span className="meta">From an architecture document or diagram. Arrives with world import (M8).</span>
+                        <span className="meta">
+                          From files on this computer: agent tool configuration, OpenAPI descriptions, Terraform state. You review what was
+                          understood before anything is used.
+                        </span>
                       </span>
                     </label>
                   </div>
-                  {start === "template" ? (
+                  {start === "import" ? (
+                    <div className="field">
+                      {view.imported ? (
+                        <p>
+                          {view.imported.sources.length} {view.imported.sources.length === 1 ? "file" : "files"} read: {view.imported.found}{" "}
+                          things found, {view.imported.buildable} can be built now
+                          {view.imported.open_conflicts > 0 ? `, ${view.imported.open_conflicts} to settle` : ""}.{" "}
+                          <Link to={`/worlds/import?folder=${encodeURIComponent(view.folder)}`}>Review the import</Link>
+                        </p>
+                      ) : (
+                        <p>
+                          <Link className="button" to={`/worlds/import?folder=${encodeURIComponent(view.folder)}`}>
+                            Choose the files
+                          </Link>
+                        </p>
+                      )}
+                      <span className="note">The systems come from the import; the company, links and data are set on the next steps.</span>
+                    </div>
+                  ) : start === "template" ? (
                     <label className="field">
                       Template
                       <select defaultValue={d?.template ?? "software-team"} id="template">
@@ -259,8 +281,15 @@ export function WorldWizard() {
                     </tbody>
                   </table>
                   <p className="note">
-                    Each system arrives preconfigured; you can change its inputs, outputs, settings and data afterward. To change the list, go
-                    back to Start.
+                    Each system arrives preconfigured; you can change its inputs, outputs, settings and data afterward.{" "}
+                    {d?.imported ? (
+                      <>
+                        The list comes from the import: to change it,{" "}
+                        <Link to={`/worlds/import?folder=${encodeURIComponent(view.folder)}`}>review the import</Link>.
+                      </>
+                    ) : (
+                      "To change the list, go back to Start."
+                    )}
                   </p>
                 </>
               )}
@@ -320,7 +349,9 @@ export function WorldWizard() {
                     <dt>Agents</dt>
                     <dd>None yet; onboard one after the world exists</dd>
                   </dl>
-                  <p className="note">The definition is saved as mirror.yaml. Creating the world is repeatable: the same file and seed give the same world.</p>
+                  <p className="note">
+                    The definition is saved as mirror.yaml. Creating the world is repeatable: the same file and seed give the same world.
+                  </p>
                 </>
               )}
               {step === 6 && (
@@ -328,8 +359,8 @@ export function WorldWizard() {
                   <h2 id="step-title">{created && !created.error ? "The world is ready" : "Create the world"}</h2>
                   {!creating && !created && (
                     <p>
-                      Every world shares one engine. Creating this one stops the sandbox of whichever world is running now; that world is kept
-                      and can be brought back with <code>mirror up</code>. It takes a few minutes.
+                      Every world shares one engine. Creating this one stops the sandbox of whichever world is running now; that world is
+                      kept and can be brought back with <code>mirror up</code>. It takes a few minutes.
                     </p>
                   )}
                   {(creating || stages.length > 0) && (
@@ -340,8 +371,8 @@ export function WorldWizard() {
                         const now = creating && !done && i === doneCount;
                         return (
                           <li key={name}>
-                            <span className={`tag ${done ? "good" : now ? "" : ""}`}>{done ? "Done" : now ? "Running" : "Waiting"}</span> {i + 1}.{" "}
-                            {name}
+                            <span className={`tag ${done ? "good" : now ? "" : ""}`}>{done ? "Done" : now ? "Running" : "Waiting"}</span>{" "}
+                            {i + 1}. {name}
                           </li>
                         );
                       })}
@@ -356,7 +387,9 @@ export function WorldWizard() {
                           setError(undefined);
                           setStages([]);
                           setCreated(undefined);
-                          send<BuildJob>("POST", "/worlds/create", { folder: view.folder })
+                          send<BuildJob>("POST", "/worlds/create", {
+                            folder: view.folder,
+                          })
                             .then(() => setCreating(true))
                             .catch(fail);
                         }}
@@ -394,7 +427,7 @@ export function WorldWizard() {
               <pre className="yaml" tabIndex={0}>
                 {view.yaml}
               </pre>
-              <p className="note">
+              <p className="note" style={{ overflowWrap: "anywhere" }}>
                 The same file comes from: <code>{view.command}</code>
               </p>
             </aside>
@@ -411,9 +444,15 @@ const checked = (id: string) => (document.getElementById(id) as HTMLInputElement
 /** One step's answers, read from its fields. */
 function answers(step: number, start: Start, systemsText: string): Record<string, unknown> {
   if (step === 1) {
+    if (start === "import") return { imported: true };
     return start === "template"
       ? { template: value("template") || "software-team" }
-      : { systems: systemsText.split(/[\n,]/).map((s) => s.trim()).filter(Boolean) };
+      : {
+          systems: systemsText
+            .split(/[\n,]/)
+            .map((s) => s.trim())
+            .filter(Boolean),
+        };
   }
   if (step === 2) {
     const tidy = (document.querySelector('input[name="tidiness"]:checked') as HTMLInputElement | null)?.value;
@@ -429,7 +468,10 @@ function answers(step: number, start: Start, systemsText: string): Record<string
   }
   if (step === 4) {
     return {
-      links: { announce: checked("link-announce"), incidents: checked("link-incidents") },
+      links: {
+        announce: checked("link-announce"),
+        incidents: checked("link-incidents"),
+      },
       data: Object.fromEntries(["repositories", "issues", "messages", "canaries"].map((k) => [k, Number(value(`data-${k}`))])),
     };
   }

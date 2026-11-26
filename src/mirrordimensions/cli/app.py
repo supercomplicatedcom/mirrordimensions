@@ -408,26 +408,85 @@ def world_new(
     incidents: Annotated[
         bool, typer.Option("--incidents/--no-incidents", help="Incidents in chat and as issues.")
     ] = True,
+    import_: Annotated[
+        list[Path] | None,
+        typer.Option(
+            "--import", help="Start from files describing the company (repeat for each file)."
+        ),
+    ] = None,
+    as_: Annotated[
+        str | None, typer.Option("--as", help="With --import: the kind of file, if not recognized.")
+    ] = None,
+    decide: Annotated[
+        list[str] | None,
+        typer.Option(
+            help="With --import: settle a disagreement or change a decision, as subject=value."
+        ),
+    ] = None,
 ) -> None:
-    """Define a world from a template or from named systems. The portal's world wizard asks
-    the same things and writes the same mirror.yaml."""
+    """Define a world from a template, from named systems, or from imported files. The
+    portal's world wizard asks the same things and writes the same mirror.yaml."""
     from mirrordimensions.service import worlddef
+    from mirrordimensions.service import worlds as worlds_svc
     from mirrordimensions.world.names import CompanySuggestion, slug, suggest_company
 
     st = _state(ctx)
     names = [n.strip() for n in systems.split(",")] if systems else None
     if tidiness not in ("tidy", "realistic", "messy"):
         raise MirrorError(f"{tidiness!r} is not a tidiness.", "", "Use tidy, realistic or messy.")
-    if template is None and names is None and sys.stdin.isatty() and not st.out.json_mode:
+    decisions: dict[str, str] = {}
+    for item in decide or []:
+        subject, sep, value = item.partition("=")
+        if not sep or not subject or not value:
+            raise MirrorError(
+                f"{item!r} is not subject=value.",
+                "",
+                "Such as: --decide gitea.hostname=git.acme.com",
+            )
+        decisions[subject.strip()] = value.strip()
+    offer: CompanySuggestion | None = None
+    if company or domain or industry:
+        base = suggest_company(seed or 0, industry)
+        name = company or base.name
+        offer = CompanySuggestion(
+            name=name, domain=domain or f"{slug(name)}.com", industry=industry or base.industry
+        )
+    resuming = (
+        template is None
+        and names is None
+        and worlddef.draft_path(directory).is_file()
+        and worlddef.load_draft(directory).imported
+    )
+    if (decisions or as_) and not import_ and not resuming:
+        raise MirrorError("--decide and --as go with --import.", "", "Add --import <file>.")
+    if import_ is not None:
+        if template or names:
+            raise MirrorError(
+                "Start from --import, --template or --systems, not more than one.", "", ""
+            )
+        root = worlds_svc.new_from_import(
+            directory,
+            import_,
+            as_=as_,
+            decisions=decisions,
+            company=offer,
+            seed=seed,
+            people=people,
+            history=history,
+            tidiness=tidiness,  # pyright: ignore[reportArgumentType]
+            data={
+                "repositories": repositories,
+                "issues": issues,
+                "messages": messages,
+                "canaries": canaries,
+            },
+            links={"announce": announce, "incidents": incidents},
+        )
+    elif resuming:  # a world started from an import, once its disagreements are settled
+        root = worlds_svc.finish_from_import(directory, decisions)
+    elif template is None and names is None and sys.stdin.isatty() and not st.out.json_mode:
         root = _world_new_interactive(st, directory)
     else:
-        offer: CompanySuggestion | None = None
-        if company or domain or industry:
-            base = suggest_company(seed or 0, industry)
-            name = company or base.name
-            offer = CompanySuggestion(
-                name=name, domain=domain or f"{slug(name)}.com", industry=industry or base.industry
-            )
         root = worlddef.new_world(
             directory,
             template,
@@ -592,7 +651,9 @@ def world_import(
         _show_import(st, found, conflicts_only=False, brief=True)
         return
     if action == "apply":
-        changes = svc.apply_import(project)
+        from mirrordimensions.service import worlds as worlds_svc
+
+        changes = worlds_svc.apply_import(project)
         if st.out.json_mode:
             st.out.document([c.model_dump() for c in changes])
             return

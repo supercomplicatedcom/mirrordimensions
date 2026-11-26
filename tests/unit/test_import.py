@@ -7,11 +7,14 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
+from ruamel.yaml import YAML
 
+from mirrordimensions.config.loader import load_model
 from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.importers import mcp_config, mcp_tools, openapi, terraform
@@ -21,6 +24,9 @@ from mirrordimensions.service import imports, load_project
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import portal_fixture
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "import"
 # Planted in the fixtures to prove they are never kept.
@@ -33,6 +39,10 @@ SECRETS = (
     "Harbor-Kestrel-2291",  # a user's password
 )
 PEOPLE = ("Priya Raman", "priya.raman", "@northfield-logistics.com", "orders_admin", "deploy-bot")
+
+
+def _yaml(path: Path) -> dict[str, Any]:
+    return YAML(typ="safe").load(path.read_text(encoding="utf-8"))
 
 
 def _read(importer: Any, name: str) -> Any:
@@ -165,7 +175,6 @@ def test_disagreeing_hostnames_are_a_conflict_that_apply_waits_for(project: Proj
 def test_apply_writes_a_world_that_builds_with_unavailable_systems_listed(
     project: Project,
 ) -> None:
-    from mirrordimensions.config.loader import load_model
     from mirrordimensions.mcp.world import toolset
     from mirrordimensions.network.sandbox import plan_from
 
@@ -247,3 +256,181 @@ def test_the_command_line_reads_settles_and_applies(project: Project) -> None:
     applied = mirror("world", "import", "apply")
     assert applied.exit_code == 0, applied.output
     assert "Payments API added" in applied.output and "mirror world create" in applied.output
+
+
+# -- a world that starts from the import, and the portal (M8 part 2) -------------------------
+
+
+def _fixture_paths() -> list[str]:
+    return [str(p) for p in sorted(FIXTURES.iterdir())]
+
+
+def test_a_new_world_starts_from_the_import_and_waits_for_a_disagreement(tmp_path: Path) -> None:
+    from typer.testing import CliRunner
+
+    from mirrordimensions.cli.app import app
+
+    folder = tmp_path / "northfield"
+    given = [w for p in _fixture_paths() for w in ("--import", p)]
+    stopped = CliRunner().invoke(app, ["world", "new", str(folder), *given, "--seed", "4242"])
+    assert stopped.exit_code != 0
+    assert isinstance(stopped.exception, MirrorError)
+    assert (
+        "--decide" in stopped.exception.fix
+        and f"mirror world new {folder}" in stopped.exception.fix
+    )
+    # Settled, the same command finishes; the systems are the import's, not a template's.
+    again = CliRunner().invoke(
+        app,
+        ["world", "new", str(folder), "--decide", "gitea.hostname=git.northfield-logistics.com"],
+    )
+    assert again.exit_code == 0, again.output
+    manifest, problems = load_model(folder / "mirror.yaml", Manifest)
+    assert manifest is not None, problems
+    assert manifest.status == "defined" and manifest.company.domain == "northfield-logistics.com"
+    assert [a.id for a in manifest.apps] == ["code", "chat", "payments-api", "eng-tools"]
+    assert len(manifest.links) == 2  # code hosting and chat both came from the import
+    assert (folder / "tools" / "eng-tools.json").is_file()
+
+
+@pytest.fixture
+def portal(tmp_path: Path) -> Iterator[tuple[TestClient, Path]]:
+    from fastapi.testclient import TestClient
+
+    from mirrordimensions.portal import server
+
+    worlds = tmp_path / "worlds"
+    worlds.mkdir()
+    root = portal_fixture.make_project(worlds)
+    static = tmp_path / "static"
+    static.mkdir()
+    (static / "index.html").write_text("<!doctype html>", encoding="utf-8")
+    app = server.create_app(load_project(root), portal_fixture.TOKEN, 7499, static)
+    with TestClient(app, base_url="http://127.0.0.1:7499") as client:
+        yield client, root
+
+
+WRITE = {"Authorization": f"Bearer {portal_fixture.TOKEN}", "X-Mirror-Portal": "1"}
+
+
+def test_the_portal_reads_settles_and_applies_the_same_draft_as_the_command_line(
+    portal: tuple[TestClient, Path],
+) -> None:
+    from typer.testing import CliRunner
+
+    from mirrordimensions.cli.app import app
+
+    client, root = portal
+    api = "/api/v1/world/import"
+    assert client.get(api, headers=WRITE).json() is None  # nothing yet, and not a world "part"
+    kinds = {k["name"] for k in client.get(f"{api}/kinds", headers=WRITE).json()}
+    assert {"mcp-config", "mcp-tools", "openapi", "terraform"} <= kinds
+    read = client.post(api, json={"paths": _fixture_paths()}, headers=WRITE)
+    assert read.status_code == 200, read.text
+    assert read.json()["open_conflicts"] == 1 and read.json()["words"]["leave-out"] == "Leave out"
+    refused = client.post(f"{api}/apply", json={}, headers=WRITE)
+    assert refused.status_code == 400 and "not settled" in refused.json()["what"]
+    # Settled from the command line, seen by the portal: one draft.
+    settled = CliRunner().invoke(
+        app,
+        [
+            "--project",
+            str(root),
+            "world",
+            "import",
+            "decide",
+            "gitea.hostname",
+            "git.northfield-logistics.com",
+        ],
+    )
+    assert settled.exit_code == 0, settled.output
+    assert client.get(api, headers=WRITE).json()["open_conflicts"] == 0
+    left = client.patch(
+        f"{api}/findings/queue:shipment-events", json={"decision": "leave-out"}, headers=WRITE
+    )
+    assert left.status_code == 200, left.text
+    applied = client.post(f"{api}/apply", json={}, headers=WRITE)
+    assert applied.status_code == 200, applied.text
+    assert applied.json()["wizard"] is False and applied.json()["changes"]
+    infra = [i["name"] for i in Manifest.model_validate(_yaml(root / "mirror.yaml")).infrastructure]
+    assert "shipment-events" not in infra
+    assert client.delete(api, headers=WRITE).status_code == 204
+    assert client.get(api, headers=WRITE).json() is None
+
+
+def test_the_wizard_starts_a_world_from_the_import_as_the_command_line_does(
+    portal: tuple[TestClient, Path], tmp_path: Path
+) -> None:
+    import shlex
+
+    from typer.testing import CliRunner
+
+    from mirrordimensions.cli.app import app
+    from mirrordimensions.service import worlds as worlds_svc
+
+    client, root = portal
+    client.post("/api/v1/worlds/draft", json={"folder": "northfield"}, headers=WRITE)
+    early = client.patch(
+        "/api/v1/worlds/draft",
+        json={"folder": "northfield", "fields": {"imported": True}},
+        headers=WRITE,
+    )
+    assert early.status_code == 400  # nothing imported yet
+    api = "/api/v1/world/import"
+    read = client.post(api, json={"folder": "northfield", "paths": _fixture_paths()}, headers=WRITE)
+    assert read.status_code == 200, read.text
+    assert client.get(f"{api}?folder=northfield", headers=WRITE).json()["found"] == 8
+    client.patch(
+        f"{api}/findings/gitea.hostname",
+        json={"folder": "northfield", "decision": "git.northfield-logistics.com"},
+        headers=WRITE,
+    )
+    applied = client.post(f"{api}/apply", json={"folder": "northfield"}, headers=WRITE).json()
+    assert applied["wizard"] is True
+    view = client.post("/api/v1/worlds/draft", json={"folder": "northfield"}, headers=WRITE).json()
+    assert view["step"] == 2 and view["draft"]["imported"] is True
+    assert view["company"]["domain"] == "northfield-logistics.com"  # proposed by the import
+    assert [s["id"] for s in view["systems"]] == ["code", "chat", "payments-api", "eng-tools"]
+    # Later answers keep the import: the systems stay while the rest changes.
+    later = client.patch(
+        "/api/v1/worlds/draft",
+        json={
+            "folder": "northfield",
+            "fields": {"people": 40, "tidiness": "messy", "links": {"announce": False}, "step": 5},
+        },
+        headers=WRITE,
+    ).json()
+    assert [s["id"] for s in later["systems"]] == ["code", "chat", "payments-api", "eng-tools"]
+    assert "incidents" in later["yaml"] and "announce" not in later["yaml"]
+    made = worlds_svc.finish(load_project(root), "northfield")
+    by_portal = (made / "mirror.yaml").read_text(encoding="utf-8")
+    assert "status:" not in by_portal
+    # The command the wizard shows writes the same file.
+    elsewhere = tmp_path / "cli"
+    elsewhere.mkdir()
+    words = shlex.split(later["command"])[1:]
+    assert "--import" in words and "--decide" in words
+    out = CliRunner().invoke(app, [*words[:2], str(elsewhere / "northfield"), *words[3:]])
+    assert out.exit_code == 0, out.output
+    assert (elsewhere / "northfield" / "mirror.yaml").read_text(encoding="utf-8") == by_portal
+
+
+def test_changing_the_company_in_the_wizard_keeps_it(portal: tuple[TestClient, Path]) -> None:
+    client, _ = portal
+    client.post("/api/v1/worlds/draft", json={"folder": "northfield"}, headers=WRITE)
+    api = "/api/v1/world/import"
+    client.post(api, json={"folder": "northfield", "paths": _fixture_paths()}, headers=WRITE)
+    client.patch(
+        f"{api}/findings/gitea.hostname",
+        json={"folder": "northfield", "decision": "git.northfield-logistics.com"},
+        headers=WRITE,
+    )
+    client.post(f"{api}/apply", json={"folder": "northfield"}, headers=WRITE)
+    view = client.patch(
+        "/api/v1/worlds/draft",
+        json={"folder": "northfield", "fields": {"company_name": "Halvorsen Freight", "step": 3}},
+        headers=WRITE,
+    ).json()
+    assert view["company"]["domain"] == "halvorsen-freight.com"
+    assert "domain: halvorsen-freight.com" in view["yaml"]  # not put back by the import
+    assert "git.northfield-logistics.com" in view["yaml"]  # the systems keep their hostnames

@@ -336,6 +336,7 @@ export interface WorldDraft {
   links: Record<string, boolean>;
   data: Record<string, number>;
   step: number;
+  imported: boolean;
 }
 
 export interface WorldDraftView {
@@ -347,6 +348,71 @@ export interface WorldDraftView {
   yaml: string;
   templates: { name: string; description: string }[];
   command: string;
+  imported: ImportReview | null;
+}
+
+// World import (decision 0025): the review of what files on this machine described.
+
+export interface ImportSource {
+  importer: string;
+  label: string;
+  file: string;
+  path: string;
+  summary: string;
+  skipped_secrets: number;
+  skipped_people: number;
+  skipped: Record<string, number>;
+}
+
+export interface ImportConflict {
+  id: string;
+  subject: string;
+  label: string;
+  field: string;
+  choices: { value: string; sources: string[] }[];
+  settled: string | null;
+}
+
+export interface ImportFinding {
+  id: string;
+  label: string;
+  kind: string;
+  kind_label: string;
+  product: string | null;
+  twin: string | null;
+  hostname: string | null;
+  endpoint: string | null;
+  sources: string[];
+  understood: string;
+  options: string[];
+  decision: string;
+  proposed: boolean;
+  facts: string[];
+  tools: {
+    name: string;
+    mapped: boolean;
+    backed_by: string | null;
+    reason: string;
+  }[];
+  endpoints: number;
+}
+
+export interface ImportReview {
+  sources: ImportSource[];
+  findings: ImportFinding[];
+  conflicts: ImportConflict[];
+  gaps: { what: string; why: string }[];
+  found: number;
+  buildable: number;
+  open_conflicts: number;
+  skipped_secrets: number;
+  skipped_people: number;
+  words: Record<string, string>;
+}
+
+export interface ImportApplied {
+  changes: Change[];
+  wizard: boolean;
 }
 
 export interface AgentDraft {

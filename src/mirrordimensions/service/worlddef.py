@@ -10,9 +10,10 @@ import json
 import secrets
 import shutil
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic import BaseModel, Field
+from ruamel.yaml import YAML
 
 from mirrordimensions.catalog.index import match_systems
 from mirrordimensions.config.loader import load_model
@@ -23,6 +24,9 @@ from mirrordimensions.network.ca import create_root_ca
 from mirrordimensions.project import MANIFEST, STATE_DIR, Project
 from mirrordimensions.service.project import PROJECT_GITIGNORE, render_manifest
 from mirrordimensions.world.names import CompanySuggestion, slug, suggest_company
+
+if TYPE_CHECKING:
+    from mirrordimensions.service.changes import Change
 
 TEMPLATES = {"software-team": "Code hosting and team chat for a small software organization"}
 HOSTNAME_PREFIX = {
@@ -164,6 +168,10 @@ class Draft(BaseModel):
     links: dict[str, bool] = Field(default_factory=lambda: dict(LINK_DEFAULTS))
     data: dict[str, int] = Field(default_factory=lambda: dict(DATA_DEFAULTS))
     step: int = 1  # the portal wizard's step reached, 1-6
+    imported: bool = Field(
+        default=False,
+        description="The systems come from the import in this folder (decision 0025)",
+    )
 
 
 QUESTIONS = ("company", "shape", "people", "history")
@@ -180,9 +188,10 @@ def load_draft(root: Path) -> Draft:
     return Draft(seed=secrets.randbelow(900_000) + 100_000)
 
 
-def save_draft(root: Path, draft: Draft) -> None:
+def save_draft(root: Path, draft: Draft) -> list[Change]:
     """Keep the answers, and write mirror.yaml as it stands (`status: draft`) once there is
-    a company to write it for."""
+    a company to write it for. A draft started from an import has it applied again, so the
+    file always holds both; the changes the import made are returned."""
     root = root.resolve()
     existing = root / MANIFEST
     if existing.is_file() and not _is_draft(existing):
@@ -193,6 +202,8 @@ def save_draft(root: Path, draft: Draft) -> None:
     write_text(draft_path(root), draft.model_dump_json(indent=2) + "\n", owner_only=True)
     if draft.company is not None:
         write_text(existing, render_world(root, draft, status="draft"))
+        return _with_import(root, draft)
+    return []
 
 
 def _is_draft(path: Path) -> bool:
@@ -203,7 +214,7 @@ def next_question(draft: Draft) -> str | None:
     """The first question not yet answered, or None when the draft is complete."""
     if draft.company is None:
         return "company"
-    if draft.template is None and not draft.systems:
+    if draft.template is None and not draft.systems and not draft.imported:
         return "shape"
     if draft.people is None:
         return "people"
@@ -245,7 +256,11 @@ def render_world(root: Path, draft: Draft, status: Literal["draft", "defined"]) 
     if not any(links.values()):
         text = text.replace("links:\n", "links: []\n")
     template = draft.template if draft.template or draft.systems else "software-team"
-    if draft.systems and not draft.template:
+    if draft.imported:
+        # The import brings the systems; links are added once it is known which exist.
+        head = text[: text.index("apps:\n")]
+        text = head + "apps: []\nlinks: []\n" + _after_links(text)
+    elif draft.systems and not draft.template:
         apps: list[str] = []
         for i, match in enumerate(match_systems(draft.systems)):
             if match.entry is None:
@@ -269,6 +284,52 @@ def render_world(root: Path, draft: Draft, status: Literal["draft", "defined"]) 
     return text
 
 
+def _after_links(text: str) -> str:
+    """What follows the links block in a rendered manifest."""
+    rest = text[text.index("links:") :].split("\n")[1:]
+    i = 0
+    while i < len(rest) and (rest[i].startswith(" ") or not rest[i]):
+        i += 1
+    return "\n".join(rest[i:])
+
+
+LINK_LINES = {
+    "announce": ("  - announce: {from: code, to: chat, channel: engineering}\n", ("code", "chat")),
+    "incidents": ("  - incidents: {in: [chat, code]}\n", ("chat", "code")),
+}
+
+
+def _with_import(root: Path, draft: Draft) -> list[Change]:
+    """Apply the folder's import to a draft started from it: its systems, the company it
+    proposes, and the links its systems allow. Returns what the import changed."""
+    from mirrordimensions.service import imports
+
+    project = Project(root=root)
+    if not draft.imported or imports.peek_import(project) is None:
+        return []
+    changes = imports.apply_import(project)
+    text = project.manifest_path.read_text(encoding="utf-8")
+    data: dict[str, Any] = YAML(typ="safe").load(text) or {}  # pyright: ignore[reportUnknownMemberType]
+    apps = cast(list[dict[str, Any]], data.get("apps") or [])
+    ids = {str(a.get("id")) for a in apps}
+    wanted = {**LINK_DEFAULTS, **draft.links}
+    lines = [line for key, (line, needs) in LINK_LINES.items() if wanted[key] and set(needs) <= ids]
+    if lines and "\nlinks: []\n" in text:
+        text = text.replace("\nlinks: []\n", "\nlinks:\n" + "".join(lines), 1)
+        write_text(project.manifest_path, text)
+    company = cast(dict[str, Any], data.get("company") or {})
+    if draft.company is not None and (
+        company.get("name") != draft.company.name or company.get("domain") != draft.company.domain
+    ):
+        draft.company = CompanySuggestion(
+            name=str(company["name"]),
+            domain=str(company["domain"]),
+            industry=draft.company.industry,
+        )
+        write_text(draft_path(root), draft.model_dump_json(indent=2) + "\n", owner_only=True)
+    return changes
+
+
 def _write_world(root: Path, draft: Draft) -> Path:
     root = root.resolve()
     existing = root / MANIFEST
@@ -276,10 +337,15 @@ def _write_world(root: Path, draft: Draft) -> Path:
         raise MirrorError(
             f"{root} already holds a world.", f"{MANIFEST} exists there.", "Choose another folder."
         )
+    if draft.imported:
+        from mirrordimensions.service import imports
+
+        imports.ready(Project(root=root))  # refuses, saying what is left to settle
     text = render_world(root, draft, status="defined")
     company = draft.company or suggest_company(draft.seed, attempt=draft.attempt)
     make_dir(root)
     write_text(existing, text)
+    _with_import(root, draft)
     write_text(root / ".gitignore", PROJECT_GITIGNORE)
     make_dir(root / "agents")
     make_dir(root / STATE_DIR, owner_only=True)

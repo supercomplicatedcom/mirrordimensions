@@ -14,6 +14,7 @@ import { RunDetail } from "./screens/RunDetail";
 import { Runs } from "./screens/Runs";
 import { Scenarios } from "./screens/Scenarios";
 import { SystemScreen } from "./screens/System";
+import { WorldImport } from "./screens/WorldImport";
 import { WorldWizard } from "./screens/WorldWizard";
 import { Worlds } from "./screens/Worlds";
 
@@ -75,6 +76,7 @@ export function App() {
           <Route path="/agents/new/:name" element={<Onboard key="resume" />} />
           <Route path="/worlds" element={<Worlds />} />
           <Route path="/worlds/new" element={<WorldWizard />} />
+          <Route path="/worlds/import" element={<WorldImport />} />
           <Route path="/permissions" element={<Permissions />} />
           <Route path="/permissions/:agent" element={<Permissions />} />
           <Route path="/company" element={<CompanyScreen />} />

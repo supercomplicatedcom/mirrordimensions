@@ -18,7 +18,8 @@ from ruamel.yaml import YAML
 
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.project import MANIFEST, Project
-from mirrordimensions.service import worlddef
+from mirrordimensions.service import imports, worlddef
+from mirrordimensions.service.changes import Change
 from mirrordimensions.world.names import CompanySuggestion, slug, suggest_company
 
 
@@ -47,6 +48,9 @@ class WorldDraftView(BaseModel):
     yaml: str = Field(description="mirror.yaml as it will be written")
     templates: list[worlddef.Template]
     command: str = Field(description="The same definition from the command line")
+    imported: imports.ImportReview | None = Field(
+        default=None, description="The import in this folder, when the world starts from one"
+    )
 
 
 def _state(root: Path) -> str:
@@ -99,6 +103,9 @@ def _view(root: Path, draft: worlddef.Draft) -> WorldDraftView:
     company = draft.company or suggest_company(draft.seed, attempt=draft.attempt)
     shown = draft.model_copy(update={"company": company})
     text = worlddef.render_world(root, shown, status="draft")
+    review = imports.peek_import(Project(root=root)) if draft.imported else None
+    if review is not None and draft.company is not None and (root / MANIFEST).is_file():
+        text = (root / MANIFEST).read_text(encoding="utf-8")  # with the import applied
     data: dict[str, Any] = YAML(typ="safe").load(text) or {}  # pyright: ignore[reportUnknownMemberType]
     systems: list[SystemPreview] = []
     for app in cast(list[dict[str, Any]], data.get("apps") or []):
@@ -136,6 +143,7 @@ def _view(root: Path, draft: worlddef.Draft) -> WorldDraftView:
         yaml=text,
         templates=worlddef.list_templates(),
         command=command_for(root, shown),
+        imported=review,
     )
 
 
@@ -143,7 +151,18 @@ def command_for(root: Path, draft: worlddef.Draft) -> str:
     """The `mirror world new` command that writes the same mirror.yaml."""
     company = draft.company or suggest_company(draft.seed, attempt=draft.attempt)
     parts = [f"mirror world new {root.name}", f"--seed {draft.seed}"]
-    if draft.systems and not draft.template:
+    if draft.imported:
+        found = imports.peek_import(Project(root=root))
+        loaded = imports.load_draft(Project(root=root))
+        # Forward slashes: every shell reads them, and so does Windows.
+        shown = (
+            [Path(s.path).as_posix() if s.path else s.file for s in found.sources] if found else []
+        )
+        parts += [f"--import {_quote(p)}" for p in shown]
+        if loaded is not None:
+            chosen = {**loaded.decisions, **loaded.settled}
+            parts += [f"--decide {k}={v}" for k, v in sorted(chosen.items())]
+    elif draft.systems and not draft.template:
         parts.append(f"--systems {','.join(draft.systems)}")
     else:
         parts.append(f"--template {draft.template or 'software-team'}")
@@ -157,6 +176,10 @@ def command_for(root: Path, draft: worlddef.Draft) -> str:
     links = {**worlddef.LINK_DEFAULTS, **draft.links}
     parts += [f"--no-{k}" for k, on in links.items() if not on]
     return " ".join(parts)
+
+
+def _quote(text: str) -> str:
+    return f'"{text}"' if any(c in text for c in " '\"$") else text
 
 
 def open_draft(current: Project, folder: str) -> WorldDraftView:
@@ -187,6 +210,7 @@ class DraftFields(BaseModel):
     data: dict[str, int] | None = None
     seed: int | None = Field(default=None, ge=1)
     step: int | None = Field(default=None, ge=1, le=6)
+    imported: bool | None = Field(default=None, description="Start from the import")
 
 
 def update_draft(current: Project, folder: str, fields: DraftFields) -> WorldDraftView:
@@ -200,15 +224,26 @@ def update_draft(current: Project, folder: str, fields: DraftFields) -> WorldDra
                 f"Templates: {', '.join(worlddef.TEMPLATES)}.",
                 "",
             )
-        draft.template, draft.systems = fields.template, None
+        draft.template, draft.systems, draft.imported = fields.template, None, False
     if fields.systems is not None:
         names = [n.strip() for n in fields.systems if n.strip()]
         if not names:
             raise MirrorError("Name at least one system.", "", "Such as: gitea, mattermost")
-        draft.systems, draft.template = names, None
+        draft.systems, draft.template, draft.imported = names, None, False
+    if fields.imported:
+        if imports.peek_import(Project(root=root)) is None:
+            raise MirrorError(
+                "Nothing has been imported into this world yet.",
+                "",
+                "Choose the files to read first.",
+            )
+        imports.ready(Project(root=root))
+        draft.imported, draft.template, draft.systems = True, None, None
     if fields.seed is not None and fields.seed != draft.seed:
         draft.seed, draft.attempt, draft.company = fields.seed, 0, None
     if fields.another_company:
+        if draft.imported:
+            imports.keep_company(Project(root=root))
         draft.attempt += 1
         draft.company = suggest_company(draft.seed, attempt=draft.attempt)
     if fields.company_name or fields.domain or fields.industry:
@@ -222,9 +257,12 @@ def update_draft(current: Project, folder: str, fields: DraftFields) -> WorldDra
             domain = base.domain
         if "." not in domain or " " in domain:
             raise MirrorError(f"{domain!r} is not a domain.", "It needs a dot, like acme.com.", "")
-        draft.company = CompanySuggestion(
+        chosen = CompanySuggestion(
             name=name, domain=domain, industry=(fields.industry or base.industry).strip()
         )
+        if draft.imported and (chosen.name, chosen.domain) != (base.name, base.domain):
+            imports.keep_company(Project(root=root))  # the admin's company, not the import's
+        draft.company = chosen
     for key in ("people", "history", "tidiness"):
         value = getattr(fields, key)
         if value is not None:
@@ -257,3 +295,99 @@ def finish(current: Project, folder: str) -> Path:
     if draft.template is None and not draft.systems:
         draft.template = "software-team"
     return worlddef.finish_draft(root, draft)
+
+
+# -- importing a description (decision 0025) --------------------------------------------------
+
+
+def import_project(current: Project, folder: str | None, *, prepare: bool = True) -> Project:
+    """The world an import belongs to: the current one, or a folder the wizard is defining.
+    When preparing to read files, a new world's draft is given a company first, so the
+    import can compare its domain."""
+    if not folder:
+        return current
+    root = resolve_folder(current, folder)
+    if not prepare or ((root / MANIFEST).is_file() and not worlddef.draft_path(root).is_file()):
+        return Project(root=root)  # a defined world beside this one
+    draft = worlddef.load_draft(root)
+    if draft.company is None:
+        draft.company = suggest_company(draft.seed, attempt=draft.attempt)
+        worlddef.save_draft(root, draft)
+    return Project(root=root)
+
+
+def read_import(
+    current: Project, folder: str | None, paths: list[Path], as_: str | None = None
+) -> imports.ImportReview:
+    return imports.import_sources(import_project(current, folder), paths, as_)
+
+
+def apply_import(project: Project) -> list[Change]:
+    """Apply the reviewed import. In a world the wizard is defining, the world then starts
+    from it: its systems replace the template's, and every later answer keeps them."""
+    root = project.root.resolve()
+    if not worlddef.draft_path(root).is_file():
+        return imports.apply_import(project)
+    imports.ready(project)
+    draft = worlddef.load_draft(root)
+    draft.imported, draft.template, draft.systems = True, None, None
+    draft.company = draft.company or suggest_company(draft.seed, attempt=draft.attempt)
+    draft.step = max(draft.step, 2)  # the wizard continues with the company
+    return worlddef.save_draft(root, draft)
+
+
+def new_from_import(
+    directory: Path,
+    paths: list[Path],
+    *,
+    as_: str | None = None,
+    decisions: dict[str, str] | None = None,
+    company: CompanySuggestion | None = None,
+    seed: int | None = None,
+    people: int = 25,
+    history: int = 180,
+    tidiness: worlddef.Tidiness = "realistic",
+    data: dict[str, int] | None = None,
+    links: dict[str, bool] | None = None,
+) -> Path:
+    """`mirror world new --import`: the wizard's import start in one command. If a
+    disagreement is left to settle, the draft is kept and the error says how to finish."""
+    root = directory.resolve()
+    draft = worlddef.load_draft(root)
+    if seed is not None and seed != draft.seed:
+        draft.seed, draft.attempt, draft.company = seed, 0, None
+    draft.imported, draft.template, draft.systems = True, None, None
+    draft.company = company or draft.company or suggest_company(draft.seed, attempt=draft.attempt)
+    draft.people, draft.history, draft.tidiness = people, history, tidiness
+    draft.data = {**worlddef.DATA_DEFAULTS, **(data or {})}
+    draft.links = {**worlddef.LINK_DEFAULTS, **(links or {})}
+    worlddef.save_draft(root, draft)
+    project = Project(root=root)
+    if paths:
+        imports.import_sources(project, paths, as_)
+    if company is not None:
+        imports.keep_company(project)  # named on the command line: the admin's company
+    return finish_from_import(root, decisions)
+
+
+def finish_from_import(directory: Path, decisions: dict[str, str] | None = None) -> Path:
+    """Write the definition of a world started from an import, once it can be applied,
+    with any decisions given first."""
+    root = directory.resolve()
+    for subject, decision in (decisions or {}).items():
+        imports.decide(Project(root=root), subject, decision)
+    try:
+        return worlddef.finish_draft(root, worlddef.load_draft(root))
+    except MirrorError as exc:
+        raise MirrorError(
+            exc.what,
+            exc.why,
+            f"Settle it with --decide <subject>=<value>, or with "
+            f"mirror --project {root} world import decide; then finish: "
+            f"mirror world new {root}",
+        ) from exc
+
+
+def defining(project: Project) -> bool:
+    """Whether the wizard is still defining this world."""
+    return worlddef.draft_path(project.root).is_file()

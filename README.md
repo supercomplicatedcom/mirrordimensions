@@ -76,7 +76,7 @@ mirror report latest --open                              # the whole run on one 
 
 The report shows the result, each check with its evidence, unexpected changes, where each planted secret travelled, what the agent touched against what it was granted, the timeline, model exchanges and, for browser agents, screenshots. It is one file with nothing to load, so it can be shared as an attachment.
 
-**7. Or use the portal.** The same project in a browser: the environment map, agents, the company, scenarios you can start, runs with their live timeline, and health. Its wizards define and create a new world (then switch to it) and onboard an agent, writing the same files as `mirror world new` and `mirror agent new`. A run started there opens in the live view, a map with the agent moving from resource to resource as it works; a finished run replays on the same screen. `mirror watch <run>` prints the same steps in the terminal.
+**7. Or use the portal.** The same project in a browser: the environment map, agents, the company, scenarios you can start, runs with their live timeline, and health. Its wizards define and create a new world (then switch to it), from a template, named systems or files you import and review, and onboard an agent, writing the same files as `mirror world new` and `mirror agent new`. A run started there opens in the live view, a map with the agent moving from resource to resource as it works; a finished run replays on the same screen. `mirror watch <run>` prints the same steps in the terminal.
 
 ```sh
 mirror portal           # opens http://127.0.0.1:7420/?token=… ; only this computer can reach it
@@ -105,7 +105,7 @@ Tools that start runs or edit the world need `confirm=true`, and nothing destruc
 | --- | --- |
 | `mirror engine setup\|check\|status\|start\|stop\|update\|destroy` | The engine. On macOS a Lima VM on Apple's Virtualization.framework; on Linux a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor on the host. Windows is not yet enabled. The engine installs updates only when you run `mirror engine update` |
 | `mirror world new\|create\|show\|status\|clone\|destroy` | Define a world and create it |
-| `mirror world import <file>...`, then `show`, `decide <subject> <value>`, `apply`, `discard` | Describe the world from your own files, read in place on this computer: the agent's MCP configuration and exported tool lists, OpenAPI specifications, Terraform state (`terraform show -json`). Secrets and people are never kept; disagreements between files are settled before anything is written (decision 0025) |
+| `mirror world import <file>...`, then `show`, `decide <subject> <value>`, `apply`, `discard` | Describe the world from your own files, read in place on this computer: the agent's MCP configuration and exported tool lists, OpenAPI specifications, Terraform state (`terraform show -json`). Secrets and people are never kept; disagreements between files are settled before anything is written. `mirror world new <folder> --import <file>...` starts a new world from them, as the portal's wizard does with "Import a description" (decision 0025) |
 | `mirror reset`, `mirror snapshot save\|list` | Back to a snapshot, exactly, in about ten seconds |
 | `mirror up`, `mirror down`, `mirror doctor` | The sealed network, and its egress, separation, inside-out, naming, transparency and capture checks |
 | `mirror agent add\|new\|list\|check\|creds\|rm` | Agents under test |
