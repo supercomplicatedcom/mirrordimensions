@@ -364,6 +364,10 @@ class LimaEngine:
             script += "\n" + microvm_script()
         return script
 
+    def host_address(self) -> str:
+        """Where the guest reaches the host's loopback: Lima's user-mode network's host."""
+        return "192.168.5.2"
+
     def has_microvm(self) -> bool:
         """Whether the microVM runtime has been installed in this engine."""
         return self.shell("test", "-f", "/var/lib/engine/microvm").returncode == 0

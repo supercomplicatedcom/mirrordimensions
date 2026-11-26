@@ -8,10 +8,15 @@ Windows 11 x64 support is **experimental** until every item below has passed on 
 
 ## Install and engine
 
+Follow [windows.md](windows.md).
+
 - [ ] `uv tool install` of the package and `mirror --help` work in PowerShell and Windows Terminal
-- [ ] `mirror engine setup` imports the engine distribution and installs Docker Engine and gVisor
+- [ ] `mirror engine setup --experimental` downloads the pinned WSL image, checks its SHA-256, imports `mirrordimensions-engine` and installs Docker Engine and gVisor
+- [ ] Setup refuses when a distribution named `mirrordimensions-engine` exists that the mirror did not import, and leaves it alone
+- [ ] `.wslconfig` is unchanged after setup, start, stop and destroy
 - [ ] `mirror engine status` shows driver `wsl`, boundary `shared-vm`, pinned versions and resources
-- [ ] The engine stays running for a 30-minute run with no other WSL activity
+- [ ] The engine stays running for a 30-minute run with no other WSL activity (the keep-alive started by `mirror engine start`)
+- [ ] `mirror engine stop` ends the distribution and the keep-alive; `mirror engine start` brings both back
 - [ ] `mirror engine destroy` removes the distribution and every file it created
 
 ## Hardening (0004)
@@ -20,7 +25,8 @@ Windows 11 x64 support is **experimental** until every item below has passed on 
 - [ ] Windows programs cannot be run from the engine (interop off)
 - [ ] The Windows `PATH` is not in the engine's environment
 - [ ] A listener on Windows `127.0.0.1` cannot be reached from the agent network or the system network, in NAT and mirrored modes
-- [ ] The Docker endpoint refuses connections without the client certificate
+- [ ] The Docker endpoint refuses connections without the client certificate (`mirror engine check`), in NAT and mirrored modes
+- [ ] `mirror engine check`'s host loopback check has a positive control in NAT mode; record what it reports in mirrored mode
 - [ ] The client key file's ACL grants only the current user
 
 ## Isolation and coverage

@@ -376,6 +376,16 @@ class WslEngine:
         status.versions["status"] = "experimental"
         return status
 
+    def host_address(self) -> str:
+        """Where the guest reaches Windows: its default gateway in WSL's NAT mode. In
+        mirrored mode the guest shares the host's addresses, and this is the router's."""
+        done = self.shell("ip", "-4", "route", "show", "default", timeout=30)
+        words = done.stdout.split()
+        return words[words.index("via") + 1] if "via" in words else "127.0.0.1"
+
+    def has_microvm(self) -> bool:
+        return False
+
     def _versions(self) -> dict[str, str]:
         return parse_versions(self.shell("sh", "-c", VERSIONS_SCRIPT).stdout)
 

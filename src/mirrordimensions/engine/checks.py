@@ -20,8 +20,13 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from mirrordimensions.engine import docker_tls
 from mirrordimensions.engine.docker_api import Docker
 from mirrordimensions.engine.lima import LimaEngine
+from mirrordimensions.engine.wsl import DOCKER_PORT, WslEngine
+from mirrordimensions.hostos.files import owner_only_problem
+
+CheckedEngine = LimaEngine | WslEngine
 
 PROBE_IMAGE = "alpine:3.22"
 HOST_ALIASES = (
@@ -71,13 +76,58 @@ def host_listener(port: int = 0) -> Generator[int]:
         thread.join(timeout=2)
 
 
+def _endpoint_check(engine: CheckedEngine) -> CheckResult:
+    name = "Docker endpoint is owner-only"
+    if isinstance(engine, LimaEngine):
+        sock = engine.socket_path
+        mode = stat.S_IMODE(sock.stat().st_mode)
+        dir_mode = stat.S_IMODE(sock.parent.stat().st_mode)
+        ok = mode & 0o077 == 0 and dir_mode & 0o077 == 0
+        return CheckResult(
+            name=name,
+            outcome="pass" if ok else "fail",
+            detail=f"socket {oct(mode)}, folder {oct(dir_mode)}",
+        )
+    # TCP with mutual TLS: the client key is the owner's alone, and the daemon refuses a
+    # connection that offers no client certificate.
+    found = docker_tls.client_files(engine.tls_dir)
+    if found is None:
+        return CheckResult(name=name, outcome="fail", detail="no client certificate")
+    problem = owner_only_problem(engine.tls_dir / docker_tls.KEY_FILE)
+    refused = tls_refuses_without_certificate("127.0.0.1", DOCKER_PORT, found[0])
+    ok = problem is None and refused
+    detail = "client key owner-only; a connection without the client certificate is refused"
+    if problem is not None:
+        detail = f"client key: {problem}"
+    elif not refused:
+        detail = "the daemon accepted a connection without a client certificate"
+    return CheckResult(name=name, outcome="pass" if ok else "fail", detail=detail)
+
+
+def tls_refuses_without_certificate(host: str, port: int, ca_file: str) -> bool:
+    """True if a TLS server that requires client certificates turns away one without."""
+    import ssl
+
+    context = ssl.create_default_context(cafile=ca_file)
+    try:
+        with (
+            socket.create_connection((host, port), timeout=10) as raw,
+            context.wrap_socket(raw, server_hostname=host) as tls,
+        ):
+            # TLS 1.3 reports a missing certificate only at the first read.
+            tls.sendall(b"GET /_ping HTTP/1.1\r\nHost: docker\r\n\r\n")
+            return not tls.recv(16)
+    except (ssl.SSLError, OSError):
+        return True
+
+
 def _nc(docker: Docker, target: str, port: int, network: str | None = None) -> bool:
     """True if a container can open a TCP connection to target:port."""
     out = docker.run(PROBE_IMAGE, ["sh", "-c", f"nc -z -w 3 {target} {port}"], network=network)
     return out.exit_code == 0
 
 
-def run_checks(engine: LimaEngine) -> list[CheckResult]:
+def run_checks(engine: CheckedEngine) -> list[CheckResult]:
     results: list[CheckResult] = []
     docker = Docker(engine.docker_endpoint())
     docker.pull(PROBE_IMAGE)
@@ -128,17 +178,7 @@ def run_checks(engine: LimaEngine) -> list[CheckResult]:
         )
 
     # 3. The Docker endpoint is the owner's alone.
-    sock = engine.socket_path
-    mode = stat.S_IMODE(sock.stat().st_mode)
-    dir_mode = stat.S_IMODE(sock.parent.stat().st_mode)
-    ok = mode & 0o077 == 0 and dir_mode & 0o077 == 0
-    results.append(
-        CheckResult(
-            name="Docker endpoint is owner-only",
-            outcome="pass" if ok else "fail",
-            detail=f"socket {oct(mode)}, folder {oct(dir_mode)}",
-        )
-    )
+    results.append(_endpoint_check(engine))
 
     # 4. No host folder is visible in the engine or a container.
     mounts = engine.shell("cat", "/proc/mounts").stdout
@@ -174,10 +214,25 @@ def run_checks(engine: LimaEngine) -> list[CheckResult]:
         )
 
     # 5. The host's loopback and host aliases are unreachable from containers.
+    host = engine.host_address()
     with host_listener() as port:
-        control = engine.shell("sh", "-c", f"nc -z -w 3 192.168.5.2 {port}").returncode == 0
-        reached = [alias for alias in HOST_ALIASES if _nc(docker, alias, port)]
-    if not control:
+        control = engine.shell("sh", "-c", f"nc -z -w 3 {host} {port}").returncode == 0
+        aliases = (*HOST_ALIASES, host) if host not in HOST_ALIASES else HOST_ALIASES
+        reached = [alias for alias in aliases if _nc(docker, alias, port)]
+    if not control and isinstance(engine, WslEngine):
+        # WSL does not forward the guest to Windows' loopback in every networking mode, so
+        # there may be no positive control. Unverified on hardware: see the checklist.
+        results.append(
+            CheckResult(
+                name="Host loopback unreachable from containers",
+                outcome="fail" if reached else "skip",
+                detail=f"reached via {', '.join(reached)}"
+                if reached
+                else f"the guest itself cannot reach Windows' loopback at {host}, so "
+                "containers cannot either; no positive control in this networking mode",
+            )
+        )
+    elif not control:
         results.append(
             CheckResult(
                 name="Host loopback unreachable from containers",
@@ -319,7 +374,7 @@ def microvm_checks(shell: Callable[..., subprocess.CompletedProcess[str]]) -> li
     return out
 
 
-def _egress_checks(engine: LimaEngine, docker: Docker) -> list[CheckResult]:
+def _egress_checks(engine: CheckedEngine, docker: Docker) -> list[CheckResult]:
     out: list[CheckResult] = []
     name = "uplink-check"
     docker.remove_network(name)

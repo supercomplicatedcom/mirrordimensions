@@ -196,3 +196,37 @@ def test_docker_tls_requires_the_client_certificate(tmp_path: Path) -> None:
     listener.close()
     assert outcomes == ["accepted", "refused"]
     assert (tmp_path / "client" / "key.pem").stat().st_mode & 0o077 == 0
+
+
+@pytest.mark.parametrize("required", [True, False])
+def test_the_engine_check_sees_whether_a_client_certificate_is_required(
+    tmp_path: Path, required: bool
+) -> None:
+    from mirrordimensions.engine.checks import tls_refuses_without_certificate
+
+    server = docker_tls.create(tmp_path / "client")
+    for name, text in (("ca", server.ca), ("cert", server.cert), ("key", server.key)):
+        (tmp_path / f"server-{name}.pem").write_text(text)
+    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    context.load_cert_chain(tmp_path / "server-cert.pem", tmp_path / "server-key.pem")
+    context.load_verify_locations(tmp_path / "server-ca.pem")
+    context.verify_mode = ssl.CERT_REQUIRED if required else ssl.CERT_NONE
+    listener = socket.socket()
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+
+    def serve() -> None:
+        conn, _ = listener.accept()
+        try:
+            with context.wrap_socket(conn, server_side=True) as tls:
+                tls.recv(64)
+                tls.sendall(b"HTTP/1.1 200 OK\r\n\r\nOK")
+        except (ssl.SSLError, OSError):
+            pass
+
+    thread = threading.Thread(target=serve, daemon=True)
+    thread.start()
+    ca = str(tmp_path / "client" / docker_tls.CA_FILE)
+    assert tls_refuses_without_certificate("127.0.0.1", listener.getsockname()[1], ca) is required
+    thread.join(5)
+    listener.close()
