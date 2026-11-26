@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
-# Gitleaks' default rules, plus one exception: the golden synthetic world, whose planted
-# canary credentials are fake by design (they exist to be leaked and traced).
+# Gitleaks' default rules, plus two exceptions, fake by design: the golden synthetic world's
+# planted canary credentials (they exist to be leaked and traced), and the world import
+# fixtures' planted secrets (they exist to prove import never keeps them; decision 0025).
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Synthetic canaries in the golden world"
-paths = ['''tests/golden/world-[0-9]+\.json''']
+description = "Synthetic canaries in the golden world and the import fixtures"
+paths = ['''tests/golden/world-[0-9]+\.json''', '''tests/fixtures/import/[^/]+''']

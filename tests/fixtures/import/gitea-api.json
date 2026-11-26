@@ -1,0 +1,11 @@
+{
+  "openapi": "3.0.3",
+  "info": {"title": "Gitea API", "version": "1.24"},
+  "servers": [{"url": "https://code.northfield-logistics.com/api/v1"}],
+  "paths": {
+    "/repos/issues/search": {"get": {"operationId": "issueSearchIssues", "summary": "Search for issues across the repositories that the user has access to", "responses": {"200": {"description": "IssueList"}}}},
+    "/repos/{owner}/{repo}/issues/{index}": {"get": {"operationId": "issueGetIssue", "summary": "Get an issue", "responses": {"200": {"description": "Issue"}}}},
+    "/repos/{owner}/{repo}/issues/{index}/comments": {"post": {"operationId": "issueCreateComment", "summary": "Add a comment to an issue", "responses": {"201": {"description": "Comment"}}}},
+    "/repos/{owner}/{repo}/pulls": {"post": {"operationId": "repoCreatePullRequest", "summary": "Create a pull request", "responses": {"201": {"description": "PullRequest"}}}}
+  }
+}

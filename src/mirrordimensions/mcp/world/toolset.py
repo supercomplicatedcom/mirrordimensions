@@ -74,7 +74,8 @@ def load(root: Path, app_id: str, serves: dict[str, Any], app_ids: set[str]) -> 
         raise _problem(
             app_id,
             f"tools_from: {kind} is not available yet",
-            "Give the exported tool list as tools_from: {file: <path>}. Import arrives in M8.",
+            "Give the exported tool list as tools_from: {file: <path>}, "
+            "or import it: mirror world import <tools.json>",
         )
     tools_path = root / str(source["file"])
     surfaces_ref = serves.get("surfaces")

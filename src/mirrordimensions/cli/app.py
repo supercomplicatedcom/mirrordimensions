@@ -547,6 +547,138 @@ def world_unexpose(
     _show_change(st, svc.unexpose(service.load_project(st.start()), app_id))
 
 
+IMPORT_ACTIONS = ("show", "decide", "apply", "discard", "provenance")
+
+
+@world_app.command("import")
+def world_import(
+    ctx: typer.Context,
+    items: Annotated[
+        list[str],
+        typer.Argument(
+            help="Files to read; or show, decide <subject> <decision>, apply, discard, provenance."
+        ),
+    ],
+    as_: Annotated[
+        str | None,
+        typer.Option("--as", help="The kind of file, when it is not recognized."),
+    ] = None,
+    conflicts: Annotated[
+        bool, typer.Option("--conflicts", help="show: only the disagreements to settle.")
+    ] = False,
+) -> None:
+    """Import a description of the company: read files into a draft, review it, apply it.
+
+    mirror world import <file>...                read files (in place) into the draft
+    mirror world import show [--conflicts]       what was understood, with sources
+    mirror world import decide <subject> <value> settle a conflict or change a decision
+    mirror world import apply                    write it into mirror.yaml
+    mirror world import discard                  delete the draft
+    """
+    from mirrordimensions.service import imports as svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    action = items[0] if items and items[0] in IMPORT_ACTIONS else None
+    if action == "decide":
+        if len(items) != 3:
+            raise MirrorError(
+                "decide takes a subject and a decision.",
+                "",
+                "Run: mirror world import decide <subject> <decision>",
+            )
+        found = svc.decide(project, items[1], items[2])
+        st.out.ok(f"{items[1]}: {items[2]}")
+        _show_import(st, found, conflicts_only=False, brief=True)
+        return
+    if action == "apply":
+        changes = svc.apply_import(project)
+        if st.out.json_mode:
+            st.out.document([c.model_dump() for c in changes])
+            return
+        for change in changes:
+            st.out.ok(change.what)
+        st.out.line("Each entry is traced to its facts: mirror world import provenance")
+        st.out.next_step("Build it: mirror world create")
+        return
+    if action == "discard":
+        svc.discard_import(project)
+        st.out.ok("Import draft deleted")
+        return
+    if action == "provenance":
+        st.out.document(svc.provenance(project))
+        return
+    if action == "show":
+        _show_import(st, svc.get_import(project), conflicts_only=conflicts, brief=False)
+        return
+    found = svc.import_sources(project, [Path(i) for i in items], as_)
+    _show_import(st, found, conflicts_only=False, brief=True)
+
+
+def _show_import(st: Any, found: Any, *, conflicts_only: bool, brief: bool) -> None:
+    from mirrordimensions.service import imports as svc
+
+    review = cast(svc.ImportReview, found)
+    if st.out.json_mode:
+        st.out.document(review)
+        return
+    out = st.out
+    if not conflicts_only:
+        for source in review.sources:
+            skipped: list[str] = []
+            if source.skipped_secrets:
+                skipped.append(f"{source.skipped_secrets} secret value(s) skipped, none stored")
+            if source.skipped_people:
+                skipped.append(f"{source.skipped_people} person detail(s) not read")
+            more = f"; {'; '.join(skipped)}" if skipped else ""
+            out.ok(f"{source.label} ({source.file}): {source.summary}{more}")
+        out.line(
+            f"      {review.found} found · {review.buildable} can be built now · "
+            f"{review.open_conflicts} disagreement(s) to settle · "
+            f"{review.skipped_secrets} secret value(s) skipped"
+        )
+    for c in review.conflicts:
+        if c.settled:
+            if not conflicts_only:
+                continue
+            out.line(f"settled  {c.id}: {c.settled}")
+            continue
+        out.fail(f"{c.label}: the sources disagree on its {c.field}  ({c.id})")
+        for choice in c.choices:
+            out.line(f"      {choice.value:<40} {'; '.join(choice.sources)}")
+        out.line(f"      Settle it: mirror world import decide {c.id} <value>")
+    if conflicts_only:
+        return
+    if not brief:
+        for f in review.findings:
+            mark = " (proposed)" if f.proposed else ""
+            out.line("")
+            out.line(f"  {f.label}  [{f.kind_label}]  {f.id}")
+            out.line(f"      {f.understood}")
+            out.line(f"      from {'; '.join(f.sources)}")
+            out.line(
+                f"      decision: {svc.DECISION_TEXT.get(f.decision, f.decision)}{mark}"
+                f"  (options: {', '.join(f.options)})"
+            )
+            for t in f.tools:
+                if not t.mapped:
+                    out.line(f"      unavailable tool {t.name}: {t.reason}")
+        out.line("")
+        out.line("What no file could tell us:")
+        for gap in review.gaps:
+            out.line(f"      {gap['what']}: {gap['why']}")
+    else:
+        for f in review.findings:
+            out.line(
+                f"      {f.label:<34} {f.kind_label:<18} "
+                f"{svc.DECISION_TEXT.get(f.decision, f.decision)}"
+            )
+    if review.open_conflicts:
+        out.next_step("Settle the disagreements, then: mirror world import apply")
+    else:
+        out.next_step("Review it: mirror world import show; then: mirror world import apply")
+
+
 @world_app.command("show")
 def world_show(
     ctx: typer.Context,

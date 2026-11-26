@@ -10,7 +10,7 @@ from io import StringIO
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from ruamel.yaml import YAML
 
 # ruamel.yaml's round-trip API is only partly annotated.
@@ -245,7 +245,15 @@ def edit_manifest(project: Project, edit: Any) -> str:
     buffer = StringIO()
     yaml.dump(data, buffer)
     text = buffer.getvalue()
-    Manifest.model_validate(yaml.load(text))  # refuse to write an invalid manifest
+    try:
+        Manifest.model_validate(yaml.load(text))  # refuse to write an invalid manifest
+    except ValidationError as exc:
+        first = exc.errors()[0]
+        raise MirrorError(
+            "That change would make mirror.yaml invalid, so it was not written.",
+            str(first.get("msg", exc)).removeprefix("Value error, "),
+            "Fix the conflicting entry in mirror.yaml, then try again.",
+        ) from exc
     Path(project.manifest_path).write_bytes(text.encode("utf-8"))
     return text
 
