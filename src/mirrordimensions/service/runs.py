@@ -551,20 +551,25 @@ class _Run:
                         self.values[f"{key}.{field}"] = str(value)
 
     def _check_nothing_waits(self) -> None:
-        """A system made absent, or brought back, changes the sandbox itself: a run before
-        that is applied would test a visibility the files no longer say (decision 0021)."""
+        """A system made absent or brought back, or a model route added or changed, changes
+        the sandbox itself: a run before that is applied would test a sandbox the files no
+        longer describe (decision 0021). Model routes reach the gateway and the firewall only
+        when the sandbox starts, so an agent run without them could not reach its model and
+        would look like it failed on its own."""
         from mirrordimensions.service.environment import pending_changes
 
         waiting = [
             c
             for c in pending_changes(self.project)
-            if c.kind == "visibility" and c.applies != "next run"
+            if c.applies == "restart" or (c.kind == "visibility" and c.applies != "next run")
         ]
         if waiting:
+            models = any(c.target == "models" for c in waiting)
             raise MirrorError(
-                "A visibility change is saved but not in effect.",
+                "A change to the sandbox is saved but not in effect.",
                 "; ".join(c.what for c in waiting) + ". It changes the sandbox itself.",
-                "Run: mirror apply",
+                "Run: mirror apply"
+                + (", with each model route's key set in this shell" if models else ""),
             )
 
     def _check_reach(self) -> None:

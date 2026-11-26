@@ -58,15 +58,6 @@ jobs:
       - name: mirror build
         working-directory: ${{ env.WORLD }}
         run: uv run --project "$GITHUB_WORKSPACE" mirror build
-      - name: mirror up, doctor
-        working-directory: ${{ env.WORLD }}
-        run: |
-          set -euo pipefail
-          uv run --project "$GITHUB_WORKSPACE" mirror up
-          # A VM nested in GitHub's own adds 8 to 12 ms at the gateway; this runner allows 20
-          # (owner's decision, 2026-11-24, docs/platforms.md).
-          uv run --project "$GITHUB_WORKSPACE" mirror doctor --latency-budget-ms 20 | tee doctor.txt
-          grep -q "Isolation: full" doctor.txt
       - name: Add the agent and its model route
         working-directory: ${{ env.WORLD }}
         env:
@@ -77,6 +68,18 @@ jobs:
             uv run --project "$GITHUB_WORKSPACE" python "$GITHUB_WORKSPACE/scripts/exit_gate.py" route mirror.yaml
           fi
           uv run --project "$GITHUB_WORKSPACE" mirror agent add "$GITHUB_WORKSPACE/examples/agents/$AGENT/agent.yaml"
+      - name: mirror up, doctor
+        working-directory: ${{ env.WORLD }}
+        env:
+          # The gateway takes the model route's key when the sandbox starts.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          uv run --project "$GITHUB_WORKSPACE" mirror up
+          # A VM nested in GitHub's own adds 8 to 12 ms at the gateway; this runner allows 20
+          # (owner's decision, 2026-11-24, docs/platforms.md).
+          uv run --project "$GITHUB_WORKSPACE" mirror doctor --latency-budget-ms 20 | tee doctor.txt
+          grep -q "Isolation: full" doctor.txt
       - name: mirror run core
         working-directory: ${{ env.WORLD }}
         env:
