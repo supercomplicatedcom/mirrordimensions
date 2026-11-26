@@ -48,6 +48,13 @@ The formats were checked against their current documentation:
    - Systems already in `mirror.yaml` are updated in place, matched by product; new ones are added; nothing else is removed.
    - `draft.json` records, for each entry written, the facts it came from (`mirror world import provenance`).
 
+7. **A new world can start from the import (part 2).**
+   - The wizard's first step offers "Import a description" beside a template and named systems. It opens the review screen for the new world's folder; the import's draft is that folder's `.mirror/import/draft.json`, the same one `mirror --project <folder> world import` reads and settles.
+   - Applying it there marks the world draft `imported`. From then on every saved answer renders `mirror.yaml` without a template's systems (`apps: []`, `links: []`) and applies the import again. Apply is idempotent, so the file always holds the import's systems, tool servers and infrastructure, with the template's links added back where both of their systems exist.
+   - The company the import proposes becomes the wizard's. Naming another company on the Company step, or asking for another suggestion, records `keep` for the import's company finding, so the next apply does not put the import's domain back.
+   - The command line has the same start: `mirror world new <folder> --import <file>... [--as <kind>] [--decide <subject>=<value>]...`. If a disagreement is left open, the draft is kept, and the error says how to settle it and finish (`mirror world new <folder>`, which takes `--decide` too). The wizard shows this command, with each file's full path and every decision, and it writes the same `mirror.yaml`.
+   - The portal's API is the build spec's: `GET`, `POST` and `DELETE /world/import`, `PATCH /world/import/findings/{id}` (findings and conflicts alike) and `POST /world/import/apply`, each taking an optional `folder` for a world being defined, plus `GET /world/import/kinds`. Without a folder they act on the world the portal serves, and the Worlds page offers that as "Import into this world".
+
 ## Consequences
 
 - An MCP server is served with fewer tools than in production when some of them map to no twin. The agent sees that difference; review lists each one.

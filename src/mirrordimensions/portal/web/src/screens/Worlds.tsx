@@ -16,9 +16,14 @@ export function Worlds() {
   return (
     <>
       <PageHead title="Worlds" sub="Worlds in the folder beside this one. The portal serves one at a time.">
-        <Link className="button primary" to="/worlds/new">
-          Define a new world
-        </Link>
+        <div className="toolbar">
+          <Link className="button" to="/worlds/import">
+            Import into this world
+          </Link>
+          <Link className="button primary" to="/worlds/new">
+            Define a new world
+          </Link>
+        </div>
       </PageHead>
       <ErrorBox error={worlds.error ?? error} />
       {!worlds.data && !worlds.error && <Loading what="worlds" />}

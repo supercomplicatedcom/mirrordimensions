@@ -44,6 +44,7 @@ from mirrordimensions.service import changes as changes_svc
 from mirrordimensions.service import company as company_svc
 from mirrordimensions.service import environment as env_svc
 from mirrordimensions.service import health as health_svc
+from mirrordimensions.service import imports as imports_svc
 from mirrordimensions.service import load_project, runlog
 from mirrordimensions.service import onboard as onboard_svc
 from mirrordimensions.service import runs as runs_svc
@@ -52,6 +53,7 @@ from mirrordimensions.service import scenarios as scen_svc
 from mirrordimensions.service import systems as systems_svc
 from mirrordimensions.service import world as world_svc
 from mirrordimensions.service import worlds as worlds_svc
+from mirrordimensions.service.changes import Change
 from mirrordimensions.trace import steps as steps_mod
 from mirrordimensions.trace import timeline
 
@@ -194,6 +196,26 @@ class Folder(BaseModel):
 class WorldDraftUpdate(BaseModel):
     folder: str
     fields: worlds_svc.DraftFields
+
+
+class ImportRead(BaseModel):
+    folder: str | None = Field(default=None, description="A world the wizard is defining")
+    paths: list[str] = Field(description="Files on this machine, read in place")
+    kind: str | None = Field(default=None, description="The kind of file, if not recognized")
+
+
+class ImportDecision(BaseModel):
+    folder: str | None = None
+    decision: str
+
+
+class ImportTarget(BaseModel):
+    folder: str | None = None
+
+
+class ImportApplied(BaseModel):
+    changes: list[Change]
+    wizard: bool = Field(description="The world is still being defined in the wizard")
 
 
 class NewAgent(BaseModel):
@@ -556,6 +578,42 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
         return systems_svc.try_request(
             holder.project, app_id, body.method, body.path, body.body.encode(), fetch
         )
+
+    # -- world import (decision 0025): the same draft as `mirror world import` ----------
+    # Registered before /world/{part}, which would otherwise take "import" as a part.
+
+    def _importing(folder: str | None, prepare: bool = True) -> Project:
+        return worlds_svc.import_project(holder.project, folder, prepare=prepare)
+
+    @app.get(f"{api}/world/import")
+    def get_import(folder: str | None = None) -> imports_svc.ImportReview | None:  # pyright: ignore[reportUnusedFunction]
+        return imports_svc.peek_import(_importing(folder, prepare=False))
+
+    @app.get(f"{api}/world/import/kinds")
+    def get_import_kinds() -> list[imports_svc.ImportKind]:  # pyright: ignore[reportUnusedFunction]
+        return imports_svc.kinds()
+
+    @app.post(f"{api}/world/import")
+    def post_import(body: ImportRead) -> imports_svc.ImportReview:  # pyright: ignore[reportUnusedFunction]
+        paths = [Path(p.strip()).expanduser() for p in body.paths if p.strip()]
+        if not paths:
+            raise MirrorError("Name at least one file to read.", "", "Type a full path.")
+        return worlds_svc.read_import(holder.project, body.folder, paths, body.kind or None)
+
+    @app.patch(f"{api}/world/import/findings/{{subject}}")
+    def patch_import(subject: str, body: ImportDecision) -> imports_svc.ImportReview:  # pyright: ignore[reportUnusedFunction]
+        return imports_svc.decide(_importing(body.folder, prepare=False), subject, body.decision)
+
+    @app.post(f"{api}/world/import/apply")
+    def post_import_apply(body: ImportTarget) -> ImportApplied:  # pyright: ignore[reportUnusedFunction]
+        project = _importing(body.folder, prepare=False)
+        changes = worlds_svc.apply_import(project)
+        return ImportApplied(changes=changes, wizard=worlds_svc.defining(project))
+
+    @app.delete(f"{api}/world/import")
+    def delete_import(folder: str | None = None) -> Response:  # pyright: ignore[reportUnusedFunction]
+        imports_svc.discard_import(_importing(folder, prepare=False))
+        return Response(status_code=204)
 
     @app.get(f"{api}/world")
     def get_world() -> company_svc.Company:  # pyright: ignore[reportUnusedFunction]

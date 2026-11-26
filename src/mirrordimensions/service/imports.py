@@ -58,6 +58,7 @@ class SourceRead(BaseModel):
     importer: str
     label: str
     file: str
+    path: str = Field(default="", description="Where it was read, on this machine")
     summary: str
     skipped_secrets: int = 0
     skipped_people: int = 0
@@ -128,6 +129,19 @@ class ImportReview(BaseModel):
     open_conflicts: int
     skipped_secrets: int
     skipped_people: int
+    words: dict[str, str] = Field(
+        default_factory=lambda: dict(DECISION_TEXT), description="Each decision, in words"
+    )
+
+
+class ImportKind(BaseModel):
+    name: str
+    label: str
+
+
+def kinds() -> list[ImportKind]:
+    """The kinds of file import reads: the built-in importers and any plug-in."""
+    return [ImportKind(name=i.name, label=i.label) for i in available()]
 
 
 # -- the draft on disk ------------------------------------------------------------------------
@@ -223,6 +237,7 @@ def import_sources(project: Project, paths: Iterable[Path], as_: str | None = No
                 importer=importer.name,
                 label=importer.label,
                 file=path.name,
+                path=str(path.resolve()),
                 summary=result.summary,
                 skipped_secrets=result.skipped_secrets,
                 skipped_people=result.skipped_people,
@@ -263,6 +278,25 @@ def _guard(result: ImportResult) -> ImportResult:
 
 def get_import(project: Project) -> ImportReview:
     return review(project, _require(project))
+
+
+def load_draft(project: Project) -> ImportDraft | None:
+    """The draft as kept on disk: sources, facts and decisions."""
+    return _load(project)
+
+
+def peek_import(project: Project) -> ImportReview | None:
+    """The review, or None when nothing has been imported."""
+    draft = _load(project)
+    return None if draft is None else review(project, draft)
+
+
+def keep_company(project: Project) -> None:
+    """The admin set the company by hand: the import no longer proposes its own."""
+    draft = _load(project)
+    if draft is not None and draft.decisions.get(COMPANY) != "keep":
+        draft.decisions[COMPANY] = "keep"
+        _save(project, draft)
 
 
 def discard_import(project: Project) -> None:
@@ -646,12 +680,10 @@ def decide(project: Project, subject: str, decision: str) -> ImportReview:
 # -- applying ---------------------------------------------------------------------------------
 
 
-def apply_import(project: Project) -> list[Change]:
-    """Write the reviewed import into mirror.yaml. Systems already defined are updated in
-    place (matched by product); new ones are added; nothing else is removed."""
-    from mirrordimensions.service.systems import edit_manifest
-
-    draft = _require(project)
+def ready(project: Project, draft: ImportDraft | None = None) -> ImportReview:
+    """The review, if it can be applied: every disagreement settled and every system kept
+    has a hostname. Refuses, saying what is left, otherwise."""
+    draft = draft or _require(project)
     current = review(project, draft)
     open_ = [c for c in current.conflicts if c.settled is None]
     if open_:
@@ -677,6 +709,16 @@ def apply_import(project: Project) -> list[Change]:
             "Import a file that names it, or leave it out: "
             "mirror world import decide <subject> leave-out",
         )
+    return current
+
+
+def apply_import(project: Project) -> list[Change]:
+    """Write the reviewed import into mirror.yaml. Systems already defined are updated in
+    place (matched by product); new ones are added; nothing else is removed."""
+    from mirrordimensions.service.systems import edit_manifest
+
+    draft = _require(project)
+    current = ready(project, draft)
     changes: list[Change] = []
     applied: dict[str, list[str]] = {}
     tool_files: dict[str, tuple[str, str]] = {}
@@ -697,7 +739,9 @@ def apply_import(project: Project) -> list[Change]:
                     applies="rebuild",
                 )
             )
-        apps = cast(list[dict[str, Any]], data.setdefault("apps", []))
+        if not data.get("apps"):  # a world started from the import has none yet
+            data["apps"] = []
+        apps = cast(list[dict[str, Any]], data["apps"])
         ids_for: dict[str, str] = {}
         for finding in current.findings:
             if finding.kind == "mcp-server" or finding.decision == "leave-out":

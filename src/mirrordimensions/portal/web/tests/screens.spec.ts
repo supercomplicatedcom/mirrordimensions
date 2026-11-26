@@ -3,6 +3,7 @@
 // One test per screen: it shows the project's data, it can be used by keyboard, and an
 // automated accessibility check finds no serious or critical issues.
 
+import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -397,6 +398,60 @@ test("World wizard: six steps write mirror.yaml as they go, as the command line 
   await expect(
     page.getByRole("heading", { name: /Review|Create/ }).first(),
   ).toBeVisible();
+});
+
+test("World import: the wizard's import step and the review, from files on this computer", async ({
+  page,
+}, testInfo) => {
+  // Synthetic files from the repository's fixtures, read where they are (decision 0025).
+  const fixtures = path.resolve(process.cwd(), "../../../../tests/fixtures/import");
+  const files = ["mcp.json", "eng-tools.tools.json", "payments-api.yaml", "gitea-api.json", "terraform.json"];
+  const folder = testInfo.retry ? `northfield-import-${testInfo.retry}` : "northfield-import";
+  await page.goto("/worlds/new");
+  await page.getByLabel(/Folder/).fill(folder);
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByRole("heading", { name: "How do you want to start?" })).toBeVisible();
+  await page.getByRole("radio", { name: /Import a description/ }).check();
+  await page.getByRole("link", { name: "Choose the files" }).click();
+  await expect(page.getByRole("heading", { name: "Import a description", level: 1 })).toBeVisible();
+  await page.getByLabel(/Files on this computer/).fill(files.map((f) => path.join(fixtures, f)).join("\n"));
+  await page.getByRole("button", { name: "Read the files" }).click();
+  await expect(page.getByRole("heading", { name: "Review what was understood", level: 1 })).toBeVisible();
+  await expect(page.getByLabel("Totals")).toContainText("8things found");
+  await expect(page.getByLabel("Totals")).toContainText("1disagreement to settle");
+  // What was read says what was skipped; no secret or person is shown.
+  const read = page.getByRole("region", { name: "What was read" });
+  await expect(read).toContainText("secret values skipped, none stored");
+  await expect(page.locator("body")).not.toContainText("Priya");
+  // The disagreement sits above the findings, and apply waits for it.
+  const apply = page.getByRole("button", { name: "Apply to the definition" });
+  await expect(apply).toBeDisabled();
+  await expect(page.getByText("Two sources disagree on the hostname for Gitea.")).toBeVisible();
+  // The choice is shown once the draft has it, as the command line would see it.
+  const choice = page.getByRole("radio", { name: /git\.northfield-logistics\.com/ });
+  await choice.click();
+  await expect(choice).toBeChecked();
+  await expect(page.getByText(/Settled: Two sources disagree/)).toBeVisible();
+  // Tools no system serves are shown as unavailable.
+  const server = page.getByRole("row", { name: /eng-tools/ });
+  await expect(server).toContainText("Unavailable: search_wiki");
+  await page.getByLabel("Decision for shipment-events").selectOption("leave-out");
+  await expect(page.getByLabel("Decision for shipment-events")).toHaveValue("leave-out");
+  await accessible(page);
+  await apply.click();
+  // Back in the wizard: the company the import proposes, then the imported systems.
+  await expect(page.getByRole("heading", { name: "The company" })).toBeVisible();
+  await expect(page.getByLabel(/Domain/)).toHaveValue("northfield-logistics.com");
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { name: "The systems attached to it" })).toBeVisible();
+  const systems = page.getByRole("table");
+  await expect(systems).toContainText("mcp.northfield-logistics.com");
+  await expect(systems).toContainText("No twin yet");
+  const yaml = page.getByRole("complementary", { name: /mirror.yaml/ }).locator("pre");
+  await expect(yaml).toContainText("payments-api");
+  await expect(yaml).not.toContainText("shipment-events"); // left out on review
+  await expect(page.getByText(/The list comes from the import/)).toBeVisible();
+  await accessible(page);
 });
 
 test("Onboarding: a remote agent, with the reduced guarantees shown and accepted", async ({
