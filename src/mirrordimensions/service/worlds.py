@@ -154,7 +154,11 @@ def command_for(root: Path, draft: worlddef.Draft) -> str:
     if draft.imported:
         found = imports.peek_import(Project(root=root))
         loaded = imports.load_draft(Project(root=root))
-        parts += [f"--import {_quote(s.path or s.file)}" for s in found.sources] if found else []
+        # Forward slashes: every shell reads them, and so does Windows.
+        shown = (
+            [Path(s.path).as_posix() if s.path else s.file for s in found.sources] if found else []
+        )
+        parts += [f"--import {_quote(p)}" for p in shown]
         if loaded is not None:
             chosen = {**loaded.decisions, **loaded.settled}
             parts += [f"--decide {k}={v}" for k, v in sorted(chosen.items())]
