@@ -46,6 +46,13 @@ GUEST_IMAGES: dict[GuestArch, tuple[str, str]] = {
 }
 GUEST_OS = "Ubuntu 26.04 LTS"
 
+# The same release as a WSL root file system, for the wsl driver (x64 only), with the
+# digest from releases.ubuntu.com/26.04/SHA256SUMS (recorded 2026-11-26).
+WSL_ROOTFS = (
+    "https://releases.ubuntu.com/26.04/ubuntu-26.04.1-wsl-amd64.wsl",
+    "48d56724b5c8e60f24893e83e73bbb58c60b3ca22fba3da977075420acd54104",
+)
+
 # Kata Containers static releases (no published checksums; pinned on first download,
 # 2026-11-23). Used only by the optional microVM runtime (decision 0012).
 KATA_VERSION = "4.4.0"

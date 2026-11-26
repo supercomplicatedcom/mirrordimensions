@@ -47,6 +47,41 @@ MAX_SOCKET_PATH = 103
 APPLIED_MARKER = "/run/engine/applied.sha"
 StepFn = Callable[[str], None] | None
 
+# The guest's pending updates, installed in the engine's own network namespace; prints
+# what was upgraded, then REBOOT when a restart is due. Shared with the wsl driver.
+UPDATE_SCRIPT = (
+    "set -e; export DEBIAN_FRONTEND=noninteractive; "
+    "apt-get update -q >/dev/null; "
+    "apt-get -s -o Debug::NoLocking=1 full-upgrade | awk '/^Inst /{print $2\" \"$4}' "
+    "| tr -d '(' > /run/engine-upgrading; "
+    "apt-get -y -q -o Dpkg::Options::=--force-confold full-upgrade >/dev/null; "
+    "date -u +%Y-%m-%d > /var/lib/engine/updated; "
+    "cat /run/engine-upgrading; "
+    "test -f /var/run/reboot-required && echo REBOOT || true"
+)
+# The versions `mirror engine status` and results report. Shared with the wsl driver.
+VERSIONS_SCRIPT = (
+    "printf 'kernel=%s\\n' \"$(uname -r)\"; "
+    "printf 'docker=%s\\n' "
+    "\"$(docker version --format '{{.Server.Version}}' 2>/dev/null)\"; "
+    "printf 'runsc=%s\\n' \"$(runsc --version 2>/dev/null | head -1 | awk '{print $3}')\"; "
+    ". /etc/os-release; printf 'guest=%s\\n' \"$PRETTY_NAME\"; "
+    # When packages were last updated (an engine provisioned before the stamp
+    # existed: when its packages were installed), and whether a restart is due.
+    "printf 'updated=%s\\n' \"$(cat /var/lib/engine/updated 2>/dev/null || "
+    'date -u -r /var/lib/engine/packages +%Y-%m-%d 2>/dev/null)"; '
+    "printf 'reboot=%s\\n' \"$(test -f /var/run/reboot-required && echo yes || echo no)\""
+)
+
+
+def parse_versions(text: str) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for line in text.splitlines():
+        key, _, value = line.partition("=")
+        if key and value:
+            out[key] = value
+    return out
+
 
 def _note(on_step: StepFn, text: str) -> None:
     if on_step is not None:
@@ -194,10 +229,10 @@ class LimaEngine:
         downloads = self.root / "downloads"
         make_dir(downloads, owner_only=True)
         archive = downloads / name
-        if not archive.is_file() or _sha256(archive) != sha256:
+        if not archive.is_file() or sha256_of(archive) != sha256:
             _note(on_step, f"Downloading Lima {pins.LIMA_VERSION}")
-            _download(pins.lima_url(name), archive)
-        actual = _sha256(archive)
+            download(pins.lima_url(name), archive)
+        actual = sha256_of(archive)
         if actual != sha256:
             archive.unlink(missing_ok=True)
             raise MirrorError(
@@ -389,17 +424,7 @@ class LimaEngine:
     def update(self) -> UpdateOutcome:
         """Install the guest's pending updates now, in the engine's own network namespace
         (never a container's). The caller makes sure the sandbox is down."""
-        script = (
-            "set -e; export DEBIAN_FRONTEND=noninteractive; "
-            "apt-get update -q >/dev/null; "
-            "apt-get -s -o Debug::NoLocking=1 full-upgrade | awk '/^Inst /{print $2\" \"$4}' "
-            "| tr -d '(' > /run/engine-upgrading; "
-            "apt-get -y -q -o Dpkg::Options::=--force-confold full-upgrade >/dev/null; "
-            "date -u +%Y-%m-%d > /var/lib/engine/updated; "
-            "cat /run/engine-upgrading; "
-            "test -f /var/run/reboot-required && echo REBOOT || true"
-        )
-        done = self.shell("sudo", "sh", "-c", script, timeout=1800)
+        done = self.shell("sudo", "sh", "-c", UPDATE_SCRIPT, timeout=1800)
         if done.returncode != 0:
             raise MirrorError(
                 "The engine's update did not finish.",
@@ -457,25 +482,7 @@ class LimaEngine:
     # -- helpers ---------------------------------------------------------------
 
     def _versions(self) -> dict[str, str]:
-        script = (
-            "printf 'kernel=%s\\n' \"$(uname -r)\"; "
-            "printf 'docker=%s\\n' "
-            "\"$(docker version --format '{{.Server.Version}}' 2>/dev/null)\"; "
-            "printf 'runsc=%s\\n' \"$(runsc --version 2>/dev/null | head -1 | awk '{print $3}')\"; "
-            ". /etc/os-release; printf 'guest=%s\\n' \"$PRETTY_NAME\"; "
-            # When packages were last updated (an engine provisioned before the stamp
-            # existed: when its packages were installed), and whether a restart is due.
-            "printf 'updated=%s\\n' \"$(cat /var/lib/engine/updated 2>/dev/null || "
-            'date -u -r /var/lib/engine/packages +%Y-%m-%d 2>/dev/null)"; '
-            "printf 'reboot=%s\\n' \"$(test -f /var/run/reboot-required && echo yes || echo no)\""
-        )
-        done = self.shell("sh", "-c", script)
-        out: dict[str, str] = {}
-        for line in done.stdout.splitlines():
-            key, _, value = line.partition("=")
-            if key and value:
-                out[key] = value
-        return out
+        return parse_versions(self.shell("sh", "-c", VERSIONS_SCRIPT).stdout)
 
     def _restrict_socket(self) -> None:
         sock_dir = self.socket_path.parent
@@ -510,7 +517,7 @@ def _start_error(done: subprocess.CompletedProcess[str]) -> MirrorError:
     )
 
 
-def _sha256(path: Path) -> str:
+def sha256_of(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
@@ -518,7 +525,7 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _download(url: str, dest: Path) -> None:
+def download(url: str, dest: Path) -> None:
     tmp = dest.with_suffix(dest.suffix + ".part")
     request = urllib.request.Request(url, headers={"User-Agent": "mirrordimensions-engine-setup"})  # noqa: S310
     with urllib.request.urlopen(request, timeout=120) as response, tmp.open("wb") as out:  # noqa: S310

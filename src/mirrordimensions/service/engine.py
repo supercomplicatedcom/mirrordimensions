@@ -28,7 +28,10 @@ def setup_engine(
     with keep_awake("Setting up the engine"):
         if isinstance(engine, WslEngine):
             status = engine.setup(
-                resources or default_resources(), on_step, experimental=experimental
+                resources or default_resources(),
+                on_step,
+                experimental=experimental,
+                microvm=microvm,
             )
         elif isinstance(engine, LimaEngine):
             status = engine.setup(resources or default_resources(), on_step, microvm=microvm)
