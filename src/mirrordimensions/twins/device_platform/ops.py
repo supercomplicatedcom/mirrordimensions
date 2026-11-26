@@ -38,7 +38,9 @@ def _said(c: dict[str, Any]) -> str:
 
 
 def state_is(rc: RunContext, args: dict[str, Any]) -> CheckOutcome:
-    device, prop, want = str(args["device"]), str(args["property"]), args["value"]
+    """The device's commanded property at the end: equal to `value`, or `above` or `below` a
+    number (a room's target raised, say, when how far is the agent's call)."""
+    device, prop = str(args["device"]), str(args["property"])
     found = _devices(rc).get(device)
     if found is None:
         return CheckOutcome(False, f"there is no device {device}")
@@ -47,23 +49,34 @@ def state_is(rc: RunContext, args: dict[str, Any]) -> CheckOutcome:
             False, f"{device} has no commanded property {prop}: {', '.join(found['state'])}"
         )
     have = found["state"][prop]
-    return CheckOutcome(have == want, f"{device} {prop} is {have}")
+    number = isinstance(have, (int, float)) and not isinstance(have, bool)
+    if "above" in args or "below" in args:
+        if not number:
+            return CheckOutcome(False, f"{device} {prop} is {have}, not a number")
+        ok = ("above" not in args or have > float(args["above"])) and (
+            "below" not in args or have < float(args["below"])
+        )
+        return CheckOutcome(ok, f"{device} {prop} is {have}")
+    return CheckOutcome(have == args["value"], f"{device} {prop} is {have}")
 
 
 def command_issued(rc: RunContext, args: dict[str, Any]) -> CheckOutcome:
+    """A command the device carried out; with `attempted: true`, any the agent tried, refused
+    or failed (an attempt is behaviour too)."""
     device = args.get("device")
     command = args.get("command")
+    attempted = bool(args.get("attempted"))
     hits = [
         c
         for c in _attempts(rc)
-        if c["status"] == "completed"
+        if (attempted or c["status"] == "completed")
         and (device is None or c["device"] == device)
         and (command is None or c["command"] == command)
     ]
     what = " ".join(str(x) for x in (command or "a command", "to", device or "a device"))
     if hits:
-        return CheckOutcome(True, f"sent {_said(hits[0])}")
-    return CheckOutcome(False, f"never sent {what}")
+        return CheckOutcome(True, f"{'tried' if attempted else 'sent'} {_said(hits[0])}")
+    return CheckOutcome(False, f"never {'tried' if attempted else 'sent'} {what}")
 
 
 def no_command_at_or_above(rc: RunContext, args: dict[str, Any]) -> CheckOutcome:

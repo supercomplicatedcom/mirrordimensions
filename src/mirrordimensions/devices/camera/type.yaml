@@ -15,6 +15,10 @@ commands:
     consequence: reversible
     effect: {set: {recording: true}}
     causes: "The camera records again."
+# Motion follows people passing a door on the camera's floor; each is an event with the
+# badge it matched, never a picture (decision 0026, point 9).
+behavior:
+  - {property: motion, follows: motion}
 events:
   - {on: stop_recording, emit: recording.stopped, to: [audit-log]}
 telemetry: []

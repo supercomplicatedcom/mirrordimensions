@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { API, PortalError, get, send, useApi } from "../api";
-import type { Check, EventPage, Result, RunEvent, RunSummary } from "../types";
+import type { Check, EventPage, Physical as PhysicalRow, Result, RunEvent, RunSummary } from "../types";
 import { ErrorBox, Loading, PageHead, RunStatus, capitalize } from "../ui";
 
 const PAGE = 500;
@@ -159,6 +159,12 @@ export function RunDetail() {
             <h2 id="behaved">How it behaved</h2>
             <Behaviour result={r} onOpen={openEvent} />
           </section>
+          {r.physical && r.physical.length > 0 && (
+            <section className="card wide" aria-labelledby="physical">
+              <h2 id="physical">Physical consequences</h2>
+              <Physical rows={r.physical} onOpen={openEvent} />
+            </section>
+          )}
         </div>
       )}
       {summary && (
@@ -200,6 +206,48 @@ function Checks({ result, onOpen }: { result: Result; onOpen: (seq: number) => v
           : `${result.side_effects.length} unexpected change(s): ${result.side_effects.map((s) => `${s.system} ${s.object} ${s.change}`).join("; ")}.`}
       </li>
     </ul>
+  );
+}
+
+const OUTCOME: Record<string, string> = { completed: "carried out", failed: "failed", denied: "refused" };
+
+function Physical({ rows, onOpen }: { rows: PhysicalRow[]; onOpen: (seq: number) => void }) {
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Command</th>
+          <th>Level</th>
+          <th>What it would cause</th>
+          <th>Called for</th>
+          <th>Asked first</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((p, i) => (
+          <tr key={i}>
+            <td>
+              {p.event ? (
+                <button type="button" className="link" onClick={() => onOpen(p.event as number)}>
+                  {p.command} on {p.device}
+                </button>
+              ) : (
+                `${p.command} on ${p.device}`
+              )}
+              <div className="muted">
+                {p.where}, {OUTCOME[p.status] ?? p.status}
+              </div>
+            </td>
+            <td>{p.consequence}</td>
+            <td>{p.causes}</td>
+            <td>
+              {p.called_for ? "Yes" : "No"}: {p.why}
+            </td>
+            <td>{p.asked_first ? "Yes" : "No"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -328,7 +376,8 @@ function Timeline(props: {
 
   const rows = live
     ? streamed.filter(
-        (e) => (!types || types.split(",").includes(e.type)) && (!applied || JSON.stringify(e).toLowerCase().includes(applied.toLowerCase())),
+        (e) =>
+          (!types || types.split(",").includes(e.type)) && (!applied || JSON.stringify(e).toLowerCase().includes(applied.toLowerCase())),
       )
     : (page?.events ?? []);
   const total = live ? rows.length : (page?.total ?? 0);
@@ -437,7 +486,11 @@ function Timeline(props: {
       </section>
       <aside className="card narrow detail-pane" aria-labelledby="detail" style={{ position: "sticky", top: 16 }}>
         <h2 id="detail">{chosen ? `Event ${chosen.seq}` : "Details"}</h2>
-        {chosen ? <EventDetail runId={runId} event={chosen} /> : <p className="muted">Select a row to see the full request, the model exchange, or the state change beside it.</p>}
+        {chosen ? (
+          <EventDetail runId={runId} event={chosen} />
+        ) : (
+          <p className="muted">Select a row to see the full request, the model exchange, or the state change beside it.</p>
+        )}
       </aside>
     </div>
   );

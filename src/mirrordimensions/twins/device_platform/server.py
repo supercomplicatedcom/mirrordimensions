@@ -34,6 +34,7 @@ except ImportError:  # pragma: no cover
 PORT = 8080
 CONFIG = "/etc/platform/config.json"
 RANKS = {"viewer": 1, "operator": 2, "security": 3}
+HISTORY_S = 7 * 86400.0  # how far back the access log reaches
 
 
 class Platform:
@@ -43,8 +44,12 @@ class Platform:
         self.config = config
         self.sites: list[dict[str, Any]] = config["sites"]
         self.devices: dict[str, dict[str, Any]] = {d["id"]: d for d in config["devices"]}
-        self.sim = Simulator(config["devices"], config["types"], int(config["seed"]))
         self.epoch = time.time()
+        self.clock = {"epoch": self.epoch, "offsets": dict(config.get("offsets") or {})}
+        self.people: list[dict[str, Any]] = list(config.get("people") or [])
+        self.sim = Simulator(
+            config["devices"], config["types"], int(config["seed"]), self.people, self.clock
+        )
         self.lock = threading.Lock()
         self.users: dict[str, dict[str, Any]] = {}  # token digest -> user
         self.audit: list[dict[str, Any]] = []
@@ -68,6 +73,44 @@ class Platform:
         line = {"seq": self.seq, "ts": time.time(), "source": "device", "type": kind, "data": data}
         sys.stdout.write(json.dumps(line, separators=(",", ":")) + "\n")
         sys.stdout.flush()
+
+    def access_log(self, t: float) -> list[dict[str, Any]]:
+        """Badges and camera motion over the past week, and every command people sent, in
+        time order: what a building's access log holds."""
+        found: list[tuple[float, dict[str, Any]]] = []
+        for e in self.sim.access_log(-HISTORY_S, t):
+            entry: dict[str, Any] = {
+                "time": self.iso(e["t"]),
+                "type": e["type"],
+                "device": e["device"],
+            }
+            if e["type"] == "motion.detected":
+                entry["badge_match"] = e["badge_match"]
+            else:
+                entry |= {"actor": e["name"], "badge": e["badge"], "method": "badge"}
+                if "reason" in e:
+                    entry["reason"] = e["reason"]
+            found.append((e["t"], entry))
+        found += [(_t(self, e["time"]), e) for e in self.audit]
+        return [e for _, e in sorted(found, key=lambda x: x[0])]
+
+    def badges(self, t: float) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for person in sorted(self.people, key=lambda x: x["badge"]):
+            left = None if person.get("left_ago") is None else -60.0 * float(person["left_ago"])
+            disabled = left is not None and left <= t
+            out.append(
+                {
+                    "number": person["badge"],
+                    "holder": person["name"],
+                    "username": person["username"],
+                    "site": person["site"],
+                    "access": "restricted" if person.get("restricted") else "general",
+                    "status": "disabled" if disabled else "active",
+                    **({"disabled_at": self.iso(left)} if disabled and left is not None else {}),
+                }
+            )
+        return out
 
     def user(self, header: str | None) -> dict[str, Any] | None:
         if not header or not header.lower().startswith("bearer "):
@@ -107,6 +150,11 @@ class Platform:
                 t if out["online"] else _last_online(self.sim, device["id"], t)
             )
         return out
+
+
+def _t(p: Platform, iso: str) -> float:
+    """An access-log time back as t, for ordering."""
+    return datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp() - p.epoch
 
 
 def _last_online(sim: Simulator, device: str, t: float) -> float:
@@ -212,11 +260,13 @@ class Handler(BaseHTTPRequestHandler):
                     200,
                     [
                         e
-                        for e in p.audit
+                        for e in p.access_log(t)
                         if (device is None or e["device"] == device)
                         and p.visible(user, p.devices[e["device"]])
                     ][-200:],
                 )
+            elif method == "GET" and rest == ["badges"]:
+                self._send(200, [b for b in p.badges(t) if p.rank(user, b["site"])])
             elif len(rest) >= 2 and rest[0] == "devices":
                 self._device(method, user, rest[1], rest[2:], query, t)
             else:
@@ -309,6 +359,7 @@ class Handler(BaseHTTPRequestHandler):
                             "device": device["id"],
                             "actor": user["name"],
                             "username": user["username"],
+                            "method": "remote",
                         }
                     )
             self._send(202, _shown(p, record))
@@ -349,7 +400,15 @@ class Handler(BaseHTTPRequestHandler):
             elif method == "GET" and rest == ["export"]:
                 t = p.now()
                 attempts = sorted(p.sim.commands + p.denied, key=lambda c: c["attempt"])
-                self._send(200, {"t": t, "devices": p.sim.snapshot(t), "commands": attempts})
+                self._send(
+                    200,
+                    {
+                        "t": t,
+                        "clock": p.clock,
+                        "devices": p.sim.snapshot(t),
+                        "commands": attempts,
+                    },
+                )
             else:
                 self._error(404, "not_found", "No such resource.")
 

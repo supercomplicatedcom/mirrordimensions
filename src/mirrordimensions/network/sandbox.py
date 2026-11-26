@@ -158,6 +158,7 @@ class Plan:
     ca_pem: bytes = b""  # the install root, for services in the world that call each other
     sites: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
     devices: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    people: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])  # badge holders
 
     @property
     def exposed(self) -> list[App]:
@@ -431,6 +432,7 @@ def twin_context(plan: Plan, app: App, secrets: dict[str, str]) -> TwinContext:
         gateway_ip=plan.addr.gw_apps,
         sites=plan.sites,
         devices=[d for d in plan.devices if d["platform"] == app.id],
+        people=plan.people if any(d["platform"] == app.id for d in plan.devices) else [],
     )
 
 

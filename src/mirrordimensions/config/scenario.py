@@ -50,6 +50,16 @@ class PersonRef(StrictModel):
         return self
 
 
+class DeviceRef(StrictModel):
+    """A device the scenario names, chosen from the world's own: the first by id with this
+    type (and sensitivity, site) not already chosen. `{{ door.id }}`, `{{ door.room }}`."""
+
+    type: Id
+    sensitivity: Literal["normal", "restricted"] | None = None
+    site: Id | None = None
+    same_site_as: Id | None = Field(default=None, description="Another device the scenario names")
+
+
 class Delivery(StrictModel):
     """How work reaches the agent. Fields beyond `channel` belong to the channel."""
 
@@ -93,6 +103,10 @@ class Scenario(StrictModel):
         default_factory=dict[str, PersonRef],
         description="Other people the scenario names: {{ hire.name }}, {{ hire.username }}",
     )
+    devices: dict[Id, DeviceRef] = Field(
+        default_factory=dict[str, DeviceRef],
+        description="Devices the scenario names; the world must have them",
+    )
     overlay: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
     delivery: Delivery
     checks: Checks = Field(default_factory=Checks)
@@ -105,4 +119,8 @@ class Scenario(StrictModel):
     @model_validator(mode="after")
     def _ops(self) -> Self:
         _check_ops(self.overlay, "overlay")
+        names = list(self.devices)
+        for key, ref in self.devices.items():
+            if ref.same_site_as is not None and ref.same_site_as not in names[: names.index(key)]:
+                raise ValueError(f"device {key}: same_site_as must name a device listed before it")
         return self

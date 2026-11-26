@@ -175,6 +175,10 @@ class _Run:
                 f"{key}.username": who.username,
                 f"{key}.email": who.email,
             }
+        if item.devices:
+            from mirrordimensions.devices import refs
+
+            self.values |= refs.resolve(item.id, item.devices, self.plan.devices, self.plan.sites)
         self.facts: dict[str, Any] = {}
         self.result = results.new_result(
             self.run_id,
@@ -233,11 +237,6 @@ class _Run:
             self.collector.add_source(
                 sandbox.TRACER_NAME, tracer_parser(self.watch, self.trace_progress)
             )
-        for app in self._device_apps():  # each device system's own account of commands
-            twin = get_twin(app.product)
-            assert isinstance(twin, Reconciles)  # noqa: S101
-            source = twin.account_source(sandbox.twin_context(self.plan, app, {}))
-            self.collector.add_source(source, device_parser(app.id))
         self.remote = self.agent.mode == "remote"
         if self.remote:
             self._check_exposed()
@@ -276,6 +275,13 @@ class _Run:
                 "runner", "snapshot.restored", {"snapshot": "base", "seconds": seconds}
             )
             self.step(f"Restored the base snapshot in {seconds}s")
+            # Each device system's own account of commands, followed from its restart by the
+            # restore: a stream opened before it would end there.
+            for app in self._device_apps():
+                twin = get_twin(app.product)
+                assert isinstance(twin, Reconciles)  # noqa: S101
+                source = twin.account_source(sandbox.twin_context(self.plan, app, {}))
+                self.collector.add_source(source, device_parser(app.id))
             self._overlay()
             if self.remote:
                 return self._run_remote()
@@ -761,12 +767,15 @@ class _Run:
             changed = evaluate.changes(app.id, app.product or "", before, after)
             self.collector.emit("state", "state.diff", {"system": app.id, "changed": len(changed)})
             found += changed
-        allowed, unexpected = evaluate.classify(self.scenario.checks.side_effects.allow, found)
+        allowed, unexpected = evaluate.classify(
+            scenario.render(self.scenario.checks.side_effects.allow, self.values), found
+        )
         for change in unexpected:
             self.collector.emit("evaluator", "side_effect.unexpected", change.as_dict())
         self.result.side_effects = [c.as_dict() for c in unexpected]
         self.result.allowed_changes = len(allowed)
         self.unexpected = unexpected
+        self.result.physical = self._physical(handle_clients, mqtt)
 
         canary_values = {k: v for k, v in self.values.items() if k.startswith("canary.")}
         canary_values |= {f"world.{c.id}": c.value for c in self.world.canaries}
@@ -805,6 +814,57 @@ class _Run:
         self._ledger(handle_clients)
         self._coverage(handle_clients, found)
         self._keep_bodies(handle_clients)
+
+    def _physical(self, clients: set[str], mqtt: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """The physical consequences section (decision 0026, point 10)."""
+        systems = self._device_apps()
+        if not systems:
+            return []
+        from mirrordimensions.devices import consequences
+        from mirrordimensions.twins.profile import profile_of
+
+        events = self.collector.events
+        requests = consequences.command_events(
+            events, clients, {a.hostname: a.id for a in systems if not a.is_broker}
+        )
+        attempts: list[dict[str, Any]] = []
+        for app in systems:
+            if app.is_broker:
+                continue  # its attempts are the agent's publishes, below
+            used: dict[tuple[str, str], int] = {}
+            for c in (self.after.get(app.id) or {}).get("commands") or []:
+                if c.get("who") != self.person.username:
+                    continue
+                key = (app.id, str(c["device"]))
+                n = used.get(key, 0)
+                used[key] = n + 1
+                seqs = requests.get(key, [])  # paired in order with the captured requests
+                attempts.append({**c, **({"event": seqs[n]} if n < len(seqs) else {})})
+        attempts += device_state.published_commands(
+            events, mqtt, self.plan.devices, self.plan.brokers
+        )
+        attempts.sort(key=lambda c: int(c.get("event") or 0))
+        product = {a.id: a.product for a in systems}
+        says = {
+            (a.hostname, str(s["id"]))
+            for a in self.plan.apps
+            if a.product and get_twin(a.product)
+            for s in profile_of(a.product).surfaces
+            if s.get("says")
+        }
+        delivered = next(
+            (int(e.get("seq") or 0) for e in events if e.get("type") == "work.delivered"), 0
+        )
+        checks = self.scenario.checks
+        return consequences.section(
+            attempts,
+            [{**d, "product": product.get(d["platform"])} for d in self.plan.devices],
+            [scenario.render(c, self.values) for c in checks.success],
+            [scenario.render(c, self.values) for c in checks.forbidden],
+            scenario.render(checks.side_effects.allow, self.values),
+            delivered,
+            consequences.asked(events, clients, says),
+        )
 
     def _keep_bodies(self, clients: set[str]) -> None:
         """Copy the bodies of the agent's exchanges into the run's `bodies/` folder, where
@@ -1070,6 +1130,7 @@ class _Run:
                 self.result.checks, getattr(self, "unexpected", []), stopped, errored
             )  # pyright: ignore[reportAttributeAccessIssue]
         self.collector.emit("runner", "run.end", {"status": self.result.status})
+        self.collector.close()
         write_text(
             self.dir / "result.json",
             self.result.model_dump_json(indent=2, exclude_none=True) + "\n",

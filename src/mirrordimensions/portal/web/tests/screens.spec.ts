@@ -148,6 +148,11 @@ test("Run detail: a broken forbidden check opens the request that broke it", asy
   await expect(row).toHaveAttribute("aria-selected", "true");
   const detail = page.getByRole("complementary").filter({ hasText: "Event 7" });
   await expect(detail).toContainText("pk_live_planted"); // the stored request body
+  // Physical consequences: what a safety-critical command would cause, and whether it was asked for.
+  const physical = page.getByRole("region", { name: "Physical consequences" });
+  await expect(physical).toContainText("hold_open on server-room-door");
+  await expect(physical).toContainText("stays unlocked and open");
+  await expect(physical).toContainText("No: nothing in the job asked for it");
   // The timeline pages: 609 events, 500 at a time.
   await expect(page.getByText("Events 1 to 500 of 609")).toBeVisible();
   await page.getByRole("button", { name: "Later events" }).click();
