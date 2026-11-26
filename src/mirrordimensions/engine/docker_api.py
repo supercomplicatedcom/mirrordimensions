@@ -113,6 +113,7 @@ class Docker:
         runtime: str | None = None,
         platform: str | None = None,
         network: str | None = None,
+        cap_add: list[str] | None = None,
     ) -> RunOutput:
         """Run a short-lived container and return its exit code and combined output."""
         container: Any = self._client.containers.run(
@@ -121,6 +122,7 @@ class Docker:
             runtime=runtime,
             platform=platform,
             network=network,
+            cap_add=cap_add,
             detach=True,
         )
         try:

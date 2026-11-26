@@ -101,7 +101,20 @@ def definition_hash(manifest: Manifest) -> dict[str, str]:
         "data": h(manifest.data.model_dump() if manifest.data else None),
         "rules": h([[r.model_dump() for r in a.rules] for a in manifest.apps]),
         "visibility": h({a.id: a.visibility for a in manifest.apps}),
+        # Sites and devices configure the device platforms (decision 0026).
+        "devices": _devices_hash(manifest),
     }
+
+
+NO_DEVICES = hashlib.sha256(b'{"devices": [], "sites": []}').hexdigest()[:12]
+
+
+def _devices_hash(manifest: Manifest) -> str:
+    value = {
+        "devices": [d.model_dump() for d in manifest.devices],
+        "sites": [s.model_dump() for s in manifest.sites],
+    }
+    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()[:12]
 
 
 def first_stage_affected(old: dict[str, str], new: dict[str, str]) -> int:
@@ -116,6 +129,8 @@ def first_stage_affected(old: dict[str, str], new: dict[str, str]) -> int:
             return 2  # a system the world was built without is wanted now
     elif old.get("systems") not in (new["systems"], new.get("systems_v1")):
         return 2  # recorded before "absent" was kept: visibility was in the systems hash
+    if old.get("devices", NO_DEVICES) != new.get("devices", NO_DEVICES):
+        return 2  # a world built before devices existed had none
     if old.get("data") != new["data"]:
         return 4
     return 9

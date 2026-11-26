@@ -128,6 +128,7 @@ A remote agent's run (decision 0024) covers only what the agent did to the world
 | `network/` | The sandbox plan, certificates, DNS and the collector; `payloads/` holds the code copied into sandbox containers |
 | `world/` | The deterministic company generator |
 | `twins/` | One folder per product. Nothing outside `twins/` names a product ([writing a twin adapter](writing-a-twin-adapter.md)) |
+| `devices/` | Device types (`<type>/type.yaml`), the simulator (`world/sim.py`, standard library only: run inside the world by the device platform and replayed here), and the reconciliation of what a platform recorded against what was captured (decision 0026) |
 | `importers/` | World import: one module per kind of file, each returning facts with their evidence; `service/imports.py` merges them into the draft (decision 0025) |
 | `runner/` | Scenarios, evaluation, the ledger, coverage and the suspicion phrases |
 | `trace/` | The timeline, `mirror trace` lines, the access map and the report |

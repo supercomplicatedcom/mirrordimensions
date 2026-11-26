@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# The device platform's inputs and outputs (decision 0026). Errors are the platform's own
+# JSON, as its server sends them.
+product: device-platform
+surfaces:
+  - {id: health, kind: background, match: {method: GET, path: "/healthz"}, sentence: "Checks the service is up"}
+  - {id: user.self, kind: endpoint, match: {method: GET, path: "/api/v1/me"}, sentence: "Checks who it is signed in as"}
+  - {id: site.list, kind: endpoint, match: {method: GET, path: "/api/v1/sites"}, sentence: "Lists its sites", output: {exposes: {each: "[]", resource: "site:{id}"}}}
+  - {id: site.read, kind: endpoint, match: {method: GET, path: "/api/v1/sites/{site_id}"}, resource: "site:{site_id}", access: read, sentence: "Opens the plan of {site_id}"}
+  - {id: device.list, kind: endpoint, match: {method: GET, path: "/api/v1/devices"}, sentence: "Lists devices", output: {exposes: {each: "[]", resource: "device:{id}"}}}
+  - {id: device.read, kind: endpoint, match: {method: GET, path: "/api/v1/devices/{device_id}"}, resource: "device:{device_id}", access: read, sentence: "Looks at {device_id}"}
+  - {id: device.state, kind: endpoint, match: {method: GET, path: "/api/v1/devices/{device_id}/state"}, resource: "device:{device_id}", access: read, sentence: "Reads the state of {device_id}"}
+  - {id: device.telemetry, kind: endpoint, match: {method: GET, path: "/api/v1/devices/{device_id}/telemetry"}, resource: "device:{device_id}", access: read, sentence: "Reads readings from {device_id}"}
+  - {id: device.history, kind: endpoint, match: {method: GET, path: "/api/v1/devices/{device_id}/commands"}, resource: "device:{device_id}", access: read, sentence: "Reads the command history of {device_id}"}
+  - {id: device.command, kind: endpoint, match: {method: POST, path: "/api/v1/devices/{device_id}/commands"}, resource: "device:{device_id}", access: write, sentence: "Sends {body.command} to {device_id}"}
+  - {id: event.list, kind: endpoint, match: {method: GET, path: "/api/v1/events"}, resource: "audit-log", access: read, sentence: "Reads the access log"}
+defaults:
+  settings: {}
+  response: {}
+errors:
+  forbidden:
+    status: 403
+    headers: [["Server", "nginx"], ["Content-Type", "application/json; charset=utf-8"], ["Cache-Control", "no-store"], ["X-Request-Id", "{request_id}"], ["Date", "{date}"]]
+    body: '{"error":"forbidden","message":"You do not have permission to perform this action."}'
+  not_found:
+    status: 404
+    headers: [["Server", "nginx"], ["Content-Type", "application/json; charset=utf-8"], ["Cache-Control", "no-store"], ["X-Request-Id", "{request_id}"], ["Date", "{date}"]]
+    body: '{"error":"not_found","message":"No such resource."}'
+  too_large:
+    status: 413
+    headers: [["Server", "nginx"], ["Date", "{date}"], ["Content-Type", "text/html"], ["Connection", "close"]]
+    body: "<html>\r\n<head><title>413 Request Entity Too Large</title></head>\r\n<body>\r\n<center><h1>413 Request Entity Too Large</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+  unavailable:
+    status: 502
+    headers: [["Server", "nginx"], ["Date", "{date}"], ["Content-Type", "text/html"], ["Connection", "close"]]
+    body: "<html>\r\n<head><title>502 Bad Gateway</title></head>\r\n<body>\r\n<center><h1>502 Bad Gateway</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+  rate_limited:
+    status: 429
+    headers: [["Server", "nginx"], ["Content-Type", "application/json; charset=utf-8"], ["Retry-After", "30"], ["X-Request-Id", "{request_id}"], ["Date", "{date}"]]
+    body: '{"error":"rate_limited","message":"Too many requests. Try again shortly."}'

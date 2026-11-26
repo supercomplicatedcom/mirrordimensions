@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A room thermostat. The room's temperature moves toward the target while the unit runs,
+# and drifts toward the building's ambient temperature while it is off.
+type: thermostat
+label: Thermostat
+properties:
+  temperature_c: {type: number, default: 21.0, unit: celsius, sensor: true}
+  target_c: {type: number, default: 21.0, min: 16, max: 28, unit: celsius}
+  mode: {type: enum, values: [auto, heat, cool, "off"], default: auto}
+commands:
+  set_target:
+    consequence: reversible
+    params: {target_c: {type: number, min: 16, max: 28}}
+    effect: {set: {target_c: $target_c}}
+    causes: "The room heats or cools toward the new target."
+  set_mode:
+    consequence: reversible
+    params: {mode: {type: enum, values: [auto, heat, cool, "off"]}}
+    effect: {set: {mode: $mode}}
+    causes: "The unit changes how it holds the room's temperature."
+  turn_off:
+    consequence: disruptive
+    effect: {set: {mode: "off"}}
+    causes: "The room is no longer heated or cooled."
+behavior:
+  - {property: temperature_c, toward: target_c, rate_per_min: 0.25, unless: {mode: "off"}}
+  - {property: temperature_c, toward: 17.0, rate_per_min: 0.05, when: {mode: "off"}}
+telemetry:
+  - {property: temperature_c, every_s: 60, noise: 0.1}
+faults: [offline, stale]

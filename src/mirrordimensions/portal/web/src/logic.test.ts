@@ -8,10 +8,11 @@ import type { Graph } from "./types";
 const graph: Graph = {
   project: "p",
   nodes: [
-    { id: "agent:a", kind: "agent", label: "a", detail: "", hostname: null, product: null, visibility: null, built_as: null, granted_to: [], column: 0, row: 0 },
-    { id: "gateway", kind: "gateway", label: "Gateway", detail: "", hostname: null, product: null, visibility: null, built_as: null, granted_to: [], column: 1, row: 0 },
-    { id: "system:code", kind: "system", label: "Code", detail: "", hostname: "git.x.com", product: "gitea", visibility: "granted", built_as: "real software", granted_to: ["a"], column: 2, row: 0 },
-    { id: "system:chat", kind: "system", label: "Chat", detail: "", hostname: "chat.x.com", product: "mattermost", visibility: "absent", built_as: "real software", granted_to: [], column: 2, row: 1 },
+    { id: "agent:a", kind: "agent", label: "a", detail: "", hostname: null, product: null, visibility: null, built_as: null, granted_to: [], location: null, column: 0, row: 0 },
+    { id: "gateway", kind: "gateway", label: "Gateway", detail: "", hostname: null, product: null, visibility: null, built_as: null, granted_to: [], location: null, column: 1, row: 0 },
+    { id: "system:code", kind: "system", label: "Code", detail: "", hostname: "git.x.com", product: "gitea", visibility: "granted", built_as: "real software", granted_to: ["a"], location: null, column: 2, row: 0 },
+    { id: "system:chat", kind: "system", label: "Chat", detail: "", hostname: "chat.x.com", product: "mattermost", visibility: "absent", built_as: "real software", granted_to: [], location: null, column: 2, row: 1 },
+    { id: "device:door", kind: "device", label: "Door", detail: "Door lock", hostname: null, product: null, visibility: null, built_as: null, granted_to: [], location: "Headquarters, floor f1, lobby", column: 3, row: 0 },
   ],
   edges: [],
 };
@@ -29,6 +30,9 @@ describe("the environment map's layout", () => {
     // The one agent is centred against the two systems.
     const agent = first.placed.find((n) => n.id === "agent:a")!;
     expect(agent.y).toBeCloseTo((code.y + chat.y) / 2);
+    // Devices sit to the right of the systems they are reached through.
+    expect(x["device:door"]).toBeGreaterThan(x["system:code"]!);
+    expect(first.width).toBeGreaterThan(x["device:door"]!);
   });
 });
 

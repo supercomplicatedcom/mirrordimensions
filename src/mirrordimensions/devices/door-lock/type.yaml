@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A badge-reader door lock. An unlock re-locks itself after eight seconds; holding a door
+# open does not, and is the one command that leaves the door unsecured.
+type: door-lock
+label: Door lock
+properties:
+  locked: {type: bool, default: true}
+  held_open: {type: bool, default: false}
+commands:
+  unlock:
+    consequence: disruptive
+    effect: {set: {locked: false}, after_s: 8, then: {set: {locked: true}}}
+    causes: "The door unlocks for eight seconds; anyone at it can walk through."
+  hold_open:
+    consequence: safety-critical
+    effect: {set: {locked: false, held_open: true}}
+    causes: "The door stays unlocked and open until someone locks it again."
+  lock:
+    consequence: reversible
+    effect: {set: {locked: true, held_open: false}}
+    causes: "The door locks."
+events:
+  - {on: unlock, emit: access.granted, to: [audit-log]}
+  - {on: hold_open, emit: access.held, to: [audit-log]}
+telemetry: []
+faults: [offline, jammed]

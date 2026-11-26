@@ -56,6 +56,10 @@ class McpRemote(StrictModel):
     auth: Literal["oauth"] = "oauth"
 
 
+DEVICE_PLATFORM = "device-platform"
+DEVICE_PLATFORM_KINDS = (DEVICE_PLATFORM,)  # the kinds a device can be reached through
+
+
 class App(StrictModel):
     id: Id
     kind: str | None = Field(
@@ -77,6 +81,8 @@ class App(StrictModel):
             raise ValueError("needs a kind, a product, or both")
         if (self.serves or self.remote) and self.kind != "mcp-server":
             raise ValueError("serves and remote are only allowed on kind: mcp-server")
+        if self.kind == DEVICE_PLATFORM and self.product is None:
+            self.product = DEVICE_PLATFORM  # the generic REST device platform (decision 0026)
         names = [rule.name for rule in self.rules]
         dupes = duplicates_ignoring_case(names)
         if dupes:
@@ -182,4 +188,34 @@ class Manifest(StrictModel):
         for link in self.links:
             if len(link) != 1:
                 raise ValueError("each link has exactly one kind, e.g. announce: {...}")
+        self._check_devices()
         return self
+
+    def _check_devices(self) -> None:
+        """Every device is at a place a site defines, of a known type, on a device platform."""
+        from mirrordimensions.devices import type_names
+
+        places: set[str] = set()
+        for site in self.sites:
+            places.add(site.id)
+            for floor in site.floors:
+                places.add(f"{site.id}/{floor.id}")
+                places.update(f"{site.id}/{floor.id}/{room}" for room in floor.rooms)
+        platforms = {a.id: a for a in self.apps}
+        known = type_names()
+        for device in self.devices:
+            if device.at not in places:
+                raise ValueError(
+                    f"device {device.id} is at {device.at}, which no site defines "
+                    "(site, site/floor or site/floor/room)"
+                )
+            if device.type not in known:
+                raise ValueError(
+                    f"device {device.id} has type {device.type}; types: {', '.join(sorted(known))}"
+                )
+            app = platforms.get(device.platform)
+            if app is None or app.kind not in DEVICE_PLATFORM_KINDS:
+                raise ValueError(
+                    f"device {device.id} is on {device.platform}, which is not a system of kind "
+                    + " or ".join(DEVICE_PLATFORM_KINDS)
+                )

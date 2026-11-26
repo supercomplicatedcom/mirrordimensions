@@ -26,7 +26,7 @@ from mirrordimensions.service import changes as changes_svc
 from mirrordimensions.service.changes import Change
 from mirrordimensions.twins.base import get_twin
 
-NodeKind = Literal["agent", "gateway", "system", "model"]
+NodeKind = Literal["agent", "gateway", "system", "model", "device"]
 
 
 class Node(BaseModel):
@@ -39,6 +39,7 @@ class Node(BaseModel):
     visibility: str | None = None  # granted, denied, present, absent (systems only)
     built_as: str | None = None  # real software, stand-in page, unavailable
     granted_to: list[str] = Field(default_factory=list[str])  # agents with grants on it
+    location: str | None = None  # devices: site, floor and room, in words
     column: int
     row: int
 
@@ -62,6 +63,7 @@ KIND_LABELS = {
     "mcp-server": "Tools server",
     "wiki": "Wiki",
     "ticketing": "Tickets",
+    "device-platform": "Building access",
 }
 
 
@@ -174,7 +176,45 @@ def environment_graph(project: Project) -> Graph:
         edges.append(
             Edge(source="gateway", target=f"model:{route.name}", kind="exit", label="only exit")
         )
+    nodes += _devices(manifest, edges)
     return Graph(project=manifest.name, nodes=nodes, edges=edges)
+
+
+def device_location(manifest: Manifest, at: str) -> str:
+    """Where a device is, in words: "Headquarters, floor f2, server-room"."""
+    site_id, *rest = at.split("/")
+    site = next((s for s in manifest.sites if s.id == site_id), None)
+    words = [site.name if site else site_id]
+    if rest:
+        words.append(f"floor {rest[0]}")
+    if len(rest) > 1:
+        words.append(rest[1].replace("-", " "))
+    return ", ".join(words)
+
+
+def _devices(manifest: Manifest, edges: list[Edge]) -> list[Node]:
+    """Each device, beside the platform it is reached through, with where it is."""
+    from mirrordimensions.devices import load_type
+
+    nodes: list[Node] = []
+    for row, device in enumerate(manifest.devices):
+        kind = load_type(device.type).get("label", device.type)
+        zone = "restricted" if device.sensitivity == "restricted" else ""
+        nodes.append(
+            Node(
+                id=f"device:{device.id}",
+                kind="device",
+                label=device.id.replace("-", " ").capitalize(),
+                detail=f"{kind} · {zone}" if zone else str(kind),
+                location=device_location(manifest, device.at),
+                column=3,
+                row=row,
+            )
+        )
+        edges.append(
+            Edge(source=f"system:{device.platform}", target=f"device:{device.id}", kind="route")
+        )
+    return nodes
 
 
 # -- edits: visibility, grants, and the changes still pending (decision 0021) -----------

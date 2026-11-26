@@ -12,7 +12,7 @@ export interface ProjectInfo {
 
 export interface GraphNode {
   id: string;
-  kind: "agent" | "gateway" | "system" | "model";
+  kind: "agent" | "gateway" | "system" | "model" | "device";
   label: string;
   detail: string;
   hostname: string | null;
@@ -20,6 +20,7 @@ export interface GraphNode {
   visibility: string | null;
   built_as: string | null;
   granted_to: string[];
+  location: string | null;
   column: number;
   row: number;
 }

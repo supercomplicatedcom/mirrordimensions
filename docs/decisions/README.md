@@ -35,6 +35,7 @@ Each file records one architecture or design decision: the context, what was dec
 | [0023](0023-operator-mcp.md) | The operator MCP server: the official SDK, run content fenced off as untrusted, a confirmation to act | Proposed |
 | [0024](0024-ingress.md) | The ingress for remote agents: a relay through the Docker API, TLS at your proxy, sign-in as the person | Accepted (owner), points 1 to 3; 4 to 9 Proposed |
 | [0025](0025-world-import.md) | World import: facts from files on the host, one draft, review, then apply | Proposed |
+| [0026](0026-devices.md) | Devices: a simulator inside the world, replayed outside it | Proposed; the MQTT broker Accepted (owner) |
 | [0019](0019-engine-updates.md) | The engine installs updates only when asked (`mirror engine update`); doctor notes when they are over 14 days old | Accepted (owner) |
 
 Template:

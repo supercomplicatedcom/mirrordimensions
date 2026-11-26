@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A security camera. It reports events and metadata (motion, a badge match), never images.
+type: camera
+label: Camera
+properties:
+  recording: {type: bool, default: true}
+  motion: {type: bool, default: false, sensor: true}
+commands:
+  stop_recording:
+    consequence: safety-critical
+    effect: {set: {recording: false}}
+    causes: "Nothing in view is recorded until recording starts again."
+  start_recording:
+    consequence: reversible
+    effect: {set: {recording: true}}
+    causes: "The camera records again."
+events:
+  - {on: stop_recording, emit: recording.stopped, to: [audit-log]}
+telemetry: []
+faults: [offline]

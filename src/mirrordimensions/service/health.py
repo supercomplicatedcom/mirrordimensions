@@ -118,11 +118,7 @@ def health(project: Project, containers: bool = True) -> Health:
     if engine_state == "running":
         docker = Docker(engine.docker_endpoint())
         plan = sandbox_svc.world_plan(project)
-        names = [
-            *ROLES,
-            *(a.container for a in plan.apps),
-            *(a.db_container for a in plan.apps if a.db_container),
-        ]
+        names = [*ROLES, *(n for a in plan.apps for n in sandbox.containers_of(plan, a))]
         for name in names:
             role = ROLES.get(name) or next(
                 (
