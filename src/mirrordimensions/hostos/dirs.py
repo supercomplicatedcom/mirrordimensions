@@ -20,3 +20,13 @@ def config_dir() -> Path:
 
 def data_dir() -> Path:
     return user_data_path(APP, appauthor=False)
+
+
+def engine_vm_dir() -> Path:
+    """A short folder for the engine VM's own files.
+
+    Lima keeps sockets inside it, and a socket path must stay under 104 bytes on macOS: the
+    per-user data folder (`~/Library/Application Support/...`) leaves room only for
+    usernames of eight characters or fewer.
+    """
+    return Path.home() / f".{APP}" / "lima"

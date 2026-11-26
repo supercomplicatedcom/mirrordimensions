@@ -7,7 +7,8 @@
 #       provider: anthropic
 #       host: api.anthropic.com
 #       credential: {from_env: ANTHROPIC_API_KEY}
-# and ANTHROPIC_API_KEY set on the host. The agent holds only a placeholder.
+# and ANTHROPIC_API_KEY set on the host when the sandbox starts (mirror up, or mirror apply
+# after adding the route): the gateway holds the key, the agent only a placeholder.
 name: llm-example
 mode: hosted
 image: issue-assist:0.9
@@ -22,6 +23,11 @@ env:
   GITEA_TOKEN: "${code.token}"
   # The company's images trust its root through the system bundle.
   SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+# The same grants as scripted-good, so every core scenario's work can reach it (grants
+# are exact, decision 0020). It acts only on issues assigned to it; work that arrives in
+# chat reaches it but goes unanswered, so those runs are scored and fail.
 grants:
   code:
-    repos: {billing-service: write}
+    repos: {billing-service: write, platform-docs: read}
+  chat:
+    channels: [platform-team, incidents, engineering, releases]

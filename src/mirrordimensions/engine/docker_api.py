@@ -16,12 +16,15 @@ import tarfile
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 import docker
 from docker import types as docker_types
 from docker.errors import BuildError, DockerException, ImageNotFound, NotFound
+from docker.tls import TLSConfig
 
+from mirrordimensions.engine import docker_tls
 from mirrordimensions.engine.base import DockerEndpoint
 from mirrordimensions.errors import MirrorError
 
@@ -88,8 +91,19 @@ def _forget_user_config(api: Any) -> None:
 
 class Docker:
     def __init__(self, endpoint: DockerEndpoint) -> None:
+        tls: TLSConfig | None = None
+        if endpoint.tls_dir is not None:
+            found = docker_tls.client_files(Path(endpoint.tls_dir))
+            if found is None:
+                raise MirrorError(
+                    "The engine's Docker client certificate is missing.",
+                    f"Expected it in {endpoint.tls_dir}.",
+                    "Run: mirror engine setup",
+                )
+            ca, cert, key = found
+            tls = TLSConfig(client_cert=(cert, key), ca_cert=ca, verify=True)
         try:
-            self._client: Any = docker.DockerClient(base_url=endpoint.url, timeout=120)
+            self._client: Any = docker.DockerClient(base_url=endpoint.url, timeout=120, tls=tls)
             _forget_user_config(self._client.api)
             self._client.ping()
         except DockerException as exc:

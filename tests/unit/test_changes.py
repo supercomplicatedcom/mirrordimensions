@@ -229,3 +229,26 @@ def test_a_world_built_before_these_records_gets_one_once_unchanged(tmp_path: Pa
     record_applied(project, _manifest(project))
     assert (made / ".mirror" / "built.json").is_file()
     assert _whats(made) == []
+
+
+def test_a_run_waits_for_a_model_route_added_after_up(root: Path) -> None:
+    """Routes reach the gateway and firewall only when the sandbox starts; a run without
+    them would leave the agent unable to reach its model, and look like its own failure."""
+    from types import SimpleNamespace
+
+    from mirrordimensions.service.runs import _Run  # pyright: ignore[reportPrivateUsage]
+
+    manifest = root / "mirror.yaml"
+    text = manifest.read_text(encoding="utf-8")
+    route = (
+        "models:\n- name: primary\n  provider: anthropic\n  host: api.anthropic.com\n"
+        "  credential: {from_env: ANTHROPIC_API_KEY}\n"
+    )
+    manifest.write_text(
+        text.replace("models: []", route, 1) if "models: []" in text else text + route
+    )
+    assert ("restart", "Model routes changed") in _whats(root)
+    run = SimpleNamespace(project=load_project(root))
+    with pytest.raises(MirrorError, match="not in effect") as caught:
+        _Run._check_nothing_waits(run)  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
+    assert "key set" in str(caught.value)

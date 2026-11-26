@@ -1962,7 +1962,9 @@ def engine_shell(ctx: typer.Context) -> None:
         raise MirrorError(
             "engine shell needs the lima driver.",
             f"This engine uses {engine.name}.",
-            "Use the driver's own tools.",
+            "On Windows: wsl -d mirrordimensions-engine -u root"
+            if engine.name == "wsl"
+            else "Use the driver's own tools.",
         )
     env = {**os.environ, "LIMA_HOME": str(engine.lima_home)}
     os.execve(str(engine.limactl), [str(engine.limactl), "shell", INSTANCE, *ctx.args], env)  # noqa: S606

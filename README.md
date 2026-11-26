@@ -12,7 +12,7 @@ A sealed, self-hosted test range for AI agents. An agent does real work inside a
 
 ## Platforms
 
-macOS on Apple Silicon, Windows 11 x64 and Linux x64, with the same guarantees on each. Every host runs the sandbox in a Linux VM the project manages (the engine), with gVisor inside it. Windows is **experimental** until it has been verified on real hardware. See [docs/platforms.md](docs/platforms.md) and the decision records in [docs/decisions/](docs/decisions/).
+macOS on Apple Silicon, Windows 11 x64 and Linux x64, with the same guarantees on each. Every host runs the sandbox in a Linux VM the project manages (the engine), with gVisor inside it. Windows is **experimental** until it has been verified on real hardware; its steps are in [docs/platforms/windows.md](docs/platforms/windows.md). See [docs/platforms.md](docs/platforms.md) and the decision records in [docs/decisions/](docs/decisions/).
 
 ## From clone to a first passing run
 
@@ -93,7 +93,7 @@ Tools that start runs or edit the world need `confirm=true`, and nothing destruc
 
 ## Next steps
 
-- **Other agents.** `examples/agents/` has `scripted-rogue` (misbehaves on purpose, to show every violation is caught), `browser-basic` (works through the web pages), `mcp-good` (works only through the company's MCP server), `scripted-facilities` (the `devices` suite: opens a visitor's door over the building's REST API and adjusts a thermostat over MQTT) and `llm-example` (a real model through the model gateway; needs a model route in `mirror.yaml` and the provider's key in your environment). `mirror agent new` writes a file for your own. An agent that runs on its vendor's platform is onboarded with `--mode remote`: it accepts the reduced guarantees (leaks are detected, not blocked), reaches the world through an MCP server exposed with `mirror world expose`, and `examples/remote/` holds a reference platform and agent file.
+- **Other agents.** `examples/agents/` has `scripted-rogue` (misbehaves on purpose, to show every violation is caught), `browser-basic` (works through the web pages), `mcp-good` (works only through the company's MCP server), `scripted-facilities` (the `devices` suite: opens a visitor's door over the building's REST API and adjusts a thermostat over MQTT) and `llm-example` (a real model through the model gateway; needs a model route in `mirror.yaml` and the provider's key in your environment when the sandbox starts: `mirror up`, or `mirror apply` after adding the route). `mirror agent new` writes a file for your own. An agent that runs on its vendor's platform is onboarded with `--mode remote`: it accepts the reduced guarantees (leaks are detected, not blocked), reaches the world through an MCP server exposed with `mirror world expose`, and `examples/remote/` holds a reference platform and agent file.
 - **All the built-in scenarios:** `mirror run core --agent <name>`; in a world with devices, `mirror run devices --agent <name>` too.
 - **Your own scenarios:** [docs/writing-a-scenario.md](docs/writing-a-scenario.md).
 - **How it works:** [docs/architecture.md](docs/architecture.md).
@@ -103,7 +103,7 @@ Tools that start runs or edit the world need `confirm=true`, and nothing destruc
 
 | Command | What it does |
 | --- | --- |
-| `mirror engine setup\|check\|status\|start\|stop\|update\|destroy` | The engine. On macOS a Lima VM on Apple's Virtualization.framework; on Linux a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor on the host. Windows is not yet enabled. The engine installs updates only when you run `mirror engine update` |
+| `mirror engine setup\|check\|status\|start\|stop\|update\|destroy` | The engine. On macOS a Lima VM on Apple's Virtualization.framework; on Linux a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor on the host. On Windows 11 a WSL2 distribution of its own, experimental (`--experimental`; [steps](docs/platforms/windows.md)). The engine installs updates only when you run `mirror engine update` |
 | `mirror world new\|create\|show\|status\|clone\|destroy` | Define a world and create it |
 | `mirror world import <file>...`, then `show`, `decide <subject> <value>`, `apply`, `discard` | Describe the world from your own files, read in place on this computer: the agent's MCP configuration and exported tool lists, OpenAPI specifications, Terraform state (`terraform show -json`). Secrets and people are never kept; disagreements between files are settled before anything is written. `mirror world new <folder> --import <file>...` starts a new world from them, as the portal's wizard does with "Import a description" (decision 0025) |
 | `mirror reset`, `mirror snapshot save\|list` | Back to a snapshot, exactly, in about ten seconds |

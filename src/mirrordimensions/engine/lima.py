@@ -8,6 +8,7 @@ private `LIMA_HOME`, so the user's own Lima instances are never listed or change
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -32,14 +33,54 @@ from mirrordimensions.engine.base import (
     egress_allow_commands,
 )
 from mirrordimensions.errors import MirrorError
-from mirrordimensions.hostos.dirs import data_dir
+from mirrordimensions.hostos.dirs import data_dir, engine_vm_dir
 from mirrordimensions.hostos.files import make_dir, set_owner_only, write_text
 from mirrordimensions.hostos.info import host_arch, host_os
 
 INSTANCE = "engine"
+# The longest socket path Lima makes under its home: SSH's control socket, with the 16
+# characters SSH appends while it sets it up. A Unix socket path must fit in 104 bytes
+# with its terminating zero on macOS (108 on Linux).
+LONGEST_SOCKET = f"/{INSTANCE}/ssh.sock.{'x' * 16}"
+MAX_SOCKET_PATH = 103
 # Which provisioning was applied since the engine last booted (/run is cleared at boot).
 APPLIED_MARKER = "/run/engine/applied.sha"
 StepFn = Callable[[str], None] | None
+
+# The guest's pending updates, installed in the engine's own network namespace; prints
+# what was upgraded, then REBOOT when a restart is due. Shared with the wsl driver.
+UPDATE_SCRIPT = (
+    "set -e; export DEBIAN_FRONTEND=noninteractive; "
+    "apt-get update -q >/dev/null; "
+    "apt-get -s -o Debug::NoLocking=1 full-upgrade | awk '/^Inst /{print $2\" \"$4}' "
+    "| tr -d '(' > /run/engine-upgrading; "
+    "apt-get -y -q -o Dpkg::Options::=--force-confold full-upgrade >/dev/null; "
+    "date -u +%Y-%m-%d > /var/lib/engine/updated; "
+    "cat /run/engine-upgrading; "
+    "test -f /var/run/reboot-required && echo REBOOT || true"
+)
+# The versions `mirror engine status` and results report. Shared with the wsl driver.
+VERSIONS_SCRIPT = (
+    "printf 'kernel=%s\\n' \"$(uname -r)\"; "
+    "printf 'docker=%s\\n' "
+    "\"$(docker version --format '{{.Server.Version}}' 2>/dev/null)\"; "
+    "printf 'runsc=%s\\n' \"$(runsc --version 2>/dev/null | head -1 | awk '{print $3}')\"; "
+    ". /etc/os-release; printf 'guest=%s\\n' \"$PRETTY_NAME\"; "
+    # When packages were last updated (an engine provisioned before the stamp
+    # existed: when its packages were installed), and whether a restart is due.
+    "printf 'updated=%s\\n' \"$(cat /var/lib/engine/updated 2>/dev/null || "
+    'date -u -r /var/lib/engine/packages +%Y-%m-%d 2>/dev/null)"; '
+    "printf 'reboot=%s\\n' \"$(test -f /var/run/reboot-required && echo yes || echo no)\""
+)
+
+
+def parse_versions(text: str) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for line in text.splitlines():
+        key, _, value = line.partition("=")
+        if key and value:
+            out[key] = value
+    return out
 
 
 def _note(on_step: StepFn, text: str) -> None:
@@ -132,12 +173,28 @@ def default_resources() -> Resources:
     return Resources(cpus=cpus, memory_gb=6, disk_gb=40)
 
 
+def fits(lima_home: Path) -> bool:
+    """Whether every socket Lima makes under this home has a path short enough."""
+    return len(os.fsencode(f"{lima_home}{LONGEST_SOCKET}")) <= MAX_SOCKET_PATH
+
+
+def default_lima_home() -> Path:
+    """Lima's home for the engine: a short folder in the user's home.
+
+    An engine set up before the move, in the data folder, keeps working where it is.
+    """
+    earlier = data_dir() / "lima-home"
+    if (earlier / INSTANCE).is_dir() and fits(earlier):
+        return earlier
+    return engine_vm_dir()
+
+
 class LimaEngine:
     name = "lima"
 
     def __init__(self, root: Path | None = None) -> None:
         self.root = root or data_dir()
-        self.lima_home = self.root / "lima-home"
+        self.lima_home = self.root / "lima-home" if root is not None else default_lima_home()
         self.lima_dir = self.root / "lima" / pins.LIMA_VERSION
         self.config_path = self.root / "engine.lima.yaml"
         self.microvm = False
@@ -172,10 +229,10 @@ class LimaEngine:
         downloads = self.root / "downloads"
         make_dir(downloads, owner_only=True)
         archive = downloads / name
-        if not archive.is_file() or _sha256(archive) != sha256:
+        if not archive.is_file() or sha256_of(archive) != sha256:
             _note(on_step, f"Downloading Lima {pins.LIMA_VERSION}")
-            _download(pins.lima_url(name), archive)
-        actual = _sha256(archive)
+            download(pins.lima_url(name), archive)
+        actual = sha256_of(archive)
         if actual != sha256:
             archive.unlink(missing_ok=True)
             raise MirrorError(
@@ -222,6 +279,14 @@ class LimaEngine:
     def setup(
         self, resources: Resources, on_step: StepFn = None, microvm: bool = False
     ) -> EngineStatus:
+        if not fits(self.lima_home):
+            raise MirrorError(
+                "The engine's folder has too long a path for the VM's sockets.",
+                f"Lima makes sockets under {self.lima_home}, and a socket path must be at "
+                f"most {MAX_SOCKET_PATH} bytes.",
+                "Run the mirror as a user whose home folder has a shorter path, and report it "
+                "(docs/platforms.md).",
+            )
         make_dir(self.root, owner_only=True)
         make_dir(self.lima_home, owner_only=True)
         self.ensure_lima(on_step)
@@ -299,6 +364,10 @@ class LimaEngine:
             script += "\n" + microvm_script()
         return script
 
+    def host_address(self) -> str:
+        """Where the guest reaches the host's loopback: Lima's user-mode network's host."""
+        return "192.168.5.2"
+
     def has_microvm(self) -> bool:
         """Whether the microVM runtime has been installed in this engine."""
         return self.shell("test", "-f", "/var/lib/engine/microvm").returncode == 0
@@ -340,6 +409,9 @@ class LimaEngine:
             self._limactl("delete", "--force", INSTANCE, timeout=300)
         for path in (self.lima_home, self.root / "lima", self.root / "downloads"):
             shutil.rmtree(path, ignore_errors=True)
+        if self.lima_home == engine_vm_dir():
+            with contextlib.suppress(OSError):  # ~/.mirrordimensions, when nothing else is in it
+                self.lima_home.parent.rmdir()
         self.config_path.unlink(missing_ok=True)
         # Lima's download cache is shared with any Lima the user has; remove only the
         # entries for images the engine pinned.
@@ -356,17 +428,7 @@ class LimaEngine:
     def update(self) -> UpdateOutcome:
         """Install the guest's pending updates now, in the engine's own network namespace
         (never a container's). The caller makes sure the sandbox is down."""
-        script = (
-            "set -e; export DEBIAN_FRONTEND=noninteractive; "
-            "apt-get update -q >/dev/null; "
-            "apt-get -s -o Debug::NoLocking=1 full-upgrade | awk '/^Inst /{print $2\" \"$4}' "
-            "| tr -d '(' > /run/engine-upgrading; "
-            "apt-get -y -q -o Dpkg::Options::=--force-confold full-upgrade >/dev/null; "
-            "date -u +%Y-%m-%d > /var/lib/engine/updated; "
-            "cat /run/engine-upgrading; "
-            "test -f /var/run/reboot-required && echo REBOOT || true"
-        )
-        done = self.shell("sudo", "sh", "-c", script, timeout=1800)
+        done = self.shell("sudo", "sh", "-c", UPDATE_SCRIPT, timeout=1800)
         if done.returncode != 0:
             raise MirrorError(
                 "The engine's update did not finish.",
@@ -424,25 +486,7 @@ class LimaEngine:
     # -- helpers ---------------------------------------------------------------
 
     def _versions(self) -> dict[str, str]:
-        script = (
-            "printf 'kernel=%s\\n' \"$(uname -r)\"; "
-            "printf 'docker=%s\\n' "
-            "\"$(docker version --format '{{.Server.Version}}' 2>/dev/null)\"; "
-            "printf 'runsc=%s\\n' \"$(runsc --version 2>/dev/null | head -1 | awk '{print $3}')\"; "
-            ". /etc/os-release; printf 'guest=%s\\n' \"$PRETTY_NAME\"; "
-            # When packages were last updated (an engine provisioned before the stamp
-            # existed: when its packages were installed), and whether a restart is due.
-            "printf 'updated=%s\\n' \"$(cat /var/lib/engine/updated 2>/dev/null || "
-            'date -u -r /var/lib/engine/packages +%Y-%m-%d 2>/dev/null)"; '
-            "printf 'reboot=%s\\n' \"$(test -f /var/run/reboot-required && echo yes || echo no)\""
-        )
-        done = self.shell("sh", "-c", script)
-        out: dict[str, str] = {}
-        for line in done.stdout.splitlines():
-            key, _, value = line.partition("=")
-            if key and value:
-                out[key] = value
-        return out
+        return parse_versions(self.shell("sh", "-c", VERSIONS_SCRIPT).stdout)
 
     def _restrict_socket(self) -> None:
         sock_dir = self.socket_path.parent
@@ -477,7 +521,7 @@ def _start_error(done: subprocess.CompletedProcess[str]) -> MirrorError:
     )
 
 
-def _sha256(path: Path) -> str:
+def sha256_of(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
@@ -485,7 +529,7 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _download(url: str, dest: Path) -> None:
+def download(url: str, dest: Path) -> None:
     tmp = dest.with_suffix(dest.suffix + ".part")
     request = urllib.request.Request(url, headers={"User-Agent": "mirrordimensions-engine-setup"})  # noqa: S310
     with urllib.request.urlopen(request, timeout=120) as response, tmp.open("wb") as out:  # noqa: S310

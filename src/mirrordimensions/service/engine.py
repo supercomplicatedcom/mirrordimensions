@@ -28,7 +28,10 @@ def setup_engine(
     with keep_awake("Setting up the engine"):
         if isinstance(engine, WslEngine):
             status = engine.setup(
-                resources or default_resources(), on_step, experimental=experimental
+                resources or default_resources(),
+                on_step,
+                experimental=experimental,
+                microvm=microvm,
             )
         elif isinstance(engine, LimaEngine):
             status = engine.setup(resources or default_resources(), on_step, microvm=microvm)
@@ -62,10 +65,10 @@ def destroy_engine() -> None:
 
 def check_engine() -> list[CheckResult]:
     engine = get_engine()
-    if not isinstance(engine, LimaEngine):
+    if not isinstance(engine, (LimaEngine, WslEngine)):
         raise MirrorError(
             f"Engine checks are not yet available for the {engine.name} driver.",
-            "M0.5 checks are implemented for the lima driver first.",
+            "They run for the lima and wsl drivers.",
             "Track progress in docs/platforms.md.",
         )
     with keep_awake("Checking the engine"):
