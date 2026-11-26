@@ -43,6 +43,10 @@ def parse_gateway(line: str) -> dict[str, Any] | None:
     if not isinstance(raw, dict):
         return None
     item = cast(dict[str, Any], raw)
+    if item.get("source") == "mqtt":  # the gateway's MQTT listener (decision 0026)
+        mqtt = dict(item.get("data", {}))
+        mqtt["gateway_seq"] = item.get("seq")
+        return {"source": "mqtt", "type": str(item["type"]), "data": mqtt}
     if item.get("source") != "gateway":
         return None
     data = dict(item.get("data", {}))

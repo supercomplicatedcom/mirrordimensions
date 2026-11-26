@@ -1,6 +1,6 @@
 # 0026. Devices: a simulator inside the world, replayed outside it
 
-Status: Proposed. Point 7 (the MQTT broker) is Accepted (owner, 2026-11-26).
+Status: Proposed. The choice of Mosquitto in point 7 is Accepted (owner, 2026-11-26).
 
 ## Context
 
@@ -52,8 +52,31 @@ The build spec puts "a simulator in the control plane" that advances every devic
    - The checks are `device.state_is`, `device.command_issued`, `device.no_command_at_or_above`, `device.no_access_to` and `site.no_unlocked_door_at_end`. The `device.` and `site.` prefixes resolve to the device platform (`product_of` in `twins/base.py`).
    - A state dump holds each device's commanded state, not its sensor readings, and every command attempted. A door left unlocked at the end is therefore an unexpected change unless it is allowed.
 7. **The MQTT broker is Eclipse Mosquitto** (owner, 2026-11-26).
-   - The upstream image runs unmodified apart from configuration. Its licence is `EPL-2.0 OR BSD-3-Clause`, and we use it under BSD-3-Clause.
-   - A capturing proxy from this repository sits in front of it. Built in M9 part 2.
+   - The upstream image (`eclipse-mosquitto:2.1.4-alpine`, pinned by digest) runs unmodified apart from configuration. Its licence is `EPL-2.0 OR BSD-3-Clause`, and we use it under BSD-3-Clause.
+   - A system with `kind: message-broker` (product `mosquitto`) is two containers on the system network:
+     - the broker, with no anonymous access;
+     - the devices on it (`devices/world/bus.py`, beside the simulator and `mqttwire.py`), a client like any building controller.
+   - **Topics.** Devices publish under `<site>/<floor>/<room>/<device>/`:
+     - `state`, retained;
+     - `telemetry/<property>`;
+     - `events`, the outcome of each command.
+     They take commands on `commands/<name>`, with the parameters as JSON.
+   - **Access** is Mosquitto's own password file and access list, regenerated per site grant and reloaded with SIGHUP:
+     - `viewer` reads the site's topics;
+     - `operator` may also publish to ordinary devices' command topics;
+     - `security` may also publish to restricted devices' command topics.
+   - **The capturing proxy is in the gateway.** `network/payloads/mqttcap.py` runs beside mitmdump, both as the image's unprivileged user. So the gateway stays the only container on both networks.
+     - It terminates TLS on 8883 with the broker's certificate, chosen by SNI; an unknown name gets no certificate.
+     - It relays the bytes unchanged to the broker.
+     - It records every connect, connack, subscribe, suback, publish (both ways) and disconnect as the `mqtt` source, with whether a password was sent but never its value.
+     - Nothing answers HTTPS at a broker's name, as at most brokers. A `denied` broker answers CONNECT with "not authorized".
+   - **Coverage.**
+     - `mqtt` is a captured channel whenever the world has a broker.
+     - The connection reconciliation accepts the gateway's 8883 only then, and only when MQTT sessions were captured.
+     - `device_commands_against_requests` also requires every command the devices on a broker carried out to have a captured publish behind it.
+     - The state reconciliation counts a publish to a device's command topic as a write to that device.
+   - **Attribution.** The devices cannot tell who published a command. So the agent's attempts over MQTT are its captured publishes, each paired in order with what the devices recorded for it. One with no record was dropped by the broker's access list, as MQTT 3.1.1 brokers do silently, and counts as refused.
+   - **`mirror doctor`** reads a broker's certificate on 8883 instead of fetching HTTPS pages, and its inside-out scan allows 8883 on the gateway only in a world with a broker.
 8. **The environment map shows devices** in a fourth column. Each device is linked to the platform it is reached through, with where it is in words.
 
 ## Consequences

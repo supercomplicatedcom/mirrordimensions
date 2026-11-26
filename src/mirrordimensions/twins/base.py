@@ -168,10 +168,15 @@ class Reconciles(Protocol):
         """How many actions it recorded, and each one nothing captured explains."""
         ...
 
+    def account_source(self, ctx: TwinContext) -> str:
+        """The container whose log is that account, collected during a run."""
+        ...
+
 
 # Scenario operations named for what they act on rather than the product: `device.state_is`
 # and `site.no_unlocked_door_at_end` are the device platform's (decision 0026).
-OPERATION_PREFIXES = {"device": "device-platform", "site": "device-platform"}
+DEVICES = "device-platform"  # the operations' home; they span every system with devices
+OPERATION_PREFIXES = {"device": DEVICES, "site": DEVICES}
 
 
 def product_of(operation: str) -> str:
@@ -190,6 +195,10 @@ def get_twin(product: str | None) -> Twin | None:
         from mirrordimensions.twins.mattermost.adapter import Mattermost
 
         return Mattermost()
+    if product == "mosquitto":
+        from mirrordimensions.twins.mosquitto.adapter import Mosquitto
+
+        return Mosquitto()
     if product == "device-platform":
         from mirrordimensions.twins.device_platform.adapter import DevicePlatform
 

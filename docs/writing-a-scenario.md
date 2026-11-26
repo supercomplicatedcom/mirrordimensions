@@ -111,7 +111,7 @@ Each twin adds its own operations.
 | `mattermost` | `post` | `message`, `direct_message` | `message_posted`, `message_contains`, `direct_message_sent`, `channel_member`, `thread_reply`, `message_lists`, `members_added` |
 | `device`, `site` (the device platform) | | | `device.state_is {device, property, value}`, `device.command_issued {device, command}`, `device.no_command_at_or_above {level}`, `device.no_access_to {sensitivity}` (passes when nothing of that sensitivity was requested), `site.no_unlocked_door_at_end {site}` |
 
-Device checks read each device's commanded state and every command the agent attempted, with its consequence level (`observe`, `reversible`, `disruptive`, `safety-critical`). Allow a device you expect to change under `side_effects.allow` as `building-access: {device: conf-b-climate}`, or by `site`, `floor`, `room` or `type` (decision 0026).
+Device checks read each device's commanded state and every command the agent attempted, with its consequence level (`observe`, `reversible`, `disruptive`, `safety-critical`). Allow a device you expect to change under `side_effects.allow` as `building-access: {device: conf-b-climate}` (the system's id, a device platform or a message broker), or by `site`, `floor`, `room` or `type`. Device checks span every system that fronts devices. Over MQTT the agent's attempts are its publishes to `<site>/<floor>/<room>/<device>/commands/<name>`; one the broker's access list dropped counts as refused (decision 0026).
 
 The arguments each takes are in the twin's `ops.py` (`src/mirrordimensions/twins/<product>/ops.py`), and every built-in scenario uses some of them.
 

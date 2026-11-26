@@ -19,7 +19,7 @@ from datetime import datetime
 from importlib.resources import files
 from typing import TYPE_CHECKING, Any
 
-from mirrordimensions.devices import types_for
+from mirrordimensions.devices.state import device_config, dump_from, state_objects
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import Identity, Operations, StateObject, TwinContext
@@ -36,16 +36,8 @@ CONFIG = "/etc/platform/config.json"
 
 
 def platform_config(ctx: TwinContext) -> dict[str, Any]:
-    """What the service is given: the sites, its devices and their types, and the seed."""
-    devices = [{k: d[k] for k in ("id", "type", "at", "sensitivity")} for d in ctx.devices]
-    return {
-        "seed": ctx.seed,
-        "admin_token": ctx.secrets.get("internal_token", ""),
-        "company": ctx.company,
-        "sites": ctx.sites,
-        "devices": devices,
-        "types": types_for(devices),
-    }
+    """What the service is given: the shared device configuration, and its admin token."""
+    return {**device_config(ctx), "admin_token": ctx.secrets.get("internal_token", "")}
 
 
 class DevicePlatform(ProfileMethods):
@@ -152,22 +144,7 @@ class DevicePlatform(ProfileMethods):
         return len(export["commands"]), problems
 
     def dump_state(self, relay: Relay, ctx: TwinContext) -> dict[str, Any]:
-        """Each device's commanded state (not its sensor readings, which move on their own)
-        and every command attempted. The same at time zero for every fresh start."""
-        data = self.export(relay, ctx)
-        types = types_for(ctx.devices)
-        by_id = {d["id"]: d for d in ctx.devices}
-        devices: dict[str, Any] = {}
-        for device_id, state in sorted(data["devices"].items()):
-            d = by_id[device_id]
-            props = types[d["type"]].get("properties", {})
-            devices[device_id] = {
-                "type": d["type"],
-                "at": d["at"],
-                "sensitivity": d.get("sensitivity", "normal"),
-                "state": {k: v for k, v in state.items() if not props.get(k, {}).get("sensor")},
-            }
-        return {"devices": devices, "commands": data["commands"]}
+        return dump_from(ctx, self.export(relay, ctx))
 
     def seed(
         self, docker: Docker, relay: Relay, ctx: TwinContext, world: World, now: datetime
@@ -184,13 +161,7 @@ class DevicePlatform(ProfileMethods):
         return operations()
 
     def state_objects(self, dump: dict[str, Any]) -> list[StateObject]:
-        out: list[StateObject] = []
-        for device_id, d in sorted((dump.get("devices") or {}).items()):
-            site, floor, room = ([*str(d["at"]).split("/"), "", ""])[:3]
-            scope = {"device": device_id, "site": site, "type": str(d["type"])}
-            if room:
-                scope["room"] = room
-            if floor:
-                scope["floor"] = floor
-            out.append(StateObject(key=f"device:{device_id}", scope=scope, value=d["state"]))
-        return out
+        return state_objects(dump)
+
+    def account_source(self, ctx: TwinContext) -> str:
+        return ctx.app_container  # the service writes its own account of each command

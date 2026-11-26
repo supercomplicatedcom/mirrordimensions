@@ -57,7 +57,9 @@ class McpRemote(StrictModel):
 
 
 DEVICE_PLATFORM = "device-platform"
-DEVICE_PLATFORM_KINDS = (DEVICE_PLATFORM,)  # the kinds a device can be reached through
+MESSAGE_BROKER = "message-broker"
+DEVICE_PLATFORM_KINDS = (DEVICE_PLATFORM, MESSAGE_BROKER)  # how a device can be reached
+DEFAULT_PRODUCT = {DEVICE_PLATFORM: "device-platform", MESSAGE_BROKER: "mosquitto"}
 
 
 class App(StrictModel):
@@ -81,8 +83,8 @@ class App(StrictModel):
             raise ValueError("needs a kind, a product, or both")
         if (self.serves or self.remote) and self.kind != "mcp-server":
             raise ValueError("serves and remote are only allowed on kind: mcp-server")
-        if self.kind == DEVICE_PLATFORM and self.product is None:
-            self.product = DEVICE_PLATFORM  # the generic REST device platform (decision 0026)
+        if self.kind in DEFAULT_PRODUCT and self.product is None:
+            self.product = DEFAULT_PRODUCT[self.kind]  # decision 0026
         names = [rule.name for rule in self.rules]
         dupes = duplicates_ignoring_case(names)
         if dupes:

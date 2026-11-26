@@ -21,6 +21,7 @@ visible to the agent (reverse DNS answers name.network), so none may contain a t
 from __future__ import annotations
 
 import json
+import shlex
 from dataclasses import dataclass, field
 from importlib.resources import files
 from pathlib import Path
@@ -106,6 +107,11 @@ class App:
         return self.kind == "mcp-server" and self.product is None
 
     @property
+    def is_broker(self) -> bool:
+        """A message broker: reached over MQTT on 8883 through the gateway (decision 0026)."""
+        return self.kind == MESSAGE_BROKER
+
+    @property
     def port(self) -> int:
         if self.is_mcp:
             return MCP_PORT
@@ -159,6 +165,10 @@ class Plan:
         return [a for a in self.apps if a.is_mcp and a.remote and a.visibility != "absent"]
 
     @property
+    def brokers(self) -> list[App]:
+        return [a for a in self.apps if a.is_broker and a.visibility != "absent"]
+
+    @property
     def resolvable(self) -> list[str]:
         # `absent` apps are not in DNS at all.
         return [a.hostname for a in self.apps if a.visibility != "absent"] + self.model_hosts
@@ -171,6 +181,8 @@ class Plan:
 
 
 DNS_NAME, GATEWAY_NAME, RELAY_NAME = "ns1", "edge-proxy-02", "klog"
+MESSAGE_BROKER = "message-broker"
+MQTT_TLS_PORT, MQTT_PORT = 8883, 1883
 TRACER_NAME = "auditd-01"
 TRACER_POLICY = """apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
@@ -263,8 +275,15 @@ def routes_json(plan: Plan, secrets: list[str]) -> bytes:
     from mirrordimensions.twins.profile import Profile
 
     routes: dict[str, dict[str, object]] = {}
+    brokers: dict[str, dict[str, str]] = {}
     for app in plan.apps:
         if app.visibility == "absent":
+            continue
+        if app.is_broker:  # MQTT only: nothing answers HTTPS at its name, as at most brokers
+            brokers[app.hostname] = {
+                "upstream": f"{app.ip}:{MQTT_PORT}",
+                "visibility": app.visibility,
+            }
             continue
         route: dict[str, object] = {
             "upstream": f"http://{app.ip}:{app.port}",
@@ -293,7 +312,9 @@ def routes_json(plan: Plan, secrets: list[str]) -> bytes:
             },
         }
     redact = [*secrets, *(m.credential for m in plan.models if m.credential)]
-    return json.dumps({"routes": routes, "secrets": redact, "seed": plan.seed}, indent=2).encode()
+    return json.dumps(
+        {"routes": routes, "mqtt": brokers, "secrets": redact, "seed": plan.seed}, indent=2
+    ).encode()
 
 
 ROUTES_PATH = "/etc/edge/routes.json"
@@ -380,7 +401,17 @@ def _gateway_command(plan: Plan) -> list[str]:
     ]
     for host in plan.tls_names:
         command += ["--certs", f"{host}=/etc/edge/certs/{host}.pem"]
-    return command
+    if not plan.brokers:
+        return command
+    # With a message broker, the MQTT listener runs beside mitmdump, both as the image's
+    # unprivileged user (the entrypoint drops privileges only for mitmproxy's own tools).
+    mitm = " ".join(shlex.quote(c) for c in command)
+    return [
+        "sh",
+        "-c",
+        "gosu mitmproxy python3 /etc/edge/mqttcap.py & "
+        f"exec env HOME=/home/mitmproxy gosu mitmproxy {mitm}",
+    ]
 
 
 def twin_context(plan: Plan, app: App, secrets: dict[str, str]) -> TwinContext:
@@ -409,6 +440,10 @@ def containers_of(plan: Plan, app: App) -> list[str]:
     if twin is None:
         return [app.container]
     return [c.name for c in twin.containers(twin_context(plan, app, _blank_secrets(plan)))]
+
+
+def _payload(name: str) -> bytes:
+    return files("mirrordimensions.network.payloads").joinpath(name).read_bytes()
 
 
 def specs(
@@ -502,6 +537,19 @@ def specs(
                 "/etc/edge/behavior.py": (behavior_py, 0o644),
                 "/etc/edge/models.py": (models_py, 0o644),
                 "/etc/edge/mcpcap.py": (mcpcap_py, 0o644),
+                **(
+                    {
+                        "/etc/edge/mqttcap.py": (_payload("mqttcap.py"), 0o644),
+                        "/etc/edge/mqttwire.py": (
+                            files("mirrordimensions.devices.world")
+                            .joinpath("mqttwire.py")
+                            .read_bytes(),
+                            0o644,
+                        ),
+                    }
+                    if plan.brokers
+                    else {}
+                ),
                 ROUTES_PATH: (routes_json(plan, secrets), 0o644),
                 **{f"/etc/edge/certs/{leaf.hostname}.pem": (leaf.pem, 0o644) for leaf in leaves},
             },
