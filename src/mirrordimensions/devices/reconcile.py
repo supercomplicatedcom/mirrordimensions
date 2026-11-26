@@ -73,3 +73,30 @@ def state_against_commands(
         for device, state in sorted(expected.items())
         if found.get(device) != state
     ]
+
+
+def commands_against_publishes(
+    events: list[dict[str, Any]], hostname: str, broker: str, bases: dict[str, str]
+) -> list[str]:
+    """Commands the devices on a broker carried out with no captured publish behind them.
+    `bases` maps each device's topic base to its id."""
+    publishes: Counter[str] = Counter()
+    for e in events:
+        d = _data(e)
+        if e.get("type") != "mqtt.publish" or d.get("direction") != "in":
+            continue
+        if str(d.get("host", "")) != hostname:
+            continue
+        base, sep, _ = str(d.get("topic", "")).rpartition("/commands/")
+        if sep and base in bases:
+            publishes[bases[base]] += 1
+    attempts: Counter[str] = Counter(
+        str(_data(e)["device"])
+        for e in events
+        if e.get("type") == "device.command" and _data(e).get("platform") == broker
+    )
+    return [
+        f"{device}: {n} command(s) carried out, {publishes[device]} publish(es) captured"
+        for device, n in sorted(attempts.items())
+        if n > publishes[device]
+    ]

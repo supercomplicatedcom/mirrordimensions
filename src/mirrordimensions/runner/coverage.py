@@ -25,9 +25,12 @@ from typing import Any
 from mirrordimensions.runner.evaluate import Change
 
 WRITES = ("POST", "PUT", "PATCH", "DELETE")
+MQTT_TLS_PORT = 8883
 
 
-def channels(*, browser: bool, models: bool, mcp: bool, tracer: bool) -> dict[str, dict[str, str]]:
+def channels(
+    *, browser: bool, models: bool, mcp: bool, tracer: bool, mqtt: bool = False
+) -> dict[str, dict[str, str]]:
     def captured(where: str) -> dict[str, str]:
         return {"status": "captured", "where": where}
 
@@ -44,6 +47,9 @@ def channels(*, browser: bool, models: bool, mcp: bool, tracer: bool) -> dict[st
         if browser
         else na("not a browser agent"),
         "mcp": captured("gateway, every JSON-RPC message") if mcp else na("no MCP server granted"),
+        "mqtt": captured("gateway MQTT listener, every connect, subscribe and publish")
+        if mqtt
+        else na("no message broker"),
         "host": captured("engine kernel tracer: processes and sockets")
         if tracer
         else {"status": "not_captured", "reason": "the engine's in-kernel tracer is not running"},
@@ -54,6 +60,8 @@ def channels(*, browser: bool, models: bool, mcp: bool, tracer: bool) -> dict[st
 def _explains(change: Change, write: dict[str, Any]) -> bool:
     path = str(write.get("path", "")).split("?")[0]
     scope = change.scope
+    if "device" in scope:  # a command over HTTP, or published to its topic (decision 0026)
+        return f"/{scope['device']}/commands" in path
     if "repo" in scope:
         return f"/{scope['repo']}" in path
     if "channel" in scope or "direct" in scope:
@@ -89,16 +97,19 @@ def reconcile_connections(
     lookups: int,
     browser: str | None = None,
     browser_connections: int = 0,
+    mqtt_sessions: int | None = None,
 ) -> dict[str, Any]:
     """Each connection the kernel saw from the agent's container against what was captured.
     `browser` is the browser observer's address (`ip:port`) in a browser run: the agent
     drives its browser through it, and the observer records each connection."""
     unexplained: list[dict[str, Any]] = []
-    to_gateway = to_resolver = to_browser = 0
+    to_gateway = to_resolver = to_browser = to_mqtt = 0
     for s in sockets:
         dst, port = str(s.get("dst")), s.get("dport")
         if dst == gateway and port in (80, 443):
             to_gateway += 1
+        elif dst == gateway and port == MQTT_TLS_PORT and mqtt_sessions is not None:
+            to_mqtt += 1  # the gateway's MQTT listener, present only with a message broker
         elif browser is not None and f"{dst}:{port}" == browser:
             to_browser += 1
         elif port == 53 and dst in (resolver, "127.0.0.11"):
@@ -117,6 +128,10 @@ def reconcile_connections(
         unexplained.append(
             {"to": browser, "why": "connections to the browser, but none recorded by its observer"}
         )
+    if to_mqtt and not mqtt_sessions:
+        unexplained.append(
+            {"to": f"{gateway}:{MQTT_TLS_PORT}", "why": "MQTT connections, but none captured"}
+        )
     if to_resolver and not lookups:
         unexplained.append(
             {"to": f"{resolver}", "why": "lookups sent, but none recorded by the resolver"}
@@ -124,7 +139,8 @@ def reconcile_connections(
     return {
         "passed": not unexplained,
         "detail": f"{len(sockets)} connection(s): {to_gateway} to the gateway, {to_resolver} to the resolver"
-        + (f", {to_browser} to the browser" if browser is not None else ""),
+        + (f", {to_browser} to the browser" if browser is not None else "")
+        + (f", {to_mqtt} over MQTT" if mqtt_sessions is not None else ""),
         "unexplained": unexplained,
     }
 

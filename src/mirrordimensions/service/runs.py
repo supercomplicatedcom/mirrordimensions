@@ -37,9 +37,9 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from mirrordimensions.config.agent import Agent
-from mirrordimensions.config.manifest import DEVICE_PLATFORM
 from mirrordimensions.config.result import Result, WorldRef
 from mirrordimensions.config.scenario import Scenario
+from mirrordimensions.devices import state as device_state
 from mirrordimensions.engine.registry import get_engine
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.files import make_dir, write_text
@@ -60,7 +60,14 @@ from mirrordimensions.service.sandbox import (
 )
 from mirrordimensions.service.worlddef import definition_hash
 from mirrordimensions.trace import access, report
-from mirrordimensions.twins.base import Reconciles, RunContext, StateObject, get_twin, product_of
+from mirrordimensions.twins.base import (
+    DEVICES,
+    Reconciles,
+    RunContext,
+    StateObject,
+    get_twin,
+    product_of,
+)
 from mirrordimensions.twins.relay import Relay
 from mirrordimensions.world.model import Person, World
 
@@ -226,9 +233,11 @@ class _Run:
             self.collector.add_source(
                 sandbox.TRACER_NAME, tracer_parser(self.watch, self.trace_progress)
             )
-        for app in self.plan.apps:  # each device platform's own account of commands
-            if app.product == DEVICE_PLATFORM and app.visibility != "absent":
-                self.collector.add_source(app.container, device_parser(app.id))
+        for app in self._device_apps():  # each device system's own account of commands
+            twin = get_twin(app.product)
+            assert isinstance(twin, Reconciles)  # noqa: S101
+            source = twin.account_source(sandbox.twin_context(self.plan, app, {}))
+            self.collector.add_source(source, device_parser(app.id))
         self.remote = self.agent.mode == "remote"
         if self.remote:
             self._check_exposed()
@@ -479,9 +488,26 @@ class _Run:
             people=people,
         )
 
+    def _device_apps(self) -> list[sandbox.App]:
+        """Systems that front devices (a device platform, a message broker), in the world."""
+        return [
+            a
+            for a in self.plan.apps
+            if isinstance(get_twin(a.product), Reconciles) and a.visibility != "absent"
+        ]
+
     def _operation(self, name: str, kind: str) -> tuple[Any, RunContext]:
         op = name.partition(".")[2]
         product = product_of(name)
+        if product == DEVICES:  # `device.` and `site.` span every system that fronts devices
+            app = next(iter(self._device_apps()), None)
+            twin = get_twin(app.product) if app else None
+            if app is not None:
+                rc = self._context(app)
+                rc.ctx.devices = list(self.plan.devices)
+                table = getattr(twin.operations(), kind) if twin else {}
+                if op in table:
+                    return table[op], rc
         app = next((a for a in self.plan.apps if a.product == product), None)
         twin = get_twin(product)
         if app is None or twin is None:
@@ -654,6 +680,13 @@ class _Run:
             for e in self.collector.events
             if e.get("type") == "http.exchange" and e["data"].get("client") in handle_clients
         ]
+        mqtt = [
+            e
+            for e in self.collector.events
+            if e.get("type") in ("mqtt.publish", "mqtt.subscribe")
+            and e["data"].get("client") in handle_clients
+            and e["data"].get("direction", "in") == "in"
+        ]
 
         def run_check(entry: dict[str, Any], kind: str) -> dict[str, Any]:
             ((name, args),) = scenario.render(entry, self.values).items()
@@ -661,7 +694,9 @@ class _Run:
             twin = get_twin(product_of(name))
             if twin is not None and op in twin.operations().event_checks:
                 efn, rc = self._operation(name, "event_checks")
-                outcome = efn(rc, dict(args or {}), exchanges)
+                # Devices are also reached over MQTT: its publishes and subscriptions count.
+                seen = exchanges + mqtt if product_of(name) == DEVICES else exchanges
+                outcome = efn(rc, dict(args or {}), seen)
                 found = outcome.passed
                 record = {"check": name, "kind": kind, "args": shown(args)}
                 record |= {
@@ -671,12 +706,25 @@ class _Run:
                 self.collector.emit("evaluator", "check.result", record)
                 return record
             fn, rc = self._operation(name, "checks")
-            app = apps[product_of(name)]
-            rc.facts = {
-                **self.facts,
-                "before": self.before.get(app.id, {}),
-                "after": self.after.get(app.id, {}),
-            }
+            if product_of(name) == DEVICES:
+                ids = [a.id for a in self._device_apps()]
+                rc.facts = {
+                    **self.facts,
+                    "before": device_state.merge([self.before.get(i, {}) for i in ids]),
+                    "after": device_state.merge([self.after.get(i, {}) for i in ids]),
+                    # Over MQTT the devices cannot tell who published: the agent's attempts
+                    # are its captured publishes, each with what became of it.
+                    "mqtt_commands": device_state.published_commands(
+                        self.collector.events, mqtt, self.plan.devices, self.plan.brokers
+                    ),
+                }
+            else:
+                app = apps[product_of(name)]
+                rc.facts = {
+                    **self.facts,
+                    "before": self.before.get(app.id, {}),
+                    "after": self.after.get(app.id, {}),
+                }
             outcome = fn(rc, dict(args or {}))
             record: dict[str, Any] = {"check": name, "kind": kind, "args": shown(args)}
             if kind == "success":
@@ -823,6 +871,16 @@ class _Run:
                 system = by_host.get(str(d.get("host", "")).split(":")[0])
                 if system:
                     writes.setdefault(system, []).append(d)
+            elif (
+                e.get("type") == "mqtt.publish"
+                and d.get("client") in clients
+                and d.get("direction") == "in"
+            ):  # a publish is a write to the broker's system, its topic the path
+                system = by_host.get(str(d.get("host", "")))
+                if system:
+                    writes.setdefault(system, []).append(
+                        {"method": "PUBLISH", "path": d.get("topic")}
+                    )
         if getattr(self, "remote", False):
             return self._coverage_remote(clients, found, writes)
         execs = [e["data"] for e in events if e.get("type") == "process.exec"]
@@ -856,6 +914,13 @@ class _Run:
             lookups=lookups,
             browser=observer,
             browser_connections=sum(1 for e in events if e.get("type") == "browser.connect"),
+            mqtt_sessions=sum(
+                1
+                for e in events
+                if e.get("type") == "mqtt.connect" and e["data"].get("client") == agent_ip
+            )
+            if self.plan.brokers
+            else None,
         )
         recs = {
             "state_against_requests": coverage.reconcile_state(found, writes),
@@ -881,6 +946,7 @@ class _Run:
             models=bool(self.plan.models),
             mcp=any(a.is_mcp and a.id in self.agent.grants for a in self.plan.apps),
             tracer=self.tracer,
+            mqtt=bool(self.plan.brokers),
         )
         if getattr(self, "trace_lag", False):
             chans["host"] = {

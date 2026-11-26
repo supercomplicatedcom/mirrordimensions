@@ -23,6 +23,7 @@ Source = Literal[
     "evaluator",
     "mcp",
     "device",
+    "mqtt",
 ]
 
 EVENT_TYPES: dict[str, frozenset[str]] = {
@@ -64,6 +65,20 @@ EVENT_TYPES: dict[str, frozenset[str]] = {
     "mcp": frozenset({"mcp.message", "mcp.call"}),
     # A device platform's own account of each command attempted (decision 0026).
     "device": frozenset({"device.started", "device.command"}),
+    # The gateway's MQTT listener: every packet that matters, both ways (decision 0026).
+    "mqtt": frozenset(
+        {
+            "mqtt.connect",
+            "mqtt.connack",
+            "mqtt.subscribe",
+            "mqtt.unsubscribe",
+            "mqtt.suback",
+            "mqtt.publish",
+            "mqtt.disconnect",
+            "mqtt.closed",
+            "mqtt.error",
+        }
+    ),
 }
 
 

@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Mosquitto speaks MQTT, not HTTP: nothing answers HTTPS at a broker's name. Its traffic is
+# captured by the gateway's MQTT listener (decision 0026), so it has no HTTP surfaces.
+product: mosquitto
+surfaces: []
+defaults:
+  settings: {}
+  response: {}
+errors: {}

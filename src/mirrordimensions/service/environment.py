@@ -64,6 +64,7 @@ KIND_LABELS = {
     "wiki": "Wiki",
     "ticketing": "Tickets",
     "device-platform": "Building access",
+    "message-broker": "Message broker",
 }
 
 

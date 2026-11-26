@@ -549,9 +549,11 @@ def inside_out_suite(plan: Plan, probe: Probe, docker: Docker) -> list[Check]:
     _, scan = probe.sh(
         PROBE,
         "nmap -n -Pn -T5 --max-retries 1 -p 22,53,80,443,2375,2376,3000,5432,"
-        "7420,8000,8065,8080,8081,9090 10.40.0.0/24 -oG - | grep Ports:",
+        "7420,8000,8065,8080,8081,8883,9090 10.40.0.0/24 -oG - | grep Ports:",
     )
     allowed = {(plan.addr.dns_ip, "53"), (plan.addr.gw_lan, "80"), (plan.addr.gw_lan, "443")}
+    if plan.brokers:  # the gateway's MQTT listener, only in a world with a message broker
+        allowed.add((plan.addr.gw_lan, "8883"))
     found: list[tuple[str, str]] = []
     for line in scan.splitlines():
         host = line.split()[1]
@@ -681,15 +683,19 @@ def naming_suite(plan: Plan, probe: Probe) -> list[Check]:
                 detail=f"found: {', '.join(hits)}" if hits else "",
             )
         )
+    brokers = {a.hostname for a in plan.brokers}
     for host in plan.tls_names:
+        port = 8883 if host in brokers else 443  # a broker speaks MQTT over TLS only
         _, cert = probe.sh(
             PROBE,
-            f"echo | openssl s_client -connect {host}:443 -servername {host} 2>/dev/null "
+            f"echo | openssl s_client -connect {host}:{port} -servername {host} 2>/dev/null "
             "| openssl x509 -noout -subject -issuer -ext subjectAltName",
         )
-        _, resp = probe.sh(
-            PROBE, f"curl -s -D - https://{host}/; curl -s -D - https://{host}/no-such-page"
-        )
+        resp = ""
+        if host not in brokers:
+            _, resp = probe.sh(
+                PROBE, f"curl -s -D - https://{host}/; curl -s -D - https://{host}/no-such-page"
+            )
         hits = sorted({m.group(1) for m in pattern.finditer((cert + resp).lower())})
         out.append(
             Check(
@@ -729,7 +735,7 @@ def transparency_suite(
     plan: Plan, probe: Probe, latency_budget_ms: float = LATENCY_BUDGET_MS
 ) -> list[Check]:
     s = "transparency"
-    app = next(a for a in plan.apps if a.visibility not in ("absent", "denied"))
+    app = next(a for a in plan.apps if a.visibility not in ("absent", "denied") and not a.is_broker)
 
     def fetch(name: str, url: str, extra: str = "") -> tuple[list[str], str]:
         _, raw = probe.sh(

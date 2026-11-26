@@ -63,8 +63,13 @@ def os_checks(tree: ast.AST) -> list[tuple[int, str]]:
 
 
 # Files that run alone inside the world beside nothing but each other (decision 0026).
-IN_WORLD = {("devices", "world", "sim.py"), ("twins", "device_platform", "server.py")}
-SIBLING_SIM = f"{PACKAGE}.devices.world.sim"
+IN_WORLD = {
+    ("devices", "world", "sim.py"),
+    ("devices", "world", "mqttwire.py"),
+    ("devices", "world", "bus.py"),
+    ("twins", "device_platform", "server.py"),
+}
+SIBLINGS = {"sim", "mqttwire"}  # the files copied beside them in their container
 
 
 def violations(src: Path, allowed_dists: set[str]) -> list[str]:
@@ -99,9 +104,9 @@ def violations(src: Path, allowed_dists: set[str]) -> list[str]:
             if rel.parts[:3] == ("mcp", "world", "front.py") and top == PACKAGE:
                 out.append(f"{where}: front.py runs alone inside the world; standard library only")
             if rel.parts in IN_WORLD:
-                if module == SIBLING_SIM or (top == "sim" and rel.parts[-1] == "server.py"):
-                    continue  # the simulator: the package on the host, the file beside it inside
-                if top == PACKAGE:
+                if top in SIBLINGS or module in {f"{PACKAGE}.devices.world.{n}" for n in SIBLINGS}:
+                    continue  # a sibling: the package on the host, the file beside it inside
+                if top == PACKAGE and module != f"{PACKAGE}.devices.world":
                     out.append(f"{where}: runs inside the world; standard library only (0026)")
             if top == PACKAGE or top in stdlib or top == "__future__":
                 continue
