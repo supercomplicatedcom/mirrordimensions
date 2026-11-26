@@ -8,6 +8,7 @@ private `LIMA_HOME`, so the user's own Lima instances are never listed or change
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -32,11 +33,16 @@ from mirrordimensions.engine.base import (
     egress_allow_commands,
 )
 from mirrordimensions.errors import MirrorError
-from mirrordimensions.hostos.dirs import data_dir
+from mirrordimensions.hostos.dirs import data_dir, engine_vm_dir
 from mirrordimensions.hostos.files import make_dir, set_owner_only, write_text
 from mirrordimensions.hostos.info import host_arch, host_os
 
 INSTANCE = "engine"
+# The longest socket path Lima makes under its home: SSH's control socket, with the 16
+# characters SSH appends while it sets it up. A Unix socket path must fit in 104 bytes
+# with its terminating zero on macOS (108 on Linux).
+LONGEST_SOCKET = f"/{INSTANCE}/ssh.sock.{'x' * 16}"
+MAX_SOCKET_PATH = 103
 # Which provisioning was applied since the engine last booted (/run is cleared at boot).
 APPLIED_MARKER = "/run/engine/applied.sha"
 StepFn = Callable[[str], None] | None
@@ -132,12 +138,28 @@ def default_resources() -> Resources:
     return Resources(cpus=cpus, memory_gb=6, disk_gb=40)
 
 
+def fits(lima_home: Path) -> bool:
+    """Whether every socket Lima makes under this home has a path short enough."""
+    return len(os.fsencode(f"{lima_home}{LONGEST_SOCKET}")) <= MAX_SOCKET_PATH
+
+
+def default_lima_home() -> Path:
+    """Lima's home for the engine: a short folder in the user's home.
+
+    An engine set up before the move, in the data folder, keeps working where it is.
+    """
+    earlier = data_dir() / "lima-home"
+    if (earlier / INSTANCE).is_dir() and fits(earlier):
+        return earlier
+    return engine_vm_dir()
+
+
 class LimaEngine:
     name = "lima"
 
     def __init__(self, root: Path | None = None) -> None:
         self.root = root or data_dir()
-        self.lima_home = self.root / "lima-home"
+        self.lima_home = self.root / "lima-home" if root is not None else default_lima_home()
         self.lima_dir = self.root / "lima" / pins.LIMA_VERSION
         self.config_path = self.root / "engine.lima.yaml"
         self.microvm = False
@@ -222,6 +244,14 @@ class LimaEngine:
     def setup(
         self, resources: Resources, on_step: StepFn = None, microvm: bool = False
     ) -> EngineStatus:
+        if not fits(self.lima_home):
+            raise MirrorError(
+                "The engine's folder has too long a path for the VM's sockets.",
+                f"Lima makes sockets under {self.lima_home}, and a socket path must be at "
+                f"most {MAX_SOCKET_PATH} bytes.",
+                "Run the mirror as a user whose home folder has a shorter path, and report it "
+                "(docs/platforms.md).",
+            )
         make_dir(self.root, owner_only=True)
         make_dir(self.lima_home, owner_only=True)
         self.ensure_lima(on_step)
@@ -340,6 +370,9 @@ class LimaEngine:
             self._limactl("delete", "--force", INSTANCE, timeout=300)
         for path in (self.lima_home, self.root / "lima", self.root / "downloads"):
             shutil.rmtree(path, ignore_errors=True)
+        if self.lima_home == engine_vm_dir():
+            with contextlib.suppress(OSError):  # ~/.mirrordimensions, when nothing else is in it
+                self.lima_home.parent.rmdir()
         self.config_path.unlink(missing_ok=True)
         # Lima's download cache is shared with any Lima the user has; remove only the
         # entries for images the engine pinned.

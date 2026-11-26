@@ -347,3 +347,48 @@ def test_the_engine_client_uses_nothing_from_the_users_docker_config(
     assert headers == {}  # nothing is read back from the file for a build
     environment = api._proxy_configs.inject_proxy_environment(["A=1"])  # pyright: ignore[reportPrivateUsage]
     assert environment == ["A=1"]
+
+
+# -- Lima's home: short enough for its sockets ----------------------------------------
+
+
+def test_lima_home_is_short_enough_for_a_long_username(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The per-user data folder on macOS leaves room for usernames of only eight characters
+    under the 104-byte socket path limit; the engine's own folder must not depend on it."""
+    from mirrordimensions.engine import lima
+
+    home = Path("/Users/alexandra.petrovskaya")
+    monkeypatch.setattr(lima, "engine_vm_dir", lambda: home / ".mirrordimensions" / "lima")
+    monkeypatch.setattr(
+        lima, "data_dir", lambda: home / "Library" / "Application Support" / "mirrordimensions"
+    )
+    assert not lima.fits(lima.data_dir() / "lima-home")
+    engine = lima.LimaEngine()
+    assert engine.lima_home == home / ".mirrordimensions" / "lima"
+    assert lima.fits(engine.lima_home)
+
+
+def test_an_engine_set_up_at_the_earlier_path_stays_there(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from mirrordimensions.engine import lima
+
+    data = tmp_path / "d"
+    (data / "lima-home" / lima.INSTANCE).mkdir(parents=True)
+    monkeypatch.setattr(lima, "data_dir", lambda: data)
+    monkeypatch.setattr(lima, "engine_vm_dir", lambda: tmp_path / "short")
+    monkeypatch.setattr(lima, "fits", lambda _home: True)  # pytest's own folders are long
+    assert lima.LimaEngine().lima_home == data / "lima-home"
+
+
+def test_setup_refuses_a_home_too_long_for_the_sockets(tmp_path: Path) -> None:
+    from mirrordimensions.engine import lima
+    from mirrordimensions.engine.base import Resources
+    from mirrordimensions.errors import MirrorError
+
+    engine = lima.LimaEngine(root=tmp_path / ("x" * 90))
+    with pytest.raises(MirrorError, match="too long a path"):
+        engine.setup(Resources(cpus=2, memory_gb=4, disk_gb=30))
+    assert not engine.lima_home.exists()

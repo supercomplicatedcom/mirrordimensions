@@ -12,6 +12,7 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Fixed
 
+- `mirror engine setup` failed on macOS for usernames longer than eight characters: Lima's sockets under the per-user data folder passed the 104-byte socket path limit. The engine VM's files now live in `~/.mirrordimensions/lima`; an engine already set up keeps its folder.
 - `mirror engine check` passes again on gVisor release-20261123.1, which refuses `dmesg` in a container without CAP_SYSLOG: its throwaway probe retries with it.
 
 ### Added
