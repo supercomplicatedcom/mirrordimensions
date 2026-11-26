@@ -401,10 +401,17 @@ test("World wizard: six steps write mirror.yaml as they go, as the command line 
 
 test("Onboarding: a remote agent, with the reduced guarantees shown and accepted", async ({
   page,
-}) => {
+}, testInfo) => {
+  // A retry gets its own name: a failed attempt can leave its draft behind.
+  const name = testInfo.retry
+    ? `vendor-helper-${testInfo.retry}`
+    : "vendor-helper";
+  const step = (title: string) =>
+    expect(page.getByRole("heading", { name: title })).toBeVisible();
   await page.goto("/agents/new");
-  await page.getByLabel(/Name/).fill("vendor-helper");
+  await page.getByLabel(/Name/).fill(name);
   await page.getByRole("button", { name: "Start" }).click();
+  await step("How does the agent connect?");
   await page.getByRole("radio", { name: /Remote gateway/ }).check();
   const notice = page.getByRole("note", { name: "Reduced guarantees" });
   await expect(notice).toContainText("detected but not blocked");
@@ -414,14 +421,15 @@ test("Onboarding: a remote agent, with the reduced guarantees shown and accepted
   await page.getByLabel(/I accept these reduced guarantees/).check();
   await accessible(page);
   await next.click();
+  // Each step is waited for: a click while the next one loads would be lost.
+  await step("Where does its model run?");
   await expect(
     page.getByText(/On its vendor's platform. No route is configured/),
   ).toBeVisible();
   await page.getByRole("button", { name: "Next" }).click();
+  await step("Who does it act as?");
   await page.getByRole("button", { name: "Next" }).click();
-  await expect(
-    page.getByRole("heading", { name: "What can it reach?" }),
-  ).toBeVisible();
+  await step("What can it reach?");
   // The MCP server is its way in: its tools start granted.
   await expect(page.getByLabel("Grant on search_issues")).toHaveValue(
     "allowed",
@@ -429,15 +437,14 @@ test("Onboarding: a remote agent, with the reduced guarantees shown and accepted
   await page.getByLabel("Grant on close_issue").selectOption("none");
   await accessible(page);
   await page.getByRole("button", { name: "Next" }).click();
+  await step("How does work reach it?");
   await expect(
     page.getByText(/Through its vendor's own trigger/),
   ).toBeVisible();
   await page.getByRole("button", { name: "Check and finish" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Is it ready?" }),
-  ).toBeVisible();
+  await step("Is it ready?");
   const file = page.getByRole("complementary", {
-    name: /agents\/vendor-helper.yaml/,
+    name: `agents/${name}.yaml, written as you go`,
   });
   await expect(file).toContainText("mode: remote");
   await expect(file).toContainText("reduced_guarantees: accepted");
@@ -445,12 +452,11 @@ test("Onboarding: a remote agent, with the reduced guarantees shown and accepted
   await expect(file).not.toContainText("close_issue");
   await expect(file).not.toContainText("image");
   await page.getByRole("link", { name: "Save and close" }).click();
-  await expect(page.getByRole("row", { name: /vendor-helper/ })).toContainText(
-    "Ready",
-  );
+  const row = page.getByRole("row", { name: new RegExp(`^${name}\\b`) });
+  await expect(row).toContainText("Ready");
   page.once("dialog", (d) => void d.accept());
-  await page.getByRole("button", { name: "Remove vendor-helper" }).click();
-  await expect(page.getByRole("row", { name: /vendor-helper/ })).toBeHidden();
+  await page.getByRole("button", { name: `Remove ${name}` }).click();
+  await expect(row).toBeHidden();
 });
 
 test("Onboarding: an agent in six steps, from the role's usual access", async ({
