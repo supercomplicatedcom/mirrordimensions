@@ -86,6 +86,10 @@ def run_checks(engine: LimaEngine) -> list[CheckResult]:
     runtimes = docker.runtimes()
     if "runsc" in runtimes:
         out = docker.run(PROBE_IMAGE, ["dmesg"], runtime="runsc")
+        if out.exit_code != 0 and "not permitted" in out.output:
+            # gVisor release-20261123.1 and later refuse the kernel log without CAP_SYSLOG,
+            # as Linux does with dmesg_restrict. This throwaway probe is given it to look.
+            out = docker.run(PROBE_IMAGE, ["dmesg"], runtime="runsc", cap_add=["SYSLOG"])
         ok = out.exit_code == 0 and "gVisor" in out.output
         results.append(
             CheckResult(
