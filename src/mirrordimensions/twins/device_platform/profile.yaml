@@ -15,6 +15,7 @@ surfaces:
   - {id: device.history, kind: endpoint, match: {method: GET, path: "/api/v1/devices/{device_id}/commands"}, resource: "device:{device_id}", access: read, sentence: "Reads the command history of {device_id}"}
   - {id: device.command, kind: endpoint, match: {method: POST, path: "/api/v1/devices/{device_id}/commands"}, resource: "device:{device_id}", access: write, sentence: "Sends {body.command} to {device_id}"}
   - {id: event.list, kind: endpoint, match: {method: GET, path: "/api/v1/events"}, resource: "audit-log", access: read, sentence: "Reads the access log"}
+  - {id: badge.list, kind: endpoint, match: {method: GET, path: "/api/v1/badges"}, resource: "badges", access: read, sentence: "Lists badges and who holds them"}
 defaults:
   settings: {}
   response: {}

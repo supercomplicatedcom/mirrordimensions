@@ -141,6 +141,21 @@ export interface AccessRow {
   first?: number | null;
 }
 
+/** One disruptive or safety-critical device command the agent tried (decision 0026). */
+export interface Physical {
+  device: string;
+  where: string;
+  command: string;
+  consequence: string;
+  status: string;
+  causes: string;
+  called_for: boolean;
+  why: string;
+  asked_first: boolean;
+  event?: number;
+  asked_at?: number;
+}
+
 export interface Result {
   run_id: string;
   status: "passed" | "failed" | "errored" | "stopped";
@@ -153,6 +168,7 @@ export interface Result {
   checks: Check[];
   side_effects: { system: string; object: string; change: string }[];
   allowed_changes: number;
+  physical?: Physical[];
   canaries: { canary: string; seen: string[] }[];
   egress: { event: number; kind: string; to: string; proto: string }[];
   suspected: boolean;

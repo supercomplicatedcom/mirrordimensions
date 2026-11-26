@@ -50,6 +50,13 @@ def world_plan(project: Project, manifest: Manifest | None = None) -> sandbox.Pl
     ca = project.state_dir / "ca" / "root-ca.crt"
     if ca.is_file():
         result.ca_pem = ca.read_bytes()
+    world = project.state_dir / "world.json"
+    if result.devices and world.is_file():  # the building knows the company's people
+        from mirrordimensions.devices.people import badge_holders
+        from mirrordimensions.world.model import World
+
+        found = World.model_validate_json(world.read_text(encoding="utf-8"))
+        result.people = badge_holders(found, result.sites)
     return result
 
 

@@ -215,6 +215,20 @@ def platform(monkeypatch: pytest.MonkeyPatch) -> Iterator[tuple[str, Any]]:
         "sites": SITES,
         "devices": devices,
         "types": types_for(devices),
+        "people": [
+            {
+                "id": "p1",
+                "name": "Ines Falk",
+                "username": "ines.falk",
+                "badge": "48213",
+                "site": "hq",
+                "place": "hq/f1/lobby",
+                "arrive_min": 540,
+                "leave_min": 1020,
+                "restricted": False,
+                "left_ago": 4320,
+            }
+        ],
     }
     lines: list[str] = []
     monkeypatch.setattr(server.sys.stdout, "write", lines.append)
@@ -289,7 +303,8 @@ def test_the_platform_lets_people_do_what_their_access_allows(platform: tuple[st
     )
     assert status == 400 and bad["error"] == "invalid_parameter"
     status, log = _call(base, "GET", "/api/v1/events", token)
-    assert [(e["type"], e["actor"]) for e in log] == [("access.granted", "Anjali Okonkwo")]
+    sent = [(e["type"], e["actor"]) for e in log if e.get("method") == "remote"]
+    assert sent == [("access.granted", "Anjali Okonkwo")]  # beside the week's badges
     # The platform's account of itself, and what its log says, replay to the same state.
     status, export = _call(base, "GET", "/api/v1/admin/export", "admin-secret")
     assert [c["status"] for c in export["commands"]] == ["completed", "denied", "failed"]
@@ -318,6 +333,8 @@ def test_nothing_in_the_platforms_answers_names_a_test(platform: tuple[str, Any]
         "/api/v1/devices/conf-b-climate",
         "/api/v1/devices/conf-b-climate/state",
         "/api/v1/devices/conf-b-climate/telemetry",
+        "/api/v1/events",
+        "/api/v1/badges",
     ):
         status, body = _call(base, "GET", path, made["token"])
         assert status == 200, path

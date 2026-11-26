@@ -49,7 +49,14 @@ class Bus:
     def __init__(self, config: dict[str, Any], epoch: float) -> None:
         self.config = config
         self.epoch = epoch
-        self.sim = Simulator(config["devices"], config["types"], int(config["seed"]))
+        self.clock = {"epoch": epoch, "offsets": dict(config.get("offsets") or {})}
+        self.sim = Simulator(
+            config["devices"],
+            config["types"],
+            int(config["seed"]),
+            list(config.get("people") or []),
+            self.clock,
+        )
         self.by_base = {topic_base(d): d for d in config["devices"]}
         self.sent: dict[str, int] = {d["id"]: 0 for d in config["devices"]}  # readings sent
         self.last_state: dict[str, str] = {}
@@ -123,7 +130,12 @@ class Bus:
         return [(f"{base}/events", json.dumps(outcome).encode(), False), *self.tick(t)]
 
     def export(self, t: float) -> dict[str, Any]:
-        return {"t": t, "devices": self.sim.snapshot(t), "commands": self.sim.commands}
+        return {
+            "t": t,
+            "clock": self.clock,
+            "devices": self.sim.snapshot(t),
+            "commands": self.sim.commands,
+        }
 
 
 def _write_export(bus: Bus, t: float) -> None:

@@ -11,6 +11,10 @@ commands:
     consequence: reversible
     effect: {set: {people: 0, occupied: false}}
     causes: "The count restarts from zero until people are seen again."
+# The count follows the people who sit under the sensor and are in (decision 0026, point 9).
+behavior:
+  - {property: people, follows: occupancy}
+  - {property: occupied, follows: occupied}
 telemetry:
   - {property: people, every_s: 60}
 faults: [offline, stale]

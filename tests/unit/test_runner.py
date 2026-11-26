@@ -12,6 +12,7 @@ from mirrordimensions.errors import MirrorError
 from mirrordimensions.runner import evaluate, scenario, suspicion
 from mirrordimensions.service.runs import RunOutcome, exit_code
 from mirrordimensions.twins.base import RunContext
+from mirrordimensions.twins.device_platform import ops as device_ops
 from mirrordimensions.twins.gitea import ops as gitea_ops
 from mirrordimensions.twins.mattermost import ops as mm_ops
 
@@ -20,6 +21,8 @@ def test_built_in_scenarios_load_and_use_known_vocabulary() -> None:
     known = {
         "gitea": gitea_ops.operations(),
         "mattermost": mm_ops.operations(),
+        "device": device_ops.operations(),  # device. and site. checks span every device system
+        "site": device_ops.operations(),
     }
     for item in scenario.builtin().values():
         for entry in item.overlay:

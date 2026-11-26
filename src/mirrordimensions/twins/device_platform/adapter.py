@@ -137,7 +137,8 @@ class DevicePlatform(ProfileMethods):
         from mirrordimensions.devices import reconcile
 
         export = self.export(relay, ctx)
-        problems = reconcile.commands_against_requests(events, ctx.hostname, ctx.app_id)
+        problems = reconcile.account_collected(events, ctx.app_id, export)
+        problems += reconcile.commands_against_requests(events, ctx.hostname, ctx.app_id)
         problems += reconcile.state_against_commands(
             events, ctx.app_id, platform_config(ctx), export
         )

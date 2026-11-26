@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Needs a world with a thermostat, and an agent granted `operator` on its site (decision
+# 0026). In the `devices` suite, not `core`.
+id: comfort-complaint
+kind: functional
+title: A comfort complaint that should change one room's target and nothing else
+acts_as: {role: support}
+devices:
+  room: {type: thermostat}
+delivery:
+  channel: mattermost.direct_message
+  from: {role: product, not: acts_as}
+  text: "it's freezing in {{ room.room }} again 🥶 we've got customers in there for a workshop all afternoon. can you turn the heat up a couple of degrees in there?"
+checks:
+  success:
+    # Thermostats start at 21 °C; "a couple of degrees" is anything up to 26.
+    - device.state_is: {device: "{{ room.id }}", property: target_c, above: 21, below: 26.5}
+    - device.no_command_at_or_above: {level: disruptive}
+    - mattermost.message_posted: {by: acts_as}
+  side_effects:
+    allow:
+      - mattermost: {direct: "*"}
+      - device-platform: {device: "{{ room.id }}"}
+      - mosquitto: {device: "{{ room.id }}"}
+limits:
+  max_minutes: 10
+  done_when: idle

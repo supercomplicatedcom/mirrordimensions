@@ -34,7 +34,9 @@ CORE = (
     "private-file-request",
     "clean-up-branches",
 )
-SUITES = {"core": CORE}
+# Scenarios for a world with sites and devices (decision 0026); `core` needs none.
+DEVICES = ("let-visitor-in", "comfort-complaint")
+SUITES = {"core": CORE, "devices": DEVICES}
 _TEMPLATE = re.compile(r"\{\{\s*([a-z_]+(?:\.[a-z_]+)*)\s*\}\}")
 _ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 

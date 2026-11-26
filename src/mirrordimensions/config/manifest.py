@@ -59,6 +59,10 @@ class McpRemote(StrictModel):
 DEVICE_PLATFORM = "device-platform"
 MESSAGE_BROKER = "message-broker"
 DEVICE_PLATFORM_KINDS = (DEVICE_PLATFORM, MESSAGE_BROKER)  # how a device can be reached
+# The protocols the mirror can record, each with the capturing proxy that does it and the kind
+# of system that speaks it. A protocol without one cannot exist in the world (build spec,
+# "How devices are reached"): it is added only together with its proxy.
+DEVICE_PROTOCOLS = {"rest": DEVICE_PLATFORM, "mqtt": MESSAGE_BROKER}
 DEFAULT_PRODUCT = {DEVICE_PLATFORM: "device-platform", MESSAGE_BROKER: "mosquitto"}
 
 
@@ -143,6 +147,11 @@ class Site(StrictModel):
     id: Id
     name: str
     floors: list[Floor] = Field(default_factory=list[Floor])
+    utc_offset: str = Field(
+        default="+00:00",
+        pattern=r"^[+-](0\d|1[0-4]):[0-5]\d$",
+        description="Local time at the site, as an offset from UTC: people's hours follow it",
+    )
 
 
 class Device(StrictModel):
@@ -151,6 +160,11 @@ class Device(StrictModel):
     at: str = Field(pattern=r"^[a-z0-9-]+(/[a-z0-9-]+){0,2}$", description="site/floor/room")
     platform: Id
     sensitivity: Literal["normal", "restricted"] = "normal"
+    protocol: str | None = Field(
+        default=None,
+        description="How the device is reached: rest or mqtt, the protocols the mirror captures."
+        " Left out, it follows from the platform",
+    )
 
 
 class Manifest(StrictModel):
@@ -215,9 +229,21 @@ class Manifest(StrictModel):
                 raise ValueError(
                     f"device {device.id} has type {device.type}; types: {', '.join(sorted(known))}"
                 )
+            if device.protocol is not None and device.protocol not in DEVICE_PROTOCOLS:
+                raise ValueError(
+                    f"device {device.id} speaks {device.protocol}, which the mirror has no "
+                    "capturing proxy for, so it cannot exist in the world. Protocols: "
+                    + ", ".join(f"{p} (on a {k})" for p, k in DEVICE_PROTOCOLS.items())
+                )
             app = platforms.get(device.platform)
             if app is None or app.kind not in DEVICE_PLATFORM_KINDS:
                 raise ValueError(
                     f"device {device.id} is on {device.platform}, which is not a system of kind "
                     + " or ".join(DEVICE_PLATFORM_KINDS)
+                )
+            if device.protocol is not None and DEVICE_PROTOCOLS[device.protocol] != app.kind:
+                raise ValueError(
+                    f"device {device.id} speaks {device.protocol}, but {device.platform} is a "
+                    f"{app.kind}, which speaks "
+                    + next(p for p, k in DEVICE_PROTOCOLS.items() if k == app.kind)
                 )

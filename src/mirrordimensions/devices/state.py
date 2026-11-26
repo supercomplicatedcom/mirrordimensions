@@ -19,10 +19,18 @@ def device_config(ctx: TwinContext) -> dict[str, Any]:
     return {
         "seed": ctx.seed,
         "company": ctx.company,
-        "sites": ctx.sites,
+        "sites": [{k: v for k, v in s.items() if k != "utc_offset"} for s in ctx.sites],
+        "offsets": {str(s["id"]): _offset_s(str(s.get("utc_offset", "+00:00"))) for s in ctx.sites},
         "devices": devices,
         "types": types_for(devices),
+        "people": ctx.people,
     }
+
+
+def _offset_s(text: str) -> int:
+    sign = -1 if text.startswith("-") else 1
+    hours, minutes = text[1:].split(":")
+    return sign * (int(hours) * 3600 + int(minutes) * 60)
 
 
 def dump_from(ctx: TwinContext, export: dict[str, Any]) -> dict[str, Any]:

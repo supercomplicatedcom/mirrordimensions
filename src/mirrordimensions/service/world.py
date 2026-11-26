@@ -131,6 +131,10 @@ class _Run:
         self.docker, *_ = _docker()
         self.secrets = app_secrets(project, self.manifest)
         self.world = generate(self.manifest)
+        if self.plan.devices:  # from this world, not one an earlier build left behind
+            from mirrordimensions.devices.people import badge_holders
+
+            self.plan.people = badge_holders(self.world, self.plan.sites)
         self.text = world_json(self.world)
         self.digest = hashlib.sha256(self.text.encode()).hexdigest()[:16]
         self.state_path = project.state_dir / "build.json"

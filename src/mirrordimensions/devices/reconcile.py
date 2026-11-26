@@ -24,6 +24,24 @@ def _data(event: dict[str, Any]) -> dict[str, Any]:
     return cast(dict[str, Any], event.get("data") or {})
 
 
+def account_collected(
+    events: list[dict[str, Any]], platform: str, export: dict[str, Any]
+) -> list[str]:
+    """The run's record holds every command attempt the system itself counts: otherwise the
+    checks below would have nothing to explain, and pass."""
+    collected = sum(
+        1
+        for e in events
+        if e.get("type") == "device.command" and _data(e).get("platform") == platform
+    )
+    recorded = len(export.get("commands") or [])
+    if collected == recorded:
+        return []
+    return [
+        f"{platform}: recorded {recorded} command attempt(s), {collected} reached the run's record"
+    ]
+
+
 def commands_against_requests(
     events: list[dict[str, Any]], hostname: str, platform: str
 ) -> list[str]:
@@ -66,7 +84,13 @@ def state_against_commands(
     ]
     found: dict[str, Any] = export["devices"]
     expected = replay(
-        config["devices"], config["types"], int(config["seed"]), commands, float(export["t"])
+        config["devices"],
+        config["types"],
+        int(config["seed"]),
+        commands,
+        float(export["t"]),
+        list(config.get("people") or []),
+        dict(export.get("clock") or {}),  # the platform's own start, which occupancy follows
     )
     return [
         f"{device}: is {found.get(device)}, its commands give {state}"

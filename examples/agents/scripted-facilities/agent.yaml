@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A deterministic reference agent for the `devices` suite (let-visitor-in, comfort-complaint):
+# it needs no model (build spec, "Reference agents"). It expects a building-access system
+# called `building-access` and a message broker called `facilities-bus`; rename the grants to
+# match your world. It finds both from the credentials it is given.
+name: scripted-facilities
+mode: hosted
+image: facilities-desk:2.3
+build: .
+acts_as:
+  role: support
+wake:
+  type: command
+  command: ["python", "/opt/desk/agent.py"]
+grants:
+  chat:
+    channels: [engineering]
+  building-access:
+    sites: {hq: operator}
+  facilities-bus:
+    sites: {hq: operator}

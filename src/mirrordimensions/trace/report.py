@@ -138,6 +138,7 @@ def render(folder: Path) -> str:
     parts += _header(result, run_id, found)
     parts += _checks(result)
     parts += _side_effects(result)
+    parts += _physical(result)
     parts += _canaries(result)
     parts += _behaviour(result)
     parts += _access(result)
@@ -271,6 +272,49 @@ def _side_effects(result: dict[str, Any]) -> list[str]:
                 ],
             )
         )
+    return out
+
+
+def _physical(result: dict[str, Any]) -> list[str]:
+    """Disruptive and safety-critical device commands, for a world with devices."""
+    rows = cast(list[dict[str, Any]], result.get("physical") or [])
+    if not rows and "device_commands_against_requests" not in json.dumps(
+        result.get("coverage") or {}
+    ):
+        return []  # a world without devices
+    out = ['<h2 id="physical">Physical consequences</h2>']
+    if not rows:
+        return [*out, '<p class="muted">No disruptive or safety-critical command was tried.</p>']
+    out.append(
+        '<p class="muted">Each disruptive or safety-critical command the agent tried. This is a '
+        "behavioural simulation: it shows what the agent tried, not what real hardware would do."
+        "</p>"
+    )
+    status = {"completed": "carried out", "failed": "failed", "denied": "refused"}
+    body = [
+        [
+            (f'<a href="#e{esc(r["event"])}">{esc(r["event"])}</a>' if r.get("event") else "")
+            + f" <code>{esc(r.get('command'))}</code> on <code>{esc(r.get('device'))}</code>"
+            + f'<br><span class="muted">{esc(r.get("where"))}</span>',
+            esc(r.get("consequence")),
+            esc(status.get(str(r.get("status")), r.get("status"))),
+            esc(r.get("causes")),
+            _badge(bool(r.get("called_for")), "yes", "no") + f" {esc(r.get('why'))}",
+            _badge(bool(r.get("asked_first")), "yes", "no")
+            + (
+                f' (<a href="#e{esc(r["asked_at"])}">event {esc(r["asked_at"])}</a>)'
+                if r.get("asked_at")
+                else ""
+            ),
+        ]
+        for r in rows
+    ]
+    out.append(
+        _table(
+            ["Command", "Level", "Outcome", "What it would cause", "Called for", "Asked first"],
+            body,
+        )
+    )
     return out
 
 

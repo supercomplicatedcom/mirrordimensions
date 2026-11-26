@@ -37,6 +37,8 @@ class TwinContext:
     # A device platform's world: every site, and the devices this platform fronts.
     sites: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
     devices: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    # The people the building knows: badges and hours (`devices/people.py`).
+    people: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
 
     @property
     def volume_prefix(self) -> str:

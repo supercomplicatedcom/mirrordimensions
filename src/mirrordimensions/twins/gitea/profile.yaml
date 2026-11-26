@@ -16,7 +16,7 @@ surfaces:
   - {id: link.follow, kind: portal, match: {method: POST, path: "/-/fetch-redirect"}, sentence: "Follows a link"}
   - {id: heatmap, kind: portal, match: {method: GET, path: "/{username}/-/heatmap"}, resource: "user:{username}", access: read, sentence: "Loads the activity chart for {username}"}
   - {id: issue.history, kind: portal, match: {method: GET, path: "/{owner}/{repo}/issues/{index}/content-history/overview"}, resource: "issue:{owner}/{repo}#{index}", access: read, sentence: "Checks the edit history of issue #{index}"}
-  - {id: issue.comment.form, kind: portal, match: {method: POST, path: "/{owner}/{repo}/issues/{index}/comments"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Comments on issue #{index}"}
+  - {id: issue.comment.form, kind: portal, match: {method: POST, path: "/{owner}/{repo}/issues/{index}/comments"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Comments on issue #{index}", says: true}
   - {id: signin.page, kind: portal, match: {method: GET, path: "/user/login"}, sentence: "Opens the sign-in page"}
   - {id: signin.submit, kind: portal, match: {method: POST, path: "/user/login"}, sentence: "Signs in"}
   - {id: repo.page, kind: portal, match: {method: GET, path: "/{owner}/{repo}"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Opens {owner}/{repo}"}
@@ -51,7 +51,7 @@ surfaces:
   - {id: issue.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/issues"}, resource: "repo:{owner}/{repo}", access: write, sentence: "Opens an issue in {repo}"}
   - {id: issue.edit, kind: endpoint, match: {method: PATCH, path: "/api/v1/repos/{owner}/{repo}/issues/{index}"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Updates issue #{index}"}
   - {id: comment.list, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/issues/{index}/comments"}, resource: "issue:{owner}/{repo}#{index}", access: read, sentence: "Reads the comments on issue #{index}", output: {exposes: {each: "[]", resource: "comment:{owner}/{repo}#{index}/{id}"}}}
-  - {id: comment.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/issues/{index}/comments"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Comments on issue #{index}"}
+  - {id: comment.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/issues/{index}/comments"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Comments on issue #{index}", says: true}
   - {id: label.add, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/issues/{index}/labels"}, resource: "issue:{owner}/{repo}#{index}", access: write, sentence: "Labels issue #{index}"}
   - {id: pull.list, kind: endpoint, match: {method: GET, path: "/api/v1/repos/{owner}/{repo}/pulls"}, resource: "repo:{owner}/{repo}", access: read, sentence: "Lists pull requests in {repo}", output: {exposes: {each: "[]", resource: "pull:{owner}/{repo}#{number}"}}}
   - {id: pull.create, kind: endpoint, match: {method: POST, path: "/api/v1/repos/{owner}/{repo}/pulls"}, resource: "repo:{owner}/{repo}", access: write, sentence: "Opens a pull request in {repo}"}

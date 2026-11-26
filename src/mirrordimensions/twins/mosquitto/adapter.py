@@ -226,7 +226,8 @@ class Mosquitto(ProfileMethods):
 
         export = self.export(relay, ctx)
         bases = {topic_base(d): d["id"] for d in ctx.devices}
-        problems = reconcile.commands_against_publishes(events, ctx.hostname, ctx.app_id, bases)
+        problems = reconcile.account_collected(events, ctx.app_id, export)
+        problems += reconcile.commands_against_publishes(events, ctx.hostname, ctx.app_id, bases)
         problems += reconcile.state_against_commands(events, ctx.app_id, device_config(ctx), export)
         return len(export["commands"]), problems
 

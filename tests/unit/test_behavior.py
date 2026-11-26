@@ -827,6 +827,15 @@ SHAPES += [
         "audit-log",
         "Reads the access log",
     ),
+    (
+        "device-platform",
+        "badge.list",
+        "GET",
+        "/api/v1/badges",
+        b"",
+        "badges",
+        "Lists badges and who holds them",
+    ),
 ]
 PROFILES = {"gitea": GITEA, "mattermost": MATTERMOST, "device-platform": DEVICES}
 

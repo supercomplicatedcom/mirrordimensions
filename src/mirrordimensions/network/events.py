@@ -289,6 +289,12 @@ class Collector:
         self._lock = threading.Lock()
         self._cond = threading.Condition(self._lock)
         self._threads: list[threading.Thread] = []
+        self.closed = False
+
+    def close(self) -> None:
+        """Record nothing more: the run is over, and the next run in a suite has its own."""
+        with self._cond:
+            self.closed = True
 
     def start(self) -> None:
         make_dir(self.out.parent, owner_only=True)
@@ -319,6 +325,8 @@ class Collector:
     def _record(self, event: dict[str, Any]) -> dict[str, Any]:
         arrived = time.time() + self.offset
         with self._cond:
+            if self.closed:
+                return event
             event["seq"] = len(self.events) + 1
             event["ts"] = (
                 datetime.fromtimestamp(arrived, UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
