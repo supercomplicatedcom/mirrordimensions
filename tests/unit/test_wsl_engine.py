@@ -11,6 +11,7 @@ from __future__ import annotations
 import socket
 import ssl
 import subprocess
+import sys
 import threading
 from pathlib import Path
 from typing import Any
@@ -21,7 +22,9 @@ from mirrordimensions.engine import docker_tls, wsl
 from mirrordimensions.engine.base import Resources
 from mirrordimensions.engine.wsl import DISTRIBUTION, WslEngine, install_tls_script
 from mirrordimensions.errors import MirrorError
+from mirrordimensions.hostos.files import owner_only_problem
 
+REAL_RUN = subprocess.run
 RESOURCES = Resources(cpus=4, memory_gb=8, disk_gb=40)
 
 
@@ -39,7 +42,8 @@ class FakeWsl:
             self.vhdx.write_bytes(b"")
 
     def __call__(self, argv: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
-        assert argv[0] == "wsl.exe"
+        if argv[0] != "wsl.exe":  # e.g. icacls, for owner-only files on Windows
+            return REAL_RUN(argv, **kwargs)
         assert kwargs["env"]["WSL_UTF8"] == "1"
         args = argv[1:]
         self.calls.append(args)
@@ -128,6 +132,7 @@ def test_microvm_is_refused_on_wsl(tmp_path: Path, fake: FakeWsl) -> None:
         WslEngine(root=tmp_path).setup(RESOURCES, experimental=True, microvm=True)
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="a POSIX shell script, run in the engine")
 def test_the_server_files_land_where_the_drop_in_expects_them(tmp_path: Path) -> None:
     server = docker_tls.create(tmp_path / "client")
     script = (
@@ -195,7 +200,7 @@ def test_docker_tls_requires_the_client_certificate(tmp_path: Path) -> None:
     thread.join(5)
     listener.close()
     assert outcomes == ["accepted", "refused"]
-    assert (tmp_path / "client" / "key.pem").stat().st_mode & 0o077 == 0
+    assert owner_only_problem(tmp_path / "client" / "key.pem") is None
 
 
 @pytest.mark.parametrize("required", [True, False])
