@@ -37,6 +37,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from mirrordimensions.config.agent import Agent
+from mirrordimensions.config.manifest import DEVICE_PLATFORM
 from mirrordimensions.config.result import Result, WorldRef
 from mirrordimensions.config.scenario import Scenario
 from mirrordimensions.engine.registry import get_engine
@@ -44,7 +45,7 @@ from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.files import make_dir, write_text
 from mirrordimensions.hostos.lock import ProjectLock
 from mirrordimensions.network import sandbox
-from mirrordimensions.network.events import Collector, parse_ingress, tracer_parser
+from mirrordimensions.network.events import Collector, device_parser, parse_ingress, tracer_parser
 from mirrordimensions.project import Project
 from mirrordimensions.runner import coverage, evaluate, ledger, scenario
 from mirrordimensions.service import agents as agents_svc
@@ -59,7 +60,7 @@ from mirrordimensions.service.sandbox import (
 )
 from mirrordimensions.service.worlddef import definition_hash
 from mirrordimensions.trace import access, report
-from mirrordimensions.twins.base import RunContext, StateObject, get_twin
+from mirrordimensions.twins.base import Reconciles, RunContext, StateObject, get_twin, product_of
 from mirrordimensions.twins.relay import Relay
 from mirrordimensions.world.model import Person, World
 
@@ -225,6 +226,9 @@ class _Run:
             self.collector.add_source(
                 sandbox.TRACER_NAME, tracer_parser(self.watch, self.trace_progress)
             )
+        for app in self.plan.apps:  # each device platform's own account of commands
+            if app.product == DEVICE_PLATFORM and app.visibility != "absent":
+                self.collector.add_source(app.container, device_parser(app.id))
         self.remote = self.agent.mode == "remote"
         if self.remote:
             self._check_exposed()
@@ -476,7 +480,8 @@ class _Run:
         )
 
     def _operation(self, name: str, kind: str) -> tuple[Any, RunContext]:
-        product, _, op = name.partition(".")
+        op = name.partition(".")[2]
+        product = product_of(name)
         app = next((a for a in self.plan.apps if a.product == product), None)
         twin = get_twin(product)
         if app is None or twin is None:
@@ -652,8 +657,8 @@ class _Run:
 
         def run_check(entry: dict[str, Any], kind: str) -> dict[str, Any]:
             ((name, args),) = scenario.render(entry, self.values).items()
-            product, _, op = name.partition(".")
-            twin = get_twin(product)
+            op = name.partition(".")[2]
+            twin = get_twin(product_of(name))
             if twin is not None and op in twin.operations().event_checks:
                 efn, rc = self._operation(name, "event_checks")
                 outcome = efn(rc, dict(args or {}), exchanges)
@@ -666,7 +671,7 @@ class _Run:
                 self.collector.emit("evaluator", "check.result", record)
                 return record
             fn, rc = self._operation(name, "checks")
-            app = apps[name.split(".")[0]]
+            app = apps[product_of(name)]
             rc.facts = {
                 **self.facts,
                 "before": self.before.get(app.id, {}),
@@ -862,6 +867,9 @@ class _Run:
         mcp = self._mcp_reconciliation(events)
         if mcp is not None:
             recs["mcp_calls_against_writes"] = mcp
+        devices = self._device_reconciliation(events)
+        if devices is not None:
+            recs["device_commands_against_requests"] = devices
         if not self.tracer:
             for name in ("connections_against_captures", "processes_against_image"):
                 recs[name] = {
@@ -882,6 +890,33 @@ class _Run:
         summary = coverage.summarize(chans, recs)
         summary["ledger"] = self.result.coverage.get("ledger", {})
         self.result.coverage = summary
+
+    def _device_reconciliation(self, events: list[dict[str, Any]]) -> dict[str, Any] | None:
+        """Each twin that keeps its own account (a device platform) is explained by what
+        the gateway captured (decision 0026)."""
+        found: list[tuple[sandbox.App, Reconciles]] = []
+        for app in self.plan.apps:
+            twin = get_twin(app.product)
+            if isinstance(twin, Reconciles) and app.visibility != "absent":
+                found.append((app, twin))
+        if not found:
+            return None
+        problems: list[str] = []
+        commands = 0
+        for app, twin in found:
+            rc = self._context(app)
+            try:
+                count, unexplained = twin.reconcile(rc.relay, rc.ctx, events)
+            except MirrorError as exc:
+                problems.append(f"{app.id}: {exc.what}")
+                continue
+            commands += count
+            problems += unexplained
+        return {
+            "passed": not problems,
+            "detail": f"{commands} device command(s); each came through the gateway, and the devices are in the state they produce",
+            "unexplained": problems,
+        }
 
     def _mcp_reconciliation(self, events: list[dict[str, Any]]) -> dict[str, Any] | None:
         mcp_apps = [a for a in self.plan.apps if a.is_mcp and a.id in self.agent.grants]
@@ -919,6 +954,9 @@ class _Run:
         mcp = self._mcp_reconciliation(events)
         if mcp is not None:
             recs["mcp_calls_against_writes"] = mcp
+        devices = self._device_reconciliation(events)
+        if devices is not None:
+            recs["device_commands_against_requests"] = devices
         through = sum(
             1
             for e in events

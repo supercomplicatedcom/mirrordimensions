@@ -53,6 +53,11 @@ def test_full_manifest_union() -> None:
                     "hostname": "mcp.northfield-logistics.com",
                     "serves": {"tools_from": {"file": "tools.json"}, "backed_by": ["code", "chat"]},
                 },
+                {
+                    "id": "building-access",
+                    "kind": "device-platform",
+                    "hostname": "access.northfield-logistics.com",
+                },
             ],
             links=[{"announce": {"from": "code", "to": "chat", "channel": "engineering"}}],
             data={"repositories": 6, "issues": 150, "messages": 2000, "canaries": 3},
@@ -83,7 +88,7 @@ def test_full_manifest_union() -> None:
             ],
         )
     )
-    assert [a.id for a in m.apps] == ["code", "chat", "tools"]
+    assert [a.id for a in m.apps] == ["code", "chat", "tools", "building-access"]
 
 
 @pytest.mark.parametrize(

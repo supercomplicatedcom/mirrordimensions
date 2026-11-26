@@ -56,6 +56,28 @@ def parse_gateway(line: str) -> dict[str, Any] | None:
     return {"source": source, "type": kind, "data": data}
 
 
+def device_parser(platform: str) -> Callable[[str], dict[str, Any] | None]:
+    """A device platform's log: one JSON line per command attempted (decision 0026)."""
+
+    def parse(line: str) -> dict[str, Any] | None:
+        try:
+            raw = json.loads(line)
+        except ValueError:
+            return None
+        if not isinstance(raw, dict):
+            return None
+        item = cast(dict[str, Any], raw)
+        if item.get("source") != "device" or not str(item.get("type", "")).startswith("device."):
+            return None
+        return {
+            "source": "device",
+            "type": str(item["type"]),
+            "data": {**item.get("data", {}), "platform": platform},
+        }
+
+    return parse
+
+
 def parse_ingress(line: str) -> dict[str, Any] | None:
     """The ingress runs the gateway's capture code (decision 0024). Its events are the
     gateway's kinds, marked `via: ingress`, and its own numbering is kept apart from the

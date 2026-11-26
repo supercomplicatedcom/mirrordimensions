@@ -73,9 +73,8 @@ def _start_twins(docker: Docker, plan: sandbox.Plan, secrets: dict[str, str]) ->
     for app in _twins(plan):
         twin = get_twin(app.product)
         assert twin is not None  # noqa: S101
-        ctx = sandbox.twin_context(plan, app, secrets)
-        docker.start(ctx.db_container)
-        docker.start(ctx.app_container)
+        for name in sandbox.containers_of(plan, app):  # the database first, if it has one
+            docker.start(name)
     for app in _twins(plan):
         twin = get_twin(app.product)
         assert twin is not None  # noqa: S101
@@ -91,7 +90,7 @@ def _containers_and_volumes(
         twin = get_twin(app.product)
         assert twin is not None  # noqa: S101
         ctx = sandbox.twin_context(plan, app, secrets)
-        containers += [ctx.app_container, ctx.db_container]
+        containers += sandbox.containers_of(plan, app)
         vols += twin.volumes(ctx)
     return containers, vols
 

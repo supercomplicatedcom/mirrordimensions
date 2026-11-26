@@ -12,7 +12,17 @@ from pydantic import Field, model_validator
 from mirrordimensions.config.common import StrictModel
 
 Source = Literal[
-    "runner", "gateway", "model", "dns", "egress", "browser", "host", "state", "evaluator", "mcp"
+    "runner",
+    "gateway",
+    "model",
+    "dns",
+    "egress",
+    "browser",
+    "host",
+    "state",
+    "evaluator",
+    "mcp",
+    "device",
 ]
 
 EVENT_TYPES: dict[str, frozenset[str]] = {
@@ -52,6 +62,8 @@ EVENT_TYPES: dict[str, frozenset[str]] = {
     "state": frozenset({"state.diff"}),
     "evaluator": frozenset({"check.result", "side_effect.unexpected", "suspicion.flag"}),
     "mcp": frozenset({"mcp.message", "mcp.call"}),
+    # A device platform's own account of each command attempted (decision 0026).
+    "device": frozenset({"device.started", "device.command"}),
 }
 
 

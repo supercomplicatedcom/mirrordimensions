@@ -19,7 +19,8 @@ from mirrordimensions.network.payloads.behavior import Located, SurfaceTable
 
 @cache
 def load_profile(product: str) -> dict[str, Any]:
-    text = files(f"mirrordimensions.twins.{product}").joinpath("profile.yaml").read_text("utf-8")
+    package = f"mirrordimensions.twins.{product.replace('-', '_')}"  # device-platform
+    text = files(package).joinpath("profile.yaml").read_text("utf-8")
     data: dict[str, Any] = YAML(typ="safe").load(text)  # pyright: ignore[reportUnknownMemberType]
     return data
 

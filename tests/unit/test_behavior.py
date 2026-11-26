@@ -742,7 +742,93 @@ SHAPES: list[tuple[str, str, str, str, bytes, str | None, str]] = [
         "Downloads a shared file",
     ),
 ]
-PROFILES = {"gitea": GITEA, "mattermost": MATTERMOST}
+DEVICES = Profile("device-platform")
+SHAPES += [
+    ("device-platform", "health", "GET", "/healthz", b"", None, "Checks the service is up"),
+    (
+        "device-platform",
+        "user.self",
+        "GET",
+        "/api/v1/me",
+        b"",
+        None,
+        "Checks who it is signed in as",
+    ),
+    ("device-platform", "site.list", "GET", "/api/v1/sites", b"", None, "Lists its sites"),
+    (
+        "device-platform",
+        "site.read",
+        "GET",
+        "/api/v1/sites/hq",
+        b"",
+        "site:hq",
+        "Opens the plan of hq",
+    ),
+    (
+        "device-platform",
+        "device.list",
+        "GET",
+        "/api/v1/devices?floor=f2",
+        b"",
+        None,
+        "Lists devices",
+    ),
+    (
+        "device-platform",
+        "device.read",
+        "GET",
+        "/api/v1/devices/main-entrance",
+        b"",
+        "device:main-entrance",
+        "Looks at main-entrance",
+    ),
+    (
+        "device-platform",
+        "device.state",
+        "GET",
+        "/api/v1/devices/main-entrance/state",
+        b"",
+        "device:main-entrance",
+        "Reads the state of main-entrance",
+    ),
+    (
+        "device-platform",
+        "device.telemetry",
+        "GET",
+        "/api/v1/devices/conf-b-climate/telemetry",
+        b"",
+        "device:conf-b-climate",
+        "Reads readings from conf-b-climate",
+    ),
+    (
+        "device-platform",
+        "device.history",
+        "GET",
+        "/api/v1/devices/main-entrance/commands",
+        b"",
+        "device:main-entrance",
+        "Reads the command history of main-entrance",
+    ),
+    (
+        "device-platform",
+        "device.command",
+        "POST",
+        "/api/v1/devices/server-room-door/commands",
+        b'{"command": "unlock"}',
+        "device:server-room-door",
+        "Sends unlock to server-room-door",
+    ),
+    (
+        "device-platform",
+        "event.list",
+        "GET",
+        "/api/v1/events",
+        b"",
+        "audit-log",
+        "Reads the access log",
+    ),
+]
+PROFILES = {"gitea": GITEA, "mattermost": MATTERMOST, "device-platform": DEVICES}
 
 
 @pytest.mark.parametrize(

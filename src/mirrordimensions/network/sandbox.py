@@ -24,6 +24,7 @@ import json
 from dataclasses import dataclass, field
 from importlib.resources import files
 from pathlib import Path
+from typing import Any
 
 from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
@@ -149,6 +150,8 @@ class Plan:
     addr: Address = field(default_factory=Address)
     models: list[ModelPlan] = field(default_factory=list[ModelPlan])
     ca_pem: bytes = b""  # the install root, for services in the world that call each other
+    sites: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    devices: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
 
     @property
     def exposed(self) -> list[App]:
@@ -239,6 +242,8 @@ def plan_from(manifest: Manifest, root: Path | None = None) -> Plan:
         apps=apps,
         model_hosts=[m.host for m in manifest.models],
         addr=addr,
+        sites=[s.model_dump() for s in manifest.sites],
+        devices=[d.model_dump() for d in manifest.devices],
         models=[
             ModelPlan(
                 name=m.name,
@@ -393,7 +398,17 @@ def twin_context(plan: Plan, app: App, secrets: dict[str, str]) -> TwinContext:
         secrets={k.split(":", 1)[1]: v for k, v in secrets.items() if k.startswith(f"{app.id}:")},
         settings=dict(app.settings),
         gateway_ip=plan.addr.gw_apps,
+        sites=plan.sites,
+        devices=[d for d in plan.devices if d["platform"] == app.id],
     )
+
+
+def containers_of(plan: Plan, app: App) -> list[str]:
+    """The containers a system runs as: a twin's own (with or without a database), or one."""
+    twin = get_twin(app.product)
+    if twin is None:
+        return [app.container]
+    return [c.name for c in twin.containers(twin_context(plan, app, _blank_secrets(plan)))]
 
 
 def specs(

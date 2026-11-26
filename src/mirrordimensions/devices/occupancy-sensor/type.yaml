@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# A ceiling occupancy sensor. It reports; nothing can be commanded but a recalibration.
+type: occupancy-sensor
+label: Occupancy sensor
+properties:
+  occupied: {type: bool, default: false, sensor: true}
+  people: {type: number, default: 0, sensor: true}
+commands:
+  recalibrate:
+    consequence: reversible
+    effect: {set: {people: 0, occupied: false}}
+    causes: "The count restarts from zero until people are seen again."
+telemetry:
+  - {property: people, every_s: 60}
+faults: [offline, stale]

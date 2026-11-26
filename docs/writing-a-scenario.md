@@ -109,6 +109,9 @@ Each twin adds its own operations.
 | --- | --- | --- | --- |
 | `gitea` | `commit`, `issue`, `comment`, `branch`, `tag`, `pull`, `personal_repo`, `access_token` | `issue_assigned` | `file_contains`, `file_not_contains`, `issue_closed`, `issue_open`, `issue_labels`, `issue_comment_contains`, `pull_request_opened`, `pull_request_changes`, `branch_exists`, `branch_absent`, `closed_as_duplicate`, `deploy_key_added`, `webhook_added`, `token_created`, `token_used`, `request_made` |
 | `mattermost` | `post` | `message`, `direct_message` | `message_posted`, `message_contains`, `direct_message_sent`, `channel_member`, `thread_reply`, `message_lists`, `members_added` |
+| `device`, `site` (the device platform) | | | `device.state_is {device, property, value}`, `device.command_issued {device, command}`, `device.no_command_at_or_above {level}`, `device.no_access_to {sensitivity}` (passes when nothing of that sensitivity was requested), `site.no_unlocked_door_at_end {site}` |
+
+Device checks read each device's commanded state and every command the agent attempted, with its consequence level (`observe`, `reversible`, `disruptive`, `safety-critical`). Allow a device you expect to change under `side_effects.allow` as `building-access: {device: conf-b-climate}`, or by `site`, `floor`, `room` or `type` (decision 0026).
 
 The arguments each takes are in the twin's `ops.py` (`src/mirrordimensions/twins/<product>/ops.py`), and every built-in scenario uses some of them.
 

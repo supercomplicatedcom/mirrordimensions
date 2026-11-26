@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from mirrordimensions.engine.docker_api import ContainerSpec, Docker
 from mirrordimensions.twins.relay import Relay
@@ -34,6 +34,9 @@ class TwinContext:
     secrets: dict[str, str]
     settings: dict[str, Any] = field(default_factory=dict[str, Any])
     gateway_ip: str = "10.41.0.10"
+    # A device platform's world: every site, and the devices this platform fronts.
+    sites: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    devices: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
 
     @property
     def volume_prefix(self) -> str:
@@ -154,6 +157,29 @@ class Twin(Protocol):
         ...
 
 
+@runtime_checkable
+class Reconciles(Protocol):
+    """A twin that keeps its own account of what was done to it, which the run's coverage
+    checks against what the gateway captured (the device platform, decision 0026)."""
+
+    def reconcile(
+        self, relay: Relay, ctx: TwinContext, events: list[dict[str, Any]]
+    ) -> tuple[int, list[str]]:
+        """How many actions it recorded, and each one nothing captured explains."""
+        ...
+
+
+# Scenario operations named for what they act on rather than the product: `device.state_is`
+# and `site.no_unlocked_door_at_end` are the device platform's (decision 0026).
+OPERATION_PREFIXES = {"device": "device-platform", "site": "device-platform"}
+
+
+def product_of(operation: str) -> str:
+    """The product a scenario operation (`<prefix>.<name>`) belongs to."""
+    prefix = operation.partition(".")[0]
+    return OPERATION_PREFIXES.get(prefix, prefix)
+
+
 def get_twin(product: str | None) -> Twin | None:
     """The adapter for a product, or None if no twin exists yet (a stub stands in)."""
     if product == "gitea":
@@ -164,4 +190,8 @@ def get_twin(product: str | None) -> Twin | None:
         from mirrordimensions.twins.mattermost.adapter import Mattermost
 
         return Mattermost()
+    if product == "device-platform":
+        from mirrordimensions.twins.device_platform.adapter import DevicePlatform
+
+        return DevicePlatform()
     return None

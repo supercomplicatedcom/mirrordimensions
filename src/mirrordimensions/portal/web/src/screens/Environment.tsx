@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
-// The environment as a map: agents, the gateway, each system and the model endpoints. The
-// layout is computed from the graph (left to right: agents, gateway, systems), so the same
-// environment always draws the same way. A table view lists the same systems.
+// The environment as a map: agents, the gateway, each system and the model endpoints, and
+// the devices each device platform fronts. The layout is computed from the graph (left to
+// right: agents, gateway, systems, devices), so the same environment always draws the same
+// way. A table view lists the same systems and devices.
 
 import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -11,7 +12,7 @@ import { PendingChanges } from "../pending";
 import type { Change, Graph, GraphNode, Result, RunSummary } from "../types";
 import { ErrorBox, Loading, PageHead, VISIBILITY_WORDS, capitalize } from "../ui";
 
-const COLUMN_X = [24, 316, 608];
+const COLUMN_X = [24, 316, 608, 900];
 const ROW_H = 92;
 const NODE_W = 200;
 const NODE_H = 64;
@@ -25,7 +26,7 @@ interface Placed extends GraphNode {
 }
 
 export function layout(graph: Graph): { placed: Placed[]; width: number; height: number } {
-  const rows = [0, 0, 0];
+  const rows = [0, 0, 0, 0];
   for (const n of graph.nodes) rows[n.column] = Math.max(rows[n.column] ?? 0, n.row + 1);
   const tallest = Math.max(1, ...rows);
   const height = tallest * ROW_H + PAD * 2 - (ROW_H - NODE_H);
@@ -35,7 +36,8 @@ export function layout(graph: Graph): { placed: Placed[]; width: number; height:
     const offset = ((tallest - count) * ROW_H) / 2;
     return { ...n, x: COLUMN_X[n.column] ?? 0, y: PAD + offset + n.row * ROW_H };
   });
-  return { placed, width: (COLUMN_X[2] ?? 0) + NODE_W + PAD, height };
+  const last = Math.max(2, ...graph.nodes.map((n) => n.column));
+  return { placed, width: (COLUMN_X[last] ?? 0) + NODE_W + PAD, height };
 }
 
 function nodeMeta(n: GraphNode, layer: Layer): string {
@@ -123,7 +125,13 @@ export function Environment() {
             </p>
           </section>
           <aside className="card narrow" aria-label="Selected">
-            <Detail key={selected ?? ""} node={graph.data.nodes.find((n) => n.id === selected)} touched={touched} overlay={overlayRun} onEdited={edited} />
+            <Detail
+              key={selected ?? ""}
+              node={graph.data.nodes.find((n) => n.id === selected)}
+              touched={touched}
+              overlay={overlayRun}
+              onEdited={edited}
+            />
           </aside>
         </div>
       )}
@@ -192,6 +200,11 @@ function MapView(props: {
 
 function TableView({ graph, touched, overlay }: { graph: Graph; touched: Map<string, number>; overlay: boolean }) {
   const systems = graph.nodes.filter((n) => n.kind === "system" || n.kind === "model");
+  const devices = graph.nodes.filter((n) => n.kind === "device");
+  const platformOf = (id: string) => {
+    const edge = graph.edges.find((e) => e.target === id);
+    return graph.nodes.find((n) => n.id === edge?.source)?.label ?? "";
+  };
   return (
     <div className="table-wrap">
       <table>
@@ -221,6 +234,29 @@ function TableView({ graph, touched, overlay }: { graph: Graph; touched: Map<str
           ))}
         </tbody>
       </table>
+      {devices.length > 0 && (
+        <table>
+          <caption className="skip">Devices in this environment</caption>
+          <thead>
+            <tr>
+              <th scope="col">Device</th>
+              <th scope="col">Type</th>
+              <th scope="col">Where</th>
+              <th scope="col">Reached through</th>
+            </tr>
+          </thead>
+          <tbody>
+            {devices.map((n) => (
+              <tr key={n.id}>
+                <th scope="row">{n.label}</th>
+                <td>{n.detail}</td>
+                <td>{n.location}</td>
+                <td>{platformOf(n.id)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -280,6 +316,12 @@ function Detail({
           <>
             <dt>What it is</dt>
             <dd>{capitalize(node.detail)}</dd>
+          </>
+        )}
+        {node.location && (
+          <>
+            <dt>Where</dt>
+            <dd>{node.location}</dd>
           </>
         )}
         {overlay && node.hostname && (
