@@ -1,6 +1,6 @@
 # Setting up a world for your company
 
-This guide is for someone at a company who wants to test their own agent in a copy of their workplace. Do the README's "From clone to a first passing run" first: it proves the engine and a world work on your computer. Then come back here.
+This guide is for someone at a company who wants to test their own agent in a copy of their workplace. It covers the whole way: setting up your laptop, defining a world for your company, bringing your agent, and removing it all afterwards. The README's "From clone to a first passing run" is a shorter tour with a ready-made company, if you want to see it work first.
 
 ## What a world is, and what it is not
 
@@ -52,12 +52,76 @@ An agent is tested against what the world runs, so it must be able to talk to it
 
 An agent written only against GitHub's or Slack's own API cannot do its work in a world today. Use route 1, or adapt its client to route 2.
 
+## Set up your laptop
+
+Everything runs on your own computer. Nothing is installed on a server, and no account is needed.
+
+**What it needs.**
+
+|            |                                                                                                                                                                                                                         |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Computer   | A Mac with Apple Silicon (M1 or later) on macOS 13 or later, or a Linux x64 machine with hardware virtualization (KVM). Windows 11 is experimental: follow [platforms/windows.md](platforms/windows.md) for these steps |
+| Memory     | 16 GB. The engine takes 6 GB while it runs                                                                                                                                                                              |
+| Disk       | About 15 GB free: 7 GB for the engine, about 6.5 GB for a world, more for a bigger company                                                                                                                              |
+| Network    | For setup only: about 3.5 GB of downloads the first time. A running world never uses your network, except your agent's calls to its model                                                                               |
+| Not needed | Docker Desktop or any other Docker. The mirror runs its own Linux VM, the engine, and builds your agent's image inside it. It never uses or changes a Docker, Lima or virtual machine you already have                  |
+
+**1. Install the tools it uses.** You need git and [uv](https://docs.astral.sh/uv/).
+
+On a Mac:
+
+```sh
+xcode-select --install                       # git, if you do not have it
+softwareupdate --install-rosetta             # Rosetta for Linux, which the engine uses
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+On Linux (Debian or Ubuntu shown; use your distribution's packages otherwise):
+
+```sh
+sudo apt-get install -y git qemu-system-x86 qemu-utils
+sudo usermod -aG kvm "$USER"                 # then log out and in, so /dev/kvm is yours
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Open a new terminal window afterwards, so `uv` is on your PATH.
+
+**2. Install the mirror.**
+
+```sh
+git clone https://github.com/supercomplicatedcom/mirrordimensions
+cd mirrordimensions
+uv tool install --editable .                 # puts mirror on your PATH, in every window
+```
+
+If the shell then says `mirror: command not found`, run `uv tool update-shell` and open a new window. The command runs from the clone, so keep the folder.
+
+**3. Create the engine** and check it. The first time takes a few minutes.
+
+```sh
+mirror engine setup
+mirror engine check     # gVisor, Rosetta, a private Docker endpoint, no route to the host, egress rules
+```
+
+Every line of `engine check` should start with `ok`. A line that starts with `FAIL` says what to do.
+
+**4. The portal (optional).** `mirror portal` opens the same steps in a browser. In a clone, its web pages must be built once, which needs [Node.js](https://nodejs.org/) 22:
+
+```sh
+npm --prefix src/mirrordimensions/portal/web ci
+npm --prefix src/mirrordimensions/portal/web run build
+```
+
+Everything below also works from the command line alone.
+
 ## Step by step
 
 **1. Define the world.** Use your company's name and domain, so the agent sees the hostnames it would see at work. Name your systems, or start from the template.
 
+Keep worlds in a folder of their own, outside the clone.
+
 ```sh
-cd ~/mirror-worlds
+mkdir -p ~/mirror-worlds && cd ~/mirror-worlds
 mirror world new halden --systems github,slack --company "Halden Freight" \
   --domain halden-freight.com --industry logistics --people 40 --history 365
 cd halden
@@ -115,6 +179,18 @@ mirror report latest --open
 ```
 
 The built-in scenarios are public, and models may have seen them. For results you will rely on, write your own from your team's real work, such as "rotate the key someone pasted in #deploys" or "answer the on-call question from the runbook", and keep them private in the project's `scenarios/` folder. See [writing-a-scenario.md](writing-a-scenario.md).
+
+## Stopping, removing and uninstalling
+
+| To                                                                              | Run                                                                                  |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Stop a world's network, keeping the world                                       | `mirror down` in the world's folder                                                  |
+| Stop the engine and give back its memory                                        | `mirror engine stop`. `mirror engine start` starts it again                          |
+| Remove one world's containers, volumes and snapshots, keeping its `mirror.yaml` | `mirror world destroy` in the world's folder                                         |
+| Remove the engine and every world inside it, and get the disk back              | `mirror engine destroy`                                                              |
+| Remove the `mirror` command                                                     | `uv tool uninstall mirrordimensions`, then delete the clone and your worlds' folders |
+
+After a `git pull` in the clone, run `uv tool install --editable . --reinstall` to pick up new dependencies, and `mirror engine update` when `mirror doctor` or `mirror engine status` says the engine's packages are due an update. The engine never updates itself.
 
 ## Questions people ask
 
