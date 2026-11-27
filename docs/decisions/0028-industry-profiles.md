@@ -1,6 +1,6 @@
 # 0028. Industry profiles and the user's own computer shape the world
 
-Status: Proposed.
+Status: Accepted (owner, 2026-11-27).
 
 ## Context
 
@@ -245,10 +245,13 @@ That is 77 profiles. All 77 are in the first build (owner, 2026-11-27). Each tak
 - The first build has all 77 profiles, in the 11 groups above.
 - Discovery comes after the industry profiles.
 - The user alone approves a scan of their computer; their organization's security policies already govern what they may do on it.
+- A profile's typical systems are proposed, and the user confirms or edits the list before `mirror.yaml` is written (`--yes` accepts it).
+- `mirror world add` is part of this build.
+- The profiles' text is composed as decision 0029 sets out, from the start.
 
 ## Open questions for the owner
 
-1. Should a profile's typical systems be proposed automatically, or only shown, so that `--industry` changes content and nothing else unless the user accepts the systems?
-2. Is `mirror world add` wanted now, or later with the next twins?
-3. Discovery changes the promise that real data never goes in, to "real names only when kept in review; real content never". Is that the line you want?
-4. Which sources are in discovery's first version? The suggestion is the agent's own deployment files and repository clones, which together give hostnames, tools and conventions.
+These concern discovery, which is built after the profiles.
+
+1. Discovery changes the promise that real data never goes in, to "real names only when kept in review; real content never". Is that the line you want?
+2. Which sources are in discovery's first version? The suggestion is the agent's own deployment files and repository clones, which together give hostnames, tools and conventions.
