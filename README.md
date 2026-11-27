@@ -23,9 +23,10 @@ You need [uv](https://docs.astral.sh/uv/), about 15 GB of free disk (7 GB for th
 ```sh
 git clone https://github.com/supercomplicatedcom/mirrordimensions
 cd mirrordimensions
-uv sync
-alias mirror="uv run --project $PWD mirror"   # use mirror from any folder
+uv tool install --editable .    # puts mirror on your PATH, in every window
 ```
+
+If the shell then says `mirror: command not found`, run `uv tool update-shell` and open a new window: it adds uv's tool folder (`~/.local/bin`) to your PATH. The install runs from the clone, so keep the folder. After a `git pull`, run `uv tool install --editable . --reinstall` to pick up new dependencies; `uv tool uninstall mirrordimensions` removes the command.
 
 **2. Create the engine**, the Linux VM every world runs in. The first time takes a few minutes and about 7 GB of disk.
 
