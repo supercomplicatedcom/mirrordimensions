@@ -32,3 +32,12 @@ def test_history_spans_about_the_same_calendar_time() -> None:
     now = datetime(2026, 6, 3, 15, 0, tzinfo=UTC)
     oldest = WorkClock(now, 0).at(180 * 24 * 60, "x")
     assert 170 <= (now - oldest).days <= 190
+
+
+def test_office_hours() -> None:
+    clock = WorkClock(datetime(2026, 11, 27, 2, 2, tzinfo=UTC), -300)  # Thu 21:02 local
+    assert not clock.in_hours()
+    assert clock.in_hours(datetime(2026, 11, 26, 15, 0, tzinfo=UTC))  # Thu 10:00 local
+    assert not clock.in_hours(datetime(2026, 11, 28, 15, 0, tzinfo=UTC))  # Saturday
+    assert clock.in_hours(clock.at(20, "delivery"))
+    assert f"{clock.local():%a %H:%M}" == "Thu 21:02"
