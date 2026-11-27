@@ -1,6 +1,6 @@
 # 0029. Nothing the agent sees matches the public repository
 
-Status: Proposed.
+Status: Accepted (owner, 2026-11-27).
 
 ## Context
 
@@ -55,8 +55,14 @@ Separately, capable models sometimes say a situation looks like an evaluation wi
 - After the rewrite, worlds from every profile pass the limit for many seeds, and two worlds with different seeds share no eight-word run beyond the vocabulary the profile defines.
 - The discriminator's accuracy on a world, against matched real-company material, is reported before and after the rewrite.
 
+## Answered by the owner (2026-11-27)
+
+- Accepted, and built together with decision 0028: the industry profiles' text is composed this way from the start.
+
 ## Open questions for the owner
 
-1. Is eight words and 2% the right limit, and should the check block `world create` once the generator meets it, or only warn?
-2. Should the core repositories and channels be renamed per world now (and the built-in scenarios moved to role references), or only when the industry profiles land?
-3. Should the discriminator test exist at all, given it needs live model calls and a matched set of real-company material that must itself be public and properly licensed?
+Until these are answered, the build uses the defaults given in each.
+
+1. Is eight words and 2% the right limit, and should the check block `world create` once the generator meets it, or only warn? Default: eight words and 2%, reported but not blocking.
+2. Should the core repositories and channels be renamed per world now (and the built-in scenarios moved to role references), or only when the industry profiles land? Default: with the industry profiles, since both are built together.
+3. Should the discriminator test exist at all, given it needs live model calls and a matched set of real-company material that must itself be public and properly licensed? Default: not built in this round.
