@@ -28,7 +28,7 @@ A second proposal from the owner the same day: the person who installs the mirro
 4. **Adding a tool later.** `mirror world add <system>` adds a system to an existing world's `mirror.yaml`, with the same stand-in rules, and tells the user to run `mirror world create` again to build it. Until then, editing `mirror.yaml` by hand stays the way.
 5. **Unknown industries are honest.** An industry that matches no profile or alias falls back to the general profile (today's world), and `world new` says so and lists the nearest profiles. Free text stays allowed in `mirror.yaml`.
 6. **Determinism and quality hold.** The generator reads a profile as data, with the seed choosing among its entries; the same manifest still gives the same world. A profile must pass the naming lint and the placeholder lint. Each profile gets a golden world in the tests, and before it ships, a review of what an agent sees in a world built from it (the observer agent used for the exit gate's item 3).
-7. **The user's own computer can shape the world**, with their permission, as set out in the next section. A profile is the starting point; what is found on the computer replaces the profile's guesses wherever the two differ.
+7. **The user's own computer can shape the world**, with their permission, as set out in the next section. Discovery is built after the industry profiles (owner, 2026-11-27): it needs the profiles' generator to follow a found shape. A profile is the starting point; what is found on the computer replaces the profile's guesses wherever the two differ.
 
 ## Discovery from the user's computer
 
@@ -95,7 +95,7 @@ Discovery reads a computer that holds a company's data, with the user's access. 
    - Third-party importer plug-ins are not loaded for discovery unless the user names them.
 6. **Sources that are never read are enforced in code.** Browser profiles, mail stores, chat applications' data, keychains and password managers, `~/.aws`, `~/.kube`, `~/.gnupg` and the private keys in `~/.ssh` are refused by path, before any open. Every file opened is checked against the list the user approved, and a test fails on any other.
 7. **No model on found files, ever.** Discovery is parsing, not reading by a model. Sending found files to a model would send the company's code and documents to a third party. This is permanent, not a first-version limit.
-8. **The user's consent is not the company's.** A work computer holds the employer's data, and scanning it can break the employer's policy or trip its security tools. The documentation says to get the security team's approval first. `mirror world discover --plan` writes a list of the sources and folders it would read, for that team to review.
+8. **The user decides.** The user alone approves a scan (owner, 2026-11-27): what a user may do on their computer is already governed by their organization's security policies and tools, and the mirror does not add an approval of its own. `mirror world discover --plan` lists the sources and folders it would read without opening any, for a user who wants to check first.
 9. **A discovered world is marked.** The project folder records that it holds discovered names. `mirror report` and any export or share warn before including them, and `git` in the project folder ignores the draft and the world's generated files.
 
 **Consequences**
@@ -218,7 +218,7 @@ Industries where companies are deploying AI agents, which is close to every sect
 - Real estate and property management
 - Architecture and design
 
-That is 77 profiles. Each takes real writing (repositories, issue and chat themes, roles and vocabulary that read right to someone in that industry), so they are written in batches, most-requested first.
+That is 77 profiles. All 77 are in the first build (owner, 2026-11-27). Each takes real writing (repositories, issue and chat themes, roles and vocabulary that read right to someone in that industry), and each passes the quality rules of point 6 before the build is done.
 
 ## Consequences
 
@@ -240,12 +240,15 @@ That is 77 profiles. Each takes real writing (repositories, issue and chat theme
 - A reviewer from the industry (or the owner) reads one generated world per profile and finds nothing that reads wrong.
 - Generation time and world size stay within the current figures for the same headcount and history.
 
+## Answered by the owner (2026-11-27)
+
+- The first build has all 77 profiles, in the 11 groups above.
+- Discovery comes after the industry profiles.
+- The user alone approves a scan of their computer; their organization's security policies already govern what they may do on it.
+
 ## Open questions for the owner
 
-1. Which profiles come first? A suggestion: healthcare (hospitals), telecommunications, state government, federal government, retail, hotels, fitness apps, banking, insurance, logistics, manufacturing and utilities.
-2. Should a profile's typical systems be proposed automatically, or only shown, so that `--industry` changes content and nothing else unless the user accepts the systems?
-3. Is `mirror world add` wanted now, or later with the next twins?
-4. Discovery changes the promise that real data never goes in, to "real names only when kept in review; real content never". Is that the line you want?
-5. Should discovery come with the industry profiles, or after them? It needs the profiles' generator to follow a found shape, so building it first would mean building that generator first.
-6. Which sources are in the first version? The suggestion is the agent's own deployment files and repository clones, which together give hostnames, tools and conventions.
-7. Who signs off a scan of a company computer: the user alone, or the user with their security team's approval recorded in the project?
+1. Should a profile's typical systems be proposed automatically, or only shown, so that `--industry` changes content and nothing else unless the user accepts the systems?
+2. Is `mirror world add` wanted now, or later with the next twins?
+3. Discovery changes the promise that real data never goes in, to "real names only when kept in review; real content never". Is that the line you want?
+4. Which sources are in discovery's first version? The suggestion is the agent's own deployment files and repository clones, which together give hostnames, tools and conventions.
