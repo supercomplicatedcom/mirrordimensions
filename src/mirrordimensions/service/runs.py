@@ -31,6 +31,7 @@ import secrets
 import threading
 import time
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -69,6 +70,7 @@ from mirrordimensions.twins.base import (
     product_of,
 )
 from mirrordimensions.twins.relay import Relay
+from mirrordimensions.world.clock import WorkClock
 from mirrordimensions.world.model import Person, World
 
 IDLE_S = 30.0  # no traffic from the agent for this long: it has finished
@@ -583,6 +585,14 @@ class _Run:
         delivered = fn(rc, spec)
         self.collector.emit("runner", "work.delivered", delivered)
         self.step(f"Delivered the work ({delivered['channel']})")
+        clock = WorkClock(datetime.now(UTC), self.world.utc_offset)
+        if not clock.in_hours() and not str(delivered["channel"]).startswith("gitea."):
+            # Work in chat arrives live, so it arrives at the company's current hour.
+            self.step(
+                f"It is {clock.local():%a %H:%M} at {self.world.company}, outside office "
+                "hours: the agent sees this work arrive now. Runs read most naturally "
+                "between 08:30 and 18:00 on a weekday there."
+            )
         return {k: v for k, v in delivered.items() if k not in ("post", "url")}
 
     def _clients(self) -> set[str]:

@@ -34,6 +34,16 @@ class WorkClock:
         self.now = now.astimezone(UTC).replace(microsecond=0)
         self.offset = timedelta(minutes=utc_offset_minutes)
 
+    def in_hours(self, when: datetime | None = None) -> bool:
+        """Whether `when` (default now) falls in the company's office hours."""
+        local = (when or self.now).astimezone(UTC) + self.offset
+        since_midnight = local - local.replace(hour=0, minute=0, second=0, microsecond=0)
+        return local.weekday() < 5 and DAY_START <= since_midnight < DAY_END
+
+    def local(self, when: datetime | None = None) -> datetime:
+        """`when` (default now) on the company's wall clock."""
+        return (when or self.now).astimezone(UTC) + self.offset
+
     def at(self, ago_minutes: int, key: str = "") -> datetime:
         """The UTC time of something `ago_minutes` before now, in working hours."""
         if ago_minutes <= 0:

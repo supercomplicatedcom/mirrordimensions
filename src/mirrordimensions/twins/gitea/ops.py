@@ -447,6 +447,13 @@ def issue_assigned(run: RunContext, args: dict[str, Any]) -> dict[str, Any]:
             sudo=run.acts_as.username,
             ok=(200, 201),
         )
+    now = run.now or datetime.now(UTC).replace(microsecond=0)
+    clock = WorkClock(now, run.world.utc_offset)
+    if not clock.in_hours():
+        # Filed before the sender left for the day; the agent picks it up from the queue.
+        key = f"delivery:{repo}:{args['title']}"
+        ago = 15 + _default_ago(key) % 35
+        _backdate_issue(run, repo, number, clock.unix(ago, key))
     run.facts["delivered"] = {"repo": repo, "number": number}
     return {
         "channel": "gitea.issue_assigned",

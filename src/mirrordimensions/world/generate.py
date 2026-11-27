@@ -93,6 +93,12 @@ CHANNEL_POOLS: dict[str, tuple[str, int]] = {
 }
 TEAM_OF_CHANNEL = {"billing-team": "billing", "platform-team": "platform", "data-team": "data"}
 
+# Repositories that run somewhere: a message about deploying, backing up or scaling "a
+# repository" names one of these, never the handbook or the configuration.
+SERVICES = ("billing-service", "customer-portal", "data-pipeline")
+# The same conversation, with other names filled in, recurs no sooner than this.
+RECUR_AFTER = 21 * DAY
+
 # Short acknowledgements people really do repeat; everything else is unique.
 ACKS = ("+1", "thanks!", "thank you", "ok", "nice", "sounds good", "will do", "on it")
 
@@ -186,7 +192,13 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
 
     it = iter(names)
     cto = add(
-        *next(it), "VP of Engineering", "Engineering", None, ["manager"], None, history + 900 * DAY
+        *next(it),
+        "VP of Engineering",
+        "Engineering",
+        None,
+        ["manager"],
+        None,
+        history + 900 * DAY + rng.randint(0, DAY - 1),
     )
     leads: dict[str, Person] = {}
     for team, dept, _, roles in TEAMS:
@@ -197,7 +209,7 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
             team,
             ["manager", *roles],
             cto.id,
-            history + rng.randint(200, 700) * DAY,
+            history + rng.randint(200, 700) * DAY + rng.randint(0, DAY - 1),
         )
         leads[team] = lead
     add(
@@ -207,7 +219,7 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
         "operations",
         ["admin"],
         leads["operations"].id,
-        history + 400 * DAY,
+        history + 400 * DAY + rng.randint(0, DAY - 1),
     )
     remaining = list(it)
     weights = [
@@ -227,7 +239,7 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
         contractor = i == len(remaining) - 2
         started = (
             rng.randint(30, history + 600) * DAY if not contractor else rng.randint(40, 90) * DAY
-        )
+        ) + rng.randint(0, DAY - 1)  # a time of day of its own, not a whole number of days
         person = add(
             first,
             last,
@@ -239,7 +251,9 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
             started,
         )
         if i == len(remaining) - 1:
-            person.left_ago = rng.randint(20, 60) * DAY  # someone who left
+            person.left_ago = rng.randint(20, 60) * DAY + rng.randint(
+                0, DAY - 1
+            )  # someone who left
     return people
 
 
@@ -312,6 +326,8 @@ class _Chat:
         self.repos = repos
         self.used: set[str] = set()
         self.uses: dict[tuple[str, int], int] = {}
+        self.at: dict[tuple[str, int], list[int]] = {}
+        self.services = [r.name for r in repos if r.name in SERVICES] or [r.name for r in repos]
 
     def _issue(self, repo_names: list[str], ago: int) -> tuple[Repository, Issue] | None:
         candidates = [
@@ -343,6 +359,8 @@ class _Chat:
             }
             if not slots and self.uses.get((kind, index), 0) > 0:
                 continue
+            if any(abs(ago - t) < RECUR_AFTER for t in self.at.get((kind, index), [])):
+                continue
             values = self._values(slots, members, repo_names, ago)
             if values is None:
                 continue
@@ -357,6 +375,7 @@ class _Chat:
                 self.used.add(text)
                 out.append((author, text))
             self.uses[(kind, index)] = self.uses.get((kind, index), 0) + 1
+            self.at.setdefault((kind, index), []).append(ago)
             return out
         return None
 
@@ -373,7 +392,8 @@ class _Chat:
             values["issue_title"] = issue.title
             values["repo"] = repo.name
         elif "repo" in slots:
-            values["repo"] = self.rng.choice(repo_names)
+            running = [r for r in repo_names if r in self.services] or self.services
+            values["repo"] = self.rng.choice(running)
         if "person" in slots:
             pid = self.rng.choice(members)
             values["person"] = _first(self.people[pid])
@@ -399,6 +419,19 @@ class _Chat:
             else:
                 authors.append(self.rng.choice(pool))
         return authors
+
+
+SHIPPED = frozenset({"bug", "enhancement", "performance", "security", "incident"})
+
+
+def _ships(issue: Issue) -> bool:
+    """Whether closing the issue changed the product, so release notes would list it: not a
+    question, a decision or housekeeping."""
+    return (
+        bool(SHIPPED & set(issue.labels))
+        and not {"question", "needs-decision"} & set(issue.labels)
+        and not issue.title.rstrip().endswith("?")
+    )
 
 
 def _requirements(pins: dict[str, str]) -> str:
@@ -968,7 +1001,7 @@ def generate(manifest: Manifest) -> World:
             closed = [
                 i
                 for i in repo.issues
-                if i.closed_ago is not None and event.ago < i.closed_ago < since
+                if i.closed_ago is not None and event.ago < i.closed_ago < since and _ships(i)
             ]
             notes = (
                 "\n".join(f"- {i.title} (#{i.number})" for i in closed[:6])
@@ -1014,7 +1047,7 @@ def generate(manifest: Manifest) -> World:
     # Deploy notices in the team channels and #releases.
     deploy_notes = mrng.shuffled(list(pools.DEPLOY_NOTES))
     for note in deploy_notes:
-        repo = mrng.choice([r for r in repos if not r.archived_feel])
+        repo = mrng.choice([r for r in repos if r.name in SERVICES] or repos)
         team = next(p[1] for p in PROJECTS if repo.name in p[2])
         ch = by_name.get(f"{team}-team") or by_name["engineering"]
         post(

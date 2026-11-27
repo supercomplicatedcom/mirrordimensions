@@ -168,3 +168,43 @@ def test_every_repository_s_own_tests_pass(tmp_path: Path) -> None:
             check=False,
         )
         assert done.returncode == 0, (r.name, done.stdout[-800:])
+
+
+def test_release_notes_list_only_shipped_changes() -> None:
+    w = generate(manifest())
+    releases = next(c for c in w.channels if c.name == "releases").messages
+    assert releases
+    for m in releases:
+        for line in m.text.splitlines()[1:]:
+            assert not line.rstrip().removesuffix(")").rsplit(" (#", 1)[0].endswith("?"), line
+
+
+def test_chat_names_running_services_for_operations() -> None:
+    w = generate(manifest())
+    texts = [m.text for c in w.channels for m in c.messages]
+    texts += [m.text for d in w.direct for m in d.messages]
+    for text in texts:
+        assert not re.search(
+            r"(deploy\w*|backup|restore|rollback|scal\w+)\b[^.#]*\b(platform-docs|infra-config|ops-scripts)\b(?!#)",
+            text,
+            re.IGNORECASE,
+        ), text
+
+
+def test_a_conversation_does_not_recur_within_weeks() -> None:
+    w = generate(manifest())
+    for c in w.channels:
+        roots = [m for m in c.messages if m.reply_to is None]
+        for i, a in enumerate(roots):
+            stem = " ".join(re.sub(r"\S+#\d+", "#", a.text).split()[:6])
+            for b in roots[i + 1 :]:
+                if abs(a.ago - b.ago) >= 21 * 24 * 60:
+                    break
+                other = " ".join(re.sub(r"\S+#\d+", "#", b.text).split()[:6])
+                assert len(stem.split()) < 6 or stem != other, (c.name, a.text, b.text)
+
+
+def test_people_started_at_their_own_time_of_day() -> None:
+    people = generate(manifest()).people
+    minutes = [p.started_ago % (24 * 60) for p in people]
+    assert len(set(minutes)) > len(people) - 3
