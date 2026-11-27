@@ -75,6 +75,10 @@ class App(StrictModel):
     hostname: Hostname
     visibility: Visibility = "granted"
     build: Literal["unavailable"] | None = None
+    in_place_of: str | None = Field(
+        default=None,
+        description="The product the company uses, which has no twin yet; this one runs instead",
+    )
     settings: dict[str, Any] = Field(default_factory=dict[str, Any])
     data: dict[str, Any] = Field(default_factory=dict[str, Any])
     rules: list[Rule] = Field(default_factory=list[Rule])

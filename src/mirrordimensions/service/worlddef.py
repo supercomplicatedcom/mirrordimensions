@@ -39,6 +39,9 @@ HOSTNAME_PREFIX = {
     "helpdesk": "help",
     "identity": "sso",
 }
+# The ids the template gives these kinds, which agent files grant by (`grants: {code: ...}`)
+# and refer to (`${code.url}`): the same whichever way the world was defined.
+APP_ID = {"code-hosting": "code", "team-chat": "chat"}
 WorldState = Literal["draft", "defined", "creating", "ready", "stale", "failed"]
 SNAPSHOT_STAGE = 6  # "Save the base snapshot": from here the world is built as defined
 STAGES = [
@@ -182,6 +185,10 @@ class Draft(BaseModel):
     tidiness: Tidiness = "realistic"
     links: dict[str, bool] = Field(default_factory=lambda: dict(LINK_DEFAULTS))
     data: dict[str, int] = Field(default_factory=lambda: dict(DATA_DEFAULTS))
+    substitute: bool = Field(
+        default=True,
+        description="Run the system with a twin of the same kind in place of one without",
+    )
     step: int = 1  # the portal wizard's step reached, 1-6
     imported: bool = Field(
         default=False,
@@ -277,16 +284,50 @@ def render_world(root: Path, draft: Draft, status: Literal["draft", "defined"]) 
         text = head + "apps: []\nlinks: []\n" + _after_links(text)
     elif draft.systems and not draft.template:
         apps: list[str] = []
-        for i, match in enumerate(match_systems(draft.systems)):
+        matches = match_systems(draft.systems)
+        running = {m.entry.slug for m in matches if m.entry and m.buildable}
+        ids: set[str] = set()
+        hosts: set[str] = set()
+        for i, match in enumerate(matches):
             if match.entry is None:
                 apps.append(f"  # {match.query}: not in the catalog; left out\n")
                 continue
             e = match.entry
             host = f"{HOSTNAME_PREFIX.get(e.kind, slug(e.name)[:12])}.{company.domain}"
-            line = f"  - id: {slug(e.kind)[:20] or f'app{i}'}\n    kind: {e.kind}\n    product: {e.slug}\n    hostname: {host}\n    visibility: granted\n"
-            if not match.buildable:
+            if host in hosts:  # a second system of the same kind goes by its own name
+                host = f"{slug(e.name)[:20]}.{company.domain}"
+            hosts.add(host)
+            product, instead_of = e.slug, ""
+            usable = match.buildable
+            if (
+                not usable
+                and draft.substitute
+                and match.instead
+                and match.instead.slug not in running
+            ):
+                product, instead_of, usable = match.instead.slug, e.slug, True
+                running.add(product)
+            app_id = APP_ID.get(e.kind) or slug(e.kind)[:20] or f"app{i}"
+            n = 2
+            while app_id in ids:  # a second system of the same kind
+                app_id, n = f"{(APP_ID.get(e.kind) or slug(e.kind))[:18]}-{n}", n + 1
+            ids.add(app_id)
+            line = f"  - id: {app_id}\n    kind: {e.kind}\n    product: {product}\n"
+            if instead_of:
+                line += f"    in_place_of: {instead_of}    # {e.name} has no twin yet; {match.instead.name if match.instead else product} runs here instead\n"
+            line += f"    hostname: {host}\n    visibility: granted\n"
+            if not usable:
                 line += "    build: unavailable    # no twin yet: recorded, not created\n"
             apps.append(line)
+        if not running:
+            asked = ", ".join(m.entry.name if m.entry else m.query for m in matches)
+            raise MirrorError(
+                "None of these systems can be built yet.",
+                f"Asked for: {asked}. The systems the mirror runs today are "
+                f"{', '.join(buildable_names())}.",
+                "Name one of those (--systems gitea,mattermost), or start from the template: "
+                "mirror world new --template software-team",
+            )
         start = text.index("apps:\n") + len("apps:\n")
         end = text.index("links:")
         text = text[:start] + "".join(apps) + text[end:]
@@ -386,6 +427,7 @@ def new_world(
     tidiness: Tidiness = "realistic",
     data: dict[str, int] | None = None,
     links: dict[str, bool] | None = None,
+    substitute: bool = True,
 ) -> Path:
     """Write a definition in one go: a template, or named systems matched against the catalog."""
     seed = seed if seed is not None else secrets.randbelow(900_000) + 100_000
@@ -399,6 +441,7 @@ def new_world(
         tidiness=tidiness,
         data={**DATA_DEFAULTS, **(data or {})},
         links={**LINK_DEFAULTS, **(links or {})},
+        substitute=substitute,
     )
     return _write_world(path, draft)
 
@@ -491,6 +534,48 @@ def clone_world(src: Path, dst: Path, new_seed: bool = False) -> Path:
     return root
 
 
+def buildable_names() -> list[str]:
+    from mirrordimensions.catalog.index import load
+
+    return sorted(e.name for e in load() if e.twin_status in ("buildable", "verified"))
+
+
+def system_notes(manifest: Manifest) -> list[str]:
+    """What a person should know about the systems they asked for: what runs in place of a
+    product with no twin, and what is left out."""
+    from mirrordimensions.catalog.index import resolve
+
+    notes: list[str] = []
+    for a in manifest.apps:
+        if a.in_place_of:
+            theirs = resolve(a.in_place_of)
+            ours = resolve(a.product or "")
+            t, o = (theirs.name if theirs else a.in_place_of), (ours.name if ours else a.product)
+            notes.append(
+                f"{t} has no twin yet, so {o} runs in its place at {a.hostname}. An agent "
+                f"written for {t}'s API must use {o}'s API or the world's MCP server; "
+                "see docs/your-company.md."
+            )
+        elif a.build == "unavailable":
+            entry = resolve(a.product or "")
+            name = entry.name if entry else a.id
+            same = next(
+                (b for b in manifest.apps if b is not a and b.kind == a.kind and b.build is None),
+                None,
+            )
+            if same is not None:
+                notes.append(
+                    f"{name} has no twin yet; {same.product} at {same.hostname} is this world's "
+                    f"{a.kind}, so {name} is recorded in mirror.yaml but not created."
+                )
+                continue
+            notes.append(
+                f"{name} has no twin yet and nothing of its kind runs in its place, so the "
+                "world leaves it out. It is recorded in mirror.yaml for when one arrives."
+            )
+    return notes
+
+
 def show_world(project: Project) -> dict[str, Any]:
     manifest, problems = load_model(project.manifest_path, Manifest)
     if manifest is None:
@@ -504,9 +589,11 @@ def show_world(project: Project) -> dict[str, Any]:
         "company": f"{c.name} ({c.domain}), {c.industry}, {c.size} people, {c.history_days} days of history, {c.tidiness} data, seed {c.seed}",
         "systems": [
             f"{a.id}: {a.product or a.kind} at {a.hostname}"
+            + (f" (in place of {a.in_place_of})" if a.in_place_of else "")
             + (" (unavailable: no twin yet)" if a.build == "unavailable" else "")
             for a in manifest.apps
         ],
+        "notes": system_notes(manifest),
         "links": [f"{k}: {v}" for link in manifest.links for k, v in link.items()],
         "data": manifest.data.model_dump(exclude_none=True) if manifest.data else {},
     }

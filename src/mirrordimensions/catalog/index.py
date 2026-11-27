@@ -59,6 +59,7 @@ class Match(BaseModel):
     query: str
     entry: Entry | None
     buildable: bool
+    instead: Entry | None = None  # the system with a twin of the same kind, when this has none
 
 
 def slugify(text: str) -> str:
@@ -129,17 +130,22 @@ def resolve(name: str) -> Entry | None:
     return _lookup().get(normalize(name))
 
 
+def _buildable(entry: Entry | None) -> bool:
+    return bool(entry and entry.twin_status in ("buildable", "verified"))
+
+
+def twin_for_kind(kind: str) -> Entry | None:
+    """The system the mirror can run for this kind of system (Gitea for code hosting, say)."""
+    return next((e for e in load() if e.kind == kind and _buildable(e)), None)
+
+
 def match_systems(names: list[str]) -> list[Match]:
     out: list[Match] = []
     for name in names:
         entry = resolve(name)
-        out.append(
-            Match(
-                query=name,
-                entry=entry,
-                buildable=bool(entry and entry.twin_status in ("buildable", "verified")),
-            )
-        )
+        buildable = _buildable(entry)
+        instead = twin_for_kind(entry.kind) if entry and not buildable else None
+        out.append(Match(query=name, entry=entry, buildable=buildable, instead=instead))
     return out
 
 

@@ -55,6 +55,12 @@ class Output:
         stream = self._stream()
         print(f"{self._paint('FAIL', '33', stream)}  {text}", file=stream)
 
+    def note(self, text: str) -> None:
+        """Something the person should know before going on; not a failure."""
+        stream = self._stream()
+        if not self.quiet:
+            print(f"{self._paint('note', '33', stream)}  {text}", file=stream)
+
     def next_step(self, text: str) -> None:
         """The dim closing line naming the obvious next command."""
         stream = self._stream()
