@@ -275,7 +275,15 @@ export function WorldWizard() {
                           <th scope="row">{s.kind ? s.kind.replace(/-/g, " ") : s.id}</th>
                           <td>{s.product ?? "None"}</td>
                           <td className="mono">{s.hostname || "None"}</td>
-                          <td>{s.note ? <span className="tag bad">{s.note}</span> : <span className="tag good">Will be built</span>}</td>
+                          <td>
+                            {!s.note ? (
+                              <span className="tag good">Will be built</span>
+                            ) : s.note.startsWith("Runs in place") ? (
+                              <span className="tag">{s.note}</span>
+                            ) : (
+                              <span className="tag bad">{s.note}</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

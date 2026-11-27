@@ -118,6 +118,8 @@ def _view(root: Path, draft: worlddef.Draft) -> WorldDraftView:
                 note=(
                     "No twin yet: recorded, not created"
                     if app.get("build") == "unavailable"
+                    else f"Runs in place of {app['in_place_of']}, which has no twin yet"
+                    if app.get("in_place_of")
                     else ""
                 ),
             )

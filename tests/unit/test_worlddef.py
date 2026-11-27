@@ -24,6 +24,7 @@ from mirrordimensions.service.worlddef import (
     first_stage_affected,
     new_world,
     resume_stage,
+    system_notes,
     world_status,
 )
 
@@ -162,3 +163,39 @@ def test_an_interrupted_draft_resumes_at_its_next_question(tmp_path: Path) -> No
         365,
     )
     assert not (made / ".mirror" / "draft.json").exists()
+
+
+def test_a_product_without_a_twin_gets_the_twin_of_its_kind(tmp_path: Path) -> None:
+    root = new_world(tmp_path / "w", systems=["Slack", "GitHub", "Jira"], seed=7)
+    manifest, _ = load_model(root / "mirror.yaml", Manifest)
+    assert manifest is not None
+    apps = {a.id: a for a in manifest.apps}
+    # The template's ids, which agent files grant by, whichever way the world was defined.
+    assert (apps["chat"].product, apps["chat"].in_place_of) == ("mattermost", "slack")
+    assert (apps["code"].product, apps["code"].in_place_of) == ("gitea", "github")
+    assert apps["ticketing"].build == "unavailable"
+    assert sorted(a.product or "" for a in plan_from(manifest).apps) == ["gitea", "mattermost"]
+    notes = system_notes(manifest)
+    assert any("Mattermost runs in its place" in n for n in notes)
+    assert any(n.startswith("Jira has no twin yet") for n in notes)
+
+
+def test_substitution_can_be_turned_off_and_is_never_doubled(tmp_path: Path) -> None:
+    off = new_world(tmp_path / "a", systems=["Gitea", "Slack"], seed=7, substitute=False)
+    manifest, _ = load_model(off / "mirror.yaml", Manifest)
+    assert manifest is not None
+    assert {a.product: a.build for a in manifest.apps} == {"gitea": None, "slack": "unavailable"}
+    both = new_world(tmp_path / "b", systems=["Gitea", "GitHub"], seed=7)
+    manifest, _ = load_model(both / "mirror.yaml", Manifest)
+    assert manifest is not None
+    assert [(a.id, a.product, a.build) for a in manifest.apps] == [
+        ("code", "gitea", None),
+        ("code-2", "github", "unavailable"),
+    ]
+    assert len({a.hostname for a in manifest.apps}) == 2
+
+
+def test_a_world_that_could_build_nothing_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(MirrorError, match="None of these systems can be built yet"):
+        new_world(tmp_path / "w", systems=["Jira", "ServiceNow"], seed=7)
+    assert not (tmp_path / "w" / "mirror.yaml").exists()

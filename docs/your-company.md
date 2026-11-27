@@ -1,0 +1,127 @@
+# Setting up a world for your company
+
+This guide is for someone at a company who wants to test their own agent in a copy of their workplace. Do the README's "From clone to a first passing run" first: it proves the engine and a world work on your computer. Then come back here.
+
+## What a world is, and what it is not
+
+A world is a **synthetic** company. You choose:
+
+- its name, domain, industry and size;
+- how much history it has, and how tidy that history is;
+- which systems it runs.
+
+The mirror generates everything else: the people, the repositories with their commit history, the issues and the chat. Your agent sees production-style hostnames (`git.yourcompany.com`) over valid TLS, signed by the world's own root certificate, and none of it leaves your computer.
+
+Your real data never goes in. There is no import of your repositories, tickets or messages. When you describe your systems from files (below), the mirror reads their shape, such as hostnames, tools and endpoints. It never keeps secrets or the people named in them.
+
+## What a world can run today
+
+| Kind of system              | Runs as                                                                            | In place of                          |
+| --------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------ |
+| Code hosting                | Gitea, the real software, unmodified                                               | GitHub, GitLab, Bitbucket and others |
+| Team chat                   | Mattermost Team Edition, the real software, unmodified                             | Slack, Microsoft Teams and others    |
+| A company MCP server        | The mirror's MCP server, serving your own tool list on top of Gitea and Mattermost | Your engineering tools server        |
+| Building access and devices | The mirror's device platform (REST) and Eclipse Mosquitto (MQTT)                   | Door, thermostat and sensor systems  |
+
+Every other system in the catalog (`mirror catalog search <name>`), including ticketing, CRM, HR and identity, has **no twin yet**. A world can name it, but it is not created.
+
+So if your company uses GitHub and Slack, the world runs Gitea and Mattermost in their place, at the hostnames your company would use. `mirror world new` tells you when it does this:
+
+```sh
+mirror world new halden --systems github,slack,jira \
+  --company "Halden Freight" --domain halden-freight.com --industry logistics
+```
+
+```
+  chat: mattermost at chat.halden-freight.com (in place of slack)
+  code: gitea at git.halden-freight.com (in place of github)
+  ticketing: jira at tickets.halden-freight.com (unavailable: no twin yet)
+note  Slack has no twin yet, so Mattermost runs in its place at chat.halden-freight.com. ...
+note  Jira has no twin yet and nothing of its kind runs in its place, so the world leaves it out. ...
+```
+
+`--no-substitute` records GitHub and Slack as unavailable instead. If none of the systems you name can be built, `world new` stops and says which ones can.
+
+## What this means for your agent
+
+An agent is tested against what the world runs, so it must be able to talk to it. There are three ways, from most to least direct.
+
+1. **Through the world's MCP server.** If your agent works through MCP tools (most general-purpose agents can), give the world an MCP server with your own tool list, and grant the agent `tools`. The agent calls tools such as `search_issues` or `post_message`; the mirror carries out each call against Gitea and Mattermost and records it. The agent does not need to know which product sits underneath. `examples/agents/mcp-good` is an agent that works only this way.
+2. **Through Gitea's and Mattermost's own APIs.** An agent written for these APIs works unchanged. Gitea's REST API differs from GitHub's in places (paths start `/api/v1/`, tokens are sent as `token <value>`), and Mattermost's differs from Slack's. `examples/agents/scripted-good` and `llm-example` work this way.
+3. **Through the web pages, as a person would.** A browser agent (`mode: browser`) drives a managed browser on the company network. `examples/agents/browser-basic` works this way.
+
+An agent written only against GitHub's or Slack's own API cannot do its work in a world today. Use route 1, or adapt its client to route 2.
+
+## Step by step
+
+**1. Define the world.** Use your company's name and domain, so the agent sees the hostnames it would see at work. Name your systems, or start from the template.
+
+```sh
+cd ~/mirror-worlds
+mirror world new halden --systems github,slack --company "Halden Freight" \
+  --domain halden-freight.com --industry logistics --people 40 --history 365
+cd halden
+```
+
+`--tidiness messy` gives more stale tickets, duplicates and typos. `mirror world new` with no options asks each question in turn. The portal's world wizard (`mirror portal`) asks the same questions and writes the same `mirror.yaml`.
+
+**2. Or describe it from your own files.** If you have your agent's MCP configuration, an exported tool list, OpenAPI specifications or Terraform state (`terraform show -json`), the mirror can read the systems from them. The files are read in place on your computer; secrets and people are dropped.
+
+```sh
+mirror world new halden --import mcp.json --import tools.json --import openapi.yaml \
+  --company "Halden Freight" --domain halden-freight.com
+```
+
+If two files disagree, for example on a hostname, it stops and names the disagreement. Settle it and finish:
+
+```sh
+mirror world new halden --decide gitea.hostname=git.halden-freight.com
+```
+
+A tool list imported this way becomes the world's MCP server, serving each tool it can map to Gitea or Mattermost. A tool it cannot map is listed and left out.
+
+**3. Add your model.** If your agent calls a model, add a route to `mirror.yaml`. It is the only way out of the sandbox:
+
+```yaml
+models:
+  - name: primary
+    provider: anthropic # or openai
+    host: api.anthropic.com
+    credential: { from_env: ANTHROPIC_API_KEY }
+```
+
+Set the key in your shell before `mirror up` (or before `mirror apply`, if the sandbox is already up). The agent itself gets a placeholder key in the provider's format; the gateway swaps in the real one on the way out, so your key never enters the sandbox or any recording.
+
+**4. Create it, start it, and prove it is sealed.**
+
+```sh
+mirror world create        # about 3 minutes, more for a bigger company
+mirror up
+mirror doctor              # ends with: Isolation: full
+```
+
+**5. Bring your agent.** Your agent is a container image. Write its agent file (see [agent-file.md](agent-file.md)), or let the wizard write it:
+
+```sh
+mirror agent new my-agent          # six questions: image, model, who it acts as, access, how it wakes
+mirror agent check my-agent        # every preflight check, each with its fix
+```
+
+**6. Run it.** Start with the built-in scenarios to see that everything works:
+
+```sh
+mirror run core --agent my-agent
+mirror report latest --open
+```
+
+The built-in scenarios are public, and models may have seen them. For results you will rely on, write your own from your team's real work, such as "rotate the key someone pasted in #deploys" or "answer the on-call question from the runbook", and keep them private in the project's `scenarios/` folder. See [writing-a-scenario.md](writing-a-scenario.md).
+
+## Questions people ask
+
+**Can I use my company's real name and domain?** Yes. The world's resolver answers for your domain inside the sandbox only, and nothing leaves it. Keep the project folder private, as you would any test of your own systems.
+
+**Can it load our real repositories or Slack history?** No, by design: a test range must not hold real data. The mirror generates history that looks like a company of your size and kind.
+
+**Our agent runs on its vendor's platform, not in a container.** Onboard it with `mirror agent new --mode remote`. It reaches the world through an MCP server that you expose with `mirror world expose`, behind your own reverse proxy. A remote agent gets reduced guarantees: leaks are detected, not blocked, and its model and platform are outside the record. `examples/remote/` has a reference platform and agent file.
+
+**What does the agent see of the mirror?** Nothing, by design. Its host name, variables, certificates and network look like an ordinary workstation at the company. `docs/tells.md` lists every way a test was found to show itself, and how each was closed.

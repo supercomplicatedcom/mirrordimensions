@@ -408,6 +408,14 @@ def world_new(
     incidents: Annotated[
         bool, typer.Option("--incidents/--no-incidents", help="Incidents in chat and as issues.")
     ] = True,
+    substitute: Annotated[
+        bool,
+        typer.Option(
+            "--substitute/--no-substitute",
+            help="With --systems: run Gitea or Mattermost in place of a product of the same "
+            "kind that has no twin yet (GitHub, Slack), at its hostname.",
+        ),
+    ] = True,
     import_: Annotated[
         list[Path] | None,
         typer.Option(
@@ -504,12 +512,15 @@ def world_new(
                 "canaries": canaries,
             },
             links={"announce": announce, "incidents": incidents},
+            substitute=substitute,
         )
     shown = worlddef.show_world(Project(root=root))
     st.out.ok(f"World defined in {root}")
     st.out.line(f"{'Company':<10}{shown['company']}")
     for line in shown["systems"]:
         st.out.line(f"  {line}")
+    for note in shown["notes"]:
+        st.out.note(note)
     st.out.next_step("Next: mirror world create")
 
 
