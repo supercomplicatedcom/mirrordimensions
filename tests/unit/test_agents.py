@@ -120,7 +120,7 @@ def test_model_keys_are_placeholders_in_the_providers_form() -> None:
     key = keys["ANTHROPIC_API_KEY"]
     assert key.startswith("sk-ant-api03-")
     assert key.endswith("AA")
-    assert len(key) == len("sk-ant-api03-") + 95 + 2
+    assert len(key) == 108
     assert key == hosted.placeholder_key("anthropic", 7, "primary")  # stable for the world
     assert key != hosted.placeholder_key("anthropic", 8, "primary")
     assert findings(key) == []

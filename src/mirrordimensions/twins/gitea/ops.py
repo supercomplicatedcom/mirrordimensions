@@ -13,12 +13,14 @@ feed) is backdated the way seeding backdates it.
 from __future__ import annotations
 
 import base64
-from datetime import UTC, datetime, timedelta
+import hashlib
+from datetime import UTC, datetime
 from typing import Any
 
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import CheckOutcome, Operations, RunContext, StateObject
 from mirrordimensions.twins.gitea.seed import PUSH_TIME
+from mirrordimensions.world.clock import WorkClock
 
 ADMIN = "git-admin"
 
@@ -62,9 +64,57 @@ def _repo(run: RunContext, name: str) -> str:
     return name if "/" in name else f"{run.world.org}/{name}"
 
 
-def _when(run: RunContext, ago_minutes: int) -> str:
+def _when(run: RunContext, ago_minutes: int, key: str) -> str:
+    """`ago` minutes of the company's working time before the run, as seeding places them."""
     now = run.now or datetime.now(UTC).replace(microsecond=0)
-    return (now - timedelta(minutes=ago_minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    placed = WorkClock(now, run.world.utc_offset).at(ago_minutes, key)
+    return placed.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _unix(run: RunContext, ago_minutes: int, key: str) -> int:
+    now = run.now or datetime.now(UTC).replace(microsecond=0)
+    return WorkClock(now, run.world.utc_offset).unix(ago_minutes, key)
+
+
+def _default_ago(key: str) -> int:
+    """For an issue a scenario plants without saying when: a few working days before the
+    run, so it does not appear moments before the agent starts."""
+    h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:4], "big")
+    return (2 + h % 4) * 24 * 60 + h % 600
+
+
+def _backdate_issue(
+    run: RunContext,
+    repo: str,
+    number: int,
+    created: int,
+    closed: int | None = None,
+    merged: int | None = None,
+) -> None:
+    """Give an issue or pull request planted now the times it would have had."""
+    owner, name = repo.split("/", 1)
+    where = (
+        f"repo_id=(SELECT id FROM repository WHERE lower_name='{name.lower()}' AND "
+        f"owner_id=(SELECT id FROM \"user\" WHERE lower_name='{owner.lower()}')) AND index={number}"
+    )
+    sql = f"UPDATE issue SET created_unix={created}, updated_unix={created} WHERE {where};"
+    sql += (
+        f"UPDATE comment SET created_unix={created}+60, updated_unix={created}+60 "
+        f"WHERE issue_id=(SELECT id FROM issue WHERE {where}) AND created_unix>{created}+60;"
+    )
+    if closed is not None:
+        sql += f"UPDATE issue SET closed_unix={closed}, updated_unix={closed} WHERE {where};"
+    if merged is not None:
+        sql += (
+            f"UPDATE pull_request SET merged_unix={merged} "
+            f"WHERE issue_id=(SELECT id FROM issue WHERE {where});"
+        )
+    sql += (
+        "UPDATE action a SET created_unix=i.created_unix FROM issue i WHERE a.comment_id=0 "
+        "AND a.repo_id=i.repo_id AND a.content LIKE (i.index::text || '|%') "
+        f"AND i.index={number};"
+    )
+    _sql(run, "BEGIN;" + sql + "COMMIT;")
 
 
 def _who(run: RunContext, spec: Any) -> Any:
@@ -130,7 +180,7 @@ def commit(run: RunContext, args: dict[str, Any]) -> None:
         }
         if current:
             entry["sha"] = current[1]
-    when = _when(run, int(args.get("ago", 0)))
+    when = _when(run, int(args.get("ago", 0)), f"overlay:{repo}:{path}:{args.get('message')}")
     _api(
         run,
         "POST",
@@ -181,6 +231,12 @@ def issue(run: RunContext, args: dict[str, Any]) -> None:
         )
     if args.get("closed"):
         _api(run, "PATCH", f"/repos/{repo}/issues/{number}", {"state": "closed"})
+    key = f"issue:{repo}:{args['title']}"
+    ago = int(args["ago"]) if "ago" in args else _default_ago(key)
+    if ago > 0:
+        created_at = _unix(run, ago, key)
+        closed_at = _unix(run, max(1, ago // 3), key + ":closed") if args.get("closed") else None
+        _backdate_issue(run, repo, number, created_at, closed=closed_at)
     run.facts[f"labels:{number}"] = list(labels)
     if args.get("key"):
         run.facts[args["key"]] = {"repo": repo, "number": number}
@@ -220,7 +276,9 @@ def tag(run: RunContext, args: dict[str, Any]) -> None:
         run,
         "POST",
         f"/repos/{repo}/tags",
-        {"tag_name": args["name"], "target": target, "message": args.get("message", args["name"])},
+        # Lightweight unless the scenario gives a message: an annotated tag would carry the
+        # run's own time as its tagger date.
+        {"tag_name": args["name"], "target": target, "message": args.get("message", "")},
         sudo=_who(run, args.get("by")).username,
         ok=(201, 409),
     )
@@ -257,14 +315,30 @@ def pull(run: RunContext, args: dict[str, Any]) -> None:
         sudo=author.username,
     )
     number = int(created["number"])
-    if args.get("merged"):
-        _api(
-            run,
+    merger = _who(run, args.get("merged_by")).username if args.get("merged") else None
+    if merger is not None:
+        # Fast-forward when main has not moved, so no merge commit carries the run's time.
+        ff = run.relay.request(
             "POST",
-            f"/repos/{repo}/pulls/{number}/merge",
-            {"Do": "merge", "delete_branch_after_merge": True},
-            sudo=_who(run, args.get("merged_by")).username,
+            f"http://{run.ctx.app_ip}:3000/api/v1/repos/{repo}/pulls/{number}/merge",
+            body={"Do": "fast-forward-only", "delete_branch_after_merge": True},
+            basic=(ADMIN, run.ctx.secrets["admin_password"]),
+            headers={"Sudo": merger},
         )
+        if ff.status not in (200, 204):
+            _api(
+                run,
+                "POST",
+                f"/repos/{repo}/pulls/{number}/merge",
+                {"Do": "merge", "delete_branch_after_merge": True},
+                sudo=merger,
+            )
+    ago = int(args.get("ago", 0))
+    if ago > 0:
+        key = f"pull:{repo}:{args['title']}"
+        opened = _unix(run, max(1, ago - 20), key)
+        merged_at = _unix(run, max(1, ago - 150), key + ":merged") if merger else None
+        _backdate_issue(run, repo, number, opened, closed=merged_at, merged=merged_at)
     if args.get("key"):
         run.facts[args["key"]] = {
             "repo": repo,

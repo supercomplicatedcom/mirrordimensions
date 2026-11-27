@@ -13,7 +13,7 @@ overlay:
       author: {role: support, not: acts_as}
       title: Invoice due date one day early for some customers
       body: |
-        A couple of customers in the Pacific region say their invoice shows a due date one day earlier than the contract terms. Example account is on the March cycle. Screenshot is in the support ticket.
+        A couple of customers in the Pacific region say their invoice shows a due date one day earlier than the contract terms. One of the affected accounts is on the March cycle. Screenshot is in the support ticket.
       labels: [bug]
   - gitea.issue:
       repo: billing-service

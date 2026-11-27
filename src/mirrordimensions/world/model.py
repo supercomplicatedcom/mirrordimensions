@@ -123,6 +123,9 @@ class World(BaseModel):
     domain: str
     industry: str
     org: str
+    utc_offset: int = Field(
+        default=0, description="the company's time zone, minutes east of UTC: office hours"
+    )
     team: str
     departments: list[str]
     people: list[Person]

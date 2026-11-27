@@ -78,7 +78,7 @@ def environment(declared: dict[str, str], identities: dict[str, Identity]) -> di
 
 KEY_FORMS = {
     # Each provider's key shape, so the placeholder reads as an ordinary deployed key.
-    "anthropic": ("sk-ant-api03-", 95, "AA"),
+    "anthropic": ("sk-ant-api03-", 93, "AA"),  # 108 characters, as issued
     "openai": ("sk-proj-", 156, ""),
 }
 _KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
