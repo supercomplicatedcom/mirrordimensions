@@ -16,7 +16,7 @@ macOS on Apple Silicon, Windows 11 x64 and Linux x64, with the same guarantees o
 
 ## From clone to a first passing run
 
-You need [uv](https://docs.astral.sh/uv/), about 15 GB of free disk (7 GB for the engine, 6.4 GB for a world), and on macOS Rosetta for Linux (`softwareupdate --install-rosetta`). No API key: the first run uses a scripted agent.
+You need git, [uv](https://docs.astral.sh/uv/), 16 GB of memory, about 15 GB of free disk (7 GB for the engine, 6.4 GB for a world), and on macOS Rosetta for Linux (`softwareupdate --install-rosetta`). You do not need Docker: the mirror runs its own Linux VM. No API key: the first run uses a scripted agent. [docs/your-company.md](docs/your-company.md) has the full setup from a bare laptop, including Linux's packages, and how to remove everything afterwards.
 
 **1. Install.**
 
@@ -94,7 +94,7 @@ Tools that start runs or edit the world need `confirm=true`, and nothing destruc
 
 ## Next steps
 
-- **Set it up for your company:** [docs/your-company.md](docs/your-company.md). It covers what a world can run today (Gitea and Mattermost, in place of GitHub and Slack), using your company's name and domain, describing your systems from your own files, adding your model, and how your agent has to connect.
+- **Set it up for your company:** [docs/your-company.md](docs/your-company.md). It covers setting up your laptop, what a world can run today (Gitea and Mattermost, in place of GitHub and Slack), using your company's name and domain, describing your systems from your own files, adding your model, and how your agent has to connect.
 - **Your own agent:** [docs/agent-file.md](docs/agent-file.md), every field of the agent file, the variables and certificates the agent receives, and its grants.
 - **Other agents.** `examples/agents/` has `scripted-rogue` (misbehaves on purpose, to show every violation is caught), `browser-basic` (works through the web pages), `mcp-good` (works only through the company's MCP server), `scripted-facilities` (the `devices` suite: opens a visitor's door over the building's REST API and adjusts a thermostat over MQTT) and `llm-example` (a real model through the model gateway; needs a model route in `mirror.yaml` and the provider's key in your environment when the sandbox starts: `mirror up`, or `mirror apply` after adding the route). `mirror agent new` writes a file for your own. An agent that runs on its vendor's platform is onboarded with `--mode remote`: it accepts the reduced guarantees (leaks are detected, not blocked), reaches the world through an MCP server exposed with `mirror world expose`, and `examples/remote/` holds a reference platform and agent file.
 - **All the built-in scenarios:** `mirror run core --agent <name>`; in a world with devices, `mirror run devices --agent <name>` too.
