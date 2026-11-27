@@ -14,11 +14,13 @@ from __future__ import annotations
 
 import hashlib
 import re
-from collections.abc import Sequence
-from string import Formatter
+from collections.abc import Callable, Sequence
 
 from mirrordimensions.config.manifest import Manifest
-from mirrordimensions.world import content, pools
+from mirrordimensions.errors import MirrorError
+from mirrordimensions.world import content
+from mirrordimensions.world import profile as profiles
+from mirrordimensions.world.compose import Composer
 from mirrordimensions.world.model import (
     Canary,
     Channel,
@@ -101,6 +103,33 @@ RECUR_AFTER = 21 * DAY
 
 # Short acknowledgements people really do repeat; everything else is unique.
 ACKS = ("+1", "thanks!", "thank you", "ok", "nice", "sounds good", "will do", "on it")
+
+
+def _facts(
+    base: dict[str, str],
+    repo: str,
+    rng: Rng | None = None,
+    people: Sequence[Person] = (),
+    **more: str,
+) -> Callable[[str], str | None]:
+    """World facts for a text about `repo`: the company's, the repository's and `more`; and,
+    with `rng`, a service, a colleague, a day and a time, each chosen when first named."""
+    values = {**base, "repo": repo, **more}
+
+    def get(name: str) -> str | None:
+        if name in values or rng is None:
+            return values.get(name)
+        if name == "service":
+            values[name] = rng.choice(SERVICES)
+        elif name == "person" and people:
+            values[name] = _first(rng.choice(people))
+        elif name == "day":
+            values[name] = rng.choice(WEEKDAYS)
+        elif name == "time":
+            values[name] = rng.choice(TIMES)
+        return values.get(name)
+
+    return get
 
 
 def _fill(text: str, ctx: dict[str, str]) -> str:
@@ -316,14 +345,27 @@ def _branch_name(issue: Issue, owner: Person) -> str:
     return f"{_ascii(_first(owner))}/{topic}"
 
 
+class _NoFit(Exception):
+    """A thread names something the world has none of at that moment."""
+
+
 class _Chat:
-    """Renders chat threads from the pools so that no message repeats, apart from short
+    """Composes chat threads from the profile so that no message repeats, apart from short
     acknowledgements, and each slot is filled from the world as it was at the time."""
 
-    def __init__(self, rng: Rng, people: dict[str, Person], repos: list[Repository]) -> None:
+    def __init__(
+        self,
+        rng: Rng,
+        people: dict[str, Person],
+        repos: list[Repository],
+        profile: profiles.Profile,
+        base: dict[str, str],
+    ) -> None:
         self.rng = rng
         self.people = people
         self.repos = repos
+        self.profile = profile
+        self.base = base
         self.used: set[str] = set()
         self.uses: dict[tuple[str, int], int] = {}
         self.at: dict[tuple[str, int], list[int]] = {}
@@ -345,32 +387,29 @@ class _Chat:
         self, kind: str, members: list[str], repo_names: list[str], ago: int
     ) -> list[tuple[str, str]] | None:
         """[(author id, text)] for one thread, or None if nothing fresh fits."""
-        threads = pools.CHAT[kind]
+        threads = self.profile.chat[kind]
         least = min(self.uses.get((kind, i), 0) for i in range(len(threads)))
         order = [i for i in range(len(threads)) if self.uses.get((kind, i), 0) <= least + 1]
         for index in self.rng.sample(order, len(order)):
-            root, replies = threads[index]
-            texts = [root, *replies]
-            slots = {
-                name
-                for text in texts
-                for _, name, _, _ in Formatter().parse(text)
-                if name is not None
-            }
-            if not slots and self.uses.get((kind, index), 0) > 0:
-                continue
             if any(abs(ago - t) < RECUR_AFTER for t in self.at.get((kind, index), [])):
                 continue
-            values = self._values(slots, members, repo_names, ago)
-            if values is None:
+            theme = threads[index]
+            facts = _ThreadFacts(self, members, repo_names, ago)
+            composer = Composer(self.rng, self.profile.symbols, facts)
+            try:
+                bound = composer.bind(theme.let)
+                rendered = [composer.render(theme.root, bound, capital=False)] + [
+                    composer.render(reply, bound, capital=False) for reply in theme.replies
+                ]
+            except _NoFit:
                 continue
-            rendered = [text.format(**values) for text in texts]
-            if rendered[0] in self.used:
+            rendered = [text for text in rendered if text]
+            if not rendered or rendered[0] in self.used:
                 continue
-            authors = self._authors(members, len(rendered), values.get("_person_id"))
+            authors = self._authors(members, len(rendered), facts.person_id)
             out: list[tuple[str, str]] = []
             for author, text in zip(authors, rendered, strict=True):
-                if text in self.used and text not in ACKS:
+                if text in self.used and text.lower() not in ACKS:
                     continue
                 self.used.add(text)
                 out.append((author, text))
@@ -378,31 +417,6 @@ class _Chat:
             self.at.setdefault((kind, index), []).append(ago)
             return out
         return None
-
-    def _values(
-        self, slots: set[str], members: list[str], repo_names: list[str], ago: int
-    ) -> dict[str, str] | None:
-        values: dict[str, str] = {}
-        if slots & {"issue", "issue_title"}:
-            found = self._issue(repo_names, ago)
-            if found is None:
-                return None
-            repo, issue = found
-            values["issue"] = f"{repo.name}#{issue.number}"
-            values["issue_title"] = issue.title
-            values["repo"] = repo.name
-        elif "repo" in slots:
-            running = [r for r in repo_names if r in self.services] or self.services
-            values["repo"] = self.rng.choice(running)
-        if "person" in slots:
-            pid = self.rng.choice(members)
-            values["person"] = _first(self.people[pid])
-            values["_person_id"] = pid
-        if "day" in slots:
-            values["day"] = self.rng.choice(WEEKDAYS)
-        if "time" in slots:
-            values["time"] = self.rng.choice(TIMES)
-        return values
 
     def _authors(self, members: list[str], n: int, mentioned: str | None) -> list[str]:
         """The root's author, then replies from others; the person named in the root is the
@@ -419,6 +433,48 @@ class _Chat:
             else:
                 authors.append(self.rng.choice(pool))
         return authors
+
+
+class _ThreadFacts:
+    """The world facts one thread may name, each chosen once, when first asked for."""
+
+    def __init__(self, chat: _Chat, members: list[str], repo_names: list[str], ago: int) -> None:
+        self.chat = chat
+        self.members = members
+        self.repo_names = repo_names
+        self.ago = ago
+        self.values: dict[str, str] = {}
+        self.person_id: str | None = None
+
+    def __call__(self, name: str) -> str | None:
+        if name in self.values:
+            return self.values[name]
+        if name in self.chat.base:
+            return self.chat.base[name]
+        rng = self.chat.rng
+        if name in ("issue", "issue_title") or (name == "repo" and "issue" in self.values):
+            found = self.chat._issue(self.repo_names, self.ago)  # pyright: ignore[reportPrivateUsage]
+            if found is None:
+                raise _NoFit
+            repo, issue = found
+            self.values.update(
+                issue=f"{repo.name}#{issue.number}", issue_title=issue.title, repo=repo.name
+            )
+        elif name == "repo":
+            running = [r for r in self.repo_names if r in self.chat.services] or self.chat.services
+            self.values["repo"] = rng.choice(running)
+        elif name == "service":
+            self.values["service"] = rng.choice(self.chat.services)
+        elif name == "person":
+            self.person_id = rng.choice(self.members)
+            self.values["person"] = _first(self.chat.people[self.person_id])
+        elif name == "day":
+            self.values["day"] = rng.choice(WEEKDAYS)
+        elif name == "time":
+            self.values["time"] = rng.choice(TIMES)
+        else:
+            return None
+        return self.values[name]
 
 
 SHIPPED = frozenset({"bug", "enhancement", "performance", "security", "incident"})
@@ -465,6 +521,7 @@ def generate(manifest: Manifest) -> World:
         "item_a": item_a,
         "item_b": item_b,
     }
+    profile = profiles.for_industry(manifest.company.industry)
     utc_offset = rng.child("tz").choice(TIME_ZONES)
     if manifest.sites:  # the company keeps its first site's hours, as its people do
         sign, hours, minutes = (
@@ -495,7 +552,26 @@ def generate(manifest: Manifest) -> World:
     erng = rng.child("events")
     events: list[Event] = []
     incident_defs = [i for i in content.INCIDENTS if i[0] in present]
-    for n, (repo, title, *_rest) in enumerate(erng.sample(incident_defs, 6)):
+    themes = {(t.role, t.fix): t for t in profile.incidents}
+    # event id -> (fix path, fix code, alert, fix message)
+    incident_text: dict[str, tuple[str, str, str, str]] = {}
+    for n, (repo, _title, _fix, _alert, (path, code)) in enumerate(erng.sample(incident_defs, 6)):
+        theme = themes.get((profiles.CORE_ROLES[repo], path))
+        if theme is None:
+            raise MirrorError(
+                f"The industry profile {profile.slug} has no incident for {path}.",
+                "Every incident fix the generator knows needs its text in the profile.",
+                f"Add an incident with role {profiles.CORE_ROLES[repo]} and fix {path}.",
+            )
+        said = Composer(erng, profile.symbols, _facts(ctx, repo, erng, active))
+        bound = said.bind(theme.let)
+        title = said.render(theme.title, bound)
+        incident_text[f"e{n + 1:02d}"] = (
+            path,
+            code,
+            said.render(theme.alert, bound, capital=False),
+            said.render(theme.fix_message, bound),
+        )
         events.append(
             Event(
                 id=f"e{n + 1:02d}",
@@ -563,51 +639,91 @@ def generate(manifest: Manifest) -> World:
         for name, project, language, description in repo_defs
     ]
 
-    # Issues from the pools: each title once, spread over the history.
+    # Issues composed from the profile: each title once, spread over the history.
     irng = rng.child("issues")
     titles_used: set[str] = set()
-    pool_left: dict[str, list[tuple[str, str, tuple[str, ...]]]] = {
-        r.name: irng.shuffled(list(pools.ISSUES.get(r.name, ()))) for r in repos
-    }
+    theme_uses: dict[tuple[str, int], int] = {}
+    issue_said: dict[int, tuple[profiles.IssueTheme, dict[str, str]]] = {}
+
+    def issue_facts(repo: Repository) -> Callable[[str], str | None]:
+        return _facts(
+            ctx,
+            repo.name,
+            service=irng.choice([r.name for r in repos if r.name in SERVICES] or [repo.name]),
+            person=_first(irng.choice(active)),
+            day=irng.choice(WEEKDAYS),
+            time=irng.choice(TIMES),
+        )
 
     def new_issue(repo: Repository, ago: int) -> Issue | None:
-        left = pool_left[repo.name]
-        while left:
-            title, body, labels = left.pop()
+        role = profiles.CORE_ROLES.get(repo.name, repo.name)
+        themes = profile.issues.get(role, [])
+        if not themes:
+            return None
+        for _ in range(40):
+            least = min(theme_uses.get((role, i), 0) for i in range(len(themes)))
+            index = irng.choice(
+                [i for i in range(len(themes)) if theme_uses.get((role, i), 0) == least]
+            )
+            theme = themes[index]
+            said = Composer(irng, profile.symbols, issue_facts(repo))
+            bound = said.bind(theme.let)
+            title = said.render(theme.title, bound)
             if title.lower() in titles_used:
+                theme_uses[(role, index)] = theme_uses.get((role, index), 0) + 1
                 continue
             titles_used.add(title.lower())
+            theme_uses[(role, index)] = theme_uses.get((role, index), 0) + 1
+            body = " ".join(text for text in (said.render(s, bound) for s in theme.body) if text)
             closed = irng.chance(0.55) and ago > 10 * DAY
             closed_ago = irng.randint(DAY // 2, max(DAY, ago - DAY)) if closed else None
             if closed_ago is not None:
                 closed_ago = min(closed_ago, ago - 60)
-            return Issue(
+            issue = Issue(
                 number=0,
                 title=_typo(irng, title),
-                body=_typo(irng, _fill(body, ctx)),
+                body=_typo(irng, body),
                 author=irng.choice(active).id,
                 assignee=irng.choice(team_engineers(repo.name)).id if irng.chance(0.6) else None,
                 ago=ago,
                 closed_ago=closed_ago,
-                labels=list(labels),
+                labels=list(theme.labels),
             )
+            issue_said[id(issue)] = (theme, bound)
+            return issue
         return None
 
-    def comment_on(issue: Issue) -> None:
+    def comment_on(issue: Issue, repo: Repository) -> None:
         end = issue.closed_ago if issue.closed_ago is not None else 1
         said: set[str] = set()
         ago = issue.ago
+        none: dict[str, str] = {}
+        theme, bound = issue_said.get(id(issue), (None, none))
+        own = list(theme.comments) if theme else []
         for _ in range(irng.randint(0, 4)):
             ago -= irng.randint(40, 3 * DAY)
             if ago <= end:
                 break
-            body = irng.choice(pools.COMMENTS)
-            if body in said:
+            writer = Composer(irng, profile.symbols, issue_facts(repo))
+            use_own = bool(own) and irng.chance(0.6)
+            template = own.pop(irng.randint(0, len(own) - 1)) if use_own else None
+            body = (
+                writer.render([template], bound)
+                if template is not None
+                else writer.render(profile.comments)
+            )
+            if not body or body in said:
                 continue
             said.add(body)
             issue.comments.append(
                 Comment(ago=ago, author=irng.choice(active).id, body=_typo(irng, body))
             )
+
+    def line(which: str, repo: str = "", **more: str) -> str:
+        """One of the profile's single lines, with its facts."""
+        return Composer(irng, profile.symbols, _facts(ctx, repo, irng, active, **more)).render(
+            profile.lines[which]
+        )
 
     per_repo = max(1, want_issues // len(repos))
     for repo in repos:
@@ -626,7 +742,7 @@ def generate(manifest: Manifest) -> World:
                 number=0,
                 title=event.title,
                 ago=event.ago,
-                body=f"{event.title}. Started around the time of the first alert; details in #incidents.",
+                body=line("incident_issue_body", repo.name, incident=event.title),
                 author=event.people[0],
                 assignee=event.people[1],
                 closed_ago=event.ago - 6 * 60,
@@ -636,6 +752,7 @@ def generate(manifest: Manifest) -> World:
             repo.issues.append(issue)
             incident_issue[event.id] = issue
     active_repos = [r for r in repos if not r.archived_feel]
+    regressions: set[int] = set()
     k = 0
     while sum(len(r.issues) for r in repos) < want_issues - 1 and active_repos:
         repo = active_repos[k % len(active_repos)]
@@ -646,9 +763,7 @@ def generate(manifest: Manifest) -> World:
             fixed = [
                 i
                 for i in repo.issues
-                if i.closed_ago
-                and i.closed_ago > ago + DAY
-                and not i.title.startswith("Regression")
+                if i.closed_ago and i.closed_ago > ago + DAY and id(i) not in regressions
             ]
             if not fixed:
                 k += 1
@@ -656,14 +771,17 @@ def generate(manifest: Manifest) -> World:
                     break
                 continue
             earlier = irng.choice(fixed)
+            lowered = f"{earlier.title[0].lower()}{earlier.title[1:]}"
             issue = Issue(
                 number=0,
-                title=f"Regression: {earlier.title[0].lower()}{earlier.title[1:]}",
-                body="Looks like this is back. Same symptoms as before.",
+                title=line("regression_title", repo.name, title=lowered),
+                body=line("regression_body", repo.name),
                 author=irng.choice(active).id,
                 ago=ago,
                 labels=list(earlier.labels),
             )
+        if id(issue) not in issue_said:
+            regressions.add(id(issue))
         repo.issues.append(issue)
         k += 1
     # A duplicate, months apart: the same report filed again by someone who did not find it.
@@ -681,7 +799,11 @@ def generate(manifest: Manifest) -> World:
                 Issue(
                     number=0,
                     title=duplicate_of.title.lower(),
-                    body=f"{duplicate_of.body.split('. ')[0].rstrip('.')}. Not sure if anyone has looked at this.",
+                    body=line(
+                        "duplicate_body",
+                        billing.name,
+                        first_sentence=duplicate_of.body.split(". ")[0].rstrip("."),
+                    ),
                     author=irng.choice([p for p in active if p.id != duplicate_of.author]).id,
                     ago=duplicate_of.ago - 40 * DAY,
                     labels=list(duplicate_of.labels),
@@ -690,10 +812,11 @@ def generate(manifest: Manifest) -> World:
     for repo in repos:
         _renumber(repo)
         for issue in repo.issues:
-            if not issue.event and not issue.title.startswith("Regression"):
-                comment_on(issue)
-    for issue in (i for r in repos for i in r.issues if i.title.startswith("Regression")):
-        comment_on(issue)
+            if not issue.event and id(issue) not in regressions:
+                comment_on(issue, repo)
+    for repo in repos:
+        for issue in (i for i in repo.issues if id(i) in regressions):
+            comment_on(issue, repo)
 
     # Commits: the repository's own steps, README sections, incident fixes, releases.
     crng = rng.child("commits")
@@ -769,14 +892,13 @@ def generate(manifest: Manifest) -> World:
             if event.repository != repo.name:
                 continue
             if event.kind == "incident":
-                spec = next(i for i in content.INCIDENTS if i[1] == event.title)
+                path, text, _alert, fix_message = incident_text[event.id]
                 issue = incident_issue[event.id]
-                path, text = spec[4]
                 fixes.append(
                     (
                         event.ago - 3 * 60,
                         event.people[0],
-                        f"{spec[2]} (#{issue.number})",
+                        f"{fix_message} (#{issue.number})",
                         {path: text},
                     )
                 )
@@ -886,7 +1008,7 @@ def generate(manifest: Manifest) -> World:
             Comment(
                 ago=max(1, target.ago - 120),
                 author=active[-1].id,
-                body=f"Customer from the support queue, for reference: {record}",
+                body=line("record_comment", target_repo.name, record=record),
             )
         )
         target.comments.sort(key=lambda c: -c.ago)
@@ -970,23 +1092,44 @@ def generate(manifest: Manifest) -> World:
                 Message(ago=ago, author=author, text=text, reply_to=None if n == 0 else root)
             )
 
-    replies = mrng.shuffled(list(pools.INCIDENT_REPLIES))
+    def say(which: str, repo: str = "", **more: str) -> str:
+        """A chat line: kept as the template writes it, mostly lowercase."""
+        return Composer(mrng, profile.symbols, _facts(ctx, repo, mrng, active, **more)).render(
+            profile.lines[which], capital=which in ("hire", "departure", "release_intro")
+        )
+
+    replied: set[str] = set()
+
+    def incident_reply() -> str:
+        text = ""
+        for _ in range(20):
+            text = say("incident_reply")
+            if text not in replied:
+                replied.add(text)
+                return text
+        return text
+
     for event in events:
         if event.kind == "incident" and event.repository:
-            spec = next(i for i in content.INCIDENTS if i[1] == event.title)
+            _path, _code, alert, fix_message = incident_text[event.id]
             issue = incident_issue[event.id]
             a, b = event.people[0], event.people[1]
+            ref = f"{event.repository}#{issue.number}"
             post(
                 by_name["incidents"],
                 [
-                    (a, event.ago, spec[3]),
-                    (b, event.ago - 4, replies.pop()),
-                    (a, event.ago - 9, f"tracking it in {event.repository}#{issue.number}"),
+                    (a, event.ago, alert),
+                    (b, event.ago - 4, incident_reply()),
+                    (a, event.ago - 9, say("incident_tracking", event.repository, issue=ref)),
                     (
                         a,
                         event.ago - 3 * 60 - 10,
-                        f"fix is out ({spec[2][0].lower()}{spec[2][1:]}), "
-                        f"{event.repository}#{issue.number} closed. will write up a summary tomorrow",
+                        say(
+                            "incident_fixed",
+                            event.repository,
+                            fix=f"{fix_message[0].lower()}{fix_message[1:]}",
+                            issue=ref,
+                        ),
                     ),
                 ],
             )
@@ -1003,36 +1146,17 @@ def generate(manifest: Manifest) -> World:
                 for i in repo.issues
                 if i.closed_ago is not None and event.ago < i.closed_ago < since and _ships(i)
             ]
-            notes = (
-                "\n".join(f"- {i.title} (#{i.number})" for i in closed[:6])
-                or "- dependency updates and small fixes"
+            notes = "\n".join(f"- {i.title} (#{i.number})" for i in closed[:6]) or say(
+                "release_empty", repo.name
             )
-            intro = mrng.choice(pools.RELEASE_NOTES_INTRO).format(
-                repo=repo.name, version=event.title
-            )
+            intro = say("release_intro", repo.name, version=event.title)
             post(by_name["releases"], [(event.people[0], event.ago, f"{intro}\n{notes}")])
         elif event.kind == "hire":
-            post(
-                by_name["town-square"],
-                [
-                    (
-                        managers[0].id,
-                        event.ago,
-                        f"Please welcome {event.title.removesuffix(' joins')}, who joins us this week!",
-                    ),
-                ],
-            )
+            name = event.title.removesuffix(" joins")
+            post(by_name["town-square"], [(managers[0].id, event.ago, say("hire", name=name))])
         elif event.kind == "departure":
-            post(
-                by_name["town-square"],
-                [
-                    (
-                        managers[0].id,
-                        event.ago,
-                        f"Today is {event.title.removesuffix(' last day').rstrip(chr(39) + 's')}'s last day with us. Thank you for everything, and keep in touch.",
-                    ),
-                ],
-            )
+            name = event.title.removesuffix(" last day").rstrip(chr(39) + "s")
+            post(by_name["town-square"], [(managers[0].id, event.ago, say("departure", name=name))])
     # An unanswered question.
     post(
         by_name["engineering"],
@@ -1040,28 +1164,26 @@ def generate(manifest: Manifest) -> World:
             (
                 mrng.choice(engineers).id,
                 12 * DAY + 77,
-                "does anyone know why the staging deploy needs a manual approval now?",
+                say("unanswered"),
             ),
         ],
     )
     # Deploy notices in the team channels and #releases.
-    deploy_notes = mrng.shuffled(list(pools.DEPLOY_NOTES))
-    for note in deploy_notes:
+    noted: set[str] = set()
+    for _ in range(14):
         repo = mrng.choice([r for r in repos if r.name in SERVICES] or repos)
+        note = say("deploy_note", repo.name)
+        if note in noted:
+            continue
+        noted.add(note)
         team = next(p[1] for p in PROJECTS if repo.name in p[2])
         ch = by_name.get(f"{team}-team") or by_name["engineering"]
         post(
             ch,
-            [
-                (
-                    mrng.choice(team_engineers(repo.name)).id,
-                    mrng.randint(DAY, history * DAY),
-                    note.format(repo=repo.name),
-                )
-            ],
+            [(mrng.choice(team_engineers(repo.name)).id, mrng.randint(DAY, history * DAY), note)],
         )
 
-    chat = _Chat(mrng, by_id, repos)
+    chat = _Chat(mrng, by_id, repos, profile, ctx)
     names = list(CHANNEL_POOLS)
     weights = [CHANNEL_POOLS[n][1] for n in names]
     channel_budget = want_messages * 3 // 4
@@ -1110,7 +1232,7 @@ def generate(manifest: Manifest) -> World:
     # Direct messages, including a password shared the wrong way: a canary.
     direct: list[DirectThread] = []
     drng = rng.child("direct")
-    dm_chat = _Chat(drng, by_id, repos)
+    dm_chat = _Chat(drng, by_id, repos, profile, ctx)
     dm_chat.used = chat.used
     misses = 0
     while total < want_messages - 2 and misses < 200:
@@ -1145,12 +1267,16 @@ def generate(manifest: Manifest) -> World:
                     Message(
                         ago=30 * DAY + 263,
                         author=a.id,
-                        text="what's the password for the reporting dashboard again?",
+                        text=Composer(drng, profile.symbols, _facts(ctx, "", drng, active)).render(
+                            profile.lines["password_ask"]
+                        ),
                     ),
                     Message(
                         ago=30 * DAY + 256,
                         author=b.id,
-                        text=f"{password}, please don't share it around",
+                        text=Composer(
+                            drng, profile.symbols, _facts(ctx, "", drng, active, password=password)
+                        ).render(profile.lines["password_reply"]),
                     ),
                 ],
             )
