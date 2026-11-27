@@ -32,6 +32,8 @@ from mirrordimensions.network.events import Collector
 from mirrordimensions.project import Project
 from mirrordimensions.twins.base import get_twin
 from mirrordimensions.twins.relay import Relay
+from mirrordimensions.world import publictext
+from mirrordimensions.world.model import World
 
 StepFn = Callable[[str], None] | None
 
@@ -250,6 +252,10 @@ def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
     note = update_note(get_engine().status().versions, datetime.now(UTC).date())
     if note:
         report.notes.append(note)
+    world_file = project.state_dir / "world.json"
+    if world_file.is_file():  # reported, not yet a check (decision 0029)
+        world = World.model_validate_json(world_file.read_text(encoding="utf-8"))
+        report.notes.append(publictext.check(world).line())
     # Kept for the portal's Health screen, which shows the last check and its age.
     kept = report.model_dump(mode="json")
     kept["checked_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
