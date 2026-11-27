@@ -16,20 +16,20 @@ import json
 import re
 import time
 import zipfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from mirrordimensions.engine.docker_api import Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import TwinContext
+from mirrordimensions.world.clock import WorkClock
 from mirrordimensions.world.model import World
 
-
-def _ms(now: datetime, ago: int) -> int:
-    return int((now - timedelta(minutes=ago)).timestamp() * 1000)
+DAY = 24 * 60
 
 
 def import_lines(world: World, now: datetime, password: str) -> list[dict[str, Any]]:
+    clock = WorkClock(now, world.utc_offset)
     people = {p.id: p for p in world.people}
     team = world.org
     lines: list[dict[str, Any]] = [{"type": "version", "version": 1}]
@@ -93,7 +93,7 @@ def import_lines(world: World, now: datetime, password: str) -> list[dict[str, A
             entry = {
                 "user": people[m.author].username,
                 "message": m.text,
-                "create_at": _ms(now, m.ago),
+                "create_at": clock.ms(m.ago, f"post:{ch.name}:{i}"),
             }
             if m.reply_to is not None and m.reply_to in roots:
                 roots[m.reply_to].setdefault("replies", []).append(entry)
@@ -104,10 +104,10 @@ def import_lines(world: World, now: datetime, password: str) -> list[dict[str, A
             post.setdefault("replies", [])
             post["replies"].sort(key=lambda r: r["create_at"])
             lines.append({"type": "post", "post": post})
-    for thread in world.direct:
+    for t, thread in enumerate(world.direct):
         members = [people[m].username for m in thread.members]
         lines.append({"type": "direct_channel", "direct_channel": {"members": members}})
-        for m in thread.messages:
+        for j, m in enumerate(thread.messages):
             lines.append(
                 {
                     "type": "direct_post",
@@ -115,7 +115,7 @@ def import_lines(world: World, now: datetime, password: str) -> list[dict[str, A
                         "channel_members": members,
                         "user": people[m.author].username,
                         "message": m.text,
-                        "create_at": _ms(now, m.ago),
+                        "create_at": clock.ms(m.ago, f"dm:{t}:{j}"),
                     },
                 }
             )
@@ -180,23 +180,39 @@ def seed(docker: Docker, ctx: TwinContext, world: World, now: datetime) -> dict[
 
 
 def _backdate(docker: Docker, ctx: TwinContext, world: World, now: datetime) -> None:
+    clock = WorkClock(now, world.utc_offset)
     statements = ["BEGIN;"]
     for p in world.people:
-        ms = _ms(now, p.started_ago)
+        ms = clock.ms(p.started_ago, f"user:{p.username}")
         statements.append(
             f"UPDATE users SET createat={ms}, updateat={ms} WHERE username='{p.username}';"
         )
         if p.left_ago is not None:
             statements.append(
-                f"UPDATE users SET deleteat={_ms(now, p.left_ago)} WHERE username='{p.username}';"
+                f"UPDATE users SET deleteat={clock.ms(p.left_ago, f'left:{p.username}')} "
+                f"WHERE username='{p.username}';"
             )
-    oldest = _ms(now, max(p.started_ago for p in world.people))
+    first = max(p.started_ago for p in world.people)
+    oldest = clock.ms(first, "team")
     statements.append(
         f"UPDATE teams SET createat={oldest}, updateat={oldest} WHERE name='{world.org}';"
     )
+    # The administrator was set up when the server was installed, by and named for IT.
+    installed = clock.ms(first + 2 * DAY, "install")
+    it_first, _, it_last = f"{world.company} IT".rpartition(" ")
     statements.append(
-        f"UPDATE channels SET createat={oldest} WHERE teamid=(SELECT id FROM teams WHERE name='{world.org}');"
+        f"UPDATE users SET createat={installed}, updateat={installed}, "
+        f"firstname='{it_first.replace(chr(39), chr(39) * 2)}', lastname='{it_last}' "
+        "WHERE username='chat-admin';"
     )
+    # Channels were opened one by one as the company grew, all before the history shown.
+    span = max(DAY, first - world_history(world) - DAY)
+    for i, ch in enumerate(world.channels):
+        at = clock.ms(first - span * (i + 1) // (len(world.channels) + 1), f"channel:{ch.name}")
+        statements.append(
+            f"UPDATE channels SET createat={at} WHERE name='{ch.name}' "
+            f"AND teamid=(SELECT id FROM teams WHERE name='{world.org}');"
+        )
     statements.append(
         "UPDATE channels c SET lastpostat=COALESCE((SELECT max(createat) FROM posts p WHERE p.channelid=c.id), c.lastpostat);"
     )
@@ -214,6 +230,14 @@ def _backdate(docker: Docker, ctx: TwinContext, world: World, now: datetime) -> 
             out.output.strip()[-300:],
             "See: mirror logs chat",
         )
+
+
+def world_history(world: World) -> int:
+    """Minutes back to the oldest message, commit or issue the world holds."""
+    agos = [m.ago for c in world.channels for m in c.messages]
+    agos += [c.ago for r in world.repositories for c in r.commits]
+    agos += [i.ago for r in world.repositories for i in r.issues]
+    return max(agos, default=0)
 
 
 def _json_id(text: str) -> str:

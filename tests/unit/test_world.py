@@ -5,6 +5,8 @@
 from __future__ import annotations
 
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 from ruamel.yaml import YAML
@@ -46,14 +48,21 @@ def test_sizes_follow_the_manifest() -> None:
 
 
 def test_events_are_traceable_across_issue_commit_and_chat() -> None:
+    # An incident has its ticket, a fix that references the ticket, and a thread that links
+    # it, the way people link work; no generator ids in the text.
     w = generate(manifest())
     traced = 0
     for event in (e for e in w.events if e.kind == "incident"):
-        in_issue = any(i.event == event.id for r in w.repositories for i in r.issues)
-        in_commit = any(event.id in c.message for r in w.repositories for c in r.commits)
-        in_chat = any(event.id in m.text for c in w.channels for m in c.messages)
-        traced += in_issue and in_commit and in_chat
-    assert traced >= 3
+        repo = next(r for r in w.repositories if r.name == event.repository)
+        issue = next(i for i in repo.issues if i.event == event.id)
+        in_commit = any(f"(#{issue.number})" in c.message for c in repo.commits)
+        ref = f"{repo.name}#{issue.number}"
+        in_chat = any(ref in m.text for c in w.channels for m in c.messages)
+        traced += in_commit and in_chat
+    assert traced == 6
+    texts = [c.message for r in w.repositories for c in r.commits]
+    texts += [m.text for c in w.channels for m in c.messages]
+    assert not [t for t in texts if re.search(r"\(e\d\d\)", t)]
 
 
 def test_realistic_mess() -> None:
@@ -62,7 +71,7 @@ def test_realistic_mess() -> None:
     assert any("contractor" in p.roles for p in w.people)
     assert any(r.archived_feel for r in w.repositories)
     titles = [i.title.lower() for r in w.repositories for i in r.issues]
-    assert len(titles) != len(set(titles))  # a duplicate
+    assert len(titles) == len(set(titles)) + 1  # one duplicate, nothing else recycled
     assert any(
         i.closed_ago is None and i.ago > 90 * 24 * 60 for r in w.repositories for i in r.issues
     )  # stale
@@ -97,3 +106,65 @@ def test_rng_is_stable() -> None:
     first = [a.randint(0, 999) for _ in range(20)]
     assert first == [b.randint(0, 999) for _ in range(20)]
     assert first != [c.randint(0, 999) for _ in range(20)]
+
+
+def test_nothing_repeats_the_way_a_generator_would() -> None:
+    w = generate(manifest())
+    # Chat: every message is its own, apart from short acknowledgements.
+    texts = [m.text for c in w.channels for m in c.messages]
+    texts += [m.text for d in w.direct for m in d.messages]
+    repeated = {t for t in texts if texts.count(t) > 1 and len(t) > 12}
+    assert not repeated, sorted(repeated)[:5]
+    # Titles carry no recycled suffixes; branches are named for their work.
+    for r in w.repositories:
+        for i in r.issues:
+            assert not re.search(r"\((again|follow-up|part \d|staging|mobile|Q\d)\)$", i.title)
+        for name in r.branches:
+            assert not re.search(r"-\d+$", name), name
+    # Commits make real changes: no filler comments appended to code.
+    for r in w.repositories:
+        for c in r.commits:
+            for text in c.files.values():
+                assert "# reviewed" not in (text or "") and "# tidy up" not in (text or "")
+
+
+def test_names_are_distinct() -> None:
+    for seed in (48213, 1234, 99):
+        people = generate(manifest(seed)).people
+        firsts = [p.name.split()[0] for p in people]
+        lasts = [p.name.split()[-1] for p in people]
+        assert len(set(firsts)) == len(firsts)
+        assert len(set(lasts)) == len(lasts)
+
+
+def test_issue_numbers_follow_time() -> None:
+    for r in generate(manifest()).repositories:
+        agos = [i.ago for i in sorted(r.issues, key=lambda i: i.number)]
+        assert agos == sorted(agos, reverse=True)
+
+
+def test_every_repository_s_own_tests_pass(tmp_path: Path) -> None:
+    # The code an agent is asked to work on is real: its unit tests pass at the head.
+    w = generate(manifest())
+    for r in w.repositories:
+        files: dict[str, str] = {}
+        for c in sorted(r.commits, key=lambda c: -c.ago):
+            for path, text in c.files.items():
+                if text is None:
+                    files.pop(path, None)
+                else:
+                    files[path] = text
+        if not any(p.startswith("tests/") for p in files):
+            continue
+        root = tmp_path / r.name
+        for path, text in files.items():
+            (root / path).parent.mkdir(parents=True, exist_ok=True)
+            (root / path).write_text(text, encoding="utf-8")
+        done = subprocess.run(
+            [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", str(root / "tests")],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert done.returncode == 0, (r.name, done.stdout[-800:])

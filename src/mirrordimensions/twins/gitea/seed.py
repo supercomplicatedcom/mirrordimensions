@@ -15,13 +15,14 @@ from __future__ import annotations
 
 import base64
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
 from mirrordimensions.engine.docker_api import Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.twins.base import TwinContext
 from mirrordimensions.twins.relay import Relay
+from mirrordimensions.world.clock import WorkClock
 from mirrordimensions.world.model import World
 
 LABEL_COLORS = {
@@ -36,10 +37,6 @@ LABEL_COLORS = {
     "performance": "#5319e7",
     "good-first-issue": "#7057ff",
 }
-
-
-def _when(now: datetime, ago: int) -> datetime:
-    return now - timedelta(minutes=ago)
 
 
 def _iso(dt: datetime) -> str:
@@ -90,6 +87,7 @@ class GiteaSeeder:
         return out.output
 
     def seed(self, world: World, now: datetime) -> dict[str, int]:
+        self.clock = WorkClock(now, world.utc_offset)
         people = {p.id: p for p in world.people}
         password = self.ctx.secrets["user_password"]
         for p in world.people:
@@ -111,7 +109,8 @@ class GiteaSeeder:
                         "password": password,
                         "must_change_password": False,
                         "send_notify": False,
-                        "visibility": "private",
+                        # Signed-in colleagues can find each other, as on a company server.
+                        "visibility": "limited",
                     },
                 )
         org = world.org
@@ -185,7 +184,7 @@ class GiteaSeeder:
                     counts[key] += value
                 backdates += repo_backdates
         for p in world.people:
-            started = int(_when(now, p.started_ago).timestamp())
+            started = self.clock.unix(p.started_ago, f"user:{p.username}")
             backdates.append(
                 f"UPDATE \"user\" SET created_unix={started}, updated_unix={started} WHERE lower_name='{p.username}';"
             )
@@ -234,7 +233,7 @@ class GiteaSeeder:
                     existing.add(path)
                 if not files:
                     continue
-                when = _iso(_when(now, commit.ago))
+                when = _iso(self.clock.at(commit.ago, f"commit:{repo.name}:{commit.message}"))
                 body = {
                     "files": files,
                     "message": commit.message,
@@ -287,8 +286,10 @@ class GiteaSeeder:
                 backdates.append(
                     _issue_sql(
                         created["id"],
-                        _when(now, issue.ago),
-                        _when(now, issue.closed_ago) if issue.closed_ago else None,
+                        self.clock.at(issue.ago, f"issue:{repo.name}:{issue.number}"),
+                        self.clock.at(issue.closed_ago, f"closed:{repo.name}:{issue.number}")
+                        if issue.closed_ago
+                        else None,
                     )
                 )
                 for comment in issue.comments:
@@ -299,7 +300,7 @@ class GiteaSeeder:
                         sudo=people[comment.author].username,
                     )
                     counts["comments"] += 1
-                    ts = int(_when(now, comment.ago).timestamp())
+                    ts = self.clock.unix(comment.ago, f"comment:{repo.name}:{made['id']}")
                     backdates.append(
                         f"UPDATE comment SET created_unix={ts}, updated_unix={ts} WHERE id={made['id']};"
                     )
@@ -315,11 +316,26 @@ class GiteaSeeder:
     def _apply_backdates(self, statements: list[str], now: datetime, world: World) -> None:
         for i in range(0, len(statements), 200):
             self.sql("BEGIN;" + "".join(statements[i : i + 200]) + "COMMIT;")
-        oldest = int(_when(now, max(r.commits[0].ago for r in world.repositories)).timestamp())
+        firsts = {r.name: max(c.ago for c in r.commits) for r in world.repositories if r.commits}
+        created = "".join(
+            # Each repository was created shortly before its first commit.
+            f"UPDATE repository SET created_unix={self.clock.unix(ago + 20, f'repo:{name}')} "
+            f"WHERE lower_name='{name}';"
+            for name, ago in firsts.items()
+        )
+        # The administrator account dates from when the server was installed, and has the
+        # name an IT team gives it.
+        installed = self.clock.unix(
+            max([*firsts.values(), *(p.started_ago for p in world.people if "admin" in p.roles)])
+            + 3 * 24 * 60,
+            "install",
+        )
+        it_name = f"{world.company} IT".replace("'", "''")
         self.sql(
             "BEGIN;"
-            # Repositories were created when their first commit was made.
-            f"UPDATE repository SET created_unix={oldest};"
+            + created
+            + f'UPDATE "user" SET created_unix={installed}, updated_unix={installed}, '
+            f"full_name='{it_name}' WHERE lower_name='git-admin';"
             "UPDATE repository r SET updated_unix=COALESCE((SELECT max(i.updated_unix) FROM issue i WHERE i.repo_id=r.id), r.updated_unix);"
             # The activity feed: each entry takes the time of what it refers to. Pushes take
             # their head commit's (backdated) time; repository creation takes the repository's.
