@@ -86,18 +86,19 @@ def test_case_and_punctuation_do_not_hide_a_run() -> None:
 def test_the_corpus_is_the_package_and_skips_the_built_portal() -> None:
     files = publictext.corpus_files(publictext.package_root())
     names = {p.relative_to(publictext.package_root()).as_posix() for p in files}
-    assert "world/pools.py" in names
+    assert "world/generate.py" in names
     assert not any(n.startswith(("portal/static", "portal/web")) for n in names)
 
 
-def test_todays_template_world_is_reported_over_the_limit() -> None:
-    # The baseline decision 0029 records. The check reports; it does not block yet.
+def test_repository_files_are_still_reported() -> None:
+    # Composed text is under the limit (test_profiles.py). The code in the core repositories
+    # is still fixed (content.py), and the check says so rather than hiding it.
     seed = 48213
     text = render_manifest("northfield-ops", suggest_company(seed), seed)
     world = generate(Manifest.model_validate(YAML(typ="safe").load(text)))  # pyright: ignore[reportUnknownMemberType]
     report = publictext.check(world)
-    assert report.total > 1000
-    assert report.share > 0.5
+    files = next(k for k in report.kinds if k.kind == "file")
+    assert files.public > files.total // 2
     assert "decision 0029" in report.line()
 
 
