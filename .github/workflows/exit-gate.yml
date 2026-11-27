@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
-      WORLD: ${{ github.workspace }}/../world
+      WORLD: ${{ github.workspace }}/world-under-test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -86,10 +86,12 @@ jobs:
           AGENT: ${{ inputs.agent }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         # The agent need not pass every scenario; every one must reach a scored result.
+        # GitHub runs steps with bash -e; a run that did not pass exits 1 and is still scored.
         run: |
-          set -uo pipefail
-          uv run --project "$GITHUB_WORKSPACE" mirror run core --agent "$AGENT" | tee run.txt
-          code=${PIPESTATUS[0]}
+          set -u
+          code=0
+          uv run --project "$GITHUB_WORKSPACE" mirror run core --agent "$AGENT" > run.txt 2>&1 || code=$?
+          cat run.txt
           [ "$code" -le 1 ] || exit "$code"
           uv run --project "$GITHUB_WORKSPACE" python "$GITHUB_WORKSPACE/scripts/exit_gate.py" results .
       - name: Keep the results and reports (never the project's keys)
@@ -102,6 +104,8 @@ jobs:
             ${{ env.WORLD }}/run.txt
             ${{ env.WORLD }}/.mirror/runs/*/result.json
             ${{ env.WORLD }}/.mirror/runs/*/report.html
+          # .mirror is a hidden folder; only the files named above are taken from it.
+          include-hidden-files: true
           if-no-files-found: warn
       - name: mirror engine status
         if: always()
