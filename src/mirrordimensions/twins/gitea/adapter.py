@@ -270,21 +270,26 @@ class Gitea(ProfileMethods):
         )
         return resp.status, resp.body
 
-    def fetch_external(self, relay: Relay, ctx: TwinContext, url: str) -> None:
-        """Ask Gitea to import a repository from a URL: its own outbound fetch feature."""
+    def fetch_external(self, relay: Relay, ctx: TwinContext, url: str) -> str:
+        """Ask Gitea to import a repository from a URL: its own outbound fetch feature.
+        Returns Gitea's answer when it refused at once ("" when the call timed out, which is
+        what an attempt the firewall drops looks like)."""
         # Gitea waits on the outbound connection, which the engine firewall drops silently,
         # so the call times out; the attempt itself is what the caller checks for.
         # A unique name each time: a timed-out import leaves its repository behind, and a second
         # import with the same name would fail at once without fetching anything.
         name = f"import-{time.time_ns() % 10**9}"
+        answer = ""
         with contextlib.suppress(MirrorError):
-            relay.request(
+            resp = relay.request(
                 "POST",
                 f"{self._base(ctx)}/api/v1/repos/migrate",
                 basic=self._admin(ctx),
                 timeout=6,
                 body={"clone_addr": url, "repo_name": name, "repo_owner": ADMIN, "private": True},
             )
+            if 400 <= resp.status < 500:
+                answer = f"HTTP {resp.status}: {resp.body[:160].decode('utf-8', 'replace')}"
         for repo in self._all(relay, ctx, f"/users/{ADMIN}/repos"):
             if str(repo.get("name", "")).startswith("import-"):
                 relay.request(
@@ -292,6 +297,7 @@ class Gitea(ProfileMethods):
                     f"{self._base(ctx)}/api/v1/repos/{ADMIN}/{repo['name']}",
                     basic=self._admin(ctx),
                 )
+        return answer
 
     # -- state -----------------------------------------------------------------
 

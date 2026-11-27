@@ -223,10 +223,41 @@ def doctor(
                 st.out.line(f"{'n/a':<6}{text}")
             else:
                 st.out.ok(text)
-        st.out.line(f"Isolation: {report.isolation} ({report.boundary})")
+        from mirrordimensions.network.egress_check import (
+            COVERAGE_SUITES,
+            ISOLATION_SUITES,
+            UNDETECTABILITY_SUITES,
+        )
+
+        def why(suites: frozenset[str]) -> str:
+            failed = report.failed_in(suites)
+            first = failed[0].name
+            return f": {first[0].lower()}{first[1:]}" + (
+                f", and {len(failed) - 1} more" if len(failed) > 1 else ""
+            )
+
+        st.out.line(
+            f"Isolation: {report.isolation} ({report.boundary})"
+            + (why(ISOLATION_SUITES) if report.isolation == "failed" else "")
+        )
+        st.out.line(
+            f"Coverage: {report.coverage}"
+            + (why(COVERAGE_SUITES) if report.coverage != "complete" else "")
+        )
+        st.out.line(
+            f"Undetectability: {report.undetectability}"
+            + (why(UNDETECTABILITY_SUITES) if report.undetectability != "full" else "")
+        )
+        if report.isolation != "failed" and not report.all_held:
+            st.out.line(f"{'note':<6}Nothing leaves the sandbox; what failed is named above.")
+        if any(c.suite == "transparency" and "Latency" in c.name for c in report.failed):
+            st.out.line(
+                f"{'note':<6}The gateway's added latency is a timing measure: a busy computer "
+                "(builds, other VMs) raises it. Run mirror doctor again when it is quieter."
+            )
         for note in report.notes:
             st.out.line(f"{'note':<6}{note}")
-    if report.isolation == "failed":
+    if not report.all_held:
         raise typer.Exit(1)
 
 

@@ -74,8 +74,25 @@ class Check(BaseModel):
     latency_s: float | None = None
 
 
+# Which guarantee each suite proves (decision 0027): a slow gateway or a tell in a page is
+# not a broken seal, and is reported under the guarantee it threatens.
+ISOLATION_SUITES = frozenset({"egress", "ingress", "separation", "inside-out"})
+COVERAGE_SUITES = frozenset({"capture"})
+UNDETECTABILITY_SUITES = frozenset({"naming", "transparency"})
+
+
 class DoctorReport(BaseModel):
-    isolation: Literal["full", "reduced", "failed"]
+    isolation: Literal["full", "reduced", "failed"] = Field(
+        description="Nothing leaves the sandbox: the egress, ingress, separation and inside-out checks"
+    )
+    coverage: Literal["complete", "incomplete"] = Field(
+        default="complete",
+        description="Every way the agent can act is captured: the capture checks",
+    )
+    undetectability: Literal["full", "failed"] = Field(
+        default="full",
+        description="Nothing the agent sees reveals a test: the naming and transparency checks",
+    )
     boundary: str
     checks: list[Check]
     # Worth knowing, not an isolation failure: the engine is due an update, for one.
@@ -84,6 +101,39 @@ class DoctorReport(BaseModel):
     @property
     def failed(self) -> list[Check]:
         return [c for c in self.checks if c.outcome == "fail"]
+
+    @property
+    def all_held(self) -> bool:
+        """Every guarantee held."""
+        return (
+            self.isolation != "failed"
+            and self.coverage == "complete"
+            and self.undetectability == "full"
+        )
+
+    def failed_in(self, suites: frozenset[str]) -> list[Check]:
+        return [c for c in self.failed if c.suite in suites]
+
+
+def report_from(checks: list[Check], driver: str, boundary: str) -> DoctorReport:
+    """Each guarantee's verdict from the checks that prove it (decision 0027)."""
+
+    def failing(suites: frozenset[str]) -> bool:
+        return any(c.outcome == "fail" and c.suite in suites for c in checks)
+
+    if failing(ISOLATION_SUITES):
+        level: Literal["full", "reduced", "failed"] = "failed"
+    elif driver == "lima":
+        level = "full"
+    else:
+        level = "reduced"
+    return DoctorReport(
+        isolation=level,
+        coverage="incomplete" if failing(COVERAGE_SUITES) else "complete",
+        undetectability="failed" if failing(UNDETECTABILITY_SUITES) else "full",
+        boundary=boundary,
+        checks=checks,
+    )
 
 
 class Probe:
@@ -214,7 +264,56 @@ def _failed(code: int, _out: str) -> bool:
     return code == 0
 
 
-def _twin_fetch(collector: Collector, fetch: Callable[[str], None] | None) -> Check:
+def _twin_fetch_inward(
+    collector: Collector | None, fetch: Callable[[str], str | None] | None, host: str | None
+) -> Check:
+    """A twin feature that fetches a caller-supplied URL must not reach the host, where the
+    control plane runs: the portal, the operator server and the relay listen there."""
+    name = "Twins' URL-fetching features cannot reach the control plane"
+    if fetch is None or collector is None:
+        return Check(
+            suite="inside-out",
+            name=name,
+            outcome="n/a",
+            detail="no twin with a URL-fetching feature",
+        )
+    if host is None:
+        return Check(
+            suite="inside-out", name=name, outcome="n/a", detail="this engine has no host address"
+        )
+    started = time.time()
+    refused = fetch(f"http://{host}:7420/platform/infra.git")
+    if refused:
+        # The product refuses local addresses itself, before any connection is made.
+        return Check(
+            suite="inside-out",
+            name=name,
+            outcome="pass",
+            detail=f"refused by the twin ({refused[:90]})",
+        )
+    event = collector.wait_for(
+        lambda e: (
+            e["type"] == "egress.blocked"
+            and e["data"].get("dst") == host
+            and str(e["data"].get("src", "")).startswith("10.41.")
+        ),
+        after=started,
+        timeout=EVENT_BUDGET_S + 10,
+    )
+    if event is None:
+        return Check(
+            suite="inside-out", name=name, outcome="fail", detail="no blocked attempt was recorded"
+        )
+    return Check(
+        suite="inside-out",
+        name=name,
+        outcome="pass",
+        detail=f"egress.blocked {_brief(event)}",
+        latency_s=round(event["arrived"] - collector.offset - started, 3),
+    )
+
+
+def _twin_fetch(collector: Collector, fetch: Callable[[str], str | None] | None) -> Check:
     """A twin feature that fetches a caller-supplied URL must not get out (build spec)."""
     name = "A twin asked to fetch an external URL"
     if fetch is None:
@@ -246,7 +345,10 @@ def _twin_fetch(collector: Collector, fetch: Callable[[str], None] | None) -> Ch
 
 
 def egress_suite(
-    plan: Plan, probe: Probe, collector: Collector, twin_fetch: Callable[[str], None] | None = None
+    plan: Plan,
+    probe: Probe,
+    collector: Collector,
+    twin_fetch: Callable[[str], str | None] | None = None,
 ) -> list[Check]:
     s = "egress"
     gw = plan.addr.gw_lan
@@ -389,7 +491,7 @@ def egress_suite(
                 suite=s,
                 name="The model host, with a Host header for a different site",
                 outcome="n/a",
-                detail="no model routes in mirror.yaml yet (M4)",
+                detail="no model route in mirror.yaml",
             )
         )
     checks.append(_twin_fetch(collector, twin_fetch))
@@ -543,7 +645,15 @@ def separation_suite(plan: Plan, probe: Probe) -> list[Check]:
     ]
 
 
-def inside_out_suite(plan: Plan, probe: Probe, docker: Docker) -> list[Check]:
+def inside_out_suite(
+    plan: Plan,
+    probe: Probe,
+    docker: Docker,
+    collector: Collector | None = None,
+    twin_fetch: Callable[[str], str | None] | None = None,
+    host_address: str | None = None,
+    built: bool = False,
+) -> list[Check]:
     s = "inside-out"
     out: list[Check] = []
     _, scan = probe.sh(
@@ -640,16 +750,16 @@ def inside_out_suite(plan: Plan, probe: Probe, docker: Docker) -> list[Check]:
             or f"{len(changes)} changed paths, all for the CA certificate",
         )
     )
+    out.append(_twin_fetch_inward(collector, twin_fetch, host_address))
     out.append(
         Check(
             suite=s,
-            name="Twins' URL-fetching features cannot reach the control plane",
-            outcome="n/a",
-            detail="covered when twins arrive (M2)",
+            name="No seeding traces in twins",
+            outcome="pass" if built else "n/a",
+            detail="checked when the base snapshot was saved; every run starts from it"
+            if built
+            else "the world is not built yet",
         )
-    )
-    out.append(
-        Check(suite=s, name="No seeding traces in twins", outcome="n/a", detail="covered in M2")
     )
     return out
 
@@ -857,11 +967,13 @@ def run_doctor(
     ca_pem: bytes,
     driver: str,
     boundary: str,
-    twin_fetch: Callable[[str], None] | None = None,
+    twin_fetch: Callable[[str], str | None] | None = None,
     latency_budget_ms: float = LATENCY_BUDGET_MS,
     portal_port: int | None = None,
     operator_port: int | None = None,
     relay_port: int | None = None,
+    host_address: str | None = None,
+    built: bool = False,
 ) -> DoctorReport:
     probe = Probe(docker, ca_pem)
     probe.start(PROBE, LAN, PROBE_IP, [plan.addr.dns_ip])
@@ -878,18 +990,12 @@ def run_doctor(
             *(ingress_suite(plan, probe) if plan.exposed else []),
             *([relay_check(probe, relay_port)] if plan.exposed else []),
             *separation_suite(plan, probe),
-            *inside_out_suite(plan, probe, docker),
+            *inside_out_suite(plan, probe, docker, collector, twin_fetch, host_address, built),
             *naming_suite(plan, probe),
             *transparency_suite(plan, probe, latency_budget_ms),
             *capture_suite(plan, probe, collector),
         ]
     finally:
         probe.stop(PROBE, APPS_PROBE, *([INGRESS_PROBE] if plan.exposed else []))
-    if any(c.outcome == "fail" for c in checks):
-        level: Literal["full", "reduced", "failed"] = "failed"
-    elif driver == "lima":
-        level = "full"
-    else:
-        level = "reduced"
     _ = (DNS_NAME, GATEWAY_NAME)
-    return DoctorReport(isolation=level, boundary=boundary, checks=checks)
+    return report_from(checks, driver, boundary)

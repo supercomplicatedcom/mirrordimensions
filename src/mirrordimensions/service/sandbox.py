@@ -244,6 +244,8 @@ def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
             portal_port=running_portal_port(project),
             operator_port=running_operator_port(project),
             relay_port=_serving_port(project.state_dir / "expose.json"),
+            host_address=_host_address(),
+            built=(project.state_dir / "built.json").is_file(),
         )
     note = update_note(get_engine().status().versions, datetime.now(UTC).date())
     if note:
@@ -281,10 +283,17 @@ def admin_fetcher(project: Project, app_id: str) -> Callable[[str, str, bytes], 
     return lambda method, path, body: twin.admin_fetch(relay, ctx, method, path, body)  # type: ignore[attr-defined]
 
 
+def _host_address() -> str | None:
+    """The address containers in the engine see the host at, where the control plane runs."""
+    host = getattr(get_engine(), "host_address", None)
+    return str(host()) if callable(host) else None
+
+
 def _twin_fetcher(
     project: Project, plan: sandbox.Plan, docker: Docker
-) -> Callable[[str], None] | None:
-    """A function that asks the first twin with a URL-fetching feature to fetch a URL."""
+) -> Callable[[str], str | None] | None:
+    """A function that asks the first twin with a URL-fetching feature to fetch a URL; it
+    returns the twin's answer when the twin refused at once."""
     secrets = app_secrets(project, _manifest(project))
     relay = Relay(docker)
     for app in plan.apps:

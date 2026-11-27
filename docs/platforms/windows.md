@@ -83,7 +83,7 @@ mirror world create
 
 ```powershell
 mirror up
-mirror doctor           # ends with: Isolation: full (shared-vm)
+mirror doctor           # ends with Isolation: full (shared-vm), then Coverage and Undetectability
 ```
 
 ## 5. Add an agent and run a scenario
