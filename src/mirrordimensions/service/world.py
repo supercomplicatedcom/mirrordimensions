@@ -394,10 +394,18 @@ def create_world(
 
     def checks() -> None:
         report = sandbox_svc.doctor(project)
-        if report.isolation == "failed":
+        if report.isolation == "failed" or report.coverage != "complete":
             failed = ", ".join(c.name for c in report.failed[:3])
             raise MirrorError(
                 "The world's checks failed.", f"Failed: {failed}.", "Run: mirror doctor"
+            )
+        if report.undetectability != "full":
+            # Timing and naming are reported, not fatal here: the seal and the record hold.
+            _step(
+                on_stage,
+                "Checks passed for isolation and coverage; undetectability did not: "
+                + ", ".join(c.name for c in report.failed[:3])
+                + ". Run: mirror doctor",
             )
 
     with ProjectLock(project.state_dir, "build"), keep_awake("Creating the world"):

@@ -121,6 +121,8 @@ def build_server(project: Project) -> MCPServer:
             "engine": h.engine,
             "sandbox_up": h.up,
             "isolation": (h.doctor or {}).get("isolation"),
+            "coverage": (h.doctor or {}).get("coverage"),
+            "undetectability": (h.doctor or {}).get("undetectability"),
             "doctor_checked_at": (h.doctor or {}).get("checked_at"),
             "pending_changes": len(_call(lambda: env_svc.pending_changes(project))),
             "run_in_progress": runlog.current_run(project),

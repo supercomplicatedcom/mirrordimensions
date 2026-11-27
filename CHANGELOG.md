@@ -6,12 +6,14 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Changed
 
+- `mirror doctor` reports each guarantee on its own: `Isolation` (the seal), `Coverage` (the record) and `Undetectability` (naming and timing), each naming the check that failed (decision 0027). A gateway slowed by a busy computer no longer reads as "Isolation: failed". `mirror world create` stops only when isolation or coverage fails. The portal's Health screen and the operator MCP server show all three.
 - The engine's Docker client no longer reads the user's `~/.docker/config.json`: no registry credentials, credential helpers or proxy settings reach the engine or its containers (decision 0021).
 - Grants are exact: for a run, the person the agent acts as has only what the agent file grants, in Gitea and Mattermost. A run checks first that the agent can reach where its work arrives, and the example agents now grant #engineering and #releases (decision 0020).
 - Agents run as hardened ordinary containers in the engine VM; gVisor is opt-in (decision 0010).
 
 ### Fixed
 
+- Two doctor checks that still said "n/a (covered in M2)" run: a twin asked to fetch a URL on the host, where the control plane listens, and seeding traces. A third no longer cites a milestone.
 - `mirror world new --systems` named its apps after their kind (`code-hosting`, `team-chat`), so agent files written for the template (`grants: {code: ...}`) could not be added; it now uses the template's ids. Two systems of the same kind no longer get the same id and hostname, which made the definition invalid.
 - The README's status line said the portal was in progress; every milestone is in.
 - A second look at what the agent sees (tells 34 to 38): release notes list only shipped changes; chat about deploying or backing up names a running service, never the handbook; a conversation recurs no sooner than three weeks later; people's start dates have their own time of day; an issue delivered outside office hours is dated in the sender's last working hour, and `mirror run` says when chat work arrives outside them.

@@ -51,7 +51,11 @@ export function HealthScreen() {
     <>
       <PageHead
         title="Health"
-        sub={doctor ? `Isolation: ${doctor.isolation} · last checked ${age(doctor.checked_at)}` : "The isolation checks have not run yet."}
+        sub={
+          doctor
+            ? `Isolation: ${doctor.isolation} · Coverage: ${doctor.coverage ?? "complete"} · Undetectability: ${doctor.undetectability ?? "full"} · last checked ${age(doctor.checked_at)}`
+            : "The isolation checks have not run yet."
+        }
       >
         <button
           type="button"

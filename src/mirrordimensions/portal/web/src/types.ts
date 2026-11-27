@@ -199,6 +199,8 @@ export interface Health {
   snapshots: { name: string; created: string; volumes: number }[];
   doctor: {
     isolation: string;
+    coverage?: string;
+    undetectability?: string;
     boundary: string;
     checked_at?: string;
     checks: { suite: string; name: string; outcome: "pass" | "fail" | "n/a"; detail: string }[];

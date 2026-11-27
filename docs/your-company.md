@@ -97,7 +97,7 @@ Set the key in your shell before `mirror up` (or before `mirror apply`, if the s
 ```sh
 mirror world create        # about 3 minutes, more for a bigger company
 mirror up
-mirror doctor              # ends with: Isolation: full
+mirror doctor              # ends with: Isolation: full, Coverage: complete, Undetectability: full
 ```
 
 **5. Bring your agent.** Your agent is a container image. Write its agent file (see [agent-file.md](agent-file.md)), or let the wizard write it:
