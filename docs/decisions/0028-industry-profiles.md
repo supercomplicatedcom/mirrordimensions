@@ -77,6 +77,27 @@ This is not the build spec's discovery crawler, which crawls the company's produ
    - Discovered facts become ordinary world content.
    - The draft, the report and the list of sources stay on the host with the rest of the control plane, and never enter the sandbox.
 
+**Security requirements**
+
+Discovery reads a computer that holds a company's data, with the user's access. These rules hold in every version:
+
+1. **Kept names reach the model provider and the reports.** An agent sends what it reads to its model, so every name kept from discovery travels in prompts to the provider, and into each run's recording and report. Review says so on every kept name. The default for a name is to generalise it, not to keep it as found.
+2. **Names are data.** Secret detection works on patterns and will miss things: a repository named after a client, a project's code name, a customer in a hostname, a token in an unfamiliar format. A name is kept as found only when a person keeps it in review. The documentation says that no scan catches everything.
+3. **Remote agents never get discovered hostnames.** A hosted agent is sealed, so a real hostname resolves only to the world. A remote agent runs on its vendor's platform, where the same hostname reaches the company's real system. A world with a remote agent refuses discovered hostnames, or rewrites them so they cannot resolve outside the world, and `mirror run` checks this before it starts.
+4. **Found files are hostile until parsed.**
+   - Discovery never runs `git` or any program, hook or script it finds: repository configuration can make `git` run commands. It reads the files directly.
+   - It follows no symbolic link out of the folders the user chose.
+   - It parses YAML and JSON with safe loaders, and limits file sizes, file counts and depth.
+   - A test suite of hostile repositories and files proves each rule.
+5. **The scanner cannot send anything.**
+   - Discovery code imports nothing that can open a network connection; `scripts/check_imports.py` enforces it.
+   - Discovery runs in a separate process with no network access where the host allows it.
+   - Third-party importer plug-ins are not loaded for discovery unless the user names them.
+6. **Sources that are never read are enforced in code.** Browser profiles, mail stores, chat applications' data, keychains and password managers, `~/.aws`, `~/.kube`, `~/.gnupg` and the private keys in `~/.ssh` are refused by path, before any open. Every file opened is checked against the list the user approved, and a test fails on any other.
+7. **No model on found files, ever.** Discovery is parsing, not reading by a model. Sending found files to a model would send the company's code and documents to a third party. This is permanent, not a first-version limit.
+8. **The user's consent is not the company's.** A work computer holds the employer's data, and scanning it can break the employer's policy or trip its security tools. The documentation says to get the security team's approval first. `mirror world discover --plan` writes a list of the sources and folders it would read, for that team to review.
+9. **A discovered world is marked.** The project folder records that it holds discovered names. `mirror report` and any export or share warn before including them, and `git` in the project folder ignores the draft and the world's generated files.
+
 **Consequences**
 
 - The world can use real internal names: hostnames, repository and channel names. Today's guide says real data never goes in. With discovery, the rule becomes: real names go in only when the user keeps them in review; real content never goes in. `docs/your-company.md` must say this plainly.
@@ -227,3 +248,4 @@ That is 77 profiles. Each takes real writing (repositories, issue and chat theme
 4. Discovery changes the promise that real data never goes in, to "real names only when kept in review; real content never". Is that the line you want?
 5. Should discovery come with the industry profiles, or after them? It needs the profiles' generator to follow a found shape, so building it first would mean building that generator first.
 6. Which sources are in the first version? The suggestion is the agent's own deployment files and repository clones, which together give hostnames, tools and conventions.
+7. Who signs off a scan of a company computer: the user alone, or the user with their security team's approval recorded in the project?
