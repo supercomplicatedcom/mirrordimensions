@@ -4,6 +4,10 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added
+
+- A public-text check (decision 0029): `mirror world create` and `mirror doctor` report how many of the texts an agent can read hold a run of eight or more words found in the published package. It reports only for now; the template world is at 75%, against a limit of 2%.
+
 ### Changed
 
 - `docs/your-company.md` now covers the whole way from a bare laptop: what the computer needs, installing git, uv and (on Linux) QEMU, installing the mirror, creating the engine, building the portal, and stopping, removing and uninstalling it all. It says that Docker is not needed.

@@ -27,6 +27,7 @@ from mirrordimensions.service.sandbox import world_plan as project_plan
 from mirrordimensions.snapshot import volumes as snap
 from mirrordimensions.twins.base import get_twin
 from mirrordimensions.twins.relay import Relay
+from mirrordimensions.world import publictext
 from mirrordimensions.world.generate import generate, world_json
 
 StepFn = Callable[[str], None] | None
@@ -161,6 +162,7 @@ class _Run:
             f"{len(w.repositories)} repositories, {sum(len(r.issues) for r in w.repositories)} issues, "
             f"{sum(len(c.messages) for c in w.channels)} messages",
         )
+        _step(self.on_step, publictext.check(w).line())
 
     def network(self) -> None:
         if self.fresh:
