@@ -41,10 +41,10 @@ No API key is needed: the first run uses a scripted agent.
 ```powershell
 git clone https://github.com/supercomplicatedcom/mirrordimensions
 cd mirrordimensions
-uv sync
-$clone = (Get-Location).Path
-function mirror { uv run --project $clone mirror @args }   # use mirror from any folder in this window
+uv tool install --editable .    # puts mirror on your PATH, in every window
 ```
+
+If PowerShell then says `mirror` is not recognised, run `uv tool update-shell` and open a new window. The install runs from the clone, so keep the folder. After a `git pull`, run `uv tool install --editable . --reinstall`.
 
 ## 2. Create the engine
 
