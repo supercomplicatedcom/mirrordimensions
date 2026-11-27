@@ -1,4 +1,4 @@
-# 0028. Industry profiles shape the world
+# 0028. Industry profiles and the user's own computer shape the world
 
 Status: Proposed.
 
@@ -9,6 +9,8 @@ Status: Proposed.
 So a world named "Halden Health" reads as a SaaS company with a hospital's name on it. A person setting up a world for their company has to describe it system by system, and an agent that knows what a hospital's engineering work looks like could notice that nothing here does. That mismatch is a tell.
 
 The owner's proposal (2026-11-27): a user names their industry, and the mirror builds the environment a company in that industry would have. The user then adds their own specific tools.
+
+A second proposal from the owner the same day: the person who installs the mirror can let it look at folders on their computer, with their permission, so that the simulation follows how their company actually works. The agent's inputs and outputs then do not differ from what it would get from the company's real software, and to the agent the world is the real company.
 
 ## Decision
 
@@ -26,6 +28,60 @@ The owner's proposal (2026-11-27): a user names their industry, and the mirror b
 4. **Adding a tool later.** `mirror world add <system>` adds a system to an existing world's `mirror.yaml`, with the same stand-in rules, and tells the user to run `mirror world create` again to build it. Until then, editing `mirror.yaml` by hand stays the way.
 5. **Unknown industries are honest.** An industry that matches no profile or alias falls back to the general profile (today's world), and `world new` says so and lists the nearest profiles. Free text stays allowed in `mirror.yaml`.
 6. **Determinism and quality hold.** The generator reads a profile as data, with the seed choosing among its entries; the same manifest still gives the same world. A profile must pass the naming lint and the placeholder lint. Each profile gets a golden world in the tests, and before it ships, a review of what an agent sees in a world built from it (the observer agent used for the exit gate's item 3).
+7. **The user's own computer can shape the world**, with their permission, as set out in the next section. A profile is the starting point; what is found on the computer replaces the profile's guesses wherever the two differ.
+
+## Discovery from the user's computer
+
+The profile makes the world read like the industry. Discovery makes it read like this company: its hostnames, its repositories and their layout, its tools and their exact interfaces, its conventions. An agent tested in the world then sends and receives what it would at work.
+
+This is not the build spec's discovery crawler, which crawls the company's production systems and stays out of scope. Discovery reads files that are already on the user's computer, and nothing else. It extends the importers of decision 0025, and keeps their rules.
+
+**Requirements**
+
+1. **Permission first, per source.**
+   - `mirror world discover` lists the sources it can read, with each folder or file it would open, before it opens any. The user picks sources and folders.
+   - The portal offers the same as a wizard step.
+   - Nothing is read in the background, on a schedule or again later without being asked. Each run of discovery is a new permission.
+2. **Only the computer, never the network.**
+   - Discovery opens local files only. It never calls a company system, an API, a git remote or a model, even when it finds an address or a credential that would let it.
+   - It never runs a found program, script or hook.
+   - Nothing it reads leaves the computer.
+3. **Shape, never content.** Discovery keeps the shape of the company and drops what is in it.
+
+   | Kept, as facts for review                                                                                                                 | Dropped, always                                                                                         |
+   | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+   | Hostnames and URL layouts of internal systems                                                                                             | Secrets, tokens, keys and passwords, as in decision 0025                                                |
+   | Which products the company uses (from git remotes, CI files, tool and MCP configurations)                                                 | Source code, documents, tickets, messages and email                                                     |
+   | Repository names, languages, folder layout, build and CI conventions, branch naming                                                       | People: names, usernames, email addresses, photos                                                       |
+   | Commit message and pull request conventions, as patterns (such as `feat(billing): ...`), never the messages themselves                    | Customer, patient, citizen or other personal data                                                       |
+   | MCP tool lists and their input schemas; OpenAPI specifications; the environment variable names an agent is deployed with (values dropped) | Anything under a path the user excluded, and anything git ignores                                       |
+   | Team and channel names, if the user includes them                                                                                         | Browser data, mail, chat applications' stores, keychains and password managers, which are never sources |
+
+4. **Sources, in this order.** Each source is an importer with its own tests:
+   - the agent's own deployment: its Dockerfile, Compose or Kubernetes manifests, `.env.example`, and MCP configuration;
+   - clones of the company's repositories (remotes, layout, languages, CI, conventions, OpenAPI files);
+   - developer tool configuration: `~/.gitconfig` (the company's domain), `~/.ssh/config` (host names only), MCP client configurations (decision 0025);
+   - exported tool lists and infrastructure state (decision 0025).
+5. **Review before anything is used.** Every fact goes into the import draft of decision 0025, with its source, and the user reviews it there. Names can be kept as found, generalised (`claims-intake` kept; `acme-patient-db-prod` turned into `patient-db`) or dropped, one by one or all at once. Nothing reaches `mirror.yaml` until the user applies the draft.
+6. **The world follows the shape.**
+   - The generator builds repositories with the found names, languages, layout and conventions.
+   - It writes history in the found commit and pull request style.
+   - It serves the found tool lists and API shapes from the world's twins and MCP server.
+   - It uses the found hostnames and variable names.
+   - All content is still generated: the code, issues, chat and people are synthetic.
+7. **What was read is accounted for.**
+   - The draft records which files were read, by path.
+   - `mirror world discover report` shows what was kept and dropped and why, by count and kind, never the dropped values.
+   - Discovery writes nothing outside the world's `.mirror/` folder, which stays owner-only.
+8. **The agent cannot learn of it.**
+   - Discovered facts become ordinary world content.
+   - The draft, the report and the list of sources stay on the host with the rest of the control plane, and never enter the sandbox.
+
+**Consequences**
+
+- The world can use real internal names: hostnames, repository and channel names. Today's guide says real data never goes in. With discovery, the rule becomes: real names go in only when the user keeps them in review; real content never goes in. `docs/your-company.md` must say this plainly.
+- A world built this way is specific to one company. Its project folder must be kept as private as the company's own configuration. The world itself still holds no secrets or real people.
+- Discovery quality depends on what is on the computer. A laptop with three clones gives a narrower picture than the company has; the profile fills the rest.
 
 ## The first set of industries
 
@@ -168,3 +224,6 @@ That is 77 profiles. Each takes real writing (repositories, issue and chat theme
 1. Which profiles come first? A suggestion: healthcare (hospitals), telecommunications, state government, federal government, retail, hotels, fitness apps, banking, insurance, logistics, manufacturing and utilities.
 2. Should a profile's typical systems be proposed automatically, or only shown, so that `--industry` changes content and nothing else unless the user accepts the systems?
 3. Is `mirror world add` wanted now, or later with the next twins?
+4. Discovery changes the promise that real data never goes in, to "real names only when kept in review; real content never". Is that the line you want?
+5. Should discovery come with the industry profiles, or after them? It needs the profiles' generator to follow a found shape, so building it first would mean building that generator first.
+6. Which sources are in the first version? The suggestion is the agent's own deployment files and repository clones, which together give hostnames, tools and conventions.
