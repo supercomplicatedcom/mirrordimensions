@@ -333,3 +333,21 @@ def test_a_seed_folder_must_be_named(portal: tuple[TestClient, Path]) -> None:
     client, _ = portal
     answer = client.post("/api/v1/world/seed", json={"path": "  "}, headers=WRITE)
     assert answer.status_code == 400 and "Name the seed folder" in answer.json()["what"]
+
+
+def test_the_command_line_reads_shows_and_forgets_a_seed_folder(
+    portal: tuple[TestClient, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, root = portal
+    monkeypatch.chdir(root)
+    runner = CliRunner()
+    read = runner.invoke(cli, ["world", "seed", str(FIXTURE), "--accept-personal-data"])
+    assert read.exit_code == 0, read.output
+    assert (root / ".mirror" / "seed" / "content.json").is_file()
+    shown = runner.invoke(cli, ["world", "seed", "show"])
+    assert shown.exit_code == 0 and "people.csv" in shown.output
+    gone = runner.invoke(cli, ["world", "seed", "forget"])
+    assert gone.exit_code == 0 and "no longer uses its seed folder" in gone.output
+    assert not (root / ".mirror" / "seed").exists() and (FIXTURE / "people.csv").is_file()
+    again = runner.invoke(cli, ["world", "seed", "forget"])
+    assert again.exit_code != 0 and "has no seed folder" in str(again.exception)

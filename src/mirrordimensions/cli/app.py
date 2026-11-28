@@ -722,7 +722,10 @@ def _print_seed_review(st: State, review: object) -> None:
 def world_seed(
     ctx: typer.Context,
     folder: Annotated[
-        str, typer.Argument(help="The seed folder to read, or `show` for the last review.")
+        str,
+        typer.Argument(
+            help="The seed folder to read; `show` for the last review; `forget` to stop using it."
+        ),
     ],
     accept_personal_data: Annotated[
         bool,
@@ -733,11 +736,18 @@ def world_seed(
     ] = False,
 ) -> None:
     """Build this world from a folder you choose: tickets, documents, people and more, ideally
-    test data. Only that folder is read; secrets are always left out (decision 0030)."""
+    test data. Only that folder is read; lines that look like secrets are left out (decision
+    0030)."""
     from mirrordimensions.service import seed as seed_svc
 
     st = _state(ctx)
     project = service.load_project(st.start())
+    if folder == "forget":
+        if not seed_svc.forget(project):
+            raise MirrorError("This world has no seed folder.", "", "")
+        st.out.ok("The world no longer uses its seed folder; the folder itself is untouched")
+        st.out.next_step("Next: mirror world create, to rebuild it generated")
+        return
     if folder == "show":
         review = seed_svc.load_review(project)
         if review is None:

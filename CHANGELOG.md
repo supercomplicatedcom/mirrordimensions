@@ -6,6 +6,7 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Added
 
+- Seed folder, part 5: the portal's new-world wizard reads a seed folder on its Links and data step, with the same review as `mirror world seed`, personal data to accept as test data, and "Read it again" and "Stop using it". `mirror world seed forget` stops a world using its seed folder. The portal API gains `GET`, `POST` and `DELETE /world/seed`.
 - Seed folder, part 4: git repositories. A repository in the seed folder becomes a world repository beside the core ones, with its default branch's history (text files, secrets left out), its authors matched to the staff and its dates on the world's timeline. Repositories are read with Dulwich (Apache-2.0), never checked out, so no hook or filter runs; one that reaches outside the folder is refused.
 - Seed folder, part 3: chat. A Slack export or a Mattermost bulk export becomes channels with their history and threads: a channel the world has is joined, others are created; mentions read as names and links as their labels; dates move onto the world's timeline.
 - Seed folder, part 2: tickets. A ticket CSV, or a JSON export from Jira, GitHub, GitLab or Linear, becomes issues with their comments, labels, state and people, in the repository each names (`tickets_repo` in `seed.yaml` otherwise). Dates move onto the world's timeline, keeping their spacing. Secrets in JSON are removed value by value.
