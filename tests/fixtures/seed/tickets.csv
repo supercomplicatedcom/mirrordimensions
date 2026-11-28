@@ -1,0 +1,3 @@
+title,status,priority,description
+Claims export times out for large practices,open,high,The nightly export stops after 30 minutes for practices with more than 20000 claims.
+Retry table keeps rows after success,closed,medium,Rows are never removed once a retry succeeds; the table has grown to 4 million rows.

@@ -38,6 +38,7 @@ from pydantic import BaseModel, Field
 from mirrordimensions.errors import LockHeldError, MirrorError
 from mirrordimensions.hostos.files import write_text
 from mirrordimensions.project import MANIFEST, Project
+from mirrordimensions.seed.content import SeedReview
 from mirrordimensions.service import agents as agents_svc
 from mirrordimensions.service import changes as changes_svc
 from mirrordimensions.service import company as company_svc
@@ -49,6 +50,7 @@ from mirrordimensions.service import onboard as onboard_svc
 from mirrordimensions.service import runs as runs_svc
 from mirrordimensions.service import sandbox as sandbox_svc
 from mirrordimensions.service import scenarios as scen_svc
+from mirrordimensions.service import seed as seed_svc
 from mirrordimensions.service import systems as systems_svc
 from mirrordimensions.service import world as world_svc
 from mirrordimensions.service import worlds as worlds_svc
@@ -210,6 +212,14 @@ class ImportDecision(BaseModel):
 
 class ImportTarget(BaseModel):
     folder: str | None = None
+
+
+class SeedRead(BaseModel):
+    folder: str | None = Field(default=None, description="A world the wizard is defining")
+    path: str = Field(description="The seed folder, on this machine; read in place")
+    accept_personal: bool = Field(
+        default=False, description="Build with the personal data it holds: it is test data"
+    )
 
 
 class ImportApplied(BaseModel):
@@ -612,6 +622,26 @@ def create_app(project: Project, token: str, port: int, static: Path = STATIC) -
     @app.delete(f"{api}/world/import")
     def delete_import(folder: str | None = None) -> Response:  # pyright: ignore[reportUnusedFunction]
         imports_svc.discard_import(_importing(folder, prepare=False))
+        return Response(status_code=204)
+
+    # -- a seed folder (decision 0030): the same as `mirror world seed` -----------------
+
+    @app.get(f"{api}/world/seed")
+    def get_seed(folder: str | None = None) -> SeedReview | None:  # pyright: ignore[reportUnusedFunction]
+        return seed_svc.load_review(_importing(folder, prepare=False))
+
+    @app.post(f"{api}/world/seed")
+    def post_seed(body: SeedRead) -> SeedReview:  # pyright: ignore[reportUnusedFunction]
+        if not body.path.strip():
+            raise MirrorError("Name the seed folder.", "", "Type its full path.")
+        # Only the world's own copy changes; the next build uses it, as with `mirror world seed`.
+        return worlds_svc.read_seed(
+            holder.project, body.folder, Path(body.path.strip()), body.accept_personal
+        )
+
+    @app.delete(f"{api}/world/seed")
+    def delete_seed(folder: str | None = None) -> Response:  # pyright: ignore[reportUnusedFunction]
+        seed_svc.forget(_importing(folder, prepare=False))
         return Response(status_code=204)
 
     @app.get(f"{api}/world")

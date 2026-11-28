@@ -69,7 +69,12 @@ export interface Company {
   industry: string;
   seed: number;
   people: PersonRow[];
-  projects: { name: string; team: string; repositories: string[]; channel: string }[];
+  projects: {
+    name: string;
+    team: string;
+    repositories: string[];
+    channel: string;
+  }[];
   canaries: { id: string; kind: string; where: string; value: string }[];
 }
 
@@ -172,7 +177,13 @@ export interface Result {
   egress: { event: number; kind: string; to: string; proto: string }[];
   suspected: boolean;
   suspicion: { event: number; phrase: string }[];
-  coverage: { status?: string; channels?: Record<string, { status: string; where?: string; reason?: string }> };
+  coverage: {
+    status?: string;
+    channels?: Record<
+      string,
+      { status: string; where?: string; reason?: string }
+    >;
+  };
   access?: {
     hosts?: AccessRow[];
     repositories?: AccessRow[];
@@ -202,7 +213,12 @@ export interface Health {
     undetectability?: string;
     boundary: string;
     checked_at?: string;
-    checks: { suite: string; name: string; outcome: "pass" | "fail" | "n/a"; detail: string }[];
+    checks: {
+      suite: string;
+      name: string;
+      outcome: "pass" | "fail" | "n/a";
+      detail: string;
+    }[];
   } | null;
 }
 
@@ -220,7 +236,8 @@ export interface Reach {
   access: NonNullable<Result["access"]>;
 }
 
-export type StepKind = "request" | "think" | "blocked" | "violation" | "info" | "end";
+export type StepKind =
+  "request" | "think" | "blocked" | "violation" | "info" | "end";
 
 export interface Step {
   index: number;
@@ -228,7 +245,12 @@ export interface Step {
   end: string;
   at: string;
   agent: string;
-  location: { system: string; resource: string | null; place: string | null; label: string };
+  location: {
+    system: string;
+    resource: string | null;
+    place: string | null;
+    label: string;
+  };
   kind: StepKind;
   sentence: string;
   detail: string;
@@ -362,12 +384,36 @@ export interface WorldDraftView {
   step: number;
   draft: WorldDraft;
   company: { name: string; domain: string; industry: string };
-  systems: { id: string; kind: string; product: string | null; hostname: string; note: string }[];
+  systems: {
+    id: string;
+    kind: string;
+    product: string | null;
+    hostname: string;
+    note: string;
+  }[];
   yaml: string;
   templates: { name: string; description: string }[];
   command: string;
   imported: ImportReview | null;
-  proposal: { profile: string; industry: string; systems: string[]; lines: string[] } | null;
+  proposal: {
+    profile: string;
+    industry: string;
+    systems: string[];
+    lines: string[];
+  } | null;
+  seed: SeedReview | null;
+}
+
+// A seed folder (decision 0030): what it held, what each file became, and what was left out.
+
+export interface SeedReview {
+  folder: string;
+  items: { path: string; kind: string; becomes: string }[];
+  secrets_dropped: { path: string; lines: number }[];
+  personal: { path: string; line: number; kind: string; shown: string }[];
+  not_read: [string, string][];
+  later: { path: string; kind: string; becomes: string }[];
+  personal_accepted: boolean;
 }
 
 // World import (decision 0025): the review of what files on this machine described.
@@ -451,7 +497,16 @@ export interface PreflightCheck {
 export interface RoleDefaults {
   role: string;
   person: { username: string; name: string; title: string };
-  grants: Record<string, { repos?: Record<string, string>; channels?: string[]; tools?: string[] }>;
+  grants: Record<
+    string,
+    { repos?: Record<string, string>; channels?: string[]; tools?: string[] }
+  >;
   lines: string[];
-  options: { app_id: string; label: string; key: string; levels: string[]; names: string[] }[];
+  options: {
+    app_id: string;
+    label: string;
+    key: string;
+    levels: string[];
+    names: string[];
+  }[];
 }

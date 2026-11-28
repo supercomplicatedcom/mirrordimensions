@@ -17,7 +17,9 @@ from ruamel.yaml import YAML
 
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.project import MANIFEST, Project
+from mirrordimensions.seed.content import SeedReview
 from mirrordimensions.service import imports, worlddef
+from mirrordimensions.service import seed as seed_svc
 from mirrordimensions.service.changes import Change
 from mirrordimensions.world.names import CompanySuggestion, slug, suggest_company
 
@@ -54,6 +56,9 @@ class WorldDraftView(BaseModel):
         default=None,
         description="The systems the company's industry usually runs, while the world still "
         "starts from the template (decision 0028, point 3)",
+    )
+    seed: SeedReview | None = Field(
+        default=None, description="The seed folder this world is built from, and its review"
     )
 
 
@@ -155,6 +160,7 @@ def _view(root: Path, draft: worlddef.Draft) -> WorldDraftView:
             if not draft.imported and not draft.systems
             else None
         ),
+        seed=seed_svc.load_review(Project(root=root)),
     )
 
 
@@ -186,6 +192,11 @@ def command_for(root: Path, draft: worlddef.Draft) -> str:
     parts += [f"--{k} {v}" for k, v in data.items() if v != worlddef.DATA_DEFAULTS[k]]
     links = {**worlddef.LINK_DEFAULTS, **draft.links}
     parts += [f"--no-{k}" for k, on in links.items() if not on]
+    seeded = seed_svc.load_review(Project(root=root))
+    if seeded is not None:
+        parts.append(f"--seed-folder {_quote(Path(seeded.folder).as_posix())}")
+        if seeded.personal and seeded.personal_accepted:
+            parts.append("--accept-personal-data")
     return " ".join(parts)
 
 
@@ -294,6 +305,17 @@ def update_draft(current: Project, folder: str, fields: DraftFields) -> WorldDra
         draft.company = suggest_company(draft.seed, attempt=draft.attempt)
     worlddef.save_draft(root, draft)
     return _view(root, draft)
+
+
+def read_seed(
+    current: Project, folder: str | None, path: Path, accept_personal: bool
+) -> SeedReview:
+    """Read a seed folder for the current world, or for one the wizard is defining. A draft is
+    given its company first: the review compares email addresses with its domain."""
+    project = import_project(current, folder)
+    if folder and defining(project):
+        update_draft(current, folder, DraftFields())  # writes mirror.yaml for the company
+    return seed_svc.seed_world(project, path, accept_personal, strict=False)
 
 
 def finish(current: Project, folder: str) -> Path:

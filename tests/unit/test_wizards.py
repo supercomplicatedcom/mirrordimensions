@@ -278,3 +278,58 @@ def test_a_browser_agent_is_onboarded_the_same_way_in_both(
     )  # fmt: skip
     assert out.exit_code == 0, out.output
     assert (other / "agents" / "desk.yaml").read_text(encoding="utf-8") == by_portal
+
+
+FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "seed"
+
+
+def test_the_wizard_reads_a_seed_folder_and_asks_before_using_personal_data(
+    portal: tuple[TestClient, Path],
+) -> None:
+    client, _ = portal
+    client.post("/api/v1/worlds/draft", json={"folder": "halden"}, headers=WRITE)
+    client.patch(
+        "/api/v1/worlds/draft",
+        json={"folder": "halden", "fields": {"template": "software-team", "step": 2}},
+        headers=WRITE,
+    )
+    read = client.post(
+        "/api/v1/world/seed", json={"folder": "halden", "path": str(FIXTURE)}, headers=WRITE
+    )
+    assert read.status_code == 200, read.text
+    review = read.json()
+    assert {i["path"] for i in review["items"]} >= {"people.csv", "tickets.csv"}
+    # The phone number is listed by file and line, and nothing is used until it is accepted.
+    assert [(p["path"], p["line"]) for p in review["personal"]] == [
+        ("runbooks/claims-backlog.md", 5)
+    ]
+    assert not review["personal_accepted"]
+    view = client.post("/api/v1/worlds/draft", json={"folder": "halden"}, headers=WRITE).json()
+    folder = Path(view["folder"])
+    assert not (folder / ".mirror" / "seed" / "content.json").exists()
+    assert view["seed"]["folder"] == str(FIXTURE)
+    assert f"--seed-folder {FIXTURE.as_posix()}" in view["command"]
+    assert "--accept-personal-data" not in view["command"]
+    # Accepted as test data: the world uses it, and the command line says the same.
+    client.post(
+        "/api/v1/world/seed",
+        json={"folder": "halden", "path": str(FIXTURE), "accept_personal": True},
+        headers=WRITE,
+    )
+    view = client.post("/api/v1/worlds/draft", json={"folder": "halden"}, headers=WRITE).json()
+    assert view["seed"]["personal_accepted"]
+    assert view["command"].endswith("--accept-personal-data")
+    assert (folder / ".mirror" / "seed" / "content.json").is_file()
+    # Stopped: the copy goes, and the folder itself is untouched.
+    gone = client.delete("/api/v1/world/seed", params={"folder": "halden"}, headers=WRITE)
+    assert gone.status_code == 204
+    view = client.post("/api/v1/worlds/draft", json={"folder": "halden"}, headers=WRITE).json()
+    assert view["seed"] is None and "--seed-folder" not in view["command"]
+    assert not (folder / ".mirror" / "seed").exists()
+    assert (FIXTURE / "people.csv").is_file()
+
+
+def test_a_seed_folder_must_be_named(portal: tuple[TestClient, Path]) -> None:
+    client, _ = portal
+    answer = client.post("/api/v1/world/seed", json={"path": "  "}, headers=WRITE)
+    assert answer.status_code == 400 and "Name the seed folder" in answer.json()["what"]
