@@ -23,7 +23,9 @@ from mirrordimensions.hostos.lock import ProjectLock  # noqa: E402
 from mirrordimensions.service import init_project, load_project  # noqa: E402
 from mirrordimensions.service.agents import add_agent  # noqa: E402
 from mirrordimensions.service.changes import record_built  # noqa: E402
+from mirrordimensions.world import naming  # noqa: E402
 from mirrordimensions.world.generate import generate, world_json  # noqa: E402
+from mirrordimensions.world.model import World  # noqa: E402
 
 TOKEN = "test-token"
 SEED = 48213
@@ -73,6 +75,16 @@ def _add_tools_server(root: Path) -> None:
     )
     lines[end:end] = server.rstrip("\n").split("\n")
     path.write_text(head + sep + "\n".join(lines), encoding="utf-8")
+
+
+def _named(world: World, text: str) -> str:
+    """The recorded run in this world's names, as a real run would have recorded it: the
+    world names its repositories and channels its own way (decision 0029)."""
+    text = naming.Translator(world).text(text)
+    for usual, actual in naming.channels(world).items():
+        for form in ('"channel": "{}"', "channel:{}", "(in {})"):
+            text = text.replace(form.format(usual), form.format(actual))
+    return text
 
 
 def make_project(folder: Path) -> Path:
@@ -214,7 +226,9 @@ def make_project(folder: Path) -> Path:
         ),
         _event(609, 30.1, "runner", "run.end", FINISHED, status="failed"),
     ]
-    (run / "events.jsonl").write_text("\n".join(events) + "\n", encoding="utf-8")
+    (run / "events.jsonl").write_text(
+        "\n".join(_named(world, e) for e in events) + "\n", encoding="utf-8"
+    )
     result = {
         "run_id": FINISHED,
         "status": "failed",
@@ -278,7 +292,7 @@ def make_project(folder: Path) -> Path:
             "outside_grants": 0,
         },
     }
-    (run / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+    (run / "result.json").write_text(_named(world, json.dumps(result, indent=2)), encoding="utf-8")
 
     live = state / "runs" / LIVE
     live.mkdir(parents=True)

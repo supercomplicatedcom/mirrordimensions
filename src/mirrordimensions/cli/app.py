@@ -541,7 +541,7 @@ def world_new(
         and names is None
         and offer is None
         and add_systems is None
-        and sys.stdin.isatty()
+        and _interactive()
         and not st.out.json_mode
     ):
         root = _world_new_interactive(st, directory)
@@ -576,6 +576,12 @@ def world_new(
     st.out.next_step("Next: mirror world create")
 
 
+def _interactive() -> bool:
+    """Whether a person is at a terminal to answer. Both ends must be terminals: on Windows
+    the NUL device counts as one, so input alone would wrongly say yes under a script."""
+    return sys.stdin.isatty() and sys.stdout.isatty()
+
+
 def _systems_for(
     st: State,
     template: str | None,
@@ -599,7 +605,7 @@ def _systems_for(
                     st.out.line(f"  {line}")
             if yes:
                 names = proposal.systems
-            elif sys.stdin.isatty() and not st.out.json_mode:
+            elif _interactive() and not st.out.json_mode:
                 answer = typer.prompt(
                     "Use these systems? yes, no for the template, or type your own list",
                     default="yes",
@@ -1096,7 +1102,7 @@ def agent_new(
         if not no_check:
             agent_check(ctx, added.name, False)
         return
-    interactive = sys.stdin.isatty() and not st.out.json_mode
+    interactive = _interactive() and not st.out.json_mode
     name = name or resume
     if name is None:
         if not interactive:

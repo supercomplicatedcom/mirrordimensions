@@ -4,6 +4,9 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 from ruamel.yaml import YAML
 
 from mirrordimensions.config.manifest import Manifest
@@ -13,6 +16,9 @@ from mirrordimensions.world import naming
 from mirrordimensions.world.generate import generate
 from mirrordimensions.world.model import World
 from mirrordimensions.world.names import suggest_company
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import portal_fixture  # tests/portal_fixture.py
 
 
 def _world(seed: int) -> World:
@@ -83,3 +89,22 @@ def test_text_mentions_follow_the_names() -> None:
     assert naming.repos(w)["billing-service"] + "#12" in said
     assert "#" + naming.channels(w)["incidents"] in said
     assert said.endswith("about incidents")  # an ordinary word stays as it is
+
+
+def test_the_grants_editor_shows_and_edits_grants_written_with_the_usual_names(
+    tmp_path: Path,
+) -> None:
+    from mirrordimensions.service import environment
+    from mirrordimensions.service.project import load_project
+
+    root = portal_fixture.make_project(tmp_path)
+    project = load_project(root)
+    world = World.model_validate_json((root / ".mirror" / "world.json").read_text("utf-8"))
+    billing = naming.repos(world)["billing-service"]
+    assert billing != "billing-service"  # the fixture's seed renames it
+    code = next(s for s in environment.grant_options(project, "scripted-good") if s.key == "repos")
+    # The agent file says billing-service; the editor shows it on the world's own name.
+    assert next(i for i in code.items if i.name == billing).grant == "write"
+    environment.set_grant(project, "scripted-good", f"code/{billing}", "read")
+    text = (root / "agents" / "scripted-good.yaml").read_text("utf-8")
+    assert "billing-service: read" in text and f"{billing}:" not in text  # one entry, edited
