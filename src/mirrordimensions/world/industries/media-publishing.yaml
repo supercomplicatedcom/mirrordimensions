@@ -1,0 +1,544 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Media and publishing: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: media-publishing
+name: Media and publishing
+group: Technology and media
+aliases: [publishing, news media, newspaper, magazine publisher, digital media, book publisher]
+description: A newspaper, magazine or digital publisher that sells subscriptions and advertising and runs the sites, apps and newsletters its readers use.
+name_suffixes: [Media, Press, Publishing, Times, Herald, Gazette, Chronicle]
+invoice_items: [Digital subscription, Advertising campaign]
+organization:
+  head: Chief Technology Officer
+  it_admin: Systems Administrator
+  teams:
+    platform: {department: Platform Engineering, title: Platform Engineer}
+    billing: {department: Subscriptions and Revenue Systems, title: Subscriptions Engineer}
+    data: {department: Audience Analytics, title: Data Engineer}
+    support: {department: Reader Services, title: Reader Services Agent}
+    product: {department: Digital Product, title: Product Engineer}
+    operations: {department: Production Operations, title: Production Engineer}
+names:
+  repos:
+    billing-service: [subscriptions-billing, circulation-billing, reader-billing, ad-invoicing]
+    platform-docs: [newsroom-tech-handbook, platform-runbooks, editorial-tools-docs, tech-handbook]
+    data-pipeline: [audience-loads, pageview-warehouse, analytics-etl, circulation-data]
+    infra-config: [site-infra, edge-config, platform-config, deploy-config]
+    customer-portal: [reader-portal, my-subscription, account-site, reader-hub]
+    ops-scripts: [ops-scripts, print-export-tools, legacy-scripts, desk-scripts]
+  channels:
+    engineering: [engineering, eng, dev, platform-eng]
+    incidents: [incidents, site-incidents, live-issues, outages]
+    support: [reader-services, support, readers, circulation-help]
+    leads: [leads, tech-leads, managers]
+systems:
+  typical: [github, slack, jira, okta, google workspace, contentful, zendesk, google ad manager, piano, wordpress]
+  common: [google analytics, cloudflare, mailchimp, datadog, pagerduty, salesforce]
+symbols:
+  b_doc: [invoice, credit note, subscription receipt, renewal notice, advertising invoice]
+  b_customer: [digital subscriber, print subscriber, institutional, newsstand, advertiser, syndication partner, gift subscriber]
+  b_who: [the circulation team, advertising operations, the newsroom, finance, reader services]
+  b_pwho: [reader services, a subscriber, '{person}', the circulation team, advertising operations]
+  b_ticket_noun: [ticket, case, complaint, reader query]
+  b_page: [my subscription, delivery address, newsletters, saved articles, billing history, the paywall page, gift subscriptions, the archive]
+  b_acct_size: ['{200-900} saved articles', '{15-60} newsletters', '{3-12} gift subscriptions', '{40-300} past receipts']
+  s_plan: [the digital subscription, a print and digital bundle, a student offer, the weekend print delivery, a gift subscription]
+  p_table: [subscribers, subscriptions, articles, pageviews, newsletter_sends, ad_orders, delivery_stops, entitlements]
+  p_source: [the paywall events, the analytics export, the ad server reports, the print distributor's delivery file, the newsletter provider events]
+  p_report: [the circulation report, the subscriber churn report, the ad revenue report, the pageviews by section, the newsletter growth report]
+  p_glossary_term: [the paywall, the CMS, the rota, the edge cache, the print deadline]
+  p_alert_name: [CDN error rates, failed card retries, the CMS publish queue, the paywall latency, the nightly audience load finishing late]
+  c_customer: [a subscriber, an institutional customer, an advertiser, a syndication partner]
+  c_eng_area: [the paywall check, the publish queue, the renewal job, the newsletter send, the archive search, the ad slot logic]
+  c_dep: [the image library, the http client, the orm, the template engine, the date library]
+  s_thing: [the renewal run, the newsletter send, the publish queue, the cron, the print export, the audience load]
+  s_tool: [the CMS admin, the circulation console, the ad server, the reader queue]
+  p_delay: ['{2-4} hours', 'about {40-90} minutes', 'nearly {2-3} hours', '{2-5} hours']
+  mp_section: [sport, politics, business, culture, local news, the magazine, opinion, travel]
+  mp_event: [election night, a breaking story, a royal event, a big match, a storm, budget day]
+  mp_edition: [the Sunday edition, the weekday edition, the magazine issue, the weekend supplement, the special issue]
+  mp_ask: [who owns it, can someone take it, is anyone on it, do we have an owner]
+  mp_desk: [the news desk, the sports desk, the web desk, the picture desk, the production desk]
+  mp_role: [editor, reporter, producer, designer, sub editor]
+  mp_spike: ['{3-9} times normal traffic', 'ten times the usual load', 'record traffic', 'four times the norm']
+  mp_offer: [the introductory price, the student offer, the summer offer, the legacy price, the loyalty price]
+  mp_ad: [a takeover, a banner, a native campaign, a newsletter slot, a sponsored section]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        offer: ['{mp_offer}']
+      title:
+        - Renewals charge the full price after {offer}
+        - '{offer|cap} ends too early on annual plans'
+        - Subscribers moved off {offer} without notice
+        - Renewal price jumps twice after {offer}
+        - Why is {offer} gone after {2-9} months?
+      body:
+        - ['{b_raised}, {b_scope}.', '{b_raised} on {b_customer} accounts, {b_scope}.']
+        - ['The end date is stored once.', 'End dates are copied at signup.']
+        - ['A plan switch resets the date.', 'Switching plans resets it.']
+        - ['{b_urgent}', '{b_urgent} {b_offer}']
+      comments:
+        - '{b_cm_repro} with a switch in month two.'
+        - '{b_cm_check}{c_sep} the date is set in {b_money_path}.'
+        - Consumer rules need written notice.
+        - '{b_cm_later}'
+    - labels: [needs-decision]
+      let:
+        notice: [a price rise, a change of terms, the end of a legacy price, a bundle change]
+      title:
+        - How much notice for {notice}?
+        - Policy for {notice} on annual plans
+        - Who signs off {notice}?
+        - Notice emails for {notice} go out too late
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Consumer rules need advance notice.', 'The rules need advance warning.']
+        - ['The mail goes out same day.', 'Notices are sent at renewal.']
+        - ['Needs a decision from legal.', 'Legal has to decide.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Check the distance selling rules.
+        - '{b_cm_keep}'
+    - labels: [bug]
+      let:
+        taxcase: [print and digital bundles, digital only receipts, gift subscriptions, overseas readers]
+      title:
+        - '{b_taxkind} wrong on {taxcase}'
+        - Reduced rate applied to {taxcase}
+        - '{taxcase|cap} charged the standard rate'
+        - Receipts show the wrong {b_taxkind} for {taxcase}
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Print is reduced rate.', 'Print has a lower rate.']
+        - ['Digital is not, in most places.', 'Digital is taxed at full rate.']
+        - ['A bundle needs a split.', 'Bundles need a split.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Finance wants a split by value.
+        - '{b_cm_check}'
+    - labels: [bug]
+      let:
+        thing: [annual renewals, gift renewals, card updates, expired cards]
+      title:
+        - Failed card retries for {thing} stop after one try
+        - '{thing|cap} lapse without a reminder'
+        - Dunning for {thing} runs too fast
+        - Card retry for {thing} ignores the grace period
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The retry schedule is one day.', 'It retries after one day.']
+        - ['Readers lose access too early.', 'Access ends too soon.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_codes} {b_cm_map}'
+        - '{b_cm_grace} {b_cm_cover}'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        ad: ['{mp_ad}']
+      title:
+        - Invoice for {ad} shows the wrong insertions
+        - Advertiser billed twice for {ad}
+        - '{ad|cap} impressions differ from the ad server'
+        - Make good for {ad} missing from the invoice
+      body:
+        - ['Raised by {b_who}, {b_scope}.']
+        - ['The invoice uses booked numbers.', 'It bills what was booked.']
+        - ['The ad server shows delivered numbers.', 'Delivery numbers differ.']
+        - ['Finance needs one source.', '']
+      comments:
+        - Bill on delivered numbers{c_sep} capped.
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+  portal:
+    - labels: [bug, security]
+      let:
+        thing: [premium articles, the archive, the app feed, newsletter archives]
+      title:
+        - Paywall lets logged out readers read {thing}
+        - '{thing|cap} open after a cached page'
+        - Entitlement check skipped for {thing}
+        - Readers see {thing} after cancelling
+      body:
+        - ['Found by {b_who}, {b_pscope}.']
+        - ['The edge caches the full page.', 'Cached pages carry the full text.']
+        - ['Only the first view is checked.', 'Checks run once per cache fill.']
+        - ['Keep details out of chat please.']
+      comments:
+        - '{b_cm_repro} in a private window.'
+        - Vary the cache on the session.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        login: [the social login, the app login, the magic link, single sign-on for schools]
+      title:
+        - Readers cannot sign in with {login}
+        - '{login|cap} loops back to the form'
+        - '{login|cap} fails after the {day} release'
+        - Duplicate accounts created via {login}
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['The email is matched by case.', 'Matching is case sensitive.']
+        - ['A second account gets made.', 'It creates a second account.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_ask_logs}'
+        - Lowercase emails on save.
+        - '{b_cm_stage}'
+    - labels: [performance, bug]
+      let:
+        page: [article pages, the homepage, the live blog, the app feed]
+      title:
+        - '{page|cap} slow on {mp_event}'
+        - '{page|cap} times out at {mp_spike}'
+        - Ad scripts block {page}
+        - '{page|cap} takes {b_slow} on mobile'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Every miss hits the origin.', 'Misses go to the origin.']
+        - ['Ad calls run before content.', 'Ads load before text.']
+        - ['{b_offer}']
+      comments:
+        - '{b_cm_prof}'
+        - Serve stale while revalidating.
+        - '{b_cm_idx}'
+    - labels: [enhancement]
+      let:
+        ask: [pause a subscription, pick delivery days, gift an article, follow a topic, cancel without calling]
+      title:
+        - Let readers {ask}
+        - Readers want to {ask} online
+        - 'Feature request from {b_who}: {ask}'
+        - '{ask|cap}, asked for again'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Today readers phone in.', 'Readers email the desk now.']
+        - ['Calls spike at renewal.', 'Volume peaks near renewal.']
+        - ['It needs a new screen.', '']
+      comments:
+        - '{b_cm_try}'
+        - Consumer rules want an easy cancel.
+        - '{b_cm_plan}'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        thing: [bot visits, prefetch hits, app refreshes, newsletter opens, internal visits]
+      title:
+        - Pageviews include {thing}
+        - '{thing|cap} inflate pageviews for {mp_section}'
+        - Audience totals too high, {thing} counted
+        - '{p_report|cap} differs from the vendor, {thing}'
+      body:
+        - ['{b_raised}, {b_scope}.', 'The newsroom noticed it {b_since}.']
+        - ['The filter list is old.', 'Bot rules are stale.']
+        - ['Ad sales quote these totals.', 'Sales uses these numbers.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_prof}'
+        - Refresh the user agent list.
+        - '{b_cm_turn}'
+    - labels: [bug, incident]
+      let:
+        load: [the audience load, the subscriber snapshot, the ad revenue load, the newsletter load]
+      title:
+        - '{load|cap} finished {p_delay} late'
+        - '{load|cap} aborted before the morning meeting'
+        - Dashboards stale after {load} failed
+        - '{load|cap} missed the editorial deadline'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['The vendor export came late.', 'The export arrived late.']
+        - ['Editors read old numbers.', 'The newsroom saw stale data.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - Alert if not done by 7am.
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        cohort: ['subscribers who joined after {mp_event}', readers by section, newsletter signups, churned subscribers]
+        range: [the last 12 months, last quarter, since the paywall change, the last two years]
+      title:
+        - Backfill {cohort} for {range}
+        - Report on {cohort}, {range}
+        - Warehouse lacks {cohort} for {range}
+        - '{cohort|cap} missing in the warehouse'
+      body:
+        - ['Asked for by {b_who}.', '{b_raised}.']
+        - ['They plan a retention push.', 'It feeds the strategy review.']
+        - ['The old vendor export has it.', 'Raw files are archived.']
+      comments:
+        - '{b_cm_turn}'
+        - '{b_cm_plan}'
+        - Run it off peak hours.
+  infra:
+    - labels: [bug]
+      let:
+        thing: [a correction, an updated headline, a withdrawn story, a legal takedown]
+      title:
+        - Cache purge for {thing} slow to reach readers
+        - '{thing|cap} still shows on the edge'
+        - Purge after {thing} misses some regions
+        - Stale pages after {thing}
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Purge reaches origin first.', 'Edges purge later.']
+        - ['Old text stays for minutes.', 'Readers see old text.']
+        - ['Legal cares about this one.']
+      comments:
+        - '{b_cm_repro}'
+        - Purge by tag, not url.
+        - '{b_cm_ask_who}'
+    - labels: [security, enhancement]
+      let:
+        cert: [the syndication certificate, the app API certificate, the print partner certificate, the wildcard certificate]
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Nobody owns {cert}
+        - Renew {cert} before {mp_event}
+      body:
+        - ['Found while checking the calendar.', '{b_raised}.']
+        - ['Partners pin the current chain.', 'A lapse breaks the feed.']
+        - ['{b_offer}']
+      comments:
+        - '{b_cm_plan}'
+        - Put it on the oncall calendar.
+        - '{b_cm_check}'
+    - labels: [performance, chore]
+      let:
+        target: [the origin servers, the publish queue workers, the image resizers, the search cluster]
+      title:
+        - Scale {target} before {mp_event}
+        - '{target|cap} ran hot at {mp_spike}'
+        - Set limits for {target}
+        - Autoscaling for {target} reacts late
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Scaling starts after the spike.', 'It scales after the peak.']
+        - ['Warm capacity helps.', 'Pre-warming would help.']
+      comments:
+        - '{b_cm_prof}'
+        - Pre-scale on the news calendar.
+        - '{b_cm_plan}'
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: [publishing a correction, taking a story down, handling a legal request, big event traffic, embargoed stories]
+      title:
+        - Runbook for {thing}
+        - Write up {thing} for on call
+        - Handbook lacks {thing}
+        - '{thing|cap} lives in one head'
+      body:
+        - ['{b_raised}.', 'Raised after {mp_event}.']
+        - ['It needs owners and contacts.', 'List owners and steps.']
+        - ['{person} did it last.', '']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_cm_list} {b_cm_def}'
+        - '{b_cm_up}'
+    - labels: [docs, bug]
+      let:
+        stale: [the old CMS name, last year's rota, the retired paging number, the previous print deadline]
+      title:
+        - Handbook still lists {stale}
+        - '{Docs/Handbook}: {stale} in the escalation page'
+        - Pages mention {stale}
+      body:
+        - ['{b_raised}.', 'Spotted by a new starter.']
+        - ['The page is out of date.', 'Nobody revised it.']
+        - ['A search finds {2-9} pages.']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_g_note}'
+        - I will fix them this week.
+  ops:
+    - labels: [bug]
+      let:
+        script: [export_print_pages.sh, sync_archive.py, rotate_ad_logs.sh, send_delivery_file.sh]
+      title:
+        - '{Scripts/Ops}: {script} skips {mp_edition}'
+        - Is {script} still used?
+        - '{script} fails on the new file format'
+      body:
+        - ['Found during a print deadline.', '{b_raised}.']
+        - ['It predates the new layout tool.', 'Written for the old press.']
+        - ['Nobody owns it now.', '']
+      comments:
+        - '{b_cm_check}'
+        - '{b_g_who}'
+        - Can we retire it?
+chat:
+  support:
+    - root:
+        - '{s_cust|cap} cannot read articles after paying'
+        - reader asks why {mp_offer} ended{c_sep} {s_ticket}
+        - '{s_cust|cap} was charged twice for a gift'
+        - escalating to eng{c_sep} paywall loop{c_sep} {s_ticket}
+        - reader wants delivery paused for {2-6} weeks
+      replies:
+        - ['which email?', 'which plan?', 'do they see the paywall?']
+        - ['same on two devices', '{c_idk}{c_sep} asking them', 'email is in the case']
+        - ['filing it now', 'linking {s_ticket}', 'i will check the entitlement']
+    - root:
+        - refund request{c_sep} {s_cust}{c_sep} {s_money}{c_sep} says they cancelled
+        - reader says the paper never arrived {c_soon}
+        - advertiser disputes the invoice for {mp_ad}
+      replies:
+        - ['do we have the cancel date?', 'what does the policy say?']
+        - ['sending the screenshot', 'checking the log']
+        - ['apply it and note the case', 'finance approves over {s_money}']
+    - root:
+        - queue is at {20-90} open cases{c_sep} {mp_event} is driving signups
+        - evening handover{c_sep} login issue open
+        - heads up{c_sep} {s_cust} is angry{c_sep} waiting {2-5} days
+      replies:
+        - ['is there a known issue?', 'who updates readers?']
+        - ['eng has it{c_sep} update at {time}', 'banner is live']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - standup in {5-15} minutes{c_sep} {c_status} on my side
+        - who is picking up {issue}?
+        - '{person} is {c_pto}{c_sep} who covers the publish queue?'
+        - release freeze for {mp_event}{c_sep} who has the list?
+        - anyone free to pair on {issue}?
+      replies:
+        - ['i can take it', 'on it after lunch']
+        - ['{person} knows the cms', 'i did last time{c_sep} someone else']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - '{mp_desk} wants a change before {day}'
+        - paywall rules change {c_soon}{c_sep} who tested the meter?
+        - print deadline moved to {time}{c_sep} export job ready?
+      replies:
+        - ['what is the change?', 'is it behind a flag?']
+        - ['{c_yes}{c_sep} flag is on', 'not yet']
+        - ['{c_ack}']
+    - root:
+        - retro notes are in the handbook{c_sep} add yours
+        - post incident review for {issue_title} is {day} at {time}
+        - owners needed for review actions
+      replies:
+        - ['added mine', 'after the call']
+        - ['{c_agree}', '{c_thanks}']
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - publish queue is stuck{c_sep} anyone changed the worker count?
+        - '{c_ci_fail} fails on main after templates'
+        - meter{c_sep} per device or per account?
+        - cache hit rate dropped {5-40} percent{c_sep} anyone changed headers?
+      replies:
+        - ['on it', 'looking now', 'give me ten']
+        - ['no changes here', 'workers hit the limit {c_soon}']
+        - ['per account{c_sep} devices are messy', 'per device{c_sep} simpler']
+    - root:
+        - how do we preview embargoed stories?
+        - does the cms retry publishes?
+        - heads up{c_sep} freeze from {day}{c_sep} for {mp_event}
+        - search is slow{c_sep} anyone else seeing it?
+      replies:
+        - ['by a signed link', 'staging only']
+        - ['yes{c_sep} three times then alerts', '{c_no}{c_sep} it waits for the editor']
+        - ['{c_ack}', '{c_thanks}']
+    - root:
+        - local env broke after image bump
+        - how do i replay traffic locally?
+        - is {c_tool} broken for anyone else?
+      replies:
+        - ['pin the old version', 'same here{c_sep} clear the cache']
+        - ['replay script is in tools', 'ask {person}{c_sep} they wrote it']
+  incidents:
+    - root:
+        - site slow on {mp_event}{c_sep} {mp_spike}
+        - publish queue backed up {2-5} minutes
+        - alert{c_sep} paywall errors above {5-30} percent
+        - the {p_alert_name} alert is flapping again
+        - image cdn is returning errors {s_since}
+      replies:
+        - ['who is incident lead?', '{mp_ask}?']
+        - ['i have it{c_sep} comms at {time}', '{person} is on the bridge']
+        - ['update at {time}', 'resolved{c_sep} watching']
+    - root:
+        - review for the {mp_event} slowdown is {day} at {time}
+        - near miss{c_sep} a wrong story almost went live
+        - the editor wants a root cause {day}
+      replies:
+        - ['i will draft it', 'who writes the note to editors?']
+        - ['editor in chief{c_sep} by {day}', '{c_ack}']
+    - root:
+        - cdn provider has an incident{c_sep} status page is red
+        - the payments provider is flaky{c_sep} renewals stuck
+        - the ad server is down{c_sep} pages load without ads
+      replies:
+        - ['anything we can do?', 'any eta?']
+        - ['no eta{c_sep} telling readers', 'failing over now']
+  town-square:
+    - root:
+        - '{c_hey}: all hands {day} at {time}{c_sep} subscriptions and strategy'
+        - security training is due {c_soon}
+        - welcome {person}{c_sep} joining {mp_desk} {c_soon}
+      replies:
+        - ['will it be recorded?', 'welcome!']
+        - ['{c_yes}{c_sep} link after', '{c_thanks}']
+    - root:
+        - award night is {c_soon}{c_sep} congrats to the team
+        - office is closed {c_soon}{c_sep} on call rota unchanged
+      replies:
+        - ['well deserved', '{c_ack}']
+        - ['{c_thanks}', '{c_agree}']
+  off-topic:
+    - root:
+        - anyone watching the {match/game/race} {last night/tonight}?
+        - lunch ideas? sick of {c_food}
+        - '{c_pet} learned a new trick'
+        - best book you read this year?
+      replies:
+        - ['{c_lol}', '{c_agree}']
+        - ['the thai place', 'try the bakery']
+    - root:
+        - '{c_weekend} for me{c_sep} anyone else?'
+        - best podcast for the commute?
+        - cold in the office again
+      replies:
+        - ['{c_lol}', 'send a photo']
+        - ['{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}{c_sep} can you review my paywall change {s_soon}?'
+        - quick question{c_sep} who owns the print export?
+        - can you cover my on call {day} night?
+        - got a minute{c_sep} renewal run question?
+      replies:
+        - ['sure', 'in a call{c_sep} back at {time}']
+        - ['{person} does', 'platform team']
+        - ['{c_thanks}']
+    - root:
+        - handing over the publish queue{c_sep} out {s_soon}
+        - did the correction go out?
+        - can you read the pricing spec {c_sep} {day}?
+      replies:
+        - ['send me the notes', '{c_ack}']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - can you cover reader services escalations {day}?
+        - did the correction banner go live?
+        - '{s_hey}{c_sep} can you join the advertiser call?'
+      replies:
+        - ['sure', 'on it']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - new app release is {c_soon}{c_sep} store review passed?
+        - who has the print deadlines for {day}?
+      replies:
+        - ['not yet', '{c_yes}']
+        - ['in the handbook', 'ask {person}']
+comments:
+  - '{b_cm_check}{c_sep} the entitlement table may be it.'
+  - Which edition was this on?
+  - '{b_g_ask} the plan code?'

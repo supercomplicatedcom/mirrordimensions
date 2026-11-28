@@ -1,0 +1,531 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Cybersecurity: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: cybersecurity
+name: Cybersecurity
+group: Technology and media
+aliases: [infosec, information security, security software, managed detection and response, mdr, security vendor]
+description: A security vendor that sells endpoint, detection and managed response services to organizations and bills by seat, data volume and retainer.
+name_suffixes: [Security, Cyber, Defense, Secure, Labs, Shield]
+invoice_items: [Endpoint protection subscription, Managed detection retainer]
+organization:
+  head: Chief Technology Officer
+  it_admin: Corporate IT Administrator
+  teams:
+    platform: {department: Platform Security Engineering, title: Security Engineer}
+    billing: {department: Revenue Systems, title: Billing Engineer}
+    data: {department: Detection Data, title: Data Engineer}
+    support: {department: Customer Security Support, title: Support Engineer}
+    product: {department: Product, title: Product Engineer}
+    operations: {department: Security Operations, title: SOC Engineer}
+names:
+  repos:
+    billing-service: [license-billing, usage-billing, subscription-service, seat-metering]
+    platform-docs: [secops-handbook, runbooks, detection-handbook, platform-playbooks]
+    data-pipeline: [telemetry-loads, detection-warehouse, alert-pipeline, usage-etl]
+    infra-config: [sensor-infra, platform-config, signing-config, deploy-config]
+    customer-portal: [tenant-console, customer-console, security-portal, admin-console]
+    ops-scripts: [ops-scripts, soc-tools, legacy-scripts, rotation-scripts]
+  channels:
+    engineering: [engineering, eng, platform-eng, builders]
+    incidents: [incidents, sev-room, platform-incidents, outages]
+    support: [support, customer-support, support-engineering]
+    leads: [leads, security-leads, eng-leads]
+systems:
+  typical: [github, slack, jira, okta, splunk, pagerduty, 1password, crowdstrike, microsoft sentinel]
+  common: [datadog, snyk, tenable, salesforce, zendesk, sentry]
+symbols:
+  b_doc: [invoice, credit note, true-up invoice, renewal invoice, usage statement]
+  b_customer: [enterprise, mid-market, MDR, public sector, regulated, partner-managed]
+  b_who: [customer success, support engineering, finance, the account team, the partner team]
+  b_pwho: [support engineering, a customer, '{person}', the account team, the partner team]
+  b_ticket_noun: [ticket, case, escalation, support case]
+  b_page: [alerts, the tenant list, API keys, sensors, detections, reports, the usage page, policies]
+  b_acct_size: ['{2000-9000} endpoints', '{200-900} sensors', '{15-60} admins', '{40-300} policies']
+  b_money_path: [billing/seats.py, billing/usage.py, billing/true_up.py, billing/rounding.py]
+  s_plan: [the endpoint plan, the MDR service, the SIEM tier, a partner plan, the enterprise bundle]
+  p_table: [alerts, detections, endpoints, tenants, usage_events, subscriptions, rule_hits, sensors]
+  p_source: [the sensor heartbeat events, the threat intel feed, the CRM account list, the support desk export, the cloud audit logs]
+  p_report: [the weekly usage report, the detection volume dashboard, the renewal forecast, the seat true-up report, the coverage report]
+  p_glossary_term: [the sensor, the tenant, the rota, the detection backlog, the verdict queue]
+  p_alert_name: [sensor check-ins, ingest lag, failed backups, signing service errors, the nightly telemetry load finishing late]
+  c_customer: [a customer, one of the larger tenants, an MDR customer, a partner]
+  c_eng_area: [the sensor update path, the alert API, the verdict queue, the tenant login, the usage counter, the ingest gateway]
+  c_dep: [the protobuf library, the http client, the orm, the crypto library, the log parser]
+  s_thing: [the usage export, the ingest job, the verdict queue, the cron, the report job, the telemetry load]
+  s_tool: [the admin console, the support console, the billing admin, the case queue]
+  p_delay: ['{2-4} hours', 'about {40-90} minutes', 'nearly {2-3} hours', '{2-5} hours']
+  cy_sev: [a sev one, a sev two, a priority one, a high severity case]
+  cy_sensor: [the sensor, the endpoint agent, the collector, the network sensor]
+  cy_os: [Windows, macOS, Linux, older Windows servers, container hosts]
+  cy_rule: [a detection rule, a behavioural rule, a correlation rule, an exclusion, a policy exception]
+  cy_noise: [false positives, duplicate alerts, noisy detections, alert floods, missed detections]
+  cy_cust_type: [a hospital group, a regional bank, a retailer, a law firm, a manufacturer, a school district, an energy utility]
+  cy_framework: [SOC 2, ISO 27001, FedRAMP, PCI DSS, HIPAA]
+  cy_feed: [the threat intel feed, the reputation feed, the vulnerability feed, the indicator feed]
+  cy_ask: [who owns it, can someone take it, is anyone on it, do we have an owner]
+  cy_cve: [the new critical CVE, the browser zero day, the VPN appliance flaw, the mail server flaw, the supply chain advisory]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        thing: [reinstalled sensors, cloned virtual machines, retired laptops, test machines, duplicate hostnames]
+        doc: ['{b_doc}']
+      title:
+        - Seat count includes {thing}
+        - '{thing|cap} counted twice on the {doc}'
+        - '{doc|cap} charges for {thing}'
+        - Usage counter double counts {thing}
+        - Why do {thing} appear in the seat total?
+      body:
+        - ['{b_raised}, {b_scope}.', '{b_raised} on {b_customer} tenants, {b_scope}.']
+        - ['The counter keys on sensor id.', 'Counts are keyed by sensor id.']
+        - ['A reinstall creates a new id.', 'Reimaging mints a fresh id.']
+        - ['{b_urgent}', '{b_urgent} {b_offer}']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Dedupe on hostname plus hardware id?
+        - '{b_cm_check} the counter in {b_money_path}.'
+        - Customers will ask for credits.
+    - labels: [needs-decision, bug]
+      let:
+        doc: ['{b_doc}']
+        plan: ['{s_plan}']
+      title:
+        - How do we bill {plan} seat overage?
+        - True-up on {plan} fires mid term
+        - '{doc|cap} for overage sent before true-up'
+        - Policy for seats above the commit
+        - Overage rules differ between {plan} and the renewal quote
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Contract: true-up at term end', 'Wording says true-up at renewal.']
+        - ['The job runs every month.', 'Code bills overage monthly.']
+        - ['Needs a decision before next run.', 'Needs an owner and a decision.']
+      comments:
+        - Sales promised annual true-up {c_sep} some tenants.
+        - '{b_cm_ask_who}'
+        - '{b_cm_keep} until the contract text is checked.'
+    - labels: [bug]
+      let:
+        change: [a tier upgrade, a mid term seat add, moving to MDR, a switch to annual billing, adding the SIEM module]
+      title:
+        - Proration wrong after {change}
+        - '{change|cap} bills a full month'
+        - Credit missing after {change}
+        - Mid term {change} double bills the old plan
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The old plan never ends.', 'The old line stays open.']
+        - ['Both lines bill for the overlap.', 'Overlap days are billed twice.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_hand}'
+        - '{b_cm_day}'
+        - A credit note fixes it.
+    - labels: [enhancement]
+      let:
+        ask: [per tenant usage lines, one roll-up invoice, a separate bill per site, usage by business unit]
+      title:
+        - Partners want {ask}
+        - 'Partner billing: {ask}'
+        - Add {ask} for partner accounts
+        - Roll-up for managed partners, {ask}
+      body:
+        - ['{b_raised} for {ask}, {b_scope}.']
+        - ['Partners resell to many tenants.', 'Each partner runs many tenants.']
+        - ['Today finance builds it by hand.', 'Finance does this in a sheet.']
+        - ['The {b_doc} needs a tenant column.', '']
+      comments:
+        - '{b_cm_plan}'
+        - Do partners pay on {usage/commit}?
+        - '{b_cm_try}'
+  portal:
+    - labels: [bug, performance]
+      let:
+        page: [the alert list, the detections view, the sensor list, the audit log]
+      title:
+        - '{page|cap} is {very slow/unusably slow} for tenants with {b_acct_size}'
+        - '{page|cap} times out on large tenants'
+        - Console freezes on {page} after a filter
+        - '{page|cap} takes {b_slow} to load'
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['The query counts every row first.', 'It counts all rows each time.']
+        - ['Filters run after the count.', 'Filters apply too late.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_prof} the count query.'
+        - Keyset paging would fix it.
+        - '{b_cm_idx}'
+    - labels: [bug, security]
+      let:
+        secret: [API keys, enrolment tokens, webhook secrets, service account tokens]
+      title:
+        - '{secret|cap} shown in full after creation'
+        - Console shows {secret} again on reload
+        - '{secret|cap} appear in the audit log'
+        - 'Read-only admins can read {secret}'
+      body:
+        - ['Found during a review, {b_pscope}.']
+        - ['Only a prefix should be shown.', 'It should show a prefix only.']
+        - ['Rotate them after the fix.', 'Existing ones may need rotating.']
+        - ['Keep details out of chat please.']
+      comments:
+        - '{b_cm_repro} with a read-only role.'
+        - '{b_cm_fix_up}'
+        - '{b_cm_tell}'
+    - labels: [bug]
+      let:
+        idp: [SAML, OIDC, an older SAML provider, a custom identity provider]
+      title:
+        - Login loop for tenants using {idp}
+        - SSO fails with {idp} after the {day} release
+        - Admins locked out with {idp}
+        - '{idp|cap} assertion rejected: clock skew'
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['The error is a bad signature.', 'The log shows a signature error.']
+        - ['Clock skew may be the cause.', 'Skew limit looks too tight.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_ask_logs}'
+        - Allow a small skew window.
+        - '{b_cm_stage}'
+    - labels: [bug]
+      let:
+        thing: [detections, hosts, timeline events, rule names]
+      title:
+        - Report export leaves out {thing}
+        - PDF report lists fewer {thing} than the console
+        - Scheduled report shows old {thing}
+        - Export of {thing} stops at {1000-9000} rows
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The export hits a row cap.', 'A row cap truncates it.']
+        - ['Nothing warns the reader.', 'It fails silently.']
+      comments:
+        - '{b_cm_repro}'
+        - Raise the cap or stream it.
+        - '{b_cm_plan}'
+  data:
+    - labels: [bug, incident]
+      let:
+        stream: [endpoint telemetry, network events, cloud audit events, authentication logs]
+      title:
+        - Ingest of {stream} {p_delay} behind
+        - Detection backlog grows, {stream} late
+        - Nightly load of {stream} finished {p_delay} late
+        - '{stream|cap} lag alert fired again'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Consumers fell behind at peak.', 'Peak load outran the consumers.']
+        - ['Detections fire late for some tenants.', 'Tenants get alerts late.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - Scale the consumers before peak.
+        - '{b_cm_fix_up}'
+    - labels: [bug, data-quality]
+      let:
+        feed: ['{cy_feed}']
+      title:
+        - '{feed|cap} loads duplicate indicators'
+        - Duplicate rows in indicators from {feed}
+        - Expired indicators still active from {feed}
+        - '{feed|cap} import drops the confidence field'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The load has no unique key.', 'Nothing dedupes indicators.']
+        - ['Matching slows as rows pile up.', 'Lookups slow as it grows.']
+      comments:
+        - Key on type, value and source.
+        - '{b_cm_prof} the lookup.'
+        - '{b_cm_turn}'
+    - labels: [enhancement]
+      let:
+        table: [alert verdicts, rule hits, sensor versions, tenant usage]
+        range: [the last 90 days, last quarter, the period before the migration, the last year]
+      title:
+        - Backfill {table} for {range}
+        - Warehouse lacks {table} for {range}
+        - Reload {table}, {range}
+        - '{table|cap} gap in {range}'
+      body:
+        - ['Asked for by {b_who}.', '{b_raised}.']
+        - ['They need {range} for a review.', 'It is for an audit request.']
+        - ['Raw files are still stored.', 'Raw files are kept a year.']
+      comments:
+        - '{b_cm_turn}'
+        - '{b_cm_plan}'
+        - Run it off peak hours.
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: [the code signing certificate, the sensor update certificate, the gateway certificate, the intermediate certificate]
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} weeks'
+        - Renewal of {cert} has no owner
+        - Rotate {cert} before the next release
+      body:
+        - ['Found while checking the calendar.', '{b_raised}.']
+        - ['Sensors pin the old chain.', 'Agents pin the current chain.']
+        - ['A late renewal blocks updates.', 'A miss stops sensor updates.']
+      comments:
+        - '{b_cm_plan}'
+        - Needs a ceremony with two people.
+        - Put it in the oncall calendar.
+    - labels: [bug]
+      let:
+        ring: [the early ring, ring two, the broad ring, the preview channel]
+      title:
+        - Sensor rollout stuck at {10-90} percent on {ring}
+        - Staged release paused on {ring}
+        - '{ring|cap} never receives the new {cy_sensor}'
+        - Rollback of {cy_sensor} left {40-400} hosts behind
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['The health gate never turns green.', 'The gate holds the release.']
+        - ['Some hosts report late.', 'Check-ins lag on old hosts.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - '{b_cm_ask_who}'
+        - Gate on a percentage {c_sep} not all hosts.
+    - labels: [needs-decision, question]
+      let:
+        access: [read access to customer tenants, break glass access to production, the signing host, the support bastion]
+        who: [support engineers, the SOC, contractors, new hires]
+      title:
+        - 'Access request: {access} for {who}'
+        - Should {who} get {access}?
+        - '{access|cap}: review who has it'
+        - Time limited {access} for {who}
+      body:
+        - ['{b_raised}.']
+        - ['It needs approval and a ticket.', 'Needs a ticket and approval.']
+        - ['Every grant must expire.', 'Grants must be time boxed.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Auditors check this for {cy_framework}.
+        - '{b_cm_keep}'
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: [customer notification, evidence handling, log preservation, containment steps, the post incident review]
+      title:
+        - Incident runbook lacks {thing}
+        - Write up {thing} for on call
+        - Add {thing} to the response guide
+        - '{thing|cap} is only in people''s heads'
+      body:
+        - ['Raised after the last incident.', '{b_raised}.']
+        - ['New responders ask each time.', 'Newcomers keep asking.']
+        - ['{person} has notes from the review.', '']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_cm_list} {b_cm_def}'
+        - '{b_cm_up}'
+    - labels: [docs, bug]
+      let:
+        stale: [the old rule naming scheme, last year's severity table, the retired ticket queue, the previous paging rota]
+      title:
+        - Detection handbook still lists {stale}
+        - '{Handbook/Docs}: {stale} still referenced'
+        - Pages mention {stale}
+      body:
+        - ['{b_raised}.', 'Spotted by a new engineer.']
+        - ['The page predates the rename.', 'Nobody updated it after.']
+        - ['A search finds {2-9} pages.']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_g_note}'
+        - I will fix them this week.
+  ops:
+    - labels: [bug]
+      let:
+        script: [rotate_ingest_keys.sh, export_rules.py, purge_old_tenants.sh, check_sensor_versions.sh]
+      title:
+        - '{Scripts/Ops}: {script} skips disabled tenants'
+        - Is {script} still used?
+        - '{script} fails after the key format change'
+      body:
+        - ['Found during an access review.', '{b_raised}.']
+        - ['It predates the new key format.', 'Written for the old format.']
+        - ['Nobody owns it now.', '']
+      comments:
+        - '{b_cm_check}'
+        - '{b_g_who}'
+        - Can the platform do this now?
+chat:
+  support:
+    - root:
+        - '{s_cust|cap} sees {cy_noise} after the {day} rule update'
+        - '{cy_cust_type|cap} asks why {cy_sensor} went quiet on {cy_os}'
+        - customer wants an exclusion for {cy_rule}{c_sep} {s_ticket}
+        - escalating to eng{c_sep} tenant admins locked out{c_sep} {s_ticket}
+        - '{cy_cust_type|cap} asks for their audit evidence for {cy_framework}'
+      replies:
+        - ['which sensor version?', 'which tenant is it?', 'do they have logs?']
+        - ['latest build{c_sep} same on two hosts', '{c_idk}{c_sep} asking them', 'tenant id is in the case']
+        - ['filing it now', 'linking {s_ticket}', 'i will check the rule']
+    - root:
+        - customer disputes seat count on the {b_doc}
+        - refund request{c_sep} {s_cust}{c_sep} {s_money}{c_sep} says the sensors were retired
+        - '{cy_cust_type} wants a credit for {day}'
+      replies:
+        - ['do we have the sensor ids?', 'what does the contract say?']
+        - ['sending the list', 'checking the usage page']
+        - ['apply it and note the case', 'finance approves over {s_money}']
+    - root:
+        - queue is at {20-90} open cases and {2-9} are sev two
+        - evening handover{c_sep} {cy_sev} open for {cy_cust_type}
+        - heads up{c_sep} {s_cust} is angry{c_sep} waiting {2-5} days
+      replies:
+        - ['who has the sev?', 'is the customer updated?']
+        - ['on it{c_sep} call at {time}', 'update sent']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - standup in {5-15} minutes{c_sep} {c_status} on my side
+        - who is picking up {issue}?
+        - '{person} is {c_pto}{c_sep} who covers the queue?'
+        - release train for the sensor leaves {day}{c_sep} who is on the checklist?
+        - anyone free to pair on {issue}?
+      replies:
+        - ['i can take it', 'on it after lunch']
+        - ['{person} has context', 'i did last time{c_sep} someone else please']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - on call handover {day}{c_sep} {2-9} open alerts to watch
+        - threat research is writing up {cy_cve}{c_sep} who reviews?
+        - customer briefing on {cy_cve} is {day} at {time}
+      replies:
+        - ['can i see the draft?', 'what is our exposure?']
+        - ['doc is linked in the channel', 'none we can see so far']
+        - ['{c_ack}']
+    - root:
+        - retro notes are in the handbook{c_sep} add yours
+        - post incident review for {issue_title} is {day} at {time}
+        - review action items need owners
+      replies:
+        - ['added mine', 'will add after the call']
+        - ['{c_agree}', '{c_thanks}']
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - ingest consumers are lagging{c_sep} anyone touched the autoscaler?
+        - '{c_ci_fail} fails on main since the {cy_sensor} change'
+        - verdict queue{c_sep} exactly once or at least once?
+        - rule engine memory is up {5-40} percent{c_sep} anyone changed rules?
+      replies:
+        - ['on it', 'looking now', 'give me ten']
+        - ['no changes on my side', 'autoscaler limit was hit {c_soon}']
+        - ['at least once and dedupe', 'exactly once is a lie here']
+    - root:
+        - how do we version detection rules?
+        - does the sensor retry updates?
+        - heads up{c_sep} deploy freeze from {day}{c_sep} release candidate cut {c_soon}
+        - signing service is slow{c_sep} anyone else seeing it?
+      replies:
+        - ['in git{c_sep} tagged per release', 'i would pin them']
+        - ['yes{c_sep} three times then backs off', '{c_no}{c_sep} it waits for next poll']
+        - ['{c_ack}', '{c_thanks}']
+    - root:
+        - local env broke after protobuf update
+        - how do i replay telemetry locally?
+        - is {c_tool} broken for anyone else?
+      replies:
+        - ['pin the old version for now', 'same here{c_sep} clear the cache']
+        - ['replay script is in tools', 'ask {person}{c_sep} they wrote it']
+  incidents:
+    - root:
+        - '{cy_sev} open{c_sep} ingest lag {2-5} hours for {2-9} tenants'
+        - sensor update failing signature checks on {40-400} hosts
+        - alert{c_sep} detection backlog above {1000-9000}
+        - the {p_alert_name} alert is flapping again
+        - '{cy_cve}{c_sep} are we exposed? checking now'
+      replies:
+        - ['who is incident lead?', '{cy_ask}?']
+        - ['i have it{c_sep} comms at {time}', '{person} is on the bridge']
+        - ['update at {time}', 'resolved{c_sep} watching']
+    - root:
+        - review of the ingest lag is {day} at {time}
+        - near miss{c_sep} bad rule almost shipped everywhere
+        - customer wants a root cause {day}
+      replies:
+        - ['i will draft it', 'who writes the customer note?']
+        - ['support lead{c_sep} by {day}', '{c_ack}']
+    - root:
+        - cloud provider has an incident{c_sep} status page is red
+        - the intel feed vendor is down{c_sep} no new indicators
+        - dns provider is flaky{c_sep} some tenants see errors
+      replies:
+        - ['anything we can do?', 'any eta?']
+        - ['no eta{c_sep} telling support', 'failing over now']
+  town-square:
+    - root:
+        - '{c_hey}: all hands {day} at {time}{c_sep} roadmap and hiring'
+        - security awareness training is due {c_soon}
+        - welcome {person}{c_sep} joining the {cy_sensor} team {c_soon}
+      replies:
+        - ['will it be recorded?', 'welcome!']
+        - ['{c_yes}{c_sep} link after', '{c_thanks}']
+    - root:
+        - phishing reminder{c_sep} report anything odd to it
+        - office is closed {c_soon}{c_sep} on call rota unchanged
+      replies:
+        - ['which address?', '{c_ack}']
+        - ['the usual one in the handbook', '{c_thanks}']
+  off-topic:
+    - root:
+        - anyone watching the {match/game/race} {last night/tonight}?
+        - lunch ideas? sick of {c_food}
+        - '{c_pet} learned a new trick'
+        - best book on {hardware/network} security?
+      replies:
+        - ['{c_lol}', '{c_agree}']
+        - ['the thai place', 'try the bakery']
+    - root:
+        - '{c_hey}{c_sep} who has a spare charger?'
+        - anyone going to the {meetup/conference} {c_soon}?
+        - best podcast for the commute?
+      replies:
+        - ['i do{c_sep} top drawer', '{c_no}{c_sep} sorry']
+        - ['{c_agree}', '{c_lol}']
+    - root:
+        - '{c_pet} sat on my keyboard {c_sep} mid call'
+        - '{c_weekend} for me{c_sep} anyone else?'
+        - cold in the office again{c_sep} bring a jumper
+      replies:
+        - ['{c_lol}', 'send a photo']
+        - ['{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}{c_sep} can you review my rule change {s_soon}?'
+        - quick question{c_sep} who owns the signing host?
+        - can you cover my on call {day} night?
+        - got a minute{c_sep} usage counter?
+      replies:
+        - ['sure', 'in a call{c_sep} back at {time}']
+        - ['{person} does', 'platform team']
+        - ['{c_thanks}']
+    - root:
+        - handing over verdict queue{c_sep} out {s_soon}
+        - did the customer note go out?
+      replies:
+        - ['send me the notes', '{c_ack}']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - can you read the {cy_framework} evidence list before {day}?
+        - did the pen report land yet?
+        - '{s_hey}{c_sep} can you join the {cy_cust_type} call?'
+      replies:
+        - ['sure', 'on it']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+comments:
+  - '{b_cm_check}{c_sep} the tenant filter may be it.'
+  - Which tenant was this on?
+  - '{b_g_ask} the sensor version?'

@@ -1,0 +1,542 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Streaming and entertainment: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: streaming-entertainment
+name: Streaming and entertainment
+group: Technology and media
+aliases: [streaming, video streaming, music streaming, ott, entertainment, subscription video]
+description: A video or music streaming service that sells subscriptions, licenses content from rights holders and delivers playback to many kinds of devices.
+name_suffixes: [Stream, Play, Plus, TV, Studios, Entertainment, Video]
+invoice_items: [Premium subscription, Partner bundle activation]
+organization:
+  head: Chief Technology Officer
+  it_admin: Corporate IT Administrator
+  teams:
+    platform: {department: Streaming Platform, title: Platform Engineer}
+    billing: {department: Payments and Subscriptions, title: Payments Engineer}
+    data: {department: Viewing Data, title: Data Engineer}
+    support: {department: Member Services, title: Member Services Agent}
+    product: {department: Product Engineering, title: Product Engineer}
+    operations: {department: Playback Operations, title: Site Reliability Engineer}
+names:
+  repos:
+    billing-service: [subscription-billing, member-billing, payments-service, plan-billing]
+    platform-docs: [playback-handbook, platform-runbooks, streaming-docs, launch-playbooks]
+    data-pipeline: [viewing-loads, playback-warehouse, royalty-pipeline, analytics-etl]
+    infra-config: [delivery-infra, cdn-config, platform-config, deploy-config]
+    customer-portal: [member-site, account-web, watch-account, member-hub]
+    ops-scripts: [ops-scripts, licence-tools, legacy-scripts, encoder-scripts]
+  channels:
+    engineering: [engineering, eng, playback-eng, builders]
+    incidents: [incidents, playback-incidents, live-issues, outages]
+    support: [member-services, support, members, care]
+    leads: [leads, eng-leads, managers]
+systems:
+  typical: [github, slack, jira, okta, datadog, pagerduty, zendesk]
+  common: [sentry, cloudflare, snowflake, looker, braze, launchdarkly]
+symbols:
+  b_doc: [invoice, credit note, receipt, partner invoice, gift card statement]
+  b_customer: [standard, premium, ad-supported, family plan, partner bundle, student, annual]
+  b_who: [member services, partnerships, finance, content operations, the product team]
+  b_pwho: [member services, a member, '{person}', the partnerships team, content operations]
+  b_ticket_noun: [ticket, case, complaint, member query]
+  b_page: [profiles, devices, viewing history, parental controls, downloads, payment methods, plan settings, the watchlist]
+  b_acct_size: ['{4-8} profiles', '{40-300} downloads', '{3-12} devices', '{200-900} watchlist titles']
+  s_plan: [the premium plan, the ad-supported tier, a family plan, a partner bundle, the annual plan]
+  p_table: [members, subscriptions, playback_events, titles, devices, royalty_lines, licence_windows, sessions]
+  p_source: [the playback event stream, the app store receipts, the partner bundle activations, the rights holder statements, the CDN logs]
+  p_report: [the viewing hours report, the royalty statement, the churn dashboard, the ad revenue report, the top titles report]
+  p_glossary_term: [the player, the origin, the rota, the licence window, the playback session]
+  p_alert_name: [playback start failures, rebuffering rates, licence server latency, encoder queue depth, the nightly viewing load finishing late]
+  c_customer: [a member, a partner, a family account, a student member]
+  c_eng_area: [the playback start, the licence request, the download flow, the profile switch, the recommendation call, the billing retry]
+  c_dep: [the player library, the http client, the orm, the video SDK, the date library]
+  s_thing: [the renewal run, the royalty export, the playback load, the cron, the encoder job, the licence sync]
+  s_tool: [the member console, the billing admin, the content tool, the case queue]
+  p_delay: ['{2-4} hours', 'about {40-90} minutes', 'nearly {2-3} hours', '{2-5} hours']
+  se_event: [a season finale, a big premiere, a live event, a title drop, a match night, an album release]
+  se_device: [smart TVs, older tablets, game consoles, streaming sticks, set top boxes, web browsers]
+  se_title: [a new series, a blockbuster film, a live concert, a kids franchise, a documentary, a chart album]
+  se_region: [the nordic region, the south asia region, the latin america region, the UK, the middle east, the pacific]
+  se_spike: ['{3-9} times normal traffic', 'ten times the usual load', 'record concurrent streams', 'four times the norm']
+  se_rights: [the rights holder, the label, the studio, a collecting society, the sports league]
+  se_ask: [who owns it, can someone take it, is anyone on it, do we have an owner]
+  se_codec: [the new codec, the older bitrate ladder, the HDR profile, the audio track, the subtitle track]
+  se_term: [a licence window, a territory restriction, an exclusivity clause, a blackout period]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        store: [the app store, the web checkout, a partner bundle, the carrier billing route]
+        doc: ['{b_doc}']
+      title:
+        - Members billed twice, {store} and the web
+        - Subscription charged by {store} and by us
+        - '{doc|cap} duplicates after a switch to {store}'
+        - Cancel on {store} does not cancel here
+        - Why does {store} still bill after cancel?
+      body:
+        - ['{b_raised}, {b_scope}.', '{b_raised} on {b_customer} accounts, {b_scope}.']
+        - ['Two billing sources share one member.', 'Two sources bill one account.']
+        - ['No link between the two records.', 'Records are never linked.']
+        - ['{b_urgent}', '{b_urgent} {b_offer}']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_check}{c_sep} sources are keyed in {b_money_path}.'
+        - Refunds go through the store.
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        partner: [a mobile carrier bundle, a retail bundle, a device bundle, a broadband bundle]
+      title:
+        - Activation from {partner} not billed to the partner
+        - '{partner|cap} members get a trial instead'
+        - Partner invoice for {partner} misses {40-900} activations
+        - '{partner|cap} deactivations still billed'
+      body:
+        - ['Raised by {b_who}, {b_scope}.']
+        - ['The partner file arrives daily.', 'Files arrive once a day.']
+        - ['Late rows are never matched.', 'Late rows fall out.']
+        - ['Finance needs a rerun.', '']
+      comments:
+        - '{b_cm_ask_who}'
+        - Match on partner reference.
+        - '{b_cm_plan}'
+    - labels: [needs-decision]
+      let:
+        change: [a price rise, a tier merge, the end of a legacy plan, an ad tier launch]
+      title:
+        - Grandfather members after {change}?
+        - Policy for {change}
+        - Notice period for {change}
+        - Who signs off {change}?
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Rules differ by country.', 'Each region has its own rule.']
+        - ['Mail goes out at renewal.', 'Notices go at renewal only.']
+        - ['Needs a decision from legal.', 'Legal has to decide.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Check the local notice rules.
+        - '{b_cm_keep}'
+    - labels: [bug]
+      let:
+        trial: [a free trial, a reactivation offer, a partner trial, a student trial]
+      title:
+        - Members get {trial} again after cancelling
+        - '{trial|cap} reused with a new email'
+        - Abuse of {trial}, {2-9} accounts per card
+        - '{trial|cap} ends but billing never starts'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The check uses the email only.', 'Only the email is compared.']
+        - ['Card and device are ignored.', 'No card match is done.']
+        - ['{b_urgent}']
+      comments:
+        - Match on card fingerprint.
+        - '{b_cm_keep}'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        region: ['{b_region}', '{se_region}']
+        taxkind: ['{b_taxkind}']
+      title:
+        - '{taxkind} wrong for members in {region}'
+        - Digital services tax missing in {region}
+        - '{region|cap} receipts show the old {taxkind}'
+        - Tax lookup stale for {region}
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The rate table is cached.', 'Rates are cached in memory.']
+        - ['A change needs a restart.', 'Restarts clear it.']
+      comments:
+        - '{b_cm_repro}'
+        - Drafts can be redone{c_sep} issued ones not.
+        - '{b_cm_check}'
+  portal:
+    - labels: [bug, security]
+      let:
+        thing: [adult titles, mature ratings, explicit tracks, live sports chat]
+      title:
+        - Kids profile shows {thing}
+        - Parental controls ignored for {thing}
+        - '{thing|cap} visible after a profile switch'
+        - PIN skipped for {thing} on {se_device}
+      body:
+        - ['Found by {b_who}, {b_pscope}.']
+        - ['The rating filter runs per request.', 'Filters run once per session.']
+        - ['A switch keeps the old filter.', 'Switching leaves the filter.']
+        - ['Keep details out of chat please.']
+      comments:
+        - '{b_cm_repro} on {se_device}.'
+        - Reapply the filter on switch.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        limit: [concurrent streams, device slots, download limits, profile limits]
+      title:
+        - '{limit|cap} counted wrong on {se_device}'
+        - Members blocked by {limit} they are not using
+        - '{limit|cap} never freed after sign out'
+        - Limit on {limit} differs from the plan
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Sessions end without a signal.', 'Dead sessions stay open.']
+        - ['The timeout is very long.', 'Timeout is {2-6} hours.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_ask_logs}'
+        - Shorten the heartbeat window.
+        - '{b_cm_stage}'
+    - labels: [needs-decision, enhancement]
+      let:
+        rule: [household checks, extra member slots, device limits per country, sign out of idle devices]
+      title:
+        - 'Account sharing: {rule}'
+        - Should we roll out {rule}?
+        - '{rule|cap} for {b_customer} plans'
+        - 'Feature request from {b_who}: {rule}'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['It touches member trust.', 'Members may push back.']
+        - ['Needs a decision on wording.', 'Wording needs approval.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Try it in one region first.
+        - '{b_cm_try}'
+    - labels: [enhancement]
+      let:
+        ask: [download over mobile data, pick subtitle defaults, remove a title from history, share a profile, pause a plan]
+      title:
+        - Let members {ask}
+        - Members want to {ask}
+        - '{ask|cap}, asked for again'
+        - 'Feature request from {b_who}: {ask}'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Today they email member services.', 'Calls and emails handle it now.']
+        - ['It needs a new screen.', '']
+      comments:
+        - '{b_cm_try}'
+        - '{b_cm_plan}'
+        - Needs a rule for who may.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        thing: [heartbeat retries, duplicate playback events, preview plays, autoplay sessions, offline plays]
+      title:
+        - Viewing hours inflated by {thing}
+        - '{thing|cap} counted as full plays'
+        - Royalty totals off, {thing} duplicated
+        - '{p_report|cap} differs from the vendor'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The player resends on bad links.', 'Resends follow each timeout.']
+        - ['Nothing dedupes the events.', 'No key marks an event.']
+        - ['Rights holders get these numbers.']
+      comments:
+        - Key on session, title and second.
+        - '{b_cm_prof}'
+        - '{b_cm_turn}'
+    - labels: [bug, incident]
+      let:
+        load: [the playback load, the royalty export, the viewing snapshot, the ad impression load]
+      title:
+        - '{load|cap} finished {p_delay} late'
+        - '{load|cap} aborted after {se_event}'
+        - Dashboards stale after {load} failed
+        - '{load|cap} missed the statement deadline'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['The event volume doubled.', 'Volume jumped after launch.']
+        - ['The job ran out of memory.', 'Memory ran out.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - Alert if not done by 7am.
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        table: [royalty lines, licence windows, viewing by title, ad impressions]
+        range: [the last 12 months, last quarter, since the catalogue move, the last two years]
+      title:
+        - Backfill {table} for {range}
+        - Warehouse lacks {table} for {range}
+        - '{se_rights|cap} wants {table} for {range}'
+        - '{table|cap} gap in {range}'
+      body:
+        - ['Asked for by {b_who}.', '{b_raised}.']
+        - ['They need it for an audit.', 'It feeds a statement.']
+        - ['Raw files are archived.', 'Old files are in cold storage.']
+      comments:
+        - '{b_cm_turn}'
+        - '{b_cm_plan}'
+        - Run it off peak hours.
+  infra:
+    - labels: [security, bug]
+      let:
+        cert: [the licence server certificate, the device attestation certificate, the origin certificate, the DRM signing key]
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Rotate {cert} before {se_event}
+        - Nobody owns {cert}
+      body:
+        - ['Found while checking the calendar.', '{b_raised}.']
+        - ['Some {se_device} pin the old one.', 'Older devices pin it.']
+        - ['A lapse stops playback.', 'A miss breaks playback.']
+      comments:
+        - '{b_cm_plan}'
+        - Needs two approvers.
+        - Put it on the oncall calendar.
+    - labels: [performance, bug]
+      let:
+        target: [the origin shield, the licence servers, the manifest service, the encoder fleet]
+      title:
+        - '{target|cap} overloaded at {se_spike}'
+        - Scale {target} before {se_event}
+        - Autoscaling for {target} is late
+        - Limits for {target} too low
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Scaling starts after the spike.', 'It scales after the peak.']
+        - ['Warm capacity would help.', 'Pre-warming helps.']
+      comments:
+        - '{b_cm_prof}'
+        - Pre-scale on the release calendar.
+        - '{b_cm_plan}'
+    - labels: [chore]
+      let:
+        target: [the bitrate ladder, the packager, the player config, the encoder presets]
+      title:
+        - Move {target} to {se_codec}
+        - Roll out {se_codec} to {se_device}
+        - '{target|cap} differs between environments'
+        - Plan the change for {target}
+      body:
+        - ['{b_raised}.']
+        - ['Older {se_device} may fail.', 'Old devices may not play it.']
+        - ['Roll out by region.', 'Stage it by region.']
+      comments:
+        - '{b_cm_plan}'
+        - '{b_cm_tell}'
+        - Check the device matrix.
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: [launch day traffic, a licence takedown, a live event failover, a rights dispute, a regional blackout]
+      title:
+        - Runbook for {thing}
+        - Write up {thing} for on call
+        - Handbook lacks {thing}
+        - '{thing|cap} lives in one head'
+      body:
+        - ['{b_raised}.', 'Raised after {se_event}.']
+        - ['It needs owners and contacts.', 'List owners and steps.']
+        - ['{person} did it last.', '']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_cm_list} {b_cm_def}'
+        - '{b_cm_up}'
+    - labels: [docs, bug]
+      let:
+        stale: [the old licence contact, last year's launch checklist, the retired paging number, the previous encoder host]
+      title:
+        - Handbook still lists {stale}
+        - '{Docs/Handbook}: {stale} in the escalation page'
+        - Pages mention {stale}
+      body:
+        - ['{b_raised}.', 'Spotted by a new starter.']
+        - ['The page is out of date.', 'Nobody revised it.']
+        - ['A search finds {2-9} pages.']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_g_note}'
+        - I will fix them this week.
+  ops:
+    - labels: [bug]
+      let:
+        script: [expire_licences.sh, purge_old_manifests.py, check_encoder_disk.sh, sync_artwork.sh]
+      title:
+        - '{Scripts/Ops}: {script} skips {se_term}'
+        - Is {script} still used?
+        - '{script} fails on the new storage layout'
+      body:
+        - ['Found during a licence audit.', '{b_raised}.']
+        - ['It predates the new catalogue.', 'Written for the old store.']
+        - ['Nobody owns it now.', '']
+      comments:
+        - '{b_cm_check}'
+        - '{b_g_who}'
+        - Can we retire it?
+chat:
+  support:
+    - root:
+        - '{s_cust|cap} cannot start playback on {se_device}'
+        - member asks why the price changed{c_sep} {s_ticket}
+        - '{s_cust|cap} was charged twice{c_sep} store and us'
+        - escalating to eng{c_sep} downloads expire early{c_sep} {s_ticket}
+        - member wants the kids profile locked
+      replies:
+        - ['which device?', 'which plan?', 'what error code?']
+        - ['same on two devices', '{c_idk}{c_sep} asking them', 'code is in the case']
+        - ['filing it now', 'linking {s_ticket}', 'i will check the licence']
+    - root:
+        - refund request{c_sep} {s_cust}{c_sep} {s_money}{c_sep} says playback failed
+        - member wants a credit for {se_event}
+        - partner asks about activations on {day}
+      replies:
+        - ['do we have the session id?', 'what does the policy say?']
+        - ['sending the screenshot', 'checking the log']
+        - ['apply it and note the case', 'finance approves over {s_money}']
+    - root:
+        - queue is at {20-90} open cases{c_sep} {se_event} is driving contacts
+        - evening handover{c_sep} playback issue open
+        - heads up{c_sep} {s_cust} is angry{c_sep} waiting {2-5} days
+      replies:
+        - ['is there a known issue?', 'who updates members?']
+        - ['eng has it{c_sep} update at {time}', 'banner is live']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - standup in {5-15} minutes{c_sep} {c_status} on my side
+        - who is picking up {issue}?
+        - '{person} is {c_pto}{c_sep} who covers playback on call?'
+        - freeze for {se_event}{c_sep} who has the checklist?
+        - anyone free to pair on {issue}?
+      replies:
+        - ['i can take it', 'on it after lunch']
+        - ['{person} knows the player', 'i did last time{c_sep} someone else']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - launch of {se_title} is {c_soon}{c_sep} capacity ready?
+        - licence window for {se_title} ends {day}
+        - blackout in {se_region} starts {day}{c_sep} who flips it?
+      replies:
+        - ['is the origin pre-scaled?', 'what is the window?']
+        - ['{c_yes}{c_sep} done {time}', 'not yet']
+        - ['{c_ack}']
+    - root:
+        - retro notes are in the handbook{c_sep} add yours
+        - post incident review for {issue_title} is {day} at {time}
+        - owners needed for review actions
+      replies:
+        - ['added mine', 'after the call']
+        - ['{c_agree}', '{c_thanks}']
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - playback starts are slow{c_sep} anyone changed the manifest?
+        - '{c_ci_fail} fails on main after player update'
+        - should the licence call be cached?
+        - rebuffering is up {5-40} percent on {se_device}
+      replies:
+        - ['on it', 'looking now', 'give me ten']
+        - ['no changes here', 'cdn config changed {c_soon}']
+        - ['short cache only', 'no{c_sep} rights rules change']
+    - root:
+        - how do we version the ladder?
+        - does the player retry licences?
+        - heads up{c_sep} freeze from {day}{c_sep} for {se_event}
+        - manifest service is slow{c_sep} anyone else seeing it?
+      replies:
+        - ['in git{c_sep} per release', 'pin it per title']
+        - ['yes{c_sep} three times then errors', '{c_no}{c_sep} it fails over']
+        - ['{c_ack}', '{c_thanks}']
+    - root:
+        - local env broke after sdk update
+        - how do i replay events locally?
+        - is {c_tool} broken for anyone else?
+      replies:
+        - ['pin the old version', 'same here{c_sep} clear the cache']
+        - ['replay script is in tools', 'ask {person}{c_sep} they wrote it']
+  incidents:
+    - root:
+        - playback failures in {se_region}{c_sep} {se_spike}
+        - licence servers slow{c_sep} starts taking {5-30} seconds
+        - alert{c_sep} rebuffering above {5-30} percent
+        - the {p_alert_name} alert is flapping again
+        - cdn is returning errors {s_since}
+      replies:
+        - ['who is incident lead?', '{se_ask}?']
+        - ['i have it{c_sep} comms at {time}', '{person} is on the bridge']
+        - ['update at {time}', 'resolved{c_sep} watching']
+    - root:
+        - review for the {se_event} outage is {day} at {time}
+        - near miss{c_sep} bad config nearly hit everywhere
+        - '{se_rights} asked for a root cause {day}'
+      replies:
+        - ['i will draft it', 'who writes the partner note?']
+        - ['partnerships{c_sep} by {day}', '{c_ack}']
+    - root:
+        - cdn provider has an incident{c_sep} status page is red
+        - the payments provider is flaky{c_sep} renewals stuck
+        - app store billing is down{c_sep} receipts delayed
+      replies:
+        - ['anything we can do?', 'any eta?']
+        - ['no eta{c_sep} telling members', 'failing over now']
+  town-square:
+    - root:
+        - '{c_hey}: all hands {day} at {time}{c_sep} slate and roadmap'
+        - security training is due {c_soon}
+        - welcome {person}{c_sep} joining playback {c_soon}
+      replies:
+        - ['will it be recorded?', 'welcome!']
+        - ['{c_yes}{c_sep} link after', '{c_thanks}']
+    - root:
+        - screening of {se_title} is {c_soon}{c_sep} all welcome
+        - office is closed {c_soon}{c_sep} on call rota unchanged
+      replies:
+        - ['is there popcorn?', '{c_ack}']
+        - ['{c_yes}', '{c_thanks}']
+  off-topic:
+    - root:
+        - anyone watching {se_title} {last night/tonight}?
+        - lunch ideas? sick of {c_food}
+        - '{c_pet} learned a new trick'
+        - no spoilers please
+      replies:
+        - ['{c_lol}', '{c_agree}']
+        - ['the thai place', 'try the bakery']
+    - root:
+        - '{c_weekend} for me{c_sep} anyone else?'
+        - best podcast for the commute?
+        - cold in the office again
+      replies:
+        - ['{c_lol}', 'send a photo']
+        - ['{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}{c_sep} can you review my player change {s_soon}?'
+        - quick question{c_sep} who owns the licence sync?
+        - can you cover my on call {day} night?
+        - got a minute{c_sep} royalty export question?
+      replies:
+        - ['sure', 'in a call{c_sep} back at {time}']
+        - ['{person} does', 'platform team']
+        - ['{c_thanks}']
+    - root:
+        - handing over the licence sync{c_sep} out {s_soon}
+        - did the partner note go out?
+        - can you read the pricing spec {c_sep} {day}?
+      replies:
+        - ['send me the notes', '{c_ack}']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - can you cover member escalations {day}?
+        - did the status banner go live?
+        - '{s_hey}{c_sep} can you join the partner call?'
+      replies:
+        - ['sure', 'on it']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - new app release is {c_soon}{c_sep} store review passed?
+        - who has the launch checklist for {day}?
+      replies:
+        - ['not yet', '{c_yes}']
+        - ['in the handbook', 'ask {person}']
+comments:
+  - '{b_cm_check}{c_sep} the entitlement table may be it.'
+  - Which device was this on?
+  - '{b_g_ask} the title id?'

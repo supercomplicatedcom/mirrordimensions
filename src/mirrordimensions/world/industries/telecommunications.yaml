@@ -1,0 +1,545 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Telecommunications: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: telecommunications
+name: Telecommunications (mobile, broadband, cable)
+group: Technology and media
+aliases: [telecom, telco, mobile operator, broadband provider, cable operator, isp]
+description: A communications provider that sells mobile, broadband and cable services to consumers and businesses and bills subscribers for plans and usage.
+name_suffixes: [Telecom, Mobile, Broadband, Communications, Networks, Wireless, Cable]
+invoice_items: [Monthly service plan, Usage and roaming charges]
+organization:
+  head: Head of IT
+  it_admin: Corporate IT Administrator
+  teams:
+    platform: {department: IT Platforms, title: Platform Engineer}
+    billing: {department: Billing and Charging, title: Billing Systems Engineer}
+    data: {department: Network Analytics, title: Data Engineer}
+    support: {department: Customer Care, title: Care Agent}
+    product: {department: Digital Channels, title: Digital Engineer}
+    operations: {department: Network Operations, title: Network Operations Engineer}
+names:
+  repos:
+    billing-service: [rating-billing, subscriber-billing, charging-service, bill-run]
+    platform-docs: [it-handbook, ops-runbooks, network-it-docs, platform-playbooks]
+    data-pipeline: [cdr-loads, usage-warehouse, network-analytics-etl, churn-data]
+    infra-config: [network-it-config, provisioning-config, platform-config, deploy-config]
+    customer-portal: [my-account, self-care-portal, customer-app-web, account-portal]
+    ops-scripts: [ops-scripts, noc-tools, legacy-scripts, provisioning-scripts]
+  channels:
+    engineering: [engineering, it-eng, dev, builders]
+    incidents: [incidents, noc-incidents, major-incidents, outages]
+    support: [care, customer-care, care-escalations]
+    leads: [leads, it-leads, managers]
+systems:
+  typical: [github, slack, jira, okta, servicenow, salesforce, zendesk, amdocs, netcracker]
+  common: [splunk, datadog, pagerduty, twilio, microsoft 365]
+symbols:
+  b_doc: [bill, itemised bill, final bill, credit note, '{monthly/quarterly} statement']
+  b_customer: [prepaid, postpaid, business, broadband only, mobile bundle, family plan, roaming]
+  b_who: [customer care, retail, finance, the dealer channel, the field team]
+  b_pwho: [customer care, a subscriber, '{person}', the retail team, the dealer channel]
+  b_ticket_noun: [ticket, case, complaint, escalation]
+  b_page: [bills, usage, plan settings, top-up, porting status, device list, add-ons, the outage notice]
+  b_acct_size: ['{40-900} lines', '{2-6} SIMs', '{15-60} users', '{40-300} past bills']
+  s_plan: [the unlimited plan, a prepaid bundle, the gigabit plan, a family plan, a roaming pass]
+  p_table: [subscribers, subscriptions, cdrs, usage_records, bills, devices, port_requests, top_ups]
+  p_source: [the rating engine's CDR files, the provisioning events, the porting exchange file, the network probe counters, the retail till export]
+  p_report: [the daily usage report, the churn dashboard, the arpu report, the roaming margin report, the top-up volume report]
+  p_glossary_term: [the rater, the mediation layer, the rota, the bill run, the porting queue]
+  p_alert_name: [mediation queue depth, failed bill runs, provisioning errors, SMS gateway delays, the nightly CDR load finishing late]
+  c_customer: [a subscriber, a business account, a dealer, a prepaid customer]
+  c_eng_area: [the rating step, the bill run, the porting job, the top-up flow, the usage meter, the SIM activation]
+  c_dep: [the pdf library, the http client, the orm, the CDR parser, the date library]
+  s_thing: [the bill run, the CDR load, the mediation job, the cron, the usage export, the activation queue]
+  s_tool: [the care console, the billing admin, the activation tool, the case queue]
+  p_delay: ['{2-4} hours', 'about {40-90} minutes', 'nearly {2-3} hours', '{2-5} hours']
+  tc_service: [mobile, broadband, cable TV, voice, business lines, fixed wireless]
+  tc_cdr: [voice records, data session records, SMS records, roaming records, usage records]
+  tc_region: [the northern region, the coastal cluster, the metro area, the island region, the border area]
+  tc_device: [a router, a set top box, a SIM, an eSIM profile, a modem]
+  tc_site: [the central exchange, a cell site, the data centre, the billing centre, the call centre]
+  tc_reg: [the regulator, the data protection officer, the consumer ombudsman, the fraud team]
+  tc_event: [a storm, a fibre cut, a power loss, a core upgrade, a software push]
+  tc_ask: [who owns it, can someone take it, is anyone on it, do we have an owner]
+  tc_sim: [a SIM swap, a port out, a port in, an eSIM transfer, a number change]
+  tc_unit: ['{200-900} MB', 'about {2-9} GB', '{10-90} minutes', '{20-90} texts']
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        unit: [data usage, call minutes, SMS counts, roaming data]
+        doc: ['{b_doc}']
+      title:
+        - '{unit|cap} rounded up per session on the {doc}'
+        - '{doc|cap} shows more {unit} than the meter'
+        - Rating rounds {unit} differently from the portal
+        - '{unit|cap} billed twice after a session restart'
+        - Why does the {doc} disagree on {unit}?
+      body:
+        - ['{b_raised}, {b_scope}.', '{b_raised} on {b_customer} lines, {b_scope}.']
+        - ['The rater rounds each record.', 'Each record is rounded alone.']
+        - ['Many short sessions add up.', 'Short sessions cost extra.']
+        - ['{b_urgent}', '{b_urgent} {b_offer}']
+      comments:
+        - '{b_cm_repro} with {tc_unit} in short sessions.'
+        - '{b_cm_check}{c_sep} rounding lives in {b_money_path}.'
+        - Regulator rules say round the total.
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        zone: [the border area, a roaming partner, the cruise network, an EU destination, a satellite plan]
+      title:
+        - Roaming charges wrong in {zone}
+        - Roaming pass ignored in {zone}
+        - Out of bundle rate applied in {zone}
+        - Roaming cap not enforced in {zone}
+      body:
+        - ['{b_raised}, {b_scope}.', 'Care flagged it for {zone}.']
+        - ['The partner file arrives late.', 'Partner records land days later.']
+        - ['The cap check runs too early.', 'Caps are checked too early.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_ask_who}'
+        - Late records need a re-rate.
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        change: [a plan upgrade, a mid cycle downgrade, adding a line, a SIM swap, moving to a family plan]
+      title:
+        - Proration wrong after {change}
+        - '{change|cap} bills a full cycle'
+        - Credit missing after {change}
+        - Old plan still billed after {change}
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Both plans bill that day.', 'Both plans bill that day.']
+        - ['{b_cm_hand}', '']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_day}'
+        - A credit note fixes it.
+        - '{b_cm_repro}'
+    - labels: [needs-decision]
+      let:
+        when: [after a port out, after cancellation, when the line is suspended, after a SIM swap]
+      title:
+        - 'Final bill {when}: who decides the rules?'
+        - Early termination fee {when}
+        - Policy for refunds {when}
+        - Prorate the last cycle {when}?
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Practice differs by agent.', 'Agents answer differently.']
+        - ['Care wants one written rule.', 'Care asks for one rule.']
+        - ['Needs a decision from finance.', 'Finance has to decide.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Check the contract terms first.
+        - '{b_cm_keep}'
+    - labels: [enhancement]
+      let:
+        ask: [a spend cap, a bill shock alert, a data alert at 80 percent, a roaming warning, a hard stop on usage]
+      title:
+        - Add {ask} for {b_customer} lines
+        - Customers want {ask}
+        - '{ask|cap}, asked for again'
+        - Regulator expects {ask} on {b_customer} plans
+      body:
+        - ['{b_raised} for {ask}, {b_scope}.']
+        - ['Today the alert goes by SMS.', 'Alerts go out by SMS only.']
+        - ['The alert comes too late.', 'It fires after the spend.']
+        - ['Needs a hook in the rater.', 'The rater needs a hook.']
+      comments:
+        - '{b_cm_plan}'
+        - SMS cost per alert adds up.
+        - '{b_cm_try}'
+  portal:
+    - labels: [bug]
+      let:
+        thing: [data left, minutes left, current charges, the cycle end date]
+      title:
+        - '{thing|cap} in the app is off'
+        - Usage meter shows wrong {thing}
+        - '{thing|cap} stale for hours in my account'
+        - Account page shows old {thing}
+        - '{thing|cap} wrong after a plan change'
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['The meter reads a cache.', 'It reads from a cache.']
+        - ['The cache refreshes every few hours.', 'Refresh runs a few times daily.']
+        - ['{b_offer}']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_clr2}'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        method: [a debit card, a saved card, a gift voucher, a wallet balance, a retail voucher]
+      title:
+        - Top-up fails with {method}
+        - '{method|cap} payment charged but no credit'
+        - Top-up shows an error with {method}
+        - Prepaid balance missing after paying with {method}
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['The payment succeeds at the provider.', 'The provider shows paid.']
+        - ['The credit step times out.', 'Crediting the balance fails.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_ask_logs}'
+        - Credit by provider reference.
+        - '{b_cm_cb}'
+    - labels: [security, bug]
+      let:
+        action: [a SIM swap, a number change, a port out request, an email change, a PIN reset]
+      title:
+        - '{action|cap} needs stronger checks'
+        - 'Fraud risk: {action} with only a password'
+        - No alert to the owner after {action}
+        - Add a delay before {action}
+      body:
+        - ['Raised by {tc_reg}, {b_pscope}.']
+        - ['Only the account password is checked.', 'No second factor is asked.']
+        - ['SIM swap fraud is rising.', 'Takeover fraud keeps growing.']
+        - ['Keep the details out of chat.']
+      comments:
+        - '{b_cm_tell}'
+        - Text the old number first.
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        ask: [track a port in, see the outage near them, pay a bill in parts, add a line, pause a line while away]
+      title:
+        - Let subscribers {ask}
+        - Customers want to {ask} online
+        - 'Feature request from {b_who}: {ask}'
+        - '{ask|cap} without calling care'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Today care does it by phone.', 'Calls to care handle it now.']
+        - ['Calls about it are rising.', 'It drives repeat calls.']
+        - ['The app needs a new screen.', '']
+      comments:
+        - '{b_cm_try}'
+        - Needs a rule for who may.
+        - '{b_cm_plan}'
+  data:
+    - labels: [bug, incident]
+      let:
+        kind: ['{tc_cdr}']
+      title:
+        - Nightly load of {kind} {p_delay} late
+        - Mediation backlog for {kind}
+        - '{kind|cap} missing for {tc_region}'
+        - CDR load aborted on bad {kind}
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['A switch sent a bad file.', 'One switch sent a bad file.']
+        - ['The loader stops on bad rows.', 'It stops on bad rows.']
+        - ['Usage reports are stale.', 'Reports show yesterday.']
+      comments:
+        - '{b_ask_logs}'
+        - Skip bad rows and log them.
+        - '{b_cm_fix_up}'
+    - labels: [bug, data-quality]
+      let:
+        kind: ['{tc_cdr}']
+      title:
+        - Duplicate {kind} in the warehouse
+        - '{kind|cap} loaded twice after a retry'
+        - '{kind|cap} from {tc_region} counted twice'
+        - Usage totals too high, {kind} duplicated
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Mediation resends after a timeout.', 'Resends follow each timeout.']
+        - ['There is no unique key.', 'Nothing dedupes records.']
+      comments:
+        - Key on switch, sequence and time.
+        - '{b_cm_prof}'
+        - '{b_cm_turn}'
+    - labels: [enhancement]
+      let:
+        feed: [churn scores, port out reasons, care contact reasons, device model, top-up behaviour]
+      title:
+        - Load {feed} into the warehouse
+        - Marketing wants {feed}
+        - Should {b_who} get {feed}?
+        - Add {feed} to the churn report
+      body:
+        - ['{b_raised} for {feed}.']
+        - ['The source is a nightly file.', 'It arrives as a nightly file.']
+        - ['Privacy review comes first.', 'Check consent rules first.']
+      comments:
+        - '{b_cm_plan}'
+        - Mask the number before loading.
+        - '{b_cm_ask_who}'
+  infra:
+    - labels: [bug, incident]
+      let:
+        device: ['{tc_device}']
+      title:
+        - Firmware push stuck for {device}
+        - '{device|cap} rollout failing on {tc_region}'
+        - Staged push paused at {10-90} percent
+        - Rollback left {40-900} devices on old firmware
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['The health gate never clears.', 'The gate holds the push.']
+        - ['Devices check in late.', 'Check-ins lag on old units.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - Gate on a percentage.
+        - '{b_cm_ask_who}'
+    - labels: [bug]
+      let:
+        svc: [the DHCP server, the RADIUS server, the provisioning API, the SMS gateway]
+      title:
+        - '{svc|cap} drops requests at peak'
+        - Alert for {svc} not routed to the rota
+        - '{svc|cap} certificate expires in {2-9} days'
+        - '{svc|cap} pool exhausted after {tc_event}'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['The pool is too small.', 'Limits are too low.']
+        - ['No alert fired before it filled.', 'Nobody was paged.']
+      comments:
+        - '{b_cm_plan}'
+        - Raise the pool size.
+        - '{b_cm_check}'
+    - labels: [security, chore]
+      let:
+        target: [the core database, the mediation hosts, the SBC, the billing hosts]
+      title:
+        - Upgrade {target}
+        - '{target|cap} has an unpatched advisory'
+        - Patch window for {target}
+        - Plan the maintenance for {target}
+      body:
+        - ['{b_raised}.']
+        - ['It needs a night window.', 'Only nights are allowed.']
+        - ['Customers must be warned.', 'Care needs notice first.']
+      comments:
+        - '{b_cm_plan}'
+        - '{b_cm_tell}'
+        - Check the change calendar.
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: [number porting, emergency calling, lawful requests, SIM swap checks, regulator reporting]
+      title:
+        - Runbook for {thing}
+        - Write up {thing} for new engineers
+        - Handbook lacks {thing}
+        - '{thing|cap} steps live in one head'
+      body:
+        - ['{b_raised}.', 'New starters ask about it.']
+        - ['It needs owners and contacts.', 'List owners and contacts.']
+        - ['{person} did it last.', '']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_cm_list} {b_cm_def}'
+        - '{b_cm_up}'
+    - labels: [docs, bug]
+      let:
+        stale: [the old porting contact, last year's tariffs, the retired billing host, the previous NOC number]
+      title:
+        - Handbook still lists {stale}
+        - '{Docs/Handbook}: {stale} in the escalation page'
+        - Pages mention {stale}
+      body:
+        - ['{b_raised}.', 'Spotted by a new starter.']
+        - ['The page is out of date.', 'Nobody revised it.']
+        - ['A search finds {2-9} pages.']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_g_note}'
+        - I will fix them this week.
+  ops:
+    - labels: [bug]
+      let:
+        script: [archive_cdrs.sh, rotate_probe_logs.sh, check_dhcp_leases.sh, purge_old_ports.sh]
+      title:
+        - '{Scripts/Ops}: {script} skips new switches'
+        - Is {script} still used?
+        - '{script} fills the old host disk'
+      body:
+        - ['Found during a disk alert.', '{b_raised}.']
+        - ['It predates the new mediation.', 'Written for the old switches.']
+        - ['Nobody owns it now.', '']
+      comments:
+        - '{b_cm_check}'
+        - '{b_g_who}'
+        - Can we retire it?
+chat:
+  support:
+    - root:
+        - '{s_cust|cap} says the bill shows {tc_unit} they never used'
+        - subscriber cannot top up{c_sep} {s_ticket}
+        - '{s_cust|cap} lost signal after {tc_sim}'
+        - escalating to eng{c_sep} usage meter wrong{c_sep} {s_ticket}
+        - customer asks why roaming cost {s_money}
+      replies:
+        - ['which line is it?', 'which plan?', 'do we have the cdrs?']
+        - ['one line{c_sep} family plan', '{c_idk}{c_sep} asking them', 'number is in the case']
+        - ['filing it now', 'linking {s_ticket}', 'i will check the rating']
+    - root:
+        - refund request{c_sep} {s_cust}{c_sep} {s_money}{c_sep} says the outage lasted days
+        - customer wants a credit for {tc_event}
+        - dealer asks about port in commission
+      replies:
+        - ['do we have the outage ref?', 'what does the policy say?']
+        - ['sending the incident number', 'checking the map']
+        - ['apply it and note the case', 'finance approves over {s_money}']
+    - root:
+        - queue is at {20-90} open cases{c_sep} {tc_region} is busy
+        - evening handover{c_sep} outage open in {tc_region}
+        - heads up{c_sep} {s_cust} is angry{c_sep} waiting {2-5} days
+      replies:
+        - ['is there a known outage?', 'who updates customers?']
+        - ['noc has it{c_sep} update at {time}', 'banner is live']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - standup in {5-15} minutes{c_sep} {c_status} on my side
+        - who is picking up {issue}?
+        - '{person} is {c_pto}{c_sep} who covers the bill run?'
+        - release for the bill run goes {day}{c_sep} who has the checklist?
+        - anyone free to pair on {issue}?
+      replies:
+        - ['i can take it', 'on it after lunch']
+        - ['{person} knows rating', 'i did last time{c_sep} someone else']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - bill run starts {day} at {time}{c_sep} freeze changes
+        - month end close is {c_soon}{c_sep} finance needs the usage totals
+        - tariff change goes live {c_soon}{c_sep} who tested the rater?
+      replies:
+        - ['is the rating config frozen?', 'what about prepaid?']
+        - ['{c_yes}{c_sep} from {time}', 'not yet']
+        - ['{c_ack}']
+    - root:
+        - retro notes are in the handbook{c_sep} add yours
+        - post incident review for {issue_title} is {day} at {time}
+        - owners needed for review actions
+      replies:
+        - ['added mine', 'after the call']
+        - ['{c_agree}', '{c_thanks}']
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - mediation is lagging{c_sep} anyone changed the queue size?
+        - '{c_ci_fail} fails on main after tariffs'
+        - rate in {batches/records}{c_sep} which one?
+        - bill run took {2-5} hours longer{c_sep} anyone changed the sort?
+      replies:
+        - ['on it', 'looking now', 'give me ten']
+        - ['no changes here', 'queue limit was hit {c_soon}']
+        - ['batches{c_sep} per record is too slow', 'per record{c_sep} easier to audit']
+    - root:
+        - how do we version tariffs?
+        - does rating retry a failed record?
+        - heads up{c_sep} freeze from {day}{c_sep} bill run {c_soon}
+        - cdr parser is slow{c_sep} anyone else seeing it?
+      replies:
+        - ['by effective date', 'pin them to the bill run']
+        - ['yes{c_sep} three times then parks it', '{c_no}{c_sep} it goes to a reject file']
+        - ['{c_ack}', '{c_thanks}']
+    - root:
+        - local env broke after parser update
+        - how do i replay cdrs locally?
+        - is {c_tool} broken for anyone else?
+      replies:
+        - ['pin the old version', 'same here{c_sep} clear the cache']
+        - ['replay script is in tools', 'ask {person}{c_sep} they wrote it']
+  incidents:
+    - root:
+        - outage in {tc_region}{c_sep} {tc_event}{c_sep} {20-90} cells down
+        - mediation backed up {2-5} hours
+        - alert{c_sep} activation queue above {1000-9000}
+        - the {p_alert_name} alert is flapping again
+        - sms gateway is delaying messages {s_since}
+      replies:
+        - ['who is incident lead?', '{tc_ask}?']
+        - ['i have it{c_sep} comms at {time}', '{person} is on the bridge']
+        - ['update at {time}', 'resolved{c_sep} watching']
+    - root:
+        - review for the {tc_region} outage is {day} at {time}
+        - near miss{c_sep} bad tariff almost went live
+        - '{tc_reg} asked for a root cause {day}'
+      replies:
+        - ['i will draft it', 'who writes the regulator note?']
+        - ['compliance{c_sep} by {day}', '{c_ack}']
+    - root:
+        - interconnect partner has an outage{c_sep} status page is red
+        - roaming hub is down{c_sep} no partner records
+        - porting exchange is flaky{c_sep} some ports stuck
+      replies:
+        - ['anything we can do?', 'any eta?']
+        - ['no eta{c_sep} telling care', 'failing over now']
+  town-square:
+    - root:
+        - '{c_hey}: all hands {day} at {time}{c_sep} network and roadmap'
+        - security training is due {c_soon}
+        - welcome {person}{c_sep} joining billing {c_soon}
+      replies:
+        - ['will it be recorded?', 'welcome!']
+        - ['{c_yes}{c_sep} link after', '{c_thanks}']
+    - root:
+        - staff mobile plans are changing {c_soon}
+        - office is closed {c_soon}{c_sep} on call rota unchanged
+      replies:
+        - ['do we keep the free data?', '{c_ack}']
+        - ['{c_idk}{c_sep} hr will say', '{c_thanks}']
+  off-topic:
+    - root:
+        - anyone watching the {match/game/race} {last night/tonight}?
+        - lunch ideas? sick of {c_food}
+        - '{c_pet} learned a new trick'
+        - '{c_hey}{c_sep} who has a spare charger?'
+      replies:
+        - ['{c_lol}', '{c_agree}']
+        - ['the thai place', 'try the bakery']
+    - root:
+        - '{c_weekend} for me{c_sep} anyone else?'
+        - best podcast for the commute?
+        - cold in the office again
+      replies:
+        - ['{c_lol}', 'send a photo']
+        - ['{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}{c_sep} can you review my rating change {s_soon}?'
+        - quick question{c_sep} who owns the porting job?
+        - can you cover my on call {day} night?
+        - got a minute{c_sep} bill run question?
+      replies:
+        - ['sure', 'in a call{c_sep} back at {time}']
+        - ['{person} does', 'platform team']
+        - ['{c_thanks}']
+    - root:
+        - handing over the porting queue{c_sep} out {s_soon}
+        - did the regulator note go out?
+        - can you read the tariff spec {c_sep} {day}?
+      replies:
+        - ['send me the notes', '{c_ack}']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - can you cover the care escalations {day}?
+        - did the outage banner go live?
+        - '{s_hey}{c_sep} can you join the dealer call?'
+      replies:
+        - ['sure', 'on it']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - handset launch is {c_soon}{c_sep} stock sync ready?
+        - who has the tariff sheet for {day}?
+      replies:
+        - ['not yet', '{c_yes}']
+        - ['in the handbook', 'ask {person}']
+comments:
+  - '{b_cm_check}{c_sep} the rating table may be it.'
+  - Which line was this on?
+  - '{b_g_ask} the plan code?'

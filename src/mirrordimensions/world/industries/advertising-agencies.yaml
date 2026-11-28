@@ -1,0 +1,543 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Advertising and marketing agencies: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: advertising-agencies
+name: Advertising and marketing agencies
+group: Technology and media
+aliases: [advertising, marketing agency, ad agency, media agency, creative agency, digital agency]
+description: An agency that plans, buys and produces advertising for client brands and bills them for fees, production and media spend.
+name_suffixes: [Creative, Media, Agency, Communications, Partners, Collective, Worldwide]
+invoice_items: [Monthly retainer, Media spend]
+organization:
+  head: Head of Technology
+  it_admin: Studio IT Manager
+  teams:
+    platform: {department: Agency Technology, title: Systems Engineer}
+    billing: {department: Finance Systems, title: Billing Systems Engineer}
+    data: {department: Marketing Analytics, title: Analytics Engineer}
+    support: {department: Client Services, title: Client Services Executive}
+    product: {department: Digital Production, title: Developer}
+    operations: {department: Trafficking and Operations, title: Operations Specialist}
+names:
+  repos:
+    billing-service: [client-billing, media-billing, job-invoicing, agency-invoicing]
+    platform-docs: [agency-handbook, tech-handbook, trafficking-playbooks, runbooks]
+    data-pipeline: [campaign-loads, media-warehouse, reporting-etl, spend-pipeline]
+    infra-config: [agency-infra, platform-config, tenant-config, deploy-config]
+    customer-portal: [client-portal, campaign-hub, client-reports, approvals-portal]
+    ops-scripts: [ops-scripts, report-mailers, legacy-scripts, traffic-tools]
+  channels:
+    engineering: [engineering, tech, dev, studio-tech]
+    incidents: [incidents, live-campaign-issues, tech-incidents, outages]
+    support: [client-services, support, account-support]
+    leads: [leads, tech-leads, heads-of]
+systems:
+  typical: [github, slack, jira, okta, google workspace, hubspot, asana, figma, marketo, workfront]
+  common: [google ads, google analytics, tableau, adobe creative cloud, docusign]
+symbols:
+  b_doc: [invoice, credit note, media invoice, fee invoice, estimate]
+  b_customer: [retainer client, project client, media client, global account, regional account, brand client]
+  b_who: [account management, finance, the media team, the creative team, traffic]
+  b_pwho: [account management, a client, '{person}', the media team, traffic]
+  b_ticket_noun: [request, ticket, brief, change request]
+  b_page: [campaign reports, creative approvals, invoices, budgets, the asset library, estimates, job status, the pacing view]
+  b_acct_size: ['{20-90} campaigns', '{200-900} creatives', '{3-12} brands', '{40-300} line items']
+  s_plan: [the retainer, a project fee, a media plan, a quarterly budget, the production estimate]
+  p_table: [clients, campaigns, jobs, estimates, media_spend, timesheets, creatives, purchase_orders]
+  p_source: [the ad platform spend reports, the DSP delivery files, the timesheet export, the vendor invoices, the social platform exports]
+  p_report: [the campaign performance dashboard, the media spend report, the margin by client report, the unbilled work report, the pacing report]
+  p_glossary_term: [the job number, the estimate, the rota, the trafficking sheet, the pacing sheet]
+  p_alert_name: [ad platform API errors, failed report mailers, spend pacing drift, storage growth, the nightly campaign load finishing late]
+  c_customer: [a client, one of the larger brands, a retainer client, a global account]
+  c_eng_area: [the spend sync, the report mailer, the approval link, the estimate export, the pacing check, the asset upload]
+  c_dep: [the pdf library, the http client, the orm, the chart library, the platform SDK]
+  s_thing: [the spend sync, the invoice run, the report mailer, the cron, the asset export, the campaign load]
+  s_tool: [the job system, the billing admin, the trafficking tool, the request queue]
+  p_delay: ['{2-4} hours', 'about {40-90} minutes', 'nearly {2-3} hours', '{2-5} hours']
+  aa_channel: [paid search, paid social, display, connected TV, audio, out of home, influencer]
+  aa_platform: [the search platform, the social platform, the DSP, the video platform, the retail media network]
+  aa_event: [a launch week, a seasonal push, a big sale, a sponsorship, a product reveal, quarter end]
+  aa_brand: [a retail brand, an automotive client, a bank, a beverage brand, a travel brand, a telecom client, a charity]
+  aa_asset: [the video cut, the display set, the social variants, the landing page, the email template, the banner pack]
+  aa_ask: [who owns it, can someone take it, is anyone on it, do we have an owner]
+  aa_metric: [conversions, impressions, spend, reach, click through rate, cost per lead]
+  aa_cost: [media cost, production cost, agency fee, studio time, freelancer cost, ad serving fee]
+  aa_terms: [client payment terms, vendor terms, the commission rate, the agency rate card]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        platform: ['{aa_platform}']
+        doc: ['{b_doc}']
+      title:
+        - Media {doc} differs from {platform} spend
+        - '{doc|cap} uses booked spend, not actual'
+        - Spend on {platform} off by {p_dollars}
+        - Client billed for refunded spend
+        - Why does the {doc} disagree with {platform}?
+      body:
+        - ['{b_raised}, {b_scope}.', '{b_raised} on {b_customer} accounts, {b_scope}.']
+        - ['The invoice run reads booked figures.', 'It reads the booked budget.']
+        - ['Platforms report final spend later.', 'Final figures arrive late.']
+        - ['{b_urgent}', '{b_urgent} {b_offer}']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_check}{c_sep} spend is read in {b_money_path}.'
+        - Platforms restate spend for days.
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        cost: ['{aa_cost}']
+      title:
+        - Markup missing on {cost}
+        - '{cost|cap} marked up twice'
+        - Commission wrong on {cost}
+        - Margin report ignores {cost}
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The rate comes from {aa_terms}.', 'Rates follow the contract.']
+        - ['Old jobs use an old rate.', 'Jobs keep the old rate.']
+        - ['Finance needs it fixed before close.']
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check}'
+        - Issued documents must not change.
+    - labels: [needs-decision]
+      let:
+        case: [vendor invoices after the client bill, work in progress at month end, a client credit note, an overspend on a media plan]
+      title:
+        - How do we handle {case}?
+        - Policy for {case}
+        - Who signs off {case}?
+        - Accrue {case}?
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Practice differs by team.', 'Teams do it differently.']
+        - ['Finance wants one rule.', 'One rule is needed.']
+        - ['Needs a decision from finance.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Check {aa_terms} first.
+        - '{b_cm_keep}'
+    - labels: [bug]
+      let:
+        currency: ['{b_currency}']
+      title:
+        - Conversion wrong on {currency} campaigns
+        - '{currency} spend uses last month''s rate'
+        - Rounding differs on {currency} invoices
+        - Cross border campaign billed wrongly
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The rate is read monthly.', 'Rates refresh monthly.']
+        - ['Platforms use the daily rate.', 'Platforms use a daily rate.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_hand}'
+        - Use the rate on spend date.
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        ask: [a purchase order number, a job code, a cost centre, a brand code, an approver name]
+      title:
+        - Print {ask} on every {b_doc}
+        - Clients want {ask} on the {b_doc}
+        - Add {ask} to the job record
+        - Procurement rejects invoices without {ask}
+      body:
+        - ['{b_raised} for {ask}, {b_scope}.']
+        - ['Clients reject invoices without it.', 'Procurement bounces them.']
+        - ['Today it is typed in late.', 'It is added by hand.']
+        - ['The template needs a field.', '']
+      comments:
+        - '{b_cm_plan}'
+        - Make it required per client.
+        - '{b_cm_try}'
+  portal:
+    - labels: [bug]
+      let:
+        thing: [the approval link, the review link, the proof link, the sign-off link]
+        asset: ['{aa_asset}']
+      title:
+        - '{thing|cap} for {asset} expired too soon'
+        - Clients cannot open {thing}
+        - Approving {asset} does nothing
+        - '{thing|cap} opens the wrong version of {asset}'
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Links expire after a day.', 'The expiry is one day.']
+        - ['Reviews take a week.', 'Clients review slowly.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_repro}'
+        - Extend the link lifetime.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        thing: [campaigns, line items, brands, channels]
+      title:
+        - PDF report leaves out {thing}
+        - Scheduled report shows old {thing}
+        - Export lists fewer {thing} than the portal
+        - Report totals differ from the dashboard, {thing}
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The export hits a row cap.', 'A row cap truncates it.']
+        - ['Nothing warns the reader.', 'It fails silently.']
+      comments:
+        - '{b_cm_repro}'
+        - Raise the cap or stream it.
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        thing: [another brand's reports, a competitor's campaign names, internal margin notes, a former client's assets]
+      title:
+        - Client users can see {thing}
+        - Portal exposes {thing}
+        - Missing brand filter shows {thing}
+        - '{thing|cap} visible after a contract ends'
+      body:
+        - ['Found by {b_who}, {b_pscope}.']
+        - ['The query filters by user only.', 'No brand filter applies.']
+        - ['Keep details out of chat please.']
+      comments:
+        - '{b_cm_repro} with two accounts.'
+        - '{b_cm_fix_up}'
+        - '{b_cm_tell}'
+    - labels: [enhancement]
+      let:
+        ask: [schedule weekly reports, compare two campaigns, comment on a creative, download all assets, see the pacing live]
+      title:
+        - Let clients {ask}
+        - Clients want to {ask}
+        - 'Feature request from {b_who}: {ask}'
+        - '{ask|cap}, asked for again'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Today the team sends decks.', 'Decks go out by email.']
+        - ['It eats a day each week.', 'Hours go on it weekly.']
+        - ['It needs a new screen.', '']
+      comments:
+        - '{b_cm_try}'
+        - '{b_cm_plan}'
+        - Needs a rule for who may.
+  data:
+    - labels: [bug]
+      let:
+        platform: ['{aa_platform}']
+      title:
+        - Spend missing for {platform} on {day}
+        - '{platform|cap} API quota stops the load'
+        - Load from {platform} skips days
+        - Token for {platform} rejected overnight
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['The platform limits requests.', 'There is a daily quota.']
+        - ['The job stops at the limit.', 'It stops without a retry.']
+        - ['Dashboards show gaps.', '']
+      comments:
+        - '{b_ask_logs}'
+        - Retry later with a back off.
+        - '{b_cm_fix_up}'
+    - labels: [bug, data-quality]
+      let:
+        metric: ['{aa_metric}']
+      title:
+        - '{metric|cap} counted twice across channels'
+        - Attribution double counts {metric}
+        - '{p_report|cap} differs from the platform, {metric}'
+        - Timezone shifts {metric} by a day
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Two platforms claim the same sale.', 'Both claim the conversion.']
+        - ['The model counts both.', 'We add them up.']
+        - ['Clients quote these numbers.']
+      comments:
+        - '{b_cm_prof}'
+        - Pick one rule{c_sep} write it down.
+        - '{b_cm_ask_who}'
+    - labels: [enhancement]
+      let:
+        table: [spend by day, creative level results, audience segments, vendor invoices]
+        range: [the last 12 months, last quarter, since the platform change, the last two years]
+      title:
+        - Backfill {table} for {range}
+        - Warehouse lacks {table} for {range}
+        - A client wants {table}, {range}
+        - '{table|cap} gap in {range}'
+      body:
+        - ['Asked for by {b_who}.', '{b_raised}.']
+        - ['It feeds a pitch.', 'They need it for a review.']
+        - ['Raw files are archived.', 'Old exports exist.']
+      comments:
+        - '{b_cm_turn}'
+        - '{b_cm_plan}'
+        - Run it off peak hours.
+  infra:
+    - labels: [security, chore]
+      let:
+        token: [the search platform token, the social platform token, the DSP login, the analytics service account, the vendor sftp key]
+      title:
+        - '{token|cap} expires in {2-9} days'
+        - Rotate {token}
+        - Nobody owns {token}
+        - '{token|cap} stored in a shared sheet'
+      body:
+        - ['Found while checking the calendar.', '{b_raised}.']
+        - ['Loads fail when it lapses.', 'A lapse stops the loads.']
+        - ['Clients lose reports.']
+      comments:
+        - '{b_cm_plan}'
+        - Put it in the vault.
+        - Put it on the oncall calendar.
+    - labels: [bug]
+      let:
+        feed: [the vendor sftp feed, the retail media feed, the social export, the tag manager export]
+      title:
+        - '{feed|cap} stopped on {day}'
+        - '{feed|cap} delivers empty files'
+        - Alert when {feed} is late
+        - '{feed|cap} changed its format'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Nobody was paged.', 'No alert fired.']
+        - ['We found it by chance.', '']
+      comments:
+        - '{b_cm_ask_who}'
+        - Add a freshness check.
+        - '{b_cm_fix_up}'
+    - labels: [performance, chore]
+      let:
+        target: [the asset storage, the render farm, the report workers, the file transfer server]
+      title:
+        - Storage growth on {target}
+        - '{target|cap} slow after {aa_event}'
+        - Set limits for {target}
+        - Clean up old assets on {target}
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Old campaigns are never removed.', 'Nothing is ever archived.']
+        - ['Costs grow each month.', 'The bill grows.']
+      comments:
+        - '{b_cm_prof}'
+        - Archive after {2-9} years.
+        - '{b_cm_plan}'
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: [campaign launch checks, tag setup, brand safety rules, asset handover, client offboarding]
+      title:
+        - Checklist for {thing}
+        - Write up {thing} for new starters
+        - Handbook lacks {thing}
+        - '{thing|cap} lives in one head'
+      body:
+        - ['{b_raised}.', 'Raised after {aa_event}.']
+        - ['It needs owners and steps.', 'List owners and steps.']
+        - ['{person} did it last.', '']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_cm_list} {b_cm_def}'
+        - '{b_cm_up}'
+    - labels: [docs, bug]
+      let:
+        stale: [the old trafficking sheet, last year's rate card, the retired approval tool, the previous client list]
+      title:
+        - Handbook still lists {stale}
+        - '{Docs/Handbook}: {stale} in the launch page'
+        - Pages mention {stale}
+      body:
+        - ['{b_raised}.', 'Spotted by a new starter.']
+        - ['The page is out of date.', 'Nobody revised it.']
+        - ['A search finds {2-9} pages.']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_g_note}'
+        - I will fix them this week.
+  ops:
+    - labels: [bug]
+      let:
+        script: [send_weekly_reports.sh, clean_old_assets.sh, export_estimates.py, sync_job_codes.sh]
+      title:
+        - '{Scripts/Ops}: {script} skips new clients'
+        - Is {script} still used?
+        - '{script} fails on the new job format'
+      body:
+        - ['Found during quarter end.', '{b_raised}.']
+        - ['It predates the new job system.', 'Written for the old tool.']
+        - ['Nobody owns it now.', '']
+      comments:
+        - '{b_cm_check}'
+        - '{b_g_who}'
+        - Can we retire it?
+chat:
+  support:
+    - root:
+        - '{s_cust|cap} asks why the {b_doc} shows {p_dollars} more'
+        - client cannot open the approval link{c_sep} {s_ticket}
+        - '{aa_brand|cap} wants last month''s report resent'
+        - escalating to eng{c_sep} reports show gaps{c_sep} {s_ticket}
+        - client asks which job this is
+      replies:
+        - ['which campaign?', 'which brand?', 'do we have the job number?']
+        - ['same for two users', '{c_idk}{c_sep} asking them', 'job number is in the request']
+        - ['filing it now', 'linking {s_ticket}', 'i will check the sync']
+    - root:
+        - credit request{c_sep} {s_cust}{c_sep} {s_money}{c_sep} says spend ran over
+        - client disputes the {aa_cost} on the {b_doc}
+        - procurement rejected the {b_doc} again
+      replies:
+        - ['do we have the signed estimate?', 'what do the terms say?']
+        - ['sending the estimate', 'checking the job']
+        - ['apply it and note the job', 'finance approves over {s_money}']
+    - root:
+        - queue is at {20-90} open requests{c_sep} {aa_event} is busy
+        - evening handover{c_sep} report mailer failing
+        - heads up{c_sep} {s_cust} is angry{c_sep} waiting {2-5} days
+      replies:
+        - ['is there a known issue?', 'who updates the client?']
+        - ['eng has it{c_sep} update at {time}', 'banner is live']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - standup in {5-15} minutes{c_sep} {c_status} on my side
+        - who is picking up {issue}?
+        - '{person} is {c_pto}{c_sep} who covers trafficking?'
+        - launch freeze for {aa_event}{c_sep} who has the list?
+        - anyone free to pair on {issue}?
+      replies:
+        - ['i can take it', 'on it after lunch']
+        - ['{person} knows the platform', 'i did last time{c_sep} someone else']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - month end close is {c_soon}{c_sep} timesheets and estimates please
+        - pitch for {aa_brand} is {day}{c_sep} who needs data?
+        - '{aa_event} goes live {day}{c_sep} tags ready?'
+      replies:
+        - ['can i submit tomorrow?', 'what is the deadline?']
+        - ['{c_yes}{c_sep} until {time}', 'not yet']
+        - ['{c_ack}']
+    - root:
+        - retro notes are in the handbook{c_sep} add yours
+        - post incident review for {issue_title} is {day} at {time}
+        - owners needed for review actions
+      replies:
+        - ['added mine', 'after the call']
+        - ['{c_agree}', '{c_thanks}']
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - spend sync is failing{c_sep} anyone rotated the token?
+        - '{c_ci_fail} fails on main after sdk update'
+        - store spend in {account/local} currency?
+        - report mailer is slow{c_sep} anyone changed the template?
+      replies:
+        - ['on it', 'looking now', 'give me ten']
+        - ['no changes here', 'token was rotated {c_soon}']
+        - ['account currency{c_sep} convert later', 'both{c_sep} auditors will ask']
+    - root:
+        - how do we version rates?
+        - does the sync retry quota errors?
+        - heads up{c_sep} freeze from {day}{c_sep} for {aa_event}
+        - the approvals page is slow{c_sep} anyone else seeing it?
+      replies:
+        - ['by effective date', 'pin it per job']
+        - ['yes{c_sep} with a back off', '{c_no}{c_sep} it stops for the day']
+        - ['{c_ack}', '{c_thanks}']
+    - root:
+        - local env broke after sdk update
+        - how do i replay spend locally?
+        - is {c_tool} broken for anyone else?
+      replies:
+        - ['pin the old version', 'same here{c_sep} clear the cache']
+        - ['replay script is in tools', 'ask {person}{c_sep} they wrote it']
+  incidents:
+    - root:
+        - spend sync down{c_sep} {2-9} clients without reports
+        - ad platform api is returning errors {s_since}
+        - alert{c_sep} pacing drift above {5-30} percent
+        - the {p_alert_name} alert is flapping again
+        - report mailer failed for {2-9} clients
+      replies:
+        - ['who is incident lead?', '{aa_ask}?']
+        - ['i have it{c_sep} comms at {time}', '{person} is on the bridge']
+        - ['update at {time}', 'resolved{c_sep} watching']
+    - root:
+        - review for the {aa_event} outage is {day} at {time}
+        - near miss{c_sep} wrong budget almost went live
+        - the client wants a root cause {day}
+      replies:
+        - ['i will draft it', 'who writes the client note?']
+        - ['account director{c_sep} by {day}', '{c_ack}']
+    - root:
+        - platform has an outage{c_sep} status page is red
+        - the ad server is down{c_sep} creatives not serving
+        - file transfer is flaky{c_sep} assets stuck
+      replies:
+        - ['anything we can do?', 'any eta?']
+        - ['no eta{c_sep} telling clients', 'failing over now']
+  town-square:
+    - root:
+        - '{c_hey}: all hands {day} at {time}{c_sep} new business and awards'
+        - security training is due {c_soon}
+        - welcome {person}{c_sep} joining the media team {c_soon}
+      replies:
+        - ['will it be recorded?', 'welcome!']
+        - ['{c_yes}{c_sep} link after', '{c_thanks}']
+    - root:
+        - pitch won{c_sep} {aa_brand} joins {c_soon}
+        - office is closed {c_soon}{c_sep} on call rota unchanged
+      replies:
+        - ['amazing news', '{c_ack}']
+        - ['{c_thanks}', '{c_agree}']
+  off-topic:
+    - root:
+        - anyone seen the new ad for {aa_brand}?
+        - lunch ideas? sick of {c_food}
+        - '{c_pet} learned a new trick'
+        - best newsletter you read?
+      replies:
+        - ['{c_lol}', '{c_agree}']
+        - ['the thai place', 'try the bakery']
+    - root:
+        - '{c_weekend} for me{c_sep} anyone else?'
+        - best podcast for the commute?
+        - cold in the studio again
+      replies:
+        - ['{c_lol}', 'send a photo']
+        - ['{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}{c_sep} can you review my sync change {s_soon}?'
+        - quick question{c_sep} who owns the report mailer?
+        - can you cover my on call {day} night?
+        - got a minute{c_sep} invoice question?
+      replies:
+        - ['sure', 'in a call{c_sep} back at {time}']
+        - ['{person} does', 'platform team']
+        - ['{c_thanks}']
+    - root:
+        - handing over the report mailer{c_sep} out {s_soon}
+        - did the client note go out?
+        - can you read the estimate {c_sep} {day}?
+      replies:
+        - ['send me the notes', '{c_ack}']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - can you cover client escalations {day}?
+        - did the pacing alert page anyone?
+        - '{s_hey}{c_sep} can you join the platform call?'
+      replies:
+        - ['sure', 'on it']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - new tags go live {c_soon}{c_sep} checks done?
+        - who has the estimate for {day}?
+      replies:
+        - ['not yet', '{c_yes}']
+        - ['in the handbook', 'ask {person}']
+comments:
+  - '{b_cm_check}{c_sep} the job table may be it.'
+  - Which client was this on?
+  - '{b_g_ask} the job number?'
