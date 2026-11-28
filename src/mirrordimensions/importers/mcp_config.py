@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The agent's MCP client configuration: `mcpServers` (Claude Code's `.mcp.json`, and the
 portable format other clients share) or `servers` (VS Code's `mcp.json`).

@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // Shared pieces: the page header, errors, and the words every status is shown with.
 

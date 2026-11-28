@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """World import: one draft from many files, reviewed, then applied (build spec, "World
 import"; decision 0025).

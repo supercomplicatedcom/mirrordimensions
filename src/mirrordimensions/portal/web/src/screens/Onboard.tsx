@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // Onboard an agent in the six steps of `mirror agent new`. Each answer is written to the
 // agent's file at once (`status: draft` until step 5), so onboarding can be left and

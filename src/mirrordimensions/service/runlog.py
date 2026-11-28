@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Reading runs: the list, one result, its events a page at a time, and its stored bodies.
 Shared by `mirror runs`, `mirror trace` and the portal's Runs screens."""

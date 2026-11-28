@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // Edits saved to mirror.yaml or an agent file that are not in effect yet, and the button
 // that puts them into effect now, with each step of a rebuild shown as it happens.

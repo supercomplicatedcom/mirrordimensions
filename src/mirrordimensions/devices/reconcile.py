@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Device coverage: what a device platform did is explained by what was captured
 (decision 0026; CLAUDE.md, "a new way to touch something has a reconciliation test").

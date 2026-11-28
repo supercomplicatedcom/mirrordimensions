@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Name pools by region for the synthetic company's staff."""
 

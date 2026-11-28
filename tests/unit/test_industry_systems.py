@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """An industry proposes the systems such a company runs; `world add` adds more later
 (decision 0028, points 3 and 4)."""

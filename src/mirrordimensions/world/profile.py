@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Industry profiles: what a company in an industry works on and how its people write
 (decision 0028). A profile is data, one YAML file per industry under `industries/`.

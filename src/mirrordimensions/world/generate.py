@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The seeded generator. Same seed and manifest, byte-identical world.json (build spec, M3).
 

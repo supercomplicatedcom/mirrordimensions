@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """An MCP server's exported tool list: the result of `tools/list`, with the server's
 `serverInfo`, protocol versions and instructions as its `initialize` reported them.

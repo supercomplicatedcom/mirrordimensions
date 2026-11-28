@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """A deterministic random source: the same seed and label give the same sequence on every
 host and Python version (random.Random makes no such promise across releases)."""

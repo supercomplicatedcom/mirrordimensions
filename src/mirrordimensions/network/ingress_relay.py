@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The relay into the ingress (decision 0024): a listener on the host's 127.0.0.1 whose
 every connection is carried into the ingress container through the Docker API.

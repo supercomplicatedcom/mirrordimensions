@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // One run: the result and any broken forbidden check without scrolling, how it behaved
 // (facts generated from the result, no judgments), and the timeline, a page at a time.

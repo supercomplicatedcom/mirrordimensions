@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Fail if any runtime dependency, direct or transitive, has a licence incompatible with
 shipping under Apache-2.0.

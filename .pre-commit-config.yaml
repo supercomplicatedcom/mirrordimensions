@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # Install with: pre-commit install --hook-type pre-commit --hook-type commit-msg
 repos:

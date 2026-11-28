@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Fail if anything bundled into the portal's front end has a licence incompatible with
 shipping under Apache-2.0.

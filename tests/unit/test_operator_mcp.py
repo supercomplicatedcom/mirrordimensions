@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M7: the operator MCP server (decision 0009), driven by a real MCP client: in process,
 over stdio as an AI tool would launch it, and over HTTP with its token."""

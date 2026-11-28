@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M8: world import (decision 0025). The importers against synthetic fixtures, the common
 draft, conflicts, decisions, and apply into a world definition that builds."""

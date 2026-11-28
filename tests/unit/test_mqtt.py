@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M9: devices on a message broker. The MQTT codec, the devices on the bus, the broker's
 access list, the gateway's MQTT listener and what it captures, and the reconciliations

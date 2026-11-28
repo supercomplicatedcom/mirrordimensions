@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Sign in to the code host in the shared browser and acknowledge the first open issue
 assigned to me with a comment. Settings come from the environment."""

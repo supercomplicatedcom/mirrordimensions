@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // World import (decision 0025): choose files on this computer, then review what they
 // described, settle where they disagree, and apply it. The same draft as

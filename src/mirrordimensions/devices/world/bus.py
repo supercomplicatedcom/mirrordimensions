@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Devices on a message broker: each device publishes its telemetry and state, and takes
 commands, on topics named for where it is (decision 0026).

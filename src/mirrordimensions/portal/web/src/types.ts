@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // The JSON the portal's API returns: the service layer's models (src/mirrordimensions/service).
 

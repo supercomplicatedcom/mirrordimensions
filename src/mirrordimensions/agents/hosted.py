@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """A hosted agent: the company's own image, unchanged, on the office network (build spec,
 "Agent modes").

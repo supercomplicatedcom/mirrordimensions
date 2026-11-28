@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Mutual TLS for an engine whose Docker API listens on TCP (the wsl driver, decision 0003).
 

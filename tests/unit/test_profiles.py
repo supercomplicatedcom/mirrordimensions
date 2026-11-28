@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Industry profiles (decision 0028) hold templates, never fixed sentences (decision 0029)."""
 

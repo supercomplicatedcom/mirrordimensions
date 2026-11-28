@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Agents: register agent files, issue their identities, and run a hosted agent once
 (build spec, "How an agent enters the world" and "Agent modes")."""

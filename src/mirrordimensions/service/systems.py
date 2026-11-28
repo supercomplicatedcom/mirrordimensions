@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Systems: their surfaces, settings, data shape and rules; rule edits; dry runs."""
 

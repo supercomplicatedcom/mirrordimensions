@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # The MCP tools Mattermost can serve when an imported MCP server offers a tool by this name
 # (decision 0025). `app: self` is the Mattermost system that backs the server.

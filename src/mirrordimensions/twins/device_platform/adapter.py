@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The device platform: a building-access REST service fronting the world's devices
 (decision 0026). Its software is this repository's own `server.py` and the device

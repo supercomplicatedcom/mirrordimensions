@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Model routes for the gateway (build spec, "Rules for the model gateway"). Pure functions:
 no mitmproxy here, so the host's tests exercise exactly what the gateway runs.

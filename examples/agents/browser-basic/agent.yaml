@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # A deterministic browser agent: it signs in through the web page and comments on the first
 # issue assigned to it, as a person would (build spec, "Reference agents").

@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M9, devices tied into the company (decision 0026, points 9 to 12): badges and people's
 hours, the device checks against recorded dumps, the scenarios' devices, the physical

@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M9: device types, the simulator on the world's simulated clock, and sites and devices
 in the manifest (decision 0026)."""

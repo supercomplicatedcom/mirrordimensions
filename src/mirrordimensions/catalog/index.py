@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Load and search the catalog. Names resolve through slugs and aliases, ignoring case and
 punctuation; unknown names are reported, never guessed (build spec, "App catalog")."""

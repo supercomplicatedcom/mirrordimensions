@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The project's health at a glance: state, engine, the sandbox's containers, snapshots and
 the last isolation check (build spec, "Portal", Health screen).

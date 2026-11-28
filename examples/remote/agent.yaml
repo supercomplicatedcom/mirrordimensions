@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # A remote agent: it runs on its vendor's platform, so it has no image here. It reaches the
 # world only through an exposed MCP server (decision 0024):

@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M7: edits and pending changes (decision 0021). Visibility, grants and rules are saved at
 once and take effect at the next run; what changes the built world waits for a rebuild."""

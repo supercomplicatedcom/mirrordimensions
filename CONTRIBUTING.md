@@ -55,14 +55,13 @@ The name and email must match the commit author. You keep the copyright in your 
 
 ## Licence headers
 
-Every source file starts with:
+Every source file starts with its licence identifier, as a comment in the file's own syntax:
 
 ```
-# SPDX-FileCopyrightText: <year> Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 ```
 
-If you hold the copyright in a new file, put your own name in the first line; the licence line must stay `Apache-2.0`.
+Files carry no copyright line; [NOTICE](NOTICE) states it once for the project. By signing off a commit (below) you license your contribution under Apache-2.0.
 
 ## Dependencies
 

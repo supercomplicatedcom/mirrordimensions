@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The seed folder: read only it, never run or follow anything, drop secrets, list personal
 data, and build the world from what is left (decision 0030)."""

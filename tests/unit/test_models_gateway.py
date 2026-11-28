@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The gateway's model routes: only inference, the real credential added outside, hosted
 tools refused in the provider's own shape, and usage read from whole and streamed answers."""

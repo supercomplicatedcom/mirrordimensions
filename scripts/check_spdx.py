@@ -1,8 +1,6 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
-"""Every source file carries an SPDX copyright line and the Apache-2.0 licence identifier.
-
-Checked in the first five lines, so a shebang or encoding line may come first.
+"""Every source file carries the Apache-2.0 licence identifier, in the first five lines, so a
+shebang or encoding line may come first. Copyright is stated once, in NOTICE, not in each file.
 """
 
 from __future__ import annotations
@@ -17,7 +15,6 @@ EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".sh", ".toml", ".yml", ".yaml"}
 SKIP_PREFIXES = ("tests/golden/", "tests/fixtures/")
 SKIP_FILES = {"uv.lock", ".python-version"}
 
-COPYRIGHT = re.compile(r"SPDX-FileCopyrightText: (19|20)\d\d\b.+")
 LICENCE = re.compile(r"SPDX-License-Identifier: Apache-2\.0\s*$")
 
 
@@ -34,8 +31,6 @@ def tracked_files() -> list[str]:
 
 def problem(path: Path) -> str | None:
     head = path.read_text(encoding="utf-8", errors="replace").splitlines()[:5]
-    if not any(COPYRIGHT.search(line) for line in head):
-        return "missing 'SPDX-FileCopyrightText: <year> <holder>' in the first five lines"
     if not any(LICENCE.search(line) for line in head):
         return "missing 'SPDX-License-Identifier: Apache-2.0' in the first five lines"
     return None
@@ -55,9 +50,9 @@ def main() -> int:
     for failure in failures:
         print(failure)
     if failures:
-        print(f"{len(failures)} file(s) without licence headers")
+        print(f"{len(failures)} file(s) without the licence identifier")
         return 1
-    print("ok    every source file has SPDX licence headers")
+    print("ok    every source file has its SPDX licence identifier")
     return 0
 
 

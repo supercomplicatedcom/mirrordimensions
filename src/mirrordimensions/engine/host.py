@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The host engine driver: Docker Engine and gVisor directly on a Linux host (opt-in).
 

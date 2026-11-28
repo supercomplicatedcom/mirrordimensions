@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The wsl engine driver: a dedicated WSL2 distribution on Windows 11 (decision 0002).
 

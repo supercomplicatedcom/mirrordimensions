@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """A project for testing the portal without an engine: a generated world, two agents, a
 finished run that broke a forbidden check, and a run still in progress.

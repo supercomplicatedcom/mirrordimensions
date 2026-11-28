@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Prove that a committed credential is rejected, both by the pre-commit hook and by the
 CI scan, without ever committing a credential to this repository.

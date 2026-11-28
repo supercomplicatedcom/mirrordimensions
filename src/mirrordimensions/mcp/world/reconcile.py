@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Reconcile the `mcp` coverage channel against the gateway's own record (CLAUDE.md: a new
 way to touch something needs a reconciliation test).

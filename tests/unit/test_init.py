@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """`mirror init`: valid output, byte-identical for a seed on every host, CA kept private."""
 

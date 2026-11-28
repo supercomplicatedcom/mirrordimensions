@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """A reference remote agent platform (M7.5): what a vendor's agent platform does to use a
 company's MCP server as a connector, run from outside the engine.

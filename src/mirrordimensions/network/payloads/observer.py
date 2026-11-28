@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The browser observer. It runs in its own container that shares the managed browser's
 network namespace (decision 0014), and does two things:

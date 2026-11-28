@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """From a seed folder to what the world uses, and the review the user reads first
 (decision 0030, points 2 to 5).

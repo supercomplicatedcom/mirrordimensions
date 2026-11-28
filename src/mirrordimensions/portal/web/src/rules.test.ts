@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, it } from "vitest";
 import { formFromRule, ruleFromForm, ruleWords } from "./rules";
