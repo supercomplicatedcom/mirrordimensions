@@ -109,6 +109,7 @@ def tls_refuses_without_certificate(host: str, port: int, ca_file: str) -> bool:
     import ssl
 
     context = ssl.create_default_context(cafile=ca_file)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
     try:
         with (
             socket.create_connection((host, port), timeout=10) as raw,

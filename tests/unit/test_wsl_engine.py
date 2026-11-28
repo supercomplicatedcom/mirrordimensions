@@ -184,6 +184,7 @@ def test_docker_tls_requires_the_client_certificate(tmp_path: Path) -> None:
     assert files is not None
     ca, cert, key = files
     good = ssl.create_default_context(cafile=ca)
+    good.minimum_version = ssl.TLSVersion.TLSv1_2
     good.load_cert_chain(cert, key)
     with (
         socket.create_connection(("127.0.0.1", port)) as raw,
@@ -191,6 +192,7 @@ def test_docker_tls_requires_the_client_certificate(tmp_path: Path) -> None:
     ):
         assert tls.recv(2) == b"ok"
     bare = ssl.create_default_context(cafile=ca)
+    bare.minimum_version = ssl.TLSVersion.TLSv1_2
     with (
         pytest.raises((ssl.SSLError, OSError)),
         socket.create_connection(("127.0.0.1", port)) as raw,

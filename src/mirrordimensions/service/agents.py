@@ -25,6 +25,7 @@ from mirrordimensions.config.loader import load_model
 from mirrordimensions.engine.docker_api import Docker
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.hostos.files import write_text
+from mirrordimensions.mcp.world.front import password_hash
 from mirrordimensions.network import sandbox
 from mirrordimensions.network.events import Collector, browser_parser
 from mirrordimensions.project import Project
@@ -304,7 +305,7 @@ def _issue_mcp(
             "people": {
                 person.username: {
                     "salt": salt,
-                    "sha256": hashlib.sha256((salt + password).encode()).hexdigest(),
+                    "pbkdf2_sha256": password_hash(salt, password),
                     "token": token,
                 }
             },
