@@ -1,0 +1,1325 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Credit unions and community banks: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+aliases:
+  - credit union
+  - community bank
+  - community banking
+  - member-owned bank
+  - savings and loan
+chat:
+  direct:
+    - replies:
+        -   - '{s_ack}'
+            - sure, {s_soon}
+            - give me ten
+        -   - actual days, per the loan terms
+            - i will check the disclosure
+            - '{s_thx}'
+      root:
+        - '{s_hey}, review the dividend change {s_soon}?'
+        - quick question on the payoff math
+        - move the cutover review to {time}?
+        - '{s_hey}, look at the statement mismatch?'
+    - replies:
+        -   - '{s_ack}, thanks'
+            - send me the checklist
+            - good luck
+        -   - '{c_lol}'
+            - same here
+            - congrats
+      root:
+        - handing over the batch, out {s_soon}
+        - ugh, exam wants last year's evidence
+        - survived the exam, finally
+  engineering:
+    - replies:
+        -   - '{c_ack}, looking {c_when_eng}'
+            - is there a leap year test?
+            - what is the rounding rule here?
+        -   - half up to the cent
+            - trace number plus file id
+            - '{c_thanks}'
+      root:
+        - review my pr on {repo}? dividend math
+        - '{c_ci_fail} fails on the loan branch'
+        - should returns dedupe on trace number?
+        - freeze for month end from {day} {time}
+    - replies:
+        -   - check the control totals first
+            - ops has the checklist
+            - see the runbook, i think
+        -   - '{c_ack}'
+            - thanks, that helps
+            - i will write it up
+      root:
+        - how to replay a failed batch?
+        - why does posting take {40-90} minutes on {day}?
+        - is the vendor's test region down?
+        - who owns the cutoff config?
+    - replies:
+        -   - author left, see the old pr
+            - '{person} knows that area'
+            - compliance has the rules
+        -   - '{c_thanks}'
+            - good idea, will try
+      root:
+        - working on {issue}, who knows skip-a-pay?
+        - eyes on the payoff fix, {issue}?
+        - tests on last month's balances?
+    - replies:
+        -   - '{c_ack}'
+            - i am, until {day}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - check the change calendar
+            - ''
+      root:
+        - 'tiny pr: fix typo in {repo} readme'
+        - who is on call this week?
+        - '{service} is slow, anyone changed something?'
+        - local env broke after {pulling main/a rebase}
+  incidents:
+    - replies:
+        -   - seeing it too, since {time}
+            - '{c_ack}, looking'
+            - vendor says they are checking
+        -   - no rerun before totals match
+            - opened {issue}
+            - i will post in the thread
+      root:
+        - ach transmission alert is flapping again
+        - 'handover: {s_oncall} is quiet, nothing open'
+        - anyone else seeing online banking {s_symptom}?
+        - end of day file is {p_delay} late
+    - replies:
+        -   - '{c_ack}'
+            - are branches affected?
+            - ok, keep us posted
+        -   - yes, a retry saved it
+            - who is renewing it?
+            - '{c_thanks}'
+      root:
+        - the core vendor posted an incident
+        - atm switch cert expires in {2-9} days
+        - rolled back {repo}, balances look right
+        - near miss, dedupe caught a repeat
+    - replies:
+        -   - seeing it too
+            - '{c_ack}, on it'
+            - paging the network provider
+        -   - root cause is a full queue
+            - restarted the worker, clearing
+            - '{c_thanks}, will post a review'
+      root:
+        - '{s_al} branch network is dropping'
+        - atm withdrawals failing since {time}
+        - card controls not saving
+        - alerts stopped firing, checking now
+  off-topic:
+    - replies:
+        -   - count me in
+            - '{c_lol}'
+            - what time?
+        -   - '{time}, meet by the lifts'
+            - ''
+            - '{c_yes}, bring umbrellas'
+      root:
+        - anyone want the charity run?
+        - birthday cake in {c_room} at {time}
+        - lunch at {s_lunch}, who is in?
+        - did anyone catch the {match/game/race}?
+  support:
+    - replies:
+        -   - can you paste the member number?
+            - checking the core now
+            - looking, one sec
+        -   - duplicate bill pay, filed as {issue}
+            - '{c_ack}, refund and note the case'
+            - fee waivers need a manager
+        -   - '{c_thanks}'
+            - will call the member back
+      root:
+        - member says a fee was wrong, {s_ticket}
+        - '{s_cust|cap} asks why the dividend dropped'
+        - a payment shows pending since {time}
+        - '{s_cust} wants a payoff letter'
+    - replies:
+        -   - it follows the hold rule
+            - known issue, {issue}
+            - '{c_ack}'
+        -   - the privacy risk worries me
+            - is the owner removed in core?
+            - escalate to compliance
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - mobile deposit hold looks wrong, {s_ticket}
+        - joint owner still sees activity, {s_ticket}
+        - queue is at {20-80} open cases
+        - heads up, {s_cust} waits {2-9} days
+    - replies:
+        -   - it is under statements, tax forms
+            - we can reissue, ask accounting
+            - '{c_ack}'
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - member never got their tax form
+        - member needs last year's dividend totals
+        - closing my shift, {5-20} open cases
+  team:
+    - replies:
+        -   - '{c_ack}'
+            - i can cover
+            - on it
+        -   - '{c_thanks}'
+            - ping me if it slips
+      root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - i am {c_pto}, who covers the batch?
+        - planning {day} at {time}, bring estimates
+        - 'escalation: {c_customer} sees a wrong balance'
+    - replies:
+        -   - member services approves
+            - i will update it {c_when_eng}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+      root:
+        - 'retro action: who approves fee refunds?'
+        - who has the statement release checklist?
+        - is the board current?
+    - replies:
+        -   - i can take it
+            - '{person} has it'
+            - still waiting on lending
+        -   - '{c_ack}'
+            - '{c_thanks}'
+            - ''
+      root:
+        - who is on the batch rota?
+        - board meeting {day} at {time}, who presents?
+        - 'release prep for {repo}: any blockers?'
+        - show and tell {day} {time}, volunteers?
+  town-square:
+    - replies:
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - does that cover the weekend batch?
+        -   - '{c_yes}, same as last year'
+            - ops has the schedule
+            - ''
+      root:
+        - '{c_hey}: branches closed {c_soon}, batch still runs'
+        - bank holiday {c_soon}, no ach files go out
+        - the annual meeting is {c_soon}, members attend
+        - holiday {c_soon}, the call center stays open
+    - replies:
+        -   - same course as last year?
+            - where is the link again?
+            - does the fraud module count?
+        -   - new modules this year
+            - under learning in the hr portal
+            - '{c_idk}, ask {person}'
+      root:
+        - annual compliance training is due {c_soon}
+        - '{c_hey}: bsa training closes {c_soon}'
+        - security awareness modules lock {c_soon}
+        - training overdue for {2-9} people
+    - replies:
+        -   - '{c_ack}'
+            - will there be a briefing?
+        -   - '{day} at {time}, in {c_room}'
+            - compliance will send a note
+            - ''
+      root:
+        - examiners are on site {c_soon}
+        - exam week {c_soon}, send requests to {person}
+        - '{c_hey}: the exam starts {day}'
+        - auditors visit {day}, answer only what is asked
+    - replies:
+        -   - '{c_thanks}'
+            - where is the new branch?
+            - can we help set up?
+        -   - by the mall, east side
+            - '{c_ack}, ask {person}'
+            - ''
+      root:
+        - member appreciation day is {c_soon}
+        - new branch opens {c_soon}, say hi
+        - welcome {person} to member services, starts {c_soon}
+comments:
+  - '{b_cm_check} the return codes in the file.'
+  - Does it touch the call report?
+  - Compliance should see this first.
+  - '{b_g_loop} operations, they run the batch.'
+  - What does the disclosure say here?
+description: A member-owned credit union or community bank that holds shares and deposits, makes consumer and small business loans and serves a local membership.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+extends: general
+group: Financial services
+incidents:
+  - alert:
+      - '{s_inv_late}, {s_inv_late_b}'
+      - '{s_al} {s_inv_late}'
+      - '{s_inv_late} - {s_inv_late_b}'
+    fix: billing/email_queue.py
+    fix_message:
+      - '{s_q_verb|cap} notices {s_q_how}'
+      - Queue statement notices, not inline sends
+      - '{s_q_verb|cap} member mail {s_q_how}'
+    role: billing
+    title:
+      - Statement notices delayed
+      - Member notices arriving late
+      - Fee notice delivery slow
+      - Statement mail running behind
+  - alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix: billing/callbacks.py
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle network timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+    role: billing
+    title:
+      - ACH callback errors
+      - Elevated errors on card events
+      - Network callbacks failing
+      - Payment events not processed
+  - alert:
+      - '{s_dup_a}'
+      - '{s_dup_a}, {s_dup_b}'
+      - '{s_al} {s_dup_a}, {s_dup_b}'
+    fix: billing/sent_log.py
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - 'Dedupe notices: {s_dup_fix}'
+      - '{s_dup_fix|cap}, keep a sent log'
+    role: billing
+    title:
+      - Duplicate statement notices
+      - Members receiving notices twice
+      - Fee notices sent twice
+      - Repeated member notices
+invoice_items:
+  - Monthly service fee
+  - Loan servicing fee
+issues:
+  billing:
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{cu_1} {cu_2}'
+        -   - '{cu_3} {cu_4}'
+        -   - '{cu_5} {cu_6}'
+      comments:
+        - '{b_cm_hand} by {2-9} cents.'
+        - '{b_cm_check} the rate effective date.'
+        - '{b_cm_later}'
+      labels:
+        - bug
+      let:
+        share:
+          - '{cu_share}'
+      title:
+        - Dividend on {share} accounts uses the wrong balance
+        - Rate change missed the effective date
+        - '{share|cap} dividend a few cents off'
+        - Dividend posts at the old rate
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{cu_7} {cu_8}'
+        -   - '{cu_9} {cu_10}'
+        -   - '{cu_11}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check} the loan terms.'
+      labels:
+        - bug
+        - needs-decision
+      let:
+        loan:
+          - '{cu_loan}'
+      title:
+        - Payment on a {loan} applied to fees first
+        - Partial {loan} payment order breaks Regulation Z
+        - Payment split wrong on {loan} accounts
+        - Partial payment swaps principal and interest
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{cu_12} {cu_13}'
+        -   - '{cu_14} {cu_15}'
+        -   - Compliance must see this first.
+      comments:
+        - '{b_cm_check} the consent field.'
+        - '{b_cm_fix_up}'
+      labels:
+        - bug
+        - security
+      let:
+        fee:
+          - courtesy pay fee
+          - overdraft fee
+          - NSF fee
+          - transfer fee
+      title:
+        - '{fee|cap} charged without an opt-in'
+        - '{fee|cap} posted twice on one item'
+        - Members without consent charged the {fee}
+        - Refund of {fee} missing after a dispute
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cu_16} {cu_17}'
+        -   - '{cu_18} {cu_19}'
+        -   - Reverse fees, fix the reporting.
+      comments:
+        - '{b_cm_repro} with a skip in {2-11}.'
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+      let:
+        loan:
+          - '{cu_loan}'
+      title:
+        - Skipped payment still gets late fee
+        - Skip-a-pay on a {loan} ages the loan
+        - Skipped {loan} payment shows delinquent
+        - Late fee after an approved skip
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cu_20} {cu_21}'
+        -   - '{cu_22} {cu_23}'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_hand} by {2-9} dollars.'
+        - '{b_cm_check} the per diem formula.'
+      labels:
+        - bug
+      let:
+        loan:
+          - '{cu_loan}'
+      title:
+        - Payoff quote wrong over a weekend
+        - Per diem on a {loan} payoff is off
+        - Payoff letter differs from the core
+        - Payoff quote ignores a pending payment
+  data:
+    - body:
+        -   - '{cu_36} {cu_37}'
+        -   - '{cu_38} {cu_39}'
+        -   - '{cu_40}'
+      comments:
+        - '{b_cm_hand} on the {day} snapshot.'
+        - Reproduced with the {day} snapshot.
+      labels:
+        - bug
+        - data-quality
+      let:
+        sched:
+          - the call report schedules
+          - the delinquency totals
+          - the loan balances
+          - the share totals
+      title:
+        - '{sched|cap} do not tie to the ledger'
+        - 'Quarter end: {sched} off by {p_dollars}'
+        - NCUA call report break on {sched}
+        - Reconciliation break on {sched}
+    - body:
+        -   - '{cu_41} {cu_42}'
+        -   - '{cu_43} {cu_44}'
+        -   - '{cu_45} {cu_46}'
+        -   - Alert when the file is late.
+      comments:
+        - '{b_cm_check} the transfer log.'
+        - Rerun fixed it, add a guard.
+      labels:
+        - bug
+        - incident
+      let:
+        src:
+          - '{p_source}'
+      title:
+        - '{src|cap} arrived {p_delay} late'
+        - Morning reports blocked, {src} came late
+        - Missing rows in {src} on {day}
+        - Load stopped by bad data in {src}
+    - body:
+        -   - '{cu_47} {cu_48}'
+        -   - '{cu_49} {cu_50}'
+        -   - Keep the surviving member id.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+      labels:
+        - data-quality
+      let:
+        table:
+          - '{p_table}'
+      title:
+        - Duplicate members after a merge
+        - Merged member numbers left extra {table}
+        - '{table|cap} doubled by the member merge'
+        - '{2-400} orphan {table} after a merge'
+    - body:
+        -   - '{cu_51} {cu_52}'
+        -   - '{cu_53} {cu_54}'
+        -   - Fix the rule, rerun last month.
+      comments:
+        - '{b_cm_hand} on the {day} snapshot.'
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+        - data-quality
+      let:
+        loan:
+          - '{cu_loan}'
+      title:
+        - Delinquency ages {loan} accounts wrongly
+        - Aging for {loan} skips the grace days
+        - Days past due wrong after skip
+        - Delinquency report counts paid {loan} accounts
+  docs:
+    - body:
+        -   - '{cu_67} {cu_68}'
+        -   - '{cu_69} {cu_70}'
+      comments:
+        - I will add it next week.
+        - '{b_cm_ask_who}'
+      labels:
+        - docs
+        - bug
+      let:
+        runbook:
+          - '{p_runbook}'
+        step:
+          - confirm the control totals
+          - hold the dividend run
+          - notify the branches
+          - record the batch id
+      title:
+        - '{runbook} misses a step: {step}'
+        - Month end runbook skips how to {step}
+        - Cutoff notes skip when to {step}
+        - Runbook is silent on how to {step}
+    - body:
+        -   - '{cu_71} {cu_72}'
+        -   - '{cu_73} {cu_74}'
+        -   - Add an owner and review date.
+      comments:
+        - '{b_cm_draft} the control matrix.'
+        - Link the tickets, not screenshots.
+      labels:
+        - docs
+        - enhancement
+      let:
+        control:
+          - change approval
+          - access reviews
+          - backup restores
+          - vendor changes
+      title:
+        - Write up evidence for {control} for the exam
+        - Document how {control} works for audit
+        - '{cu_exam|cap} asked about {control}'
+        - Where is the proof for {control}?
+    - body:
+        -   - '{b_dc_a} {b_dc_b}'
+        -   - '{cu_75} {cu_76}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_up} {b_cm_read2}'
+      labels:
+        - docs
+        - task
+      let:
+        topic:
+          - how a member merge works
+          - how dividends are posted
+          - how ACH returns flow
+          - how the nightly batch runs
+      title:
+        - Handbook needs an overview of {topic}
+        - Explain {topic} for new staff
+        - New starters ask {topic}
+        - Write a page on {topic}
+  infra:
+    - body:
+        -   - '{cu_55} {cu_56}'
+        -   - '{cu_57} {cu_58}'
+        -   - Warn {14-30} days ahead, then page.
+      comments:
+        - '{b_cm_plan}'
+        - The vendor needs {5-10} days notice.
+      labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - '{p_cert_host}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Renewal of {cert} is manual
+        - Add expiry monitoring for {cert}
+    - body:
+        -   - '{cu_59} {cu_60}'
+        -   - '{cu_61} {cu_62}'
+        -   - Run one and write it up.
+      comments:
+        - '{b_cm_plan}'
+        - '{b_cm_later}'
+      labels:
+        - security
+        - chore
+      let:
+        item:
+          - backups
+          - the core database
+          - the file server
+          - the card processor link
+      title:
+        - Make {item} immutable against ransomware
+        - Test restore for {item} before the audit
+        - Backups for {item} not tested in {2-9} months
+        - Offline copy of {item} is out of date
+    - body:
+        -   - '{cu_63} {cu_64}'
+        -   - '{cu_65} {cu_66}'
+        -   - A second line may be needed.
+      comments:
+        - '{b_cm_check} the failover setting.'
+        - Add router logs for that window.
+      labels:
+        - bug
+      let:
+        link:
+          - the branch network
+          - the ATM switch
+          - the shared branching link
+          - the card processor line
+      title:
+        - '{link|cap} drops at {time} most days'
+        - Failover for {link} never triggers
+        - Branches lose {link} for {2-20} minutes
+        - Monitoring says {link} is healthy but down
+  ops:
+    - body:
+        -   - '{cu_77} and it writes to {p_script_path}.'
+        -   - '{cu_78}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+      labels:
+        - question
+        - chore
+      let:
+        script:
+          - '{p_script}'
+      title:
+        - Is {script} needed after the core upgrade?
+        - Retire {script} from the batch hosts?
+        - '{script} still runs from the old scheduler'
+        - Can we delete {script}?
+  portal:
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cu_24} {cu_25}'
+        -   - '{cu_26} {cu_27}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+      let:
+        device:
+          - '{cu_device}'
+      title:
+        - Mobile deposit hold date is wrong
+        - Funds availability date wrong on {device}
+        - Deposit status stuck at pending on {device}
+        - Check deposit rejects clear images on {device}
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cu_28} {cu_29}'
+        -   - '{cu_30} {cu_31}'
+        -   - Refund fees, add a dedupe key.
+      comments:
+        - '{b_cm_repro} with a slow response.'
+        - '{b_cm_check} the retry logic.'
+      labels:
+        - bug
+      let:
+        payee:
+          - a utility
+          - a landlord
+          - a credit card
+          - a loan
+      title:
+        - Bill pay sent two payments to {payee}
+        - Duplicate bill payment after a retry
+        - Payment to {payee} posted twice
+        - Bill pay shows one, sent two
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cu_32} {cu_33}'
+        -   - '{cu_34} {cu_35}'
+        -   - Please keep details in this issue.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_fix_up}'
+      labels:
+        - bug
+        - security
+      let:
+        scope:
+          - a removed owner's
+          - a former joint owner's
+          - another member's
+      title:
+        - Removed joint owner still sees activity
+        - Joint access not revoked after removal
+        - Online banking shows {scope} accounts
+        - Alerts still reach {scope} phone
+    - body:
+        -   - '{b_ac_a} {b_ac_b}'
+        -   - '{b_ac_c}'
+        -   - '{b_ac_d}'
+      comments:
+        - '{b_cm_sr} {b_cm_sr2}'
+        - '{b_cm_addl} {area}.'
+      labels:
+        - enhancement
+        - docs
+      let:
+        area:
+          - the statements page
+          - the transfer form
+          - the card controls
+          - the loan payment page
+        issue_kind:
+          - no labels
+          - a missing focus order
+          - low contrast
+          - unnamed buttons
+      title:
+        - 'Accessibility: {area} fails screen reader checks'
+        - Keyboard users cannot reach {area}
+        - '{area|cap} lacks labels and focus order'
+        - Contrast on {area} is below the guideline
+name: Credit unions and community banks
+name_suffixes:
+  - Credit Union
+  - Federal Credit Union
+  - Community Credit Union
+  - Community Bank
+  - Savings Bank
+  - Savings and Loan
+names:
+  channels:
+    billing-team:
+      - core-lending
+      - billing-eng
+      - member-billing
+    data-team:
+      - reporting
+      - data-team
+      - call-report
+    engineering:
+      - it-dev
+      - engineering
+      - tech
+    incidents:
+      - incidents
+      - prod-incidents
+      - ops-bridge
+    releases:
+      - releases
+      - change-calendar
+      - deploys
+    support:
+      - member-services
+      - support
+      - branch-help
+  repos:
+    billing-service:
+      - member-billing
+      - loan-billing
+      - fees-and-dividends
+      - statement-service
+    customer-portal:
+      - member-portal
+      - online-banking
+      - mobile-banking
+      - member-web
+    data-pipeline:
+      - core-extracts
+      - reporting-loads
+      - call-report-etl
+      - member-warehouse
+    infra-config:
+      - infra-config
+      - environment-config
+      - branch-network-config
+      - platform-config
+    ops-scripts:
+      - ops-scripts
+      - batch-jobs
+      - legacy-jobs
+      - branch-tools
+    platform-docs:
+      - it-handbook
+      - operations-runbooks
+      - systems-docs
+      - team-handbook
+organization:
+  head: Chief Information Officer
+  it_admin: IT Manager
+  teams:
+    billing:
+      department: Core and Lending Systems
+      title: Software Developer
+    data:
+      department: Reporting and Analytics
+      title: Data Analyst
+    operations:
+      department: Operations
+      title: Operations Analyst
+    platform:
+      department: Information Technology
+      title: Systems Engineer
+    product:
+      department: Digital Experience
+      title: Product Owner
+    support:
+      department: Member Services
+      title: Member Service Representative
+slug: credit-unions
+symbols:
+  b_acct_size:
+    - '{3-12} sub-accounts'
+    - '{2-9} joint owners'
+    - '{200-900} saved payees'
+    - '{15-60} loans'
+  b_cb_path:
+    - billing/ach_returns.py
+    - billing/card_events.py
+    - billing/webhooks.py
+  b_check_path:
+    - the fee tests
+    - the dividend tests
+    - the refund tests
+    - the ACH return tests
+  b_cn_a:
+    - The guard in {b_credit_path}
+    - Validation in {b_credit_path}
+    - The check in {b_credit_path}
+  b_cn_b:
+    - only counts the first refund
+    - ignores earlier refunds
+    - skips refunds issued together
+  b_cn_c:
+    - The total of all refunds
+    - Refunds added together
+    - The combined fee credit
+  b_credit_path:
+    - billing/fee_refunds.py
+    - billing/refunds.py
+    - billing/adjustments.py
+  b_currency:
+    - USD
+    - CAD
+    - EUR
+    - GBP
+  b_customer:
+    - consumer
+    - small business
+    - auto loan
+    - mortgage
+    - youth savings
+    - business member
+  b_doc:
+    - member statement
+    - loan statement
+    - fee notice
+    - dividend notice
+    - year-end tax form
+    - payoff letter
+  b_mail_path:
+    - billing/notices.py
+    - billing/notice_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_money_path:
+    - billing/fees.py
+    - billing/dividends.py
+    - billing/loan_interest.py
+    - billing/rounding.py
+  b_page:
+    - share accounts
+    - loans
+    - transfers
+    - statements
+    - bill pay
+    - the dashboard
+  b_pay_path:
+    - portal/payees.py
+    - portal/linked_accounts.py
+  b_provider_event:
+    - ACH return received
+    - card dispute opened
+    - share draft cleared
+    - loan payment posted
+    - dividend paid
+    - check deposited
+  b_pwho:
+    - member services
+    - a branch manager
+    - '{person}'
+    - the lending team
+    - compliance
+  b_region:
+    - Ohio
+    - Michigan
+    - Wisconsin
+    - Oregon
+    - Texas
+    - Georgia
+  b_taxkind:
+    - backup withholding
+    - interest withholding
+    - state withholding
+    - VAT on fees
+  b_ticket_noun:
+    - ticket
+    - case
+    - complaint
+    - escalation
+  b_who:
+    - member services
+    - the branches
+    - the lending team
+    - finance
+    - compliance
+  c_customer:
+    - a member
+    - a small business member
+    - an auto loan member
+    - one of the larger business accounts
+  c_dep:
+    - the pdf library
+    - the http client
+    - the orm
+    - the date library
+    - the crypto library
+  c_eng_area:
+    - the dividend job
+    - the ACH return handler
+    - the statement run
+    - the login flow
+    - the fee calculation
+    - the loan payment posting
+  cu_1:
+    - The rate table is read early
+    - Dividends use the old rate
+  cu_10:
+    - and members can check it.
+    - for this product.
+  cu_11:
+    - Needs a ruling from compliance.
+    - Lending should confirm the order.
+  cu_12:
+    - The consent flag is not checked
+    - The consent record is read
+  cu_13:
+    - from the wrong field.
+    - for new members.
+  cu_14:
+    - Regulation E requires consent
+    - The rule is strict about overdraft
+  cu_15:
+    - ', so this has legal weight.'
+    - for debit cards.
+  cu_16:
+    - The skip is only a note
+    - Approved skips are not read
+  cu_17:
+    - by the late fee job.
+    - before it runs.
+  cu_18:
+    - Credit reports show late
+    - Members are marked delinquent
+  cu_19:
+    - and call the branch.
+    - wrongly.
+  cu_2:
+    - until the next cycle.
+    - for the whole month.
+  cu_20:
+    - The quote counts days
+    - The per diem uses fixed years
+  cu_21:
+    - and skips the weekend.
+    - ', not actual days.'
+  cu_22:
+    - Members pay the wrong amount
+    - Branches must recalculate
+  cu_23:
+    - by hand each time.
+    - on request.
+  cu_24:
+    - The hold date uses a rule
+    - The app computes availability
+  cu_25:
+    - and disagrees with the core.
+    - at submission.
+  cu_26:
+    - '{cu_reg|cap} sets the hold rules'
+    - The rule has exceptions
+  cu_27:
+    - ', so one date is wrong.'
+    - for new accounts.
+  cu_28:
+    - The request is retried
+    - A timeout triggers a second send
+  cu_29:
+    - and nothing dedupes it.
+    - with a new id.
+  cu_3:
+    - The disclosure promises a rate
+    - The rate sheet says otherwise
+  cu_30:
+    - Members find out late
+    - Overdrafts follow the double payment
+  cu_31:
+    - ', so fees land too.'
+    - on their accounts.
+  cu_32:
+    - The removal updates the core
+    - The core is correct
+  cu_33:
+    - but the portal cache is not.
+    - ', yet the portal lags a day.'
+  cu_34:
+    - This is private financial data
+    - Member data must stay separate
+  cu_35:
+    - ', so treat it as urgent.'
+    - ', fix it first.'
+  cu_36:
+    - Finance found it
+    - The recon job flagged it
+  cu_37:
+    - while closing the quarter.
+    - on a {day} run.
+  cu_38:
+    - The break shows after backdated entries
+    - Late adjustments post next day
+  cu_39:
+    - ', so the days disagree.'
+    - and then it clears.
+  cu_4:
+    - ', so the statement disagrees.'
+    - and members can check it.
+  cu_40:
+    - The filing has a deadline.
+    - Which side do we trust?
+  cu_41:
+    - The load waits for {src}
+    - Nothing starts until {src} lands
+  cu_42:
+    - ', and then it runs.'
+    - ', then goes on.'
+  cu_43:
+    - Branch reports were stale
+    - Lending had no balances
+  cu_44:
+    - until {6-9}am.
+    - for the pipeline.
+  cu_45:
+    - The vendor sent it late
+    - Their batch ran long
+  cu_46:
+    - on their side.
+    - and sent no notice.
+  cu_47:
+    - A merge leaves the old number
+    - Two member records stay open
+  cu_48:
+    - and loans point to both.
+    - after the update.
+  cu_49:
+    - Reports show inflated counts
+    - Member counts look high
+  cu_5:
+    - Finance wants a correction
+    - Compliance wants affected members listed
+  cu_50:
+    - for {2-9} branches.
+    - for one month.
+  cu_51:
+    - The aging starts too early
+    - The report counts from due date
+  cu_52:
+    - and ignores grace days.
+    - for every product.
+  cu_53:
+    - The board sees wrong numbers
+    - Collections works the wrong list
+  cu_54:
+    - ', so this matters.'
+    - each week.
+  cu_55:
+    - Spotted during a change review
+    - Noticed while checking an alert
+  cu_56:
+    - ', and nobody owns renewal.'
+    - and the date is close.
+  cu_57:
+    - Expiry would stop transactions
+    - Expiry would cut a partner link
+  cu_58:
+    - and fail the next batch.
+    - until it is renewed.
+  cu_59:
+    - The last restore test was old
+    - Examiners ask about restores
+  cu_6:
+    - ', not only a code fix.'
+    - before anything is changed.
+  cu_60:
+    - and the answer is thin.
+    - every year.
+  cu_61:
+    - A restore must be proven
+    - Proof of a restore is required
+  cu_62:
+    - for the exam file.
+    - each quarter.
+  cu_63:
+    - Seen on {3-9} days this month
+    - Branches report it
+  cu_64:
+    - and tellers cannot work.
+    - during the lunch rush.
+  cu_65:
+    - The provider sees nothing
+    - Their logs show no errors
+  cu_66:
+    - on their side.
+    - and no resets.
+  cu_67:
+    - Hit this during a late run
+    - The new on-call found it
+  cu_68:
+    - ', and it cost time.'
+    - at month end.
+  cu_69:
+    - The page covers the happy path
+    - It predates the new core release
+  cu_7:
+    - The posting order puts fees first
+    - Payments are applied to interest
+  cu_70:
+    - only.
+    - and nobody updated it.
+  cu_71:
+    - '{cu_exam|cap} asked for the process'
+    - The exam request lists it
+  cu_72:
+    - and the last {2-4} cases.
+    - with recent examples.
+  cu_73:
+    - We do the work
+    - The proof is in tickets
+  cu_74:
+    - ', but evidence is scattered.'
+    - across several tools.
+  cu_75:
+    - Operations knows it
+    - The branches know it best
+  cu_76:
+    - ', so ask them to review.'
+    - and a diagram would help.
+  cu_77:
+    - It was written for old formats
+    - Nobody current has touched it
+  cu_78:
+    - Its retention differs from policy.
+    - Check with operations first.
+  cu_8:
+    - before any principal.
+    - in every case.
+  cu_9:
+    - The loan agreement says otherwise
+    - The disclosure lists a different order
+  cu_device:
+    - an older Android phone
+    - an iPhone on the new OS
+    - a tablet
+    - a low end phone
+  cu_exam:
+    - the NCUA examiner
+    - the state examiner
+    - the auditors
+    - the supervisory committee
+  cu_loan:
+    - auto loan
+    - mortgage
+    - home equity line
+    - credit card
+    - personal loan
+    - business loan
+  cu_reg:
+    - NCUA
+    - Regulation E
+    - Regulation Z
+    - Regulation CC
+    - the BSA program
+  cu_share:
+    - regular share
+    - share draft
+    - money market share
+    - certificate
+    - IRA share
+  p_alert_name:
+    - late end of day files
+    - ACH transmission failures
+    - ATM switch connectivity
+    - failed backups
+    - disk usage on batch hosts
+  p_cert_host:
+    - the online banking certificate
+    - the shared branching certificate
+    - the ATM switch certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - online.{domain}
+    - mobile.{domain}
+    - reports.{domain}
+    - status.{domain}
+  p_finance_ask:
+    - the CFO
+    - the controller
+    - someone in finance
+    - the lending manager
+  p_howto:
+    - restore a database snapshot into staging
+    - request a core service account
+    - rotate the card processor keys
+    - answer an examiner request
+  p_policy:
+    - the month end change freeze
+    - quarterly access reviews
+    - vendor access to the core
+    - on-call compensation
+  p_report:
+    - the delinquency report
+    - the call report schedules
+    - the share growth dashboard
+    - the weekly loan pipeline report
+  p_runbook:
+    - docs/runbooks/eod-batch.md
+    - docs/runbooks/dividend-posting.md
+    - docs/runbooks/online-banking-restarts.md
+    - docs/runbooks/dr-failover.md
+  p_script:
+    - ach_archive.sh
+    - sweep_core_files.sh
+    - purge_batch_dirs.sh
+    - rotate_logs.sh
+    - check_disk.sh
+  p_script_path:
+    - /srv/core/outbound
+    - /srv/ach/archive
+    - /var/log/batch
+    - /mnt/backups/daily
+  p_secret_thing:
+    - the core service password
+    - the card processor token
+    - the bill pay API key
+    - the warehouse service account key
+  p_source:
+    - the core end of day extract
+    - the card processor files
+    - the credit bureau feed
+    - the shared branching network files
+  p_table:
+    - members
+    - shares
+    - loans
+    - transactions
+    - payments
+    - collateral
+  s_cb_bad:
+    - elevated errors on ACH callbacks
+    - card events failing
+    - network callbacks erroring
+    - callback endpoint throwing 5xx
+  s_cb_fix:
+    - retry callbacks on timeout
+    - retry timed out network events
+    - add a retry for callback timeouts
+    - retry events that time out
+  s_cust:
+    - a member on {s_plan}
+    - someone on {s_plan}
+    - a member with {s_plan}
+    - an account on {s_plan}
+  s_dup_a:
+    - duplicate statement notices going out
+    - members got the fee notice twice
+    - same notice mailed repeatedly
+    - notices sent twice
+  s_dup_fix:
+    - stop resending on retry
+    - skip notices already sent
+    - check the sent log first
+    - do not resend after a retry
+  s_inv_late:
+    - statement notices delayed
+    - member notices running late
+    - fee notices not going out
+    - statement sends lagging
+  s_inv_late_b:
+    - oldest has waited {20-90} min
+    - nothing sent since {time}
+    - send lag keeps rising
+    - backlog growing fast
+  s_plan:
+    - the basic share account
+    - a business share draft account
+    - a certificate account
+    - an auto loan
+  s_thing:
+    - the dividend job
+    - the ACH file
+    - the statement run
+    - the end of day batch
+    - the export
+  s_tool:
+    - the core admin screen
+    - the case system
+    - the teller screen
+    - the ticket queue
+systems:
+  common:
+    - fiserv
+    - docusign
+    - salesforce
+    - splunk
+    - pagerduty
+  typical:
+    - github
+    - slack
+    - jira
+    - okta
+    - jack henry
+    - q2
+    - servicenow
+    - google workspace
+    - symitar
+    - verafin

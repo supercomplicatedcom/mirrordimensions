@@ -1,0 +1,1488 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Retail and commercial banking: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+aliases:
+  - banking
+  - bank
+  - retail banking
+  - commercial banking
+  - community bank holding
+chat:
+  direct:
+    - replies:
+        -   - '{s_ack}'
+            - sure, {s_soon}
+            - give me ten
+        -   - half up, to the cent
+            - i will check the disclosure
+            - '{s_thx}'
+      root:
+        - '{s_hey}, review the fee waiver change {s_soon}?'
+        - quick question on how accrual rounds
+        - move the cutover review to {time}?
+        - '{s_hey}, look at the statement mismatch?'
+    - replies:
+        -   - '{s_ack}, thanks'
+            - send me the checklist
+            - good luck
+        -   - '{c_lol}'
+            - same here
+            - congrats
+      root:
+        - handing over the ach window, out {s_soon}
+        - ugh, audit wants last year's evidence
+        - survived the exam, finally
+  engineering:
+    - replies:
+        -   - '{c_ack}, looking {c_when_eng}'
+            - is there a leap year test?
+            - what is the rounding rule here?
+        -   - half up to the cent
+            - trace number plus file id, yes
+            - '{c_thanks}'
+      root:
+        - review my pr on {repo}? fee calculation
+        - '{c_ci_fail} fails on the accrual branch'
+        - should returns dedupe on trace number?
+        - freeze for month end from {day} {time}
+    - replies:
+        -   - check the control totals first
+            - ops has the checklist
+            - see the runbook, i think
+        -   - '{c_ack}'
+            - thanks, that helps
+            - i will write it up
+      root:
+        - how to replay a failed batch?
+        - why does posting take {40-90} minutes on {day}?
+        - is the vendor's test region down?
+        - who owns the wire cutoff config?
+    - replies:
+        -   - author left, see the old pr
+            - '{person} knows that area'
+            - compliance has the rules written down
+        -   - '{c_thanks}'
+            - good idea, will try
+      root:
+        - working on {issue}, who knows the dispute clock?
+        - eyes on the cutoff change, {issue}?
+        - fee tests on last month's balances?
+  incidents:
+    - replies:
+        -   - seeing it too, since {time}
+            - '{c_ack}, looking'
+            - vendor says they are checking
+        -   - do not rerun before totals match
+            - opened {issue}
+            - i will post in the thread
+      root:
+        - ach transmission alert is flapping again
+        - 'handover: {s_oncall} is quiet, nothing open'
+        - anyone else seeing the wire gateway {s_symptom}?
+        - end of day file is {p_delay} late
+    - replies:
+        -   - '{c_ack}'
+            - is online banking affected?
+            - ok, keep us posted
+        -   - yes, a retry saved it
+            - who is renewing it?
+            - '{c_thanks}'
+      root:
+        - the core vendor posted an incident
+        - ach gateway cert expires in {2-9} days
+        - rolled back {repo}, balances look right
+        - near miss, dedupe caught a repeat
+    - replies:
+        -   - seeing it too
+            - '{c_ack}, on it'
+            - paging the card team
+        -   - root cause is a full queue
+            - restarted the worker, clearing
+            - '{c_thanks}, will post a review'
+      root:
+        - '{s_al} card authorizations are slow'
+        - online banking login errors since {time}
+        - the batch backed up to {1-9},{100-900} items
+        - fraud alerts stopped firing, checking now
+  off-topic:
+    - replies:
+        -   - '{c_lol}'
+            - not refinancing yet
+            - '{c_agree}'
+        -   - ''
+            - my broker says wait
+            - ask the loan team
+      root:
+        - anyone follow the rate decision?
+        - mortgage rates again, anyone refinancing?
+        - lunch ideas? sick of {c_food}
+        - did the {match/game/race} go on last night?
+    - replies:
+        -   - count me in
+            - '{c_lol}'
+            - what time?
+        -   - '{time}, meet by the lifts'
+            - ''
+            - '{c_yes}, bring umbrellas'
+      root:
+        - who wants the charity run?
+        - birthday cake in {c_room} at {time}
+        - did anyone see the storm warning?
+        - lunch at {s_lunch}, who is in?
+  support:
+    - replies:
+        -   - can you paste the trace number?
+            - checking the core now
+            - looking, one sec
+        -   - duplicate return event, filed as {issue}
+            - '{c_ack}, refund and note the case'
+            - waiver is allowed, ask the manager
+        -   - '{c_thanks}'
+            - will call the customer back
+      root:
+        - customer says ach debit posted twice, {s_ticket}
+        - '{s_cust|cap} asks why the fee was charged'
+        - a wire is stuck pending since {time}
+        - refund request, {s_cust}, ${s_money}, wrong overdraft fee
+    - replies:
+        -   - try plain background and good light
+            - known issue, {issue}
+            - '{c_ack}'
+        -   - the dispute deadline worries me
+            - do we have the credit date?
+            - escalate to the dispute team
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - mobile deposit rejects the front image, {s_ticket}
+        - locked out in a code loop, {s_ticket}
+        - queue is at {20-80} open cases
+        - heads up, {s_cust} waits {2-9} days for credit
+    - replies:
+        -   - it is under statements, tax forms
+            - we can reissue, ask tax reporting
+            - '{c_ack}'
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - customer never got their tax form
+        - customer needs last year's interest totals
+        - closing my shift, {5-20} open cases
+    - replies:
+        -   - rate is on the product page
+            - cutoff is {time}, so maybe
+            - checking the wire queue
+        -   - stop payments are placed by operations
+            - filed the dispute, {issue}
+            - '{c_ack}, thanks'
+        -   - '{c_thanks}'
+            - will tell the customer
+      root:
+        - customer asks about the {2-9}% savings rate
+        - can a wire still go today?
+        - '{s_cust} wants a stop payment'
+        - customer disputes a card charge, {s_ticket}
+  team:
+    - replies:
+        -   - '{c_ack}'
+            - i can cover
+            - on it
+        -   - '{c_thanks}'
+            - ping me if the window slips
+      root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - i am {c_pto}, who covers the ach window?
+        - planning {day} at {time}, bring fee estimates
+        - 'escalation: {c_customer} sees a wrong balance'
+    - replies:
+        -   - operations approves, not us
+            - i will update it {c_when_eng}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+      root:
+        - 'retro action: who approves big wires?'
+        - who has the statement release checklist?
+        - is the board current for audit?
+    - replies:
+        -   - i can take it
+            - '{person} has it'
+            - still waiting on compliance
+        -   - '{c_ack}'
+            - '{c_thanks}'
+            - ''
+      root:
+        - who has the wire desk?
+        - audit evidence is due {c_soon}, who owns it?
+        - 'release prep for {repo}: any blockers?'
+        - show and tell {day} {time}, volunteers?
+  town-square:
+    - replies:
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - does that cover the weekend batch?
+        -   - '{c_yes}, same as last year'
+            - ops has the schedule
+            - ''
+      root:
+        - '{c_hey}: bank holiday {c_soon}, batch still runs'
+        - bank holiday {c_soon}, no ach files go out
+        - holiday schedule posted, early wire cutoff
+        - bank holiday {c_soon}, support is on rota
+    - replies:
+        -   - same course as last year?
+            - where is the link again?
+            - does the privacy module count?
+        -   - new modules this year, shorter
+            - under learning in the hr portal
+            - '{c_idk}, ask {person}'
+      root:
+        - annual compliance training is due {c_soon}
+        - '{c_hey}: security training closes {c_soon}'
+        - compliance modules lock {c_soon}, finish them
+        - training overdue for {2-9} people
+    - replies:
+        -   - '{c_ack}'
+            - will there be a briefing?
+        -   - '{day} at {time}, in {c_room}'
+            - compliance will send a note
+            - ''
+      root:
+        - examiners are on site {c_soon}, keep tidy
+        - exam week {c_soon}, send requests to {person}
+        - '{c_hey}: regulator visit starts {day}'
+        - the exam starts {day}, answer only what is asked
+    - replies:
+        -   - welcome!
+            - '{c_thanks}'
+            - where do they sit?
+        -   - second floor, by operations
+            - '{c_idk}, ask {person}'
+            - ''
+      root:
+        - new hire in loan ops {c_soon}
+        - welcome {person} to client services, starts {c_soon}
+        - '{c_hey}: new analyst joins {c_soon}, say hi'
+comments:
+  - '{b_cm_check} the return codes in the file.'
+  - Does it touch regulatory reporting?
+  - Compliance should see this first.
+  - '{b_g_loop} operations, they run the window.'
+  - What does the disclosure say here?
+description: A bank that holds deposits, lends to individuals and businesses, moves money over payment networks and answers to regulators and examiners.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+extends: general
+group: Financial services
+incidents:
+  - alert:
+      - '{s_inv_late}, {s_inv_late_b}'
+      - '{s_al} {s_inv_late}'
+      - '{s_inv_late} - {s_inv_late_b}'
+    fix: billing/email_queue.py
+    fix_message:
+      - '{s_q_verb|cap} notices {s_q_how}'
+      - Queue statement notices, not inline sends
+      - '{s_q_verb|cap} customer mail {s_q_how}'
+    role: billing
+    title:
+      - Statement notices delayed
+      - Customer notices arriving late
+      - Fee notice delivery slow
+      - Statement mail running behind
+  - alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix: billing/callbacks.py
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle network timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+    role: billing
+    title:
+      - Payment network callback errors
+      - Elevated errors on ACH return events
+      - Network callbacks failing
+      - Return events not processed
+  - alert:
+      - '{s_dup_a}'
+      - '{s_dup_a}, {s_dup_b}'
+      - '{s_al} {s_dup_a}, {s_dup_b}'
+    fix: billing/sent_log.py
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - 'Dedupe notices: {s_dup_fix}'
+      - '{s_dup_fix|cap}, keep a sent log'
+    role: billing
+    title:
+      - Duplicate statement notices
+      - Customers receiving notices twice
+      - Fee notices sent twice
+      - Repeated customer notices
+invoice_items:
+  - Monthly account maintenance fee
+  - Wire transfer fee
+issues:
+  billing:
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_raised} on {kind} accounts, {b_scope}.'
+        -   - '{bk_1} {bk_2}'
+        -   - Both events post a fee {bk_3}
+        -   - '{bk_4} {bk_5}'
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} with a repeated {rc} return.'
+        - '{bk_6} {bk_7}'
+        - '{b_cm_fix_up} It refunds the second fee too.'
+      labels:
+        - bug
+      let:
+        fee:
+          - NSF fee
+          - returned item fee
+          - overdraft fee
+          - return fee
+        kind:
+          - '{bk_acctkind}'
+        rc:
+          - '{bk_ach}'
+      title:
+        - '{fee|cap} charged twice after {rc}'
+        - Customer hit with two {fee}s on one item
+        - Duplicate {fee} when the return {arrives/repeats}
+        - Returned item posts two fees, {rc}
+        - Why do some returns get two {fee}s?
+    - body:
+        -   - '{b_raised}, found during a file review.'
+            - Found by {b_who} during an audit.
+        -   - '{bk_8} {bk_9}'
+        -   - '{bk_10} {bk_11}'
+        -   - '{bk_12}'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_check} the holiday table for next year.'
+        - Compliance should confirm the day counts.
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+        - needs-decision
+      let:
+        kind:
+          - '{bk_dispute}'
+        reg:
+          - '{bk_reg}'
+      title:
+        - Provisional credit deadline wrong for {kind} disputes
+        - Dispute clock counts holidays
+        - '{kind|cap} dispute credit posted a day late'
+        - Business day count for {reg} is off
+        - Case tool and fee engine disagree
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{bk_13} {bk_14}'
+        -   - '{bk_15} {bk_16}'
+        -   - '{bk_17} {bk_18}'
+      comments:
+        - '{b_cm_hand} by {2-9} cents on a {kind} account.'
+        - Back-pay, or only go forward?
+        - '{b_cm_later}'
+      labels:
+        - bug
+      let:
+        basis:
+          - 30/360
+          - actual/365
+          - actual/360
+        kind:
+          - '{bk_acctkind}'
+      title:
+        - Interest on {kind} uses {basis}, not the contract
+        - Accrual differs from the {basis} schedule
+        - Accrued interest off by cents on {kind}
+        - Leap year changes interest on {kind}
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{bk_19} {bk_20}'
+        -   - '{bk_21} {bk_22}'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_check} which balance the rule uses.'
+        - Average or ledger balance? Disclosure unclear.
+      labels:
+        - bug
+        - enhancement
+      let:
+        fee:
+          - overdraft fee
+          - monthly maintenance fee
+          - wire fee
+          - paper statement fee
+      title:
+        - '{fee|cap} not waived with direct deposit'
+        - Waiver rules for the {fee} ignore the new tier
+        - '{fee|cap} charged though the balance was met'
+        - Waiver for {fee} runs at the wrong time
+    - body:
+        -   - Found in the year end run, {b_scope}.
+        -   - '{bk_23} {bk_24}'
+        -   - '{bk_25} {bk_26}'
+        -   - Use case ids, not customer details.
+      comments:
+        - Tax reporting must sign the totals.
+        - '{b_cm_repro} with a joint account closed in {2-11}.'
+      labels:
+        - bug
+        - security
+      let:
+        form:
+          - 1099-INT
+          - 1098 mortgage interest
+          - 1099-R
+          - 1099-INT correction
+      title:
+        - '{form} totals disagree with year-end statements'
+        - '{form} run skipped closed accounts'
+        - Missing {form} amounts for joint owners
+        - '{form} mailing file has {3-40} bad addresses'
+  data:
+    - body:
+        -   - '{bk_42} {bk_43}'
+        -   - '{bk_44} {bk_45}'
+        -   - '{bk_46} {bk_47}'
+        -   - Alert when the file is late.
+      comments:
+        - '{b_cm_check} the transfer log from their side.'
+        - Rerun fixed it, add a guard.
+      labels:
+        - bug
+        - incident
+      let:
+        batch:
+          - '{bk_batch}'
+      title:
+        - '{batch|cap} arrived {p_delay} late'
+        - Load missed the reporting cutoff on {day}
+        - Morning reports delayed, {batch} came late
+        - '{batch|cap} came without control totals'
+    - body:
+        -   - '{bk_48} {bk_49}'
+        -   - '{bk_50} {bk_51}'
+        -   - '{bk_52}'
+      comments:
+        - '{b_cm_hand} on the {day} snapshot.'
+        - Reproduced with the {day} snapshot.
+      labels:
+        - data-quality
+        - question
+      let:
+        table:
+          - '{p_table}'
+      title:
+        - Ledger and {table} differ by {p_dollars}
+        - Call report schedule does not tie
+        - '{table|cap} differ from the core extract'
+        - Reconciliation break on {table}, {p_dollars}
+    - body:
+        -   - '{bk_53} {bk_54}'
+        -   - '{bk_55} {bk_56}'
+        -   - '{bk_57}'
+      comments:
+        - List the dates so compliance reruns.
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+        - data-quality
+      let:
+        feed:
+          - the transaction monitoring feed
+          - the sanctions screening feed
+          - the customer risk feed
+          - the card dispute feed
+      title:
+        - '{feed|cap} missed {2-9} hours of activity'
+        - Duplicate rows in {feed} after a reprocess
+        - Gap in {feed} on {day}
+        - Late rows in {feed} skew alert counts
+  docs:
+    - body:
+        -   - '{bk_76} {bk_77}'
+        -   - '{bk_78} {bk_79}'
+      comments:
+        - I will add it next window.
+        - '{b_cm_ask_who}'
+      labels:
+        - docs
+        - bug
+      let:
+        runbook:
+          - '{p_runbook}'
+        step:
+          - confirm control totals
+          - hold the ACH file
+          - tell treasury about a late file
+          - record the batch id
+      title:
+        - '{runbook} misses a step: {step}'
+        - Cutoff procedure skips how to {step}
+        - Reruns need a note to {step}
+        - Who decides to {step}? Runbook is silent
+    - body:
+        -   - '{bk_80} {bk_81}'
+        -   - '{bk_82} {bk_83}'
+        -   - Add an owner and review date.
+      comments:
+        - '{b_cm_draft} the control matrix.'
+        - Link the tickets, not screenshots.
+      labels:
+        - docs
+        - enhancement
+      let:
+        control:
+          - change approval
+          - access reviews
+          - backup restores
+          - vendor changes
+      title:
+        - Write up proof for {control} for the examiners
+        - Document how {control} works for audit
+        - 'Exam prep: evidence for {control}'
+        - Auditors asked about {control}
+    - body:
+        -   - '{b_dc_a} {b_dc_b}'
+        -   - '{bk_84} {bk_85}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_up} {b_cm_read2}'
+      labels:
+        - docs
+        - task
+      let:
+        topic:
+          - how a disputed card item flows
+          - how ACH return files arrive
+          - how wires get approved
+          - how the daily cutoff works
+      title:
+        - Handbook needs an overview of how {topic}
+        - Explain {topic} for new engineers
+        - New starters ask {topic}
+        - Write a page on {topic}
+  infra:
+    - body:
+        -   - '{bk_58} {bk_59}'
+        -   - '{bk_60} {bk_61}'
+        -   - '{bk_62} {bk_63}'
+        -   - Warn {14-30} days ahead, then page.
+      comments:
+        - '{b_cm_plan}'
+        - Partner notice is {5-10} business days.
+      labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - '{p_cert_host}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Renewal of {cert} keeps slipping
+        - Add expiry monitoring for {cert}
+    - body:
+        -   - '{bk_64} {bk_65}'
+        -   - '{bk_66} {bk_67}'
+        -   - Fix it, rerun before the report.
+      comments:
+        - '{b_cm_check} the steps against {p_runbook}.'
+        - Add timings to the exercise report.
+      labels:
+        - bug
+        - incident
+      let:
+        system:
+          - '{bk_system}'
+      title:
+        - Failover of {system} missed recovery objective
+        - 'DR exercise: {system} took {20-90} minutes'
+        - Recovery gaps found for {system}
+        - Replica for {system} lagged during failover
+    - body:
+        -   - '{bk_68} {bk_69}'
+        -   - '{bk_70} {bk_71}'
+        -   - Fieldwork starts in {2-8} weeks.
+      comments:
+        - Attach the change ticket for each.
+        - '{b_cm_later}'
+      labels:
+        - security
+        - chore
+      let:
+        zone:
+          - the card data environment
+          - the wire gateway zone
+          - the batch network
+          - the vendor connection
+      title:
+        - Review firewall rules for {zone}
+        - Segmentation check flagged {2-9} rules on {zone}
+        - Rules for {zone} are past policy age
+        - Trim access to {zone} before the audit
+    - body:
+        -   - '{bk_72} {bk_73}'
+        -   - '{bk_74} {bk_75}'
+        -   - A keepalive may be enough.
+      comments:
+        - '{b_cm_check} the idle timeout.'
+        - Add firewall logs for that window.
+      labels:
+        - bug
+      let:
+        link:
+          - the core vendor tunnel
+          - the card processor link
+          - the payment network line
+          - the bureau connection
+      title:
+        - '{link|cap} drops at {time} every night'
+        - Resets on {link} since {day}
+        - Failover for {link} never triggers
+        - Monitoring says {link} is healthy but down
+  ops:
+    - body:
+        -   - '{bk_86} and it writes to {p_script_path}.'
+        -   - '{bk_87}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+      labels:
+        - question
+        - chore
+      let:
+        script:
+          - '{p_script}'
+      title:
+        - Is {script} needed after the core upgrade?
+        - Retire {script} from the batch hosts?
+        - '{script} still runs from the old scheduler'
+        - Can we delete {script}?
+  portal:
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{bk_27} {bk_28}'
+        -   - '{bk_29} {bk_30}'
+        -   - '{bk_31}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - The vendor says contrast is tunable.
+        - '{b_cm_plan}'
+      labels:
+        - bug
+      let:
+        device:
+          - '{bk_device}'
+      title:
+        - Mobile deposit rejects the image on {device}
+        - Remote deposit fails, blurry image error
+        - Check deposit hangs at review on {device}
+        - Front and back swapped in deposit
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{bk_32} {bk_33}'
+        -   - '{bk_34} {bk_35}'
+        -   - Please keep details in this issue.
+      comments:
+        - '{b_cm_repro} on a fresh profile.'
+        - Is the trusted cookie scoped right?
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+        - security
+      let:
+        trigger:
+          - a password reset
+          - switching devices
+          - an app update
+          - the session timeout
+      title:
+        - Step-up code loops after {trigger}
+        - Stuck in a code loop after {trigger}
+        - Banking asks for a code twice
+        - Code prompt repeats on transfers
+    - body:
+        -   - '{b_ac_a} {b_ac_b}'
+        -   - '{bk_36} {bk_37}'
+        -   - '{b_ac_c}'
+        -   - '{b_ac_d}'
+      comments:
+        - '{b_cm_sr} {b_cm_sr2}'
+        - '{b_cm_addl} {area}.'
+      labels:
+        - enhancement
+        - docs
+      let:
+        area:
+          - the statements page
+          - the transfer form
+          - the payee list
+          - the check image viewer
+        issue_kind:
+          - no labels
+          - a missing focus order
+          - low contrast
+          - unnamed buttons
+      title:
+        - 'Accessibility: {area} fails screen reader checks'
+        - Keyboard users cannot reach {area}
+        - '{area|cap} lacks labels and focus order'
+        - Contrast on {area} is below the guideline
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{bk_38} {bk_39}'
+        -   - '{bk_40} {bk_41}'
+        -   - Read it live, or cache less.
+      comments:
+        - '{b_cm_check} where the limit is stored.'
+        - '{b_cm_clr2}'
+      labels:
+        - bug
+      let:
+        limit:
+          - daily transfer limit
+          - external transfer limit
+          - wire limit
+          - mobile deposit limit
+      title:
+        - The app's {limit} is not the core's
+        - '{limit|cap} changes reach online banking late'
+        - Customers see the old {limit}
+        - Transfers rejected below the {limit}
+name: Retail and commercial banking
+name_suffixes:
+  - Bank
+  - Savings Bank
+  - Trust
+  - Bancorp
+  - National Bank
+  - Financial
+  - Bank and Trust
+names:
+  channels:
+    billing-team:
+      - core-banking
+      - fees-team
+      - billing-eng
+    data-team:
+      - data-reporting
+      - data-team
+      - regulatory-data
+    engineering:
+      - engineering
+      - tech
+      - dev-team
+    incidents:
+      - incidents
+      - prod-incidents
+      - ops-bridge
+    releases:
+      - releases
+      - change-calendar
+      - deploys
+    support:
+      - client-services
+      - support
+      - service-desk
+  repos:
+    billing-service:
+      - fee-engine
+      - account-billing
+      - statement-service
+      - fees-and-interest
+    customer-portal:
+      - online-banking
+      - digital-banking
+      - mobile-web
+      - client-portal
+    data-pipeline:
+      - eod-loads
+      - reporting-warehouse
+      - ledger-feeds
+      - regulatory-loads
+    infra-config:
+      - environment-config
+      - infra-baseline
+      - platform-config
+      - dr-config
+    ops-scripts:
+      - ops-batch
+      - legacy-jobs
+      - branch-scripts
+      - batch-utils
+    platform-docs:
+      - tech-handbook
+      - engineering-runbooks
+      - platform-handbook
+      - change-docs
+organization:
+  head: Chief Technology Officer
+  it_admin: IT Operations Manager
+  teams:
+    billing:
+      department: Core Banking Technology
+      title: Software Engineer
+    data:
+      department: Data and Reporting
+      title: Data Engineer
+    operations:
+      department: Banking Operations
+      title: Operations Analyst
+    platform:
+      department: Technology
+      title: Platform Engineer
+    product:
+      department: Digital Banking
+      title: Product Manager
+    support:
+      department: Client Services
+      title: Client Service Representative
+slug: banking
+symbols:
+  b_acct_size:
+    - '{3-12} linked accounts'
+    - '{15-60} sub-accounts'
+    - '{3-12} authorized signers'
+    - '{200-900} saved payees'
+  b_cb_path:
+    - billing/payment_events.py
+    - billing/ach_returns.py
+    - billing/network_events.py
+  b_check_path:
+    - the fee tests
+    - the notice tests
+    - the waiver tests
+    - the ACH return tests
+  b_cn_a:
+    - The guard in {b_credit_path}
+    - Validation in {b_credit_path}
+    - The check in {b_credit_path}
+    - Code in {b_credit_path}
+  b_cn_b:
+    - only counts the first waiver
+    - ignores earlier waivers
+    - skips waivers made the same minute
+    - looks only at the oldest waiver
+  b_cn_c:
+    - The total of all fee waivers
+    - Waivers added together
+    - The combined refund amount
+    - What has been refunded in total
+  b_credit_path:
+    - billing/fee_waivers.py
+    - billing/refunds.py
+    - billing/adjustments.py
+  b_currency:
+    - USD
+    - EUR
+    - GBP
+    - CAD
+    - CHF
+  b_customer:
+    - retail
+    - small business
+    - commercial
+    - private banking
+    - mortgage
+    - student
+  b_dn_a:
+    - The overdue notice job
+    - The delinquency job
+    - Code in billing/jobs/delinquency.py
+  b_dn_b:
+    - ignores deposits still pending
+    - does not see items in flight
+    - skips pending ACH credits
+  b_dn_c:
+    - Today the rule is {period} past due
+    - The rule is {period} after the due date
+    - Currently it fires {period} late
+  b_doc:
+    - account statement
+    - fee notice
+    - loan statement
+    - interest notice
+    - '{monthly/quarterly} statement'
+    - year-end tax form
+  b_mail_path:
+    - billing/notices.py
+    - billing/notice_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_money_path:
+    - billing/fees.py
+    - billing/interest.py
+    - billing/statement_totals.py
+    - billing/rounding.py
+  b_nd_b:
+    - by hand today
+    - case by case
+    - manually for now
+  b_page:
+    - statements
+    - payees
+    - account activity
+    - transfers
+    - alerts
+    - the dashboard
+    - check images
+  b_pay_path:
+    - portal/payees.py
+    - portal/linked_accounts.py
+  b_pr_b:
+    - in billing/interest.py
+    - in the accrual module
+    - inside accrual.py
+  b_pr_c:
+    - with a fixed month length
+    - using thirty days always
+    - without the real day count
+  b_provider_event:
+    - ACH return received
+    - card dispute opened
+    - wire settled
+    - deposit posted
+    - chargeback opened
+    - stop payment placed
+  b_pwho:
+    - client services
+    - a branch manager
+    - '{person}'
+    - the relationship team
+    - compliance
+  b_region:
+    - Texas
+    - Florida
+    - Ohio
+    - New York
+    - Oregon
+    - Georgia
+  b_rt_b:
+    - the same retry schedule
+    - an identical retry plan
+    - one fixed retry pattern
+  b_rt_c:
+    - whatever the return code
+    - even for closed accounts
+    - hard or soft
+  b_taxkind:
+    - backup withholding
+    - interest withholding
+    - VAT on fees
+    - state withholding
+  b_ticket_noun:
+    - case
+    - complaint
+    - ticket
+    - escalation
+  b_who:
+    - the branch network
+    - operations
+    - the compliance team
+    - finance
+    - client services
+  bk_1:
+    - The return event lands twice
+    - Return files get processed twice
+    - The network resends the return
+  bk_10:
+    - The case tool uses another calendar
+    - The two systems use different calendars
+    - Holiday tables stop last year
+  bk_11:
+    - ', so results differ.'
+    - and nobody noticed.
+    - for some products.
+  bk_12:
+    - That matters for {reg}, which sets the timeline.
+    - '{bk_exam|cap} will look at this timing.'
+  bk_13:
+    - The accrual code counts days
+    - Daily accrual uses a day count
+    - Interest uses a fixed year length
+  bk_14:
+    - ', and ignores leap years.'
+    - in {b_money_path}.
+    - for every product.
+  bk_15:
+    - The disclosure promises {basis}
+    - Account terms say {basis}
+    - The rate sheet lists {basis}
+  bk_16:
+    - ', so the statement disagrees.'
+    - and customers can check it.
+    - for this product.
+  bk_17:
+    - Finance wants a correction posted
+    - Compliance wants affected accounts listed
+  bk_18:
+    - ', not only a code fix.'
+    - before anything is changed.
+    - for the examiners.
+  bk_19:
+    - The minimum balance is read
+    - The balance check runs
+    - The waiver looks at a snapshot
+  bk_2:
+    - ', and {b_cb_path} has no dedupe.'
+    - ', and nothing records the trace number.'
+    - and the handler skips trace ids.
+  bk_20:
+    - before end of day posting.
+    - from the previous cycle.
+    - too early in the day.
+  bk_21:
+    - Customers on the new tier
+    - Accounts with direct deposit
+    - People who meet the minimum
+  bk_22:
+    - should never see the {fee}.
+    - still get charged.
+    - call client services.
+  bk_23:
+    - Closed accounts with interest paid
+    - Joint accounts
+    - Accounts closed mid year
+  bk_24:
+    - are left out of the file.
+    - only report the first owner.
+    - get no form at all.
+  bk_25:
+    - The filing deadline is fixed
+    - Tax reporting has a hard date
+  bk_26:
+    - ', so this is urgent.'
+    - and corrected forms must be filed.
+    - for the regulator.
+  bk_27:
+    - The upload works
+    - The image uploads fine
+    - The app accepts the photo
+  bk_28:
+    - ', but the image check rejects it.'
+    - and then the vendor refuses it.
+    - and review never finishes.
+  bk_29:
+    - The camera crops the check edge
+    - Auto capture fires too early
+    - Glare on the check is flagged
+  bk_3:
+    - ', and the second is never reversed.'
+    - ', so the customer pays twice.'
+    - and both show on the statement.
+  bk_30:
+    - on this device.
+    - on older phones.
+    - every time.
+  bk_31:
+    - A clear message would help.
+    - Deposits over the limit fail silently.
+  bk_32:
+    - The device is marked trusted
+    - The trusted flag is saved
+    - The risk score is read
+  bk_33:
+    - ', but the flag is lost.'
+    - before the session exists.
+    - and then ignored.
+  bk_34:
+    - Locked out customers call in
+    - People give up and phone support
+    - Branches get the calls
+  bk_35:
+    - ', and wait times grow.'
+    - every morning.
+    - after each release.
+  bk_36:
+    - The review used WCAG 2.1
+    - An accessibility audit flagged it
+    - A customer complaint started this
+  bk_37:
+    - as the bar.
+    - ', and the date is fixed.'
+    - and compliance is watching.
+  bk_38:
+    - The portal caches limits
+    - Limits come from a nightly copy
+    - The app keeps limits in session
+  bk_39:
+    - for the whole session.
+    - ', so changes arrive a day later.'
+    - and never refreshes them.
+  bk_4:
+    - Branches are refunding it
+    - Client services refunds by hand
+    - Operations is reversing them
+  bk_40:
+    - Customers hit it
+    - It shows up right away
+  bk_41:
+    - after calling to raise the limit.
+    - when a limit is raised.
+    - after a branch visit.
+  bk_42:
+    - The load waits for {batch}
+    - Nothing starts until {batch} lands
+  bk_43:
+    - ', and then it runs.'
+    - ', then goes on.'
+    - from the core.
+  bk_44:
+    - Branch reports were stale
+    - Treasury had no balances
+  bk_45:
+    - until {6-9}am.
+    - for the liquidity view.
+    - most of the morning.
+  bk_46:
+    - The vendor sent it late
+    - Their batch ran long
+  bk_47:
+    - on their side.
+    - and sent no notice.
+  bk_48:
+    - Financial reporting found it
+    - Treasury spotted it
+    - Audit raised it
+  bk_49:
+    - while closing the quarter.
+    - during a reconciliation.
+    - on a {day} run.
+  bk_5:
+    - ', {2-30} so far.'
+    - and the count keeps growing.
+    - this month.
+  bk_50:
+    - The break appears after backdated entries
+    - Accruals land in the next load
+    - Late adjustments post a day late
+  bk_51:
+    - ', so the days disagree.'
+    - and then it clears.
+    - but only sometimes.
+  bk_52:
+    - The regulatory filing has a deadline.
+    - Which side do we trust?
+  bk_53:
+    - Compliance saw fewer alerts
+    - The row count dropped
+    - Alert volume fell
+  bk_54:
+    - than usual.
+    - against the day before.
+    - overnight.
+  bk_55:
+    - The extract filters on modified time
+    - A core reprocess resent items
+  bk_56:
+    - and late items are skipped.
+    - without a new timestamp.
+    - after a restart.
+  bk_57:
+    - Anything missed must be re-screened.
+    - This is a monitoring gap.
+  bk_58:
+    - Spotted while checking another alert
+    - Noticed during a change review
+  bk_59:
+    - ', nobody owns renewal.'
+    - and the date is close.
+  bk_6:
+    - A unique key on trace id
+    - Storing the trace number
+    - Keying on the return trace
+  bk_60:
+    - Expiry would stop transmissions
+    - Expiry would cut off the partner
+  bk_61:
+    - and fail the next batch.
+    - until it is renewed.
+  bk_62:
+    - Renewal needs a change ticket
+    - The partner needs notice
+  bk_63:
+    - and a coordination call.
+    - before any swap.
+  bk_64:
+    - This is in the continuity plan
+    - This was the annual recovery exercise
+  bk_65:
+    - ', and feeds the report.'
+    - for {bk_exam}.
+  bk_66:
+    - DNS cutover took longer than planned
+    - One runbook step was stale
+  bk_67:
+    - and the replica was behind.
+    - ', and a script failed.'
+  bk_68:
+    - The assessor asked for rule reviews
+    - PCI DSS needs a current review
+  bk_69:
+    - ', and many rules have no owner.'
+    - and an owner for each rule.
+  bk_7:
+    - would make repeats a no-op.
+    - should be enough.
+    - makes repeats harmless.
+  bk_70:
+    - Unused rules should be removed
+    - Every removal needs a ticket
+  bk_71:
+    - and a note.
+    - with the owner's approval.
+  bk_72:
+    - Seen on {3-9} nights
+    - Happened {3-9} times this month
+  bk_73:
+    - ', and batches stall.'
+    - and the batch loses its place.
+  bk_74:
+    - The vendor sees nothing
+    - Their logs show no errors
+  bk_75:
+    - on their side.
+    - and no resets.
+  bk_76:
+    - Hit this during a late rerun
+    - The new on-call found it
+    - Operations pointed it out
+  bk_77:
+    - ', and it cost time.'
+    - at the cutoff.
+  bk_78:
+    - The page covers the happy path
+    - It predates the second window
+  bk_79:
+    - only.
+    - and nobody updated it.
+  bk_8:
+    - The deadline uses a weekday count
+    - Dates come from a weekday calculation
+    - The clock skips no bank holidays
+  bk_80:
+    - '{bk_exam|cap} asked for the process'
+    - The pre-audit meeting wanted it
+  bk_81:
+    - and the last {2-4} cases.
+    - with recent examples.
+  bk_82:
+    - We do the work
+    - The proof is in tickets
+  bk_83:
+    - ', but evidence is scattered.'
+    - across several tools.
+  bk_84:
+    - Operations knows it
+    - Engineering mostly does not
+  bk_85:
+    - ', so ask them to review.'
+    - and a diagram would help.
+  bk_86:
+    - It was written for old formats
+    - Nobody current has touched it
+  bk_87:
+    - Its retention differs from policy.
+    - Check with operations first.
+  bk_9:
+    - in {b_money_path}.
+    - ', in the fee engine.'
+    - and ignores the calendar table.
+  bk_acctkind:
+    - checking
+    - savings
+    - money market
+    - business checking
+    - certificate of deposit
+  bk_ach:
+    - R01 insufficient funds
+    - R02 account closed
+    - R03 no account
+    - R10 unauthorized
+    - R08 payment stopped
+  bk_batch:
+    - the end of day extract
+    - the GL feed
+    - the ACH settlement file
+    - the card settlement file
+  bk_device:
+    - an older Android phone
+    - an iPhone on the new OS
+    - a tablet
+    - a low end phone
+  bk_dispute:
+    - card
+    - ACH
+    - wire
+    - deposit
+    - mobile deposit
+  bk_exam:
+    - the examiners
+    - internal audit
+    - the regulator's team
+    - the model risk team
+  bk_reg:
+    - Regulation E
+    - Regulation CC
+    - Regulation DD
+    - the BSA program
+    - Regulation Z
+  bk_system:
+    - the core banking system
+    - the wire gateway
+    - the card processor link
+    - the loan origination system
+  c_customer:
+    - a customer
+    - a business client
+    - a mortgage borrower
+    - one of the larger commercial accounts
+  c_eng_area:
+    - the statement job
+    - the ACH return handler
+    - the wire export
+    - the login flow
+    - the fee calculation
+    - the interest accrual
+  p_alert_name:
+    - late end of day files
+    - ACH transmission failures
+    - wire queue depth
+    - failed backups
+    - disk usage on batch hosts
+  p_cert_host:
+    - the online banking certificate
+    - the ACH gateway certificate
+    - the wire gateway certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - online.{domain}
+    - ach.{domain}
+    - reports.{domain}
+    - status.{domain}
+  p_finance_ask:
+    - the controller
+    - treasury
+    - someone in finance
+    - the financial reporting manager
+  p_howto:
+    - restore a database snapshot into staging
+    - request a core service account
+    - rotate the wire gateway credentials
+    - answer an examiner request
+  p_policy:
+    - the month end change freeze
+    - quarterly access reviews
+    - vendor access to the core
+    - on-call compensation
+  p_report:
+    - the daily liquidity report
+    - the delinquency report
+    - the deposit balance dashboard
+    - the weekly fee income report
+  p_runbook:
+    - docs/runbooks/eod-cutoff.md
+    - docs/runbooks/ach-transmission.md
+    - docs/runbooks/online-banking-restarts.md
+    - docs/runbooks/dr-failover.md
+  p_script:
+    - ach_archive.sh
+    - sweep_wire_files.sh
+    - purge_batch_dirs.sh
+    - rotate_logs.sh
+    - check_disk.sh
+  p_script_path:
+    - /srv/ach/outbound
+    - /srv/wires/archive
+    - /var/log/batch
+    - /mnt/backups/daily
+  p_secret_thing:
+    - the core service password
+    - the payment network API key
+    - the HSM partition password
+    - the warehouse service account key
+  p_source:
+    - the card settlement files
+    - the core end of day extract
+    - the network's return files
+    - the credit bureau feed
+    - the check imaging batch
+  p_table:
+    - accounts
+    - transactions
+    - balances
+    - customers
+    - loans
+    - payments
+    - deposits
+  s_cb_bad:
+    - elevated errors on network callbacks
+    - ACH return events failing
+    - network callbacks erroring
+    - callback endpoint throwing 5xx
+  s_cb_fix:
+    - retry callbacks on timeout
+    - retry timed out network events
+    - add a retry for callback timeouts
+    - retry events that time out
+  s_dup_a:
+    - duplicate statement notices going out
+    - customers got the fee notice twice
+    - same notice mailed repeatedly
+    - notices sent twice
+  s_dup_fix:
+    - stop resending on retry
+    - skip notices already sent
+    - check the sent log first
+    - do not resend after a retry
+  s_inv_late:
+    - statement notices delayed
+    - customer notices running late
+    - fee notices not going out
+    - statement sends lagging behind
+  s_inv_late_b:
+    - oldest has waited {20-90} min
+    - nothing sent since {time}
+    - send lag keeps rising
+    - backlog growing fast
+  s_plan:
+    - the basic checking tier
+    - a business checking account
+    - a high yield savings account
+    - a home equity line
+  s_thing:
+    - the statement job
+    - the ACH file
+    - the wire report
+    - the end of day batch
+    - the export
+  s_tool:
+    - the core admin console
+    - the case system
+    - the teller console
+    - the ticket queue
+systems:
+  common:
+    - splunk
+    - salesforce
+    - docusign
+    - snowflake
+    - pagerduty
+    - qualys
+  typical:
+    - github
+    - slack
+    - jira
+    - okta
+    - confluence
+    - fiserv
+    - nCino
+    - servicenow
+    - verafin

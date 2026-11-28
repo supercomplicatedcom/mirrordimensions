@@ -1,0 +1,1340 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Accounting and tax services: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+aliases:
+  - accounting firm
+  - tax preparation
+  - cpa firm
+  - bookkeeping services
+  - tax advisory
+chat:
+  direct:
+    - replies:
+        -   - '{s_ack}'
+            - sure, {s_soon}
+            - give me ten
+        -   - per the engagement letter
+            - i will check the terms
+            - '{s_thx}'
+      root:
+        - '{s_hey}, review the rounding change {s_soon}?'
+        - quick question on the engagement rules
+        - move the cutover review to {time}?
+        - '{s_hey}, look at the WIP mismatch?'
+    - replies:
+        -   - '{s_ack}, thanks'
+            - send me the checklist
+            - good luck
+        -   - '{c_lol}'
+            - same here
+            - congrats
+      root:
+        - handing over the billing run, out {s_soon}
+        - ugh, peer review wants last evidence
+        - survived the deadline, finally
+  engineering:
+    - replies:
+        -   - '{c_ack}, looking {c_when_eng}'
+            - is there a time zone test?
+            - what is the rounding rule here?
+        -   - round to the engagement terms
+            - yes, scan before preparers see it
+            - '{c_thanks}'
+      root:
+        - review my pr on {repo}? time rounding
+        - '{c_ci_fail} fails on the WIP branch'
+        - should uploads be virus scanned first?
+        - freeze for the deadline from {day} {time}
+    - replies:
+        -   - check the last cursor first
+            - practice ops has the checklist
+            - see the runbook, i think
+        -   - '{c_ack}'
+            - thanks, that helps
+            - i will write it up
+      root:
+        - how to replay a failed sync?
+        - why does the status feed take {40-90} minutes?
+        - is the tax software api down?
+        - who owns the signing link config?
+    - replies:
+        -   - author left, see the old pr
+            - '{person} knows that area'
+            - finance has the rules
+        -   - '{c_thanks}'
+            - good idea, will try
+      root:
+        - working on {issue}, who knows WIP?
+        - eyes on the status feed fix, {issue}?
+        - tests on last month's time data?
+    - replies:
+        -   - '{c_ack}'
+            - i am, until {day}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - check the change calendar
+            - ''
+      root:
+        - 'tiny pr: fix typo in {repo} readme'
+        - who is on call this week?
+        - '{service} is slow, anyone changed something?'
+        - local env broke after {pulling main/a rebase}
+  incidents:
+    - replies:
+        -   - seeing it too, since {time}
+            - '{c_ack}, looking'
+            - vendor says they are checking
+        -   - no resend before it clears
+            - opened {issue}
+            - i will post in the thread
+      root:
+        - upload queue is backing up again
+        - 'handover: {s_oncall} is quiet, nothing open'
+        - anyone else seeing the portal {s_symptom}?
+        - the status feed is {p_delay} late
+    - replies:
+        -   - '{c_ack}'
+            - is e-filing affected?
+            - ok, keep us posted
+        -   - yes, a retry saved it
+            - who is renewing it?
+            - '{c_thanks}'
+      root:
+        - tax software vendor posted an incident
+        - e-file cert expires in {2-9} days
+        - rolled back {repo}, returns look right
+        - near miss, dedupe caught a repeat
+    - replies:
+        -   - seeing it too
+            - '{c_ack}, on it'
+            - paging the platform team
+        -   - root cause is a full queue
+            - restarted the worker, clearing
+            - '{c_thanks}, will post a review'
+      root:
+        - '{s_al} portal timing out at deadline'
+        - upload surge, scaling now
+        - logins failing since {time}
+        - alerts stopped firing, checking now
+  off-topic:
+    - replies:
+        -   - count me in
+            - '{c_lol}'
+            - what time?
+        -   - '{time}, meet by the lifts'
+            - ''
+            - '{c_yes}, bring umbrellas'
+      root:
+        - anyone want the charity run?
+        - birthday cake in {c_room} at {time}
+        - lunch at {s_lunch}, who is in?
+        - did anyone catch the {match/game/race}?
+  support:
+    - replies:
+        -   - can you paste the client id?
+            - checking the portal now
+            - looking, one sec
+        -   - link expired, filed as {issue}
+            - '{c_ack}, resend and note the case'
+            - write-offs need a partner
+        -   - '{c_thanks}'
+            - will call the client back
+      root:
+        - client cannot sign the 8879, {s_ticket}
+        - '{s_cust|cap} asks why the bill rose'
+        - an upload shows pending since {time}
+        - "{s_cust} wants last year's return"
+    - replies:
+        -   - the feed lags a few hours
+            - known issue, {issue}
+            - '{c_ack}'
+        -   - the privacy risk worries me
+            - is the entity set right?
+            - escalate to the partners
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - portal says review but filed, {s_ticket}
+        - client sees another folder, {s_ticket}
+        - queue is at {20-80} open requests
+        - heads up, {s_cust} waits {2-9} days
+    - replies:
+        -   - it is under invoices, history
+            - we can reissue, ask billing
+            - '{c_ack}'
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - client needs an invoice copy
+        - client wants a signed copy
+        - closing my shift, {5-20} open requests
+  team:
+    - replies:
+        -   - '{c_ack}'
+            - i can cover
+            - on it
+        -   - '{c_thanks}'
+            - ping me if it slips
+      root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - i am {c_pto}, who covers the portal?
+        - planning {day} at {time}, bring estimates
+        - 'escalation: {c_customer} sees a wrong invoice'
+    - replies:
+        -   - the partners approve
+            - i will update it {c_when_eng}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+      root:
+        - 'retro action: who approves write-offs?'
+        - who has the billing release checklist?
+        - is the board current?
+    - replies:
+        -   - i can take it
+            - '{person} has it'
+            - still waiting on finance
+        -   - '{c_ack}'
+            - '{c_thanks}'
+            - ''
+      root:
+        - who is on the portal rota?
+        - partner meeting {day} at {time}, who presents?
+        - 'release prep for {repo}: any blockers?'
+        - show and tell {day} {time}, volunteers?
+  town-square:
+    - replies:
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - does that include weekends?
+        -   - '{c_yes}, same as last year'
+            - the schedule is posted
+            - ''
+      root:
+        - '{c_hey}: busy season starts {c_soon}, hours are extended'
+        - the office is open late {c_soon} for the deadline
+        - holiday {c_soon}, the office is closed
+        - '{c_hey}: dinner is provided {c_soon} for the late crew'
+    - replies:
+        -   - same course as last year?
+            - where is the link again?
+            - does the privacy module count?
+        -   - new modules this year
+            - under learning in the hr portal
+            - '{c_idk}, ask {person}'
+      root:
+        - annual ethics training is due {c_soon}
+        - '{c_hey}: cpe credits must be logged {c_soon}'
+        - security awareness modules lock {c_soon}
+        - training overdue for {2-9} people
+    - replies:
+        -   - '{c_ack}'
+            - will there be a briefing?
+        -   - '{day} at {time}, in {c_room}'
+            - the partners will send a note
+            - ''
+      root:
+        - peer review starts {c_soon}, keep files tidy
+        - review week {c_soon}, send requests to {person}
+        - '{c_hey}: the audit file review is {day}'
+        - reviewers visit {day}, answer only what is asked
+    - replies:
+        -   - welcome!
+            - '{c_thanks}'
+            - where do they sit?
+        -   - second floor, by tax
+            - '{c_idk}, ask {person}'
+            - ''
+      root:
+        - new hire in the tax team {c_soon}
+        - welcome {person} to client services
+        - '{c_hey}: new associate starts {c_soon}, say hi'
+comments:
+  - '{b_cm_check} the engagement terms.'
+  - Does it touch a filed return?
+  - The partners should see this first.
+  - '{b_g_loop} the tax team, they run it.'
+  - What does the engagement letter say?
+description: An accounting firm that prepares tax returns, keeps books, audits and advises clients, and bills them for time and fixed fee engagements.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+extends: general
+group: Financial services
+incidents:
+  - alert:
+      - '{s_inv_late}, {s_inv_late_b}'
+      - '{s_al} {s_inv_late}'
+      - '{s_inv_late} - {s_inv_late_b}'
+    fix: billing/email_queue.py
+    fix_message:
+      - '{s_q_verb|cap} invoices {s_q_how}'
+      - Queue client invoices, not inline sends
+      - '{s_q_verb|cap} client mail {s_q_how}'
+    role: billing
+    title:
+      - Client invoices delayed
+      - Engagement emails arriving late
+      - Billing email delivery slow
+      - Invoice mail running behind
+  - alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix: billing/callbacks.py
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle provider timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+    role: billing
+    title:
+      - Payment callback errors
+      - Elevated errors on card events
+      - Provider callbacks failing
+      - Payment events not handled
+  - alert:
+      - '{s_dup_a}'
+      - '{s_dup_a}, {s_dup_b}'
+      - '{s_al} {s_dup_a}, {s_dup_b}'
+    fix: billing/sent_log.py
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - 'Dedupe invoices: {s_dup_fix}'
+      - '{s_dup_fix|cap}, keep a sent log'
+    role: billing
+    title:
+      - Duplicate client invoices
+      - Clients receiving invoices twice
+      - Engagement emails sent twice
+      - Repeated client mail
+invoice_items:
+  - Tax return preparation
+  - Monthly bookkeeping
+issues:
+  billing:
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{at_1} {at_2}'
+        -   - '{at_3} {at_4}'
+        -   - '{at_5} {at_6}'
+      comments:
+        - '{b_cm_hand} by {2-9} tenths.'
+        - '{b_cm_check} the engagement terms.'
+        - '{b_cm_later}'
+      labels:
+        - bug
+      let:
+        unit:
+          - 0.1 hour
+          - 0.25 hour
+          - 15 minutes
+      title:
+        - Invoice hours differ from the timesheet
+        - Time rounded to {unit} on some engagements
+        - Rounding differs between invoice and report
+        - Hours billed differ from hours worked
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{at_7} {at_8}'
+        -   - '{at_9} {at_10}'
+        -   - '{at_11}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check} the engagement letter.'
+      labels:
+        - bug
+        - needs-decision
+      let:
+        kind:
+          - fixed fee
+          - retainer
+          - progress
+          - capped hourly
+      title:
+        - Scope change billed hourly on a {kind} engagement
+        - Percent complete wrong on a {kind} bill
+        - '{kind|cap} engagement billed twice for one stage'
+        - Progress bill ignores earlier stages
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{at_12} {at_13}'
+        -   - '{at_14} {at_15}'
+        -   - Refund extras and fix the order.
+      comments:
+        - '{b_cm_repro} with a {kind} of {p_dollars}.'
+        - '{b_cm_check} the apply order.'
+      labels:
+        - bug
+      let:
+        kind:
+          - retainer
+          - prepaid balance
+          - deposit
+          - credit memo
+      title:
+        - '{kind|cap} not applied to the invoice'
+        - Prepaid balance ignored on final bill
+        - '{kind|cap} applied twice on one client'
+        - Applied {kind} missing from the statement
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{at_16} {at_17}'
+        -   - '{at_18} {at_19}'
+        -   - Tax advisory should confirm each state.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check} the state table.'
+      labels:
+        - bug
+      let:
+        st:
+          - '{b_region}'
+      title:
+        - Sales tax on exempt service in {st}
+        - Tax on prep fees wrong for {st}
+        - '{st} rate used for outside client'
+        - Tax missing on taxable services in {st}
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{at_20} {at_21}'
+        -   - '{at_22} {at_23}'
+        -   - Keep details in this issue.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_fix_up}'
+      labels:
+        - bug
+        - security
+      let:
+        step:
+          - pre-bill approval
+          - partner review
+          - write-off sign-off
+          - engagement hold
+      title:
+        - Invoice sent before {step}
+        - Billing run ignores {step}
+        - Unapproved bills went out for {2-9} clients
+        - Write-off recorded without {step}
+  data:
+    - body:
+        -   - '{at_42} {at_43}'
+        -   - '{at_44} {at_45}'
+        -   - '{at_46} {at_47}'
+        -   - Alert when the file is late.
+      comments:
+        - '{b_cm_check} the transfer log.'
+        - Rerun fixed it, add a guard.
+      labels:
+        - bug
+        - incident
+      let:
+        src:
+          - '{p_source}'
+      title:
+        - '{src|cap} arrived {p_delay} late'
+        - Month close blocked, {src} came late
+        - Missing rows in {src} on {day}
+        - Load stopped by bad data in {src}
+    - body:
+        -   - '{at_48} {at_49}'
+        -   - '{at_50} {at_51}'
+        -   - Which side do we trust?
+      comments:
+        - '{b_cm_hand} on the {day} snapshot.'
+        - Reproduced with the {day} snapshot.
+      labels:
+        - data-quality
+        - question
+      let:
+        table:
+          - '{p_table}'
+      title:
+        - WIP differs from ledger by {p_dollars}
+        - '{table|cap} differ from the general ledger'
+        - Reconciliation break on {table}
+        - Billed and WIP disagree for {2-40} engagements
+    - body:
+        -   - '{at_52} {at_53}'
+        -   - '{at_54} {at_55}'
+        -   - Rerun the load for the range.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+        - data-quality
+      let:
+        table:
+          - '{p_table}'
+      title:
+        - Time entries missing after timesheet sync
+        - Duplicate {table} after a resync
+        - '{2-400} {table} dropped during the load'
+        - Entries from {day} never arrived
+    - body:
+        -   - '{at_56} {at_57}'
+        -   - '{at_58} {at_59}'
+        -   - Poll more often during season.
+      comments:
+        - '{b_cm_check} the feed schedule.'
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+        - data-quality
+      let:
+        kind:
+          - '{at_ret}'
+      title:
+        - Portal return status stale for {kind}
+        - Status feed for {kind} lags {2-9} hours
+        - Returns show in review after filing
+        - Wrong status for {2-400} {kind}
+  docs:
+    - body:
+        -   - '{at_72} {at_73}'
+        -   - '{at_74} {at_75}'
+      comments:
+        - I will add it later.
+        - '{b_cm_ask_who}'
+      labels:
+        - docs
+        - bug
+      let:
+        runbook:
+          - '{p_runbook}'
+        step:
+          - pause the status feed
+          - notify the client team
+          - scale the upload queue
+          - record the batch id
+      title:
+        - '{runbook} misses a step: {step}'
+        - Season freeze note skips how to {step}
+        - Deadline notes skip when to {step}
+        - Runbook is silent on how to {step}
+    - body:
+        -   - '{at_76} {at_77}'
+        -   - '{at_78} {at_79}'
+        -   - Add an owner and review date.
+      comments:
+        - '{b_cm_draft} the control matrix.'
+        - Link the tickets, not screenshots.
+      labels:
+        - docs
+        - enhancement
+      let:
+        control:
+          - change approval
+          - client data access
+          - access reviews
+          - vendor onboarding
+      title:
+        - Write up evidence for {control} for peer review
+        - Document how {control} works for audit
+        - '{at_reg|cap} asks about {control}'
+        - Where is the proof for {control}?
+    - body:
+        -   - '{b_dc_a} {b_dc_b}'
+        -   - '{at_80} {at_81}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_up} {b_cm_read2}'
+      labels:
+        - docs
+        - task
+      let:
+        topic:
+          - how WIP is calculated
+          - how time entries load
+          - how the e-file flow works
+          - how engagements are billed
+      title:
+        - Handbook needs an overview of {topic}
+        - Explain {topic} for new staff
+        - New starters ask {topic}
+        - Write a page on {topic}
+  infra:
+    - body:
+        -   - '{at_60} {at_61}'
+        -   - '{at_62} {at_63}'
+        -   - Measure before changing anything.
+      comments:
+        - "{b_cm_check} last season's peak."
+        - '{b_cm_later}'
+      labels:
+        - bug
+        - performance
+      let:
+        limit:
+          - autoscaling
+          - the connection pool
+          - the upload timeout
+          - the queue size
+      title:
+        - Tune {limit} before {at_season}
+        - '{limit|cap} too low for the deadline surge'
+        - Portal slow in the last week
+        - Capacity review for {limit}
+    - body:
+        -   - '{at_64} {at_65}'
+        -   - '{at_66} {at_67}'
+        -   - Warn {14-30} days ahead, then page.
+      comments:
+        - '{b_cm_plan}'
+        - The vendor needs {5-10} days notice.
+      labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - '{p_cert_host}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Renewal of {cert} is manual
+        - Add expiry monitoring for {cert}
+    - body:
+        -   - '{at_68} {at_69}'
+        -   - '{at_70} {at_71}'
+        -   - Fix it before the next review.
+      comments:
+        - Attach the change ticket for each.
+        - '{b_cm_later}'
+      labels:
+        - security
+        - chore
+      let:
+        item:
+          - staff laptops
+          - the file server
+          - the client portal
+          - the document system
+      title:
+        - Enforce MFA on {item} for the written security plan
+        - Encryption check for {item} before review
+        - Access logs for {item} kept too briefly
+        - Stale accounts found on {item}
+  ops:
+    - body:
+        -   - '{at_82} and it writes to {p_script_path}.'
+        -   - '{at_83}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+      labels:
+        - question
+        - chore
+      let:
+        script:
+          - '{p_script}'
+      title:
+        - Is {script} needed after the migration?
+        - Retire {script} from the file servers?
+        - '{script} still runs from the old scheduler'
+        - Can we delete {script}?
+  portal:
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{at_24} {at_25}'
+        -   - '{at_26} {at_27}'
+        -   - '{at_28} {at_29}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+      let:
+        device:
+          - '{at_device}'
+      title:
+        - Signing {at_form} fails on {device}
+        - Signature link expired before signing
+        - E-signature loops to login on {device}
+        - Signed {at_form} not attached to the return
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{at_30} {at_31}'
+        -   - '{at_32} {at_33}'
+        -   - A clear message and retry help.
+      comments:
+        - '{b_cm_repro} with a {size} scan.'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+      let:
+        size:
+          - 25 MB
+          - 50 MB
+          - 100 MB
+      title:
+        - Document upload fails over {size}
+        - Uploaded files never reach the preparer
+        - Upload hangs at {size} on slow connections
+        - Scanned files rejected without a reason
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{at_34} {at_35}'
+        -   - '{at_36} {at_37}'
+        -   - Please keep details in this issue.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_fix_up}'
+      labels:
+        - bug
+        - security
+      let:
+        scope:
+          - another client's
+          - a former spouse's
+          - a different entity's
+      title:
+        - Client can see {scope} folder
+        - Household members share too much
+        - Folder for one entity lists {scope} documents
+        - Download link works for {scope} files
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{at_38} {at_39}'
+        -   - '{at_40} {at_41}'
+      comments:
+        - '{b_cm_repro} with a long session.'
+        - '{b_cm_check} the timeout.'
+      labels:
+        - bug
+        - enhancement
+      let:
+        form:
+          - '{at_form}'
+      title:
+        - Answers lost when leaving the {form}
+        - Autosave fails on the {form} page
+        - Client had to redo the {form} twice
+        - '{form|cap} resets after the session times out'
+name: Accounting and tax services
+name_suffixes:
+  - CPAs
+  - Advisory
+  - Accounting Group
+  - Tax Advisors
+  - Associates
+  - LLP
+  - Partners
+names:
+  channels:
+    billing-team:
+      - time-and-billing
+      - billing-eng
+      - practice-systems
+    data-team:
+      - firm-analytics
+      - data-team
+      - wip-reports
+    engineering:
+      - it-dev
+      - engineering
+      - tech
+    incidents:
+      - incidents
+      - prod-incidents
+      - season-ops
+    releases:
+      - releases
+      - change-calendar
+      - deploys
+    support:
+      - client-services
+      - support
+      - help-desk
+  repos:
+    billing-service:
+      - client-billing
+      - engagement-billing
+      - time-and-billing
+      - wip-billing
+    customer-portal:
+      - client-portal
+      - document-portal
+      - tax-portal
+      - client-web
+    data-pipeline:
+      - practice-loads
+      - time-entry-etl
+      - wip-warehouse
+      - firm-analytics
+    infra-config:
+      - infra-config
+      - environment-config
+      - firm-network-config
+      - platform-config
+    ops-scripts:
+      - ops-scripts
+      - batch-jobs
+      - legacy-jobs
+      - office-tools
+    platform-docs:
+      - firm-handbook
+      - it-runbooks
+      - practice-docs
+      - systems-handbook
+organization:
+  head: IT Director
+  it_admin: IT Manager
+  teams:
+    billing:
+      department: Practice Management Systems
+      title: Software Developer
+    data:
+      department: Firm Analytics
+      title: Data Analyst
+    operations:
+      department: Practice Operations
+      title: Operations Analyst
+    platform:
+      department: Firm Technology
+      title: Systems Engineer
+    product:
+      department: Digital Services
+      title: Product Owner
+    support:
+      department: Client Services
+      title: Client Service Coordinator
+slug: accounting-tax
+symbols:
+  at_1:
+    - Each engagement has a rule
+    - The rule is read per engagement
+  at_10:
+    - ', so the bill is wrong.'
+    - and the partner is asked.
+  at_11:
+    - Needs a ruling from the partners.
+    - Finance should confirm the stages.
+  at_12:
+    - The balance is read early
+    - The apply step runs first
+  at_13:
+    - and the bill is built later.
+    - before the new bill.
+  at_14:
+    - Clients pay the full amount
+    - Clients see no credit
+  at_15:
+    - ', so they call in.'
+    - on the invoice.
+  at_16:
+    - The rule table is old
+    - Taxability differs by service
+  at_17:
+    - and by state.
+    - for each state.
+  at_18:
+    - The invoice must show tax
+    - Clients ask for refunds
+  at_19:
+    - when it is wrong.
+    - and write in.
+  at_2:
+    - ', but not every path does.'
+    - in one path only.
+  at_20:
+    - The run reads status
+    - The check looks at a flag
+  at_21:
+    - that is set late.
+    - after the bill goes.
+  at_22:
+    - Partners must approve first
+    - Policy requires approval
+  at_23:
+    - ', so this is a control gap.'
+    - before any bill goes.
+  at_24:
+    - The signing link is short lived
+    - The token expires fast
+  at_25:
+    - and the email arrives late.
+    - for most clients.
+  at_26:
+    - Preparers cannot e-file
+    - The return waits for signature
+  at_27:
+    - ', so deadlines slip.'
+    - until it is fixed.
+  at_28:
+    - Near a deadline this is urgent
+    - Volume spikes at {at_season}
+  at_29:
+    - and every hour counts.
+    - each year.
+  at_3:
+    - Clients compare hours
+    - Clients check the bill
+  at_30:
+    - The upload size limit is {size}
+    - Large scans time out
+  at_31:
+    - ', and the error is vague.'
+    - without a message.
+  at_32:
+    - Clients send photos instead
+    - Clients email files instead
+  at_33:
+    - ', which is unsafe.'
+    - to staff.
+  at_34:
+    - The folder checks login
+    - The route checks the user
+  at_35:
+    - but not the entity.
+    - and nothing else.
+  at_36:
+    - This is private tax data
+    - '{at_reg|cap} limits who may see it'
+  at_37:
+    - ', so treat it as urgent.'
+    - and rules apply.
+  at_38:
+    - The form saves on submit
+    - Answers are kept in the browser
+  at_39:
+    - and not on the server.
+    - only.
+  at_4:
+    - against their own notes.
+    - and ask questions.
+  at_40:
+    - Clients redo hours of work
+    - People give up and phone in
+  at_41:
+    - during busy season.
+    - and call us.
+  at_42:
+    - The load waits for {src}
+    - Nothing starts until {src} lands
+  at_43:
+    - ', and then it runs.'
+    - ', then goes on.'
+  at_44:
+    - WIP reports were stale
+    - Partners had no numbers
+  at_45:
+    - until {6-9}am.
+    - for the review.
+  at_46:
+    - The source sent it late
+    - Their sync ran long
+  at_47:
+    - on their side.
+    - and sent no notice.
+  at_48:
+    - Finance found it
+    - The recon job flagged it
+  at_49:
+    - while closing the month.
+    - on a {day} run.
+  at_5:
+    - Finance wants one rule
+    - Partners ask for a single rule
+  at_50:
+    - The break shows after write-offs
+    - Late adjustments post next day
+  at_51:
+    - ', so the days disagree.'
+    - and then it clears.
+  at_52:
+    - The sync uses a modified time
+    - Late edits are skipped
+  at_53:
+    - and the row is lost.
+    - in some time zones.
+  at_54:
+    - Utilization looks low
+    - Staff hours look short
+  at_55:
+    - for {2-9} people.
+    - for the week.
+  at_56:
+    - The feed is polled hourly
+    - The software exports twice a day
+  at_57:
+    - and the load uses the older.
+    - in season.
+  at_58:
+    - Clients phone to ask
+    - Clients see the wrong status
+  at_59:
+    - and call the desk.
+    - all day.
+  at_6:
+    - everywhere.
+    - used on every bill.
+  at_60:
+    - Traffic spikes near the deadline
+    - Uploads jump {2-9} times
+  at_61:
+    - and requests time out.
+    - and pages crawl.
+  at_62:
+    - Clients cannot send documents
+    - Support got {3-12} reports
+  at_63:
+    - within the same hour.
+    - in the last season.
+  at_64:
+    - Spotted during a change review
+    - Noticed while checking an alert
+  at_65:
+    - ', and nobody owns renewal.'
+    - and the date is close.
+  at_66:
+    - Expiry would stop e-filing
+    - Expiry would break uploads
+  at_67:
+    - and signing.
+    - until it is renewed.
+  at_68:
+    - '{at_reg|cap} needs a security plan'
+    - The plan lists MFA and logging
+  at_69:
+    - and an owner for each item.
+    - every year.
+  at_7:
+    - The change order is not read
+    - The new scope is stored
+  at_70:
+    - Some accounts have no MFA
+    - Logs are kept {30-180} days
+  at_71:
+    - ', shorter than the plan.'
+    - on older hosts.
+  at_72:
+    - Hit this during busy season
+    - The new on-call found it
+  at_73:
+    - ', and it cost time.'
+    - near the deadline.
+  at_74:
+    - The page covers the happy path
+    - It predates the new portal
+  at_75:
+    - only.
+    - and nobody updated it.
+  at_76:
+    - Peer review asked for the process
+    - The request lists it
+  at_77:
+    - and the last {2-4} cases.
+    - with recent examples.
+  at_78:
+    - We do the work
+    - The proof is in tickets
+  at_79:
+    - ', but evidence is scattered.'
+    - across several tools.
+  at_8:
+    - but the billing run misses it.
+    - in a note.
+  at_80:
+    - Finance knows it
+    - The partners know it best
+  at_81:
+    - ', so ask them to review.'
+    - and a diagram would help.
+  at_82:
+    - It was written for old formats
+    - Nobody current has touched it
+  at_83:
+    - Its retention differs from policy.
+    - Check with the partners first.
+  at_9:
+    - Clients dispute the bill
+    - The letter says one price
+  at_device:
+    - an older Android phone
+    - an iPhone on the new OS
+    - a tablet
+    - a work laptop
+  at_form:
+    - Form 8879
+    - the engagement letter
+    - the organizer
+    - the consent form
+    - the extension request
+  at_reg:
+    - Circular 230
+    - section 7216
+    - the Safeguards Rule
+    - peer review
+    - AICPA rules
+  at_ret:
+    - individual returns
+    - business returns
+    - trust returns
+    - payroll filings
+    - sales tax returns
+  at_season:
+    - tax season
+    - the extension deadline
+    - quarter end
+    - the filing deadline
+    - year end
+  b_acct_size:
+    - '{3-12} entities'
+    - '{200-900} time entries'
+    - '{15-60} open engagements'
+    - '{40-300} documents'
+  b_cb_path:
+    - billing/payment_events.py
+    - billing/lockbox.py
+    - billing/webhooks.py
+  b_check_path:
+    - the billing tests
+    - the email tests
+    - the write-off tests
+    - the payment tests
+  b_cn_a:
+    - The guard in {b_credit_path}
+    - Validation in {b_credit_path}
+    - The check in {b_credit_path}
+  b_cn_b:
+    - only counts the first write-off
+    - ignores earlier write-offs
+    - skips write-offs booked together
+  b_cn_c:
+    - The total of all write-offs
+    - Write-offs added together
+    - The combined credit amount
+  b_credit_path:
+    - billing/write_offs.py
+    - billing/refunds.py
+    - billing/credit_memos.py
+  b_currency:
+    - USD
+    - CAD
+    - GBP
+    - EUR
+  b_customer:
+    - individual
+    - small business
+    - nonprofit
+    - partnership
+    - trust and estate
+    - audit client
+  b_doc:
+    - client invoice
+    - engagement letter
+    - progress bill
+    - fee estimate
+    - retainer statement
+    - year-end statement
+  b_mail_path:
+    - billing/emails.py
+    - billing/email_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_money_path:
+    - billing/time_entries.py
+    - billing/wip.py
+    - billing/fixed_fees.py
+    - billing/rounding.py
+  b_page:
+    - documents
+    - invoices
+    - tax returns
+    - organizers
+    - messages
+    - the dashboard
+  b_pay_path:
+    - portal/payment_methods.py
+    - portal/autopay.py
+  b_provider_event:
+    - payment received
+    - payment failed
+    - refund issued
+    - retainer applied
+    - e-signature completed
+  b_pwho:
+    - client services
+    - a manager
+    - '{person}'
+    - the tax team
+    - a partner
+  b_region:
+    - Ohio
+    - Texas
+    - New York
+    - Washington
+    - Illinois
+    - Florida
+  b_taxkind:
+    - sales tax
+    - GST
+    - VAT
+    - use tax
+  b_ticket_noun:
+    - ticket
+    - request
+    - case
+    - escalation
+  b_who:
+    - the tax team
+    - the audit team
+    - the partners
+    - finance
+    - client services
+  c_customer:
+    - a client
+    - one of the larger businesses
+    - a nonprofit
+    - a family trust
+  c_dep:
+    - the pdf library
+    - the http client
+    - the orm
+    - the date library
+    - the virus scanner
+  c_eng_area:
+    - the billing run
+    - the upload handler
+    - the e-signature flow
+    - the WIP calc
+    - the time import
+    - the status sync
+  p_alert_name:
+    - late status feeds
+    - e-file transmission errors
+    - upload queue depth
+    - failed backups
+    - disk usage on file servers
+  p_cert_host:
+    - the client portal certificate
+    - the e-file transmitter certificate
+    - the document system certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - clients.{domain}
+    - docs.{domain}
+    - reports.{domain}
+    - status.{domain}
+  p_finance_ask:
+    - the managing partner
+    - the firm controller
+    - someone in finance
+    - the practice manager
+  p_howto:
+    - restore a client folder from backup
+    - request a new e-file certificate
+    - rotate the portal keys
+    - answer a peer review request
+  p_policy:
+    - the busy season change freeze
+    - quarterly access reviews
+    - client data access
+    - on-call compensation
+  p_report:
+    - the WIP report
+    - the aged receivables report
+    - the utilization dashboard
+    - the realization report
+  p_runbook:
+    - docs/runbooks/season-freeze.md
+    - docs/runbooks/efile-rejects.md
+    - docs/runbooks/portal-restarts.md
+    - docs/runbooks/dr-failover.md
+  p_script:
+    - archive_returns.sh
+    - sweep_scan_folder.sh
+    - purge_temp_uploads.sh
+    - rotate_logs.sh
+    - check_disk.sh
+  p_script_path:
+    - /srv/scans/inbound
+    - /srv/returns/archive
+    - /var/log/batch
+    - /mnt/backups/daily
+  p_secret_thing:
+    - the e-file transmitter password
+    - the timesheet API key
+    - the payment provider token
+    - the warehouse service account key
+  p_source:
+    - the timesheet app export
+    - the tax software status feed
+    - the document system index
+    - the general ledger export
+  p_table:
+    - time entries
+    - engagements
+    - clients
+    - invoices
+    - staff
+    - returns
+  s_cb_bad:
+    - elevated errors on payment callbacks
+    - card events failing
+    - provider callbacks erroring
+    - callback endpoint throwing 5xx
+  s_cb_fix:
+    - retry callbacks on timeout
+    - retry timed out payment events
+    - add a retry for callback timeouts
+    - retry events that time out
+  s_cust:
+    - a client on {s_plan}
+    - someone on {s_plan}
+    - a client with {s_plan}
+    - an account on {s_plan}
+  s_dup_a:
+    - duplicate client invoices going out
+    - clients got the invoice twice
+    - same engagement email repeated
+    - emails sent twice
+  s_dup_fix:
+    - stop resending on retry
+    - skip invoices already sent
+    - check the sent log first
+    - do not resend after a retry
+  s_inv_late:
+    - client invoices delayed
+    - engagement emails running late
+    - billing emails not going out
+    - invoice sends lagging
+  s_inv_late_b:
+    - oldest has waited {20-90} min
+    - nothing sent since {time}
+    - send lag keeps rising
+    - backlog growing fast
+  s_plan:
+    - the monthly bookkeeping plan
+    - a fixed fee tax engagement
+    - an hourly advisory plan
+    - a payroll service plan
+  s_thing:
+    - the billing run
+    - the status feed
+    - the upload queue
+    - the WIP export
+    - the report
+  s_tool:
+    - the practice system
+    - the document system
+    - the portal admin
+    - the ticket queue
+systems:
+  common:
+    - xero
+    - blackline
+    - salesforce
+    - splunk
+    - box
+    - avalara
+  typical:
+    - github
+    - slack
+    - jira
+    - okta
+    - microsoft 365
+    - sage intacct
+    - docusign
+    - workiva
+    - cch axcess
+    - quickbooks

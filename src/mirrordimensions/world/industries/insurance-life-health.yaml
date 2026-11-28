@@ -1,0 +1,1327 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Insurance (life and health): extends the general profile (decision 0028). Templates, never whole sentences (0029).
+aliases:
+- life insurance
+- health insurance
+- life and health insurance
+- benefits insurer
+- medical insurance
+chat:
+  direct:
+  - replies:
+    - - '{s_ack}'
+      - sure, {s_soon}
+      - give me ten
+    - - by birthday month
+      - i will check the plan filing
+      - '{s_thx}'
+    root:
+    - '{s_hey}, review the grace period change {s_soon}?'
+    - quick question on age-out
+    - move the cutover review to {time}?
+    - '{s_hey}, look at the notice mismatch?'
+  - replies:
+    - - '{s_ack}, thanks'
+      - send me the checklist
+      - good luck
+    - - '{c_lol}'
+      - same here
+      - congrats
+    root:
+    - handing over the billing run, out {s_soon}
+    - ugh, audit wants last year's evidence
+    - survived the exam, finally
+  engineering:
+  - replies:
+    - - '{c_ack}, looking {c_when_eng}'
+      - is there a leap year test?
+      - what is the plan rule here?
+    - - by file id and control number
+      - yes, replay must be safe
+      - '{c_thanks}'
+    root:
+    - review my pr on {repo}? age-out logic
+    - '{c_ci_fail} fails on the grace period branch'
+    - should the 834 loader be idempotent?
+    - freeze for open enrollment from {day} {time}
+  - replies:
+    - - check the control number first
+      - claims ops has the checklist
+      - see the runbook, i think
+    - - '{c_ack}'
+      - thanks, that helps
+      - i will write it up
+    root:
+    - how to replay a rejected file?
+    - why does the eligibility load take {40-90} minutes?
+    - is the clearinghouse sftp down?
+    - who owns the grace period config?
+  - replies:
+    - - author left, see the old pr
+      - '{person} knows that area'
+      - compliance has the plan rules
+    - - '{c_thanks}'
+      - good idea, will try
+    root:
+    - working on {issue}, who knows retro terms?
+    - eyes on the 835 parser fix, {issue}?
+    - tests on last month's enrollment data?
+  - replies:
+    - - '{c_ack}'
+      - i am, until {day}
+      - '{c_idk}'
+    - - '{c_thanks}'
+      - check the change calendar
+      - ''
+    root:
+    - 'tiny pr: fix typo in {repo} readme'
+    - who is on call this week?
+    - '{service} is slow, anyone changed something?'
+    - local env broke after {pulling main/a rebase}
+  incidents:
+  - replies:
+    - - seeing it too, since {time}
+      - '{c_ack}, looking'
+      - clearinghouse says they are checking
+    - - no cancels before it loads
+      - opened {issue}
+      - i will post in the thread
+    root:
+    - the enrollment file is late again
+    - 'handover: {s_oncall} is quiet, nothing open'
+    - anyone else seeing the eligibility service {s_symptom}?
+    - the claims file is {p_delay} late
+  - replies:
+    - - '{c_ack}'
+      - is claims intake affected?
+      - ok, keep us posted
+    - - yes, a retry saved it
+      - who is renewing it?
+      - '{c_thanks}'
+    root:
+    - the clearinghouse posted an incident
+    - clearinghouse cert expires in {2-9} days
+    - rolled back {repo}, members look right
+    - near miss, dedupe check caught it
+  - replies:
+    - - seeing it too
+      - '{c_ack}, on it'
+      - paging the platform team
+    - - root cause is a full queue
+      - restarted the worker, clearing
+      - '{c_thanks}, will post a review'
+    root:
+    - '{s_al} member portal is timing out'
+    - enrollment surge, scaling now
+    - logins failing since {time}
+    - alerts stopped firing, checking now
+  off-topic:
+  - replies:
+    - - count me in
+      - '{c_lol}'
+      - what time?
+    - - '{time}, meet by the lifts'
+      - ''
+      - '{c_yes}, bring umbrellas'
+    root:
+    - anyone want the charity walk?
+    - birthday cake in {c_room} at {time}
+    - lunch at {s_lunch}, who is in?
+    - did anyone catch the {match/game/race}?
+  support:
+  - replies:
+    - - can you paste the member id?
+      - checking the billing run now
+      - looking, one sec
+    - - payment was in transit, filed as {issue}
+      - '{c_ack}, reinstate and note the case'
+      - refund needs a manager
+    - - '{c_thanks}'
+      - will tell the member
+    root:
+    - member says coverage ended by mistake, {s_ticket}
+    - '{s_cust|cap} asks why the premium rose'
+    - a refund shows pending since {time}
+    - '{s_cust} wants a new ID card'
+  - replies:
+    - - it refreshes overnight
+      - known issue, {issue}
+      - '{c_ack}'
+    - - the enrollment backlog is the problem
+      - is the broker code set?
+      - escalate to claims
+    - - '{c_thanks}'
+      - ''
+    root:
+    - claim status looks wrong, {s_ticket}
+    - broker cannot see a group, {s_ticket}
+    - queue is at {20-80} open cases
+    - heads up, {s_cust} waits {2-9} days
+  - replies:
+    - - it is under documents, ID cards
+      - we can reissue, ask billing
+      - '{c_ack}'
+    - - '{c_thanks}'
+      - ''
+    root:
+    - member needs proof of coverage now
+    - member wants last year's statement
+    - closing my shift, {5-20} open cases
+  team:
+  - replies:
+    - - '{c_ack}'
+      - i can cover
+      - on it
+    - - '{c_thanks}'
+      - ping me if it slips
+    root:
+    - standup in {5-15} minutes, {c_status} on my side
+    - i am {c_pto}, who covers enrollment support?
+    - planning {day} at {time}, bring estimates
+    - 'escalation: {c_customer} was termed by mistake'
+  - replies:
+    - - member services approves
+      - i will update it {c_when_eng}
+      - '{c_idk}'
+    - - '{c_thanks}'
+      - '{c_ack}'
+    root:
+    - 'retro action: who approves premium refunds?'
+    - who has the billing release checklist?
+    - is the board current?
+  - replies:
+    - - i can take it
+      - '{person} has it'
+      - still waiting on claims
+    - - '{c_ack}'
+      - '{c_thanks}'
+      - ''
+    root:
+    - who is on the enrollment rota?
+    - broker call at {time} {day}, who joins?
+    - 'release prep for {repo}: any blockers?'
+    - show and tell {day} {time}, volunteers?
+  town-square:
+  - replies:
+    - - '{c_thanks}'
+      - '{c_ack}'
+      - does the freeze cover reports?
+    - - '{c_yes}, same as last year'
+      - ops has the calendar
+      - ''
+    root:
+    - '{c_hey}: open enrollment starts {c_soon}, freeze applies'
+    - enrollment peak {c_soon}, support is on rota
+    - holiday {c_soon}, member phones stay open
+    - the change freeze starts {c_soon}
+  - replies:
+    - - same course as last year?
+      - where is the link again?
+      - does the claims module count?
+    - - new modules this year
+      - under learning in the hr portal
+      - '{c_idk}, ask {person}'
+    root:
+    - annual hipaa training is due {c_soon}
+    - '{c_hey}: privacy training closes {c_soon}'
+    - security awareness modules lock {c_soon}
+    - training overdue for {2-9} people
+  - replies:
+    - - '{c_ack}'
+      - will there be a briefing?
+    - - '{day} at {time}, in {c_room}'
+      - compliance will send a note
+      - ''
+    root:
+    - state auditors visit {c_soon}
+    - audit week {c_soon}, send requests to {person}
+    - '{c_hey}: regulator exam starts {day}'
+    - auditors on site {day}, answer only what is asked
+  - replies:
+    - - welcome!
+      - '{c_thanks}'
+      - where do they sit?
+    - - second floor, by claims
+      - '{c_idk}, ask {person}'
+      - ''
+    root:
+    - new hire on the claims team {c_soon}
+    - welcome {person} to member services
+    - '{c_hey}: new analyst starts {c_soon}, say hi'
+comments:
+- '{b_cm_check} the effective date of coverage.'
+- Does it touch protected health data?
+- Compliance should see this first.
+- '{b_g_loop} claims, they run the queue.'
+- What does the plan document say?
+description: An insurer that covers members and policyholders for health care and life events, enrolls employer groups, bills premiums and pays claims.
+extends: general
+group: Financial services
+incidents:
+- alert:
+  - '{s_inv_late}, {s_inv_late_b}'
+  - '{s_al} {s_inv_late}'
+  - '{s_inv_late} - {s_inv_late_b}'
+  fix: billing/email_queue.py
+  fix_message:
+  - '{s_q_verb|cap} notices {s_q_how}'
+  - Queue premium notices, not inline sends
+  - '{s_q_verb|cap} member mail {s_q_how}'
+  role: billing
+  title:
+  - Premium notices delayed
+  - Group invoices arriving late
+  - Grace notice delivery slow
+  - Member mail running behind
+- alert:
+  - '{s_cb_bad}'
+  - '{s_cb_bad}, {s_cb_b}'
+  - '{s_al} {s_cb_bad}, {s_cb_b}'
+  fix: billing/callbacks.py
+  fix_message:
+  - '{s_cb_fix|cap}'
+  - 'Handle bank timeouts: {s_cb_fix}'
+  - '{s_cb_fix|cap}, log each attempt'
+  role: billing
+  title:
+  - Remittance callback errors
+  - Elevated errors on payment events
+  - Bank callbacks failing
+  - Payment events not handled
+- alert:
+  - '{s_dup_a}'
+  - '{s_dup_a}, {s_dup_b}'
+  - '{s_al} {s_dup_a}, {s_dup_b}'
+  fix: billing/sent_log.py
+  fix_message:
+  - '{s_dup_fix|cap}'
+  - 'Dedupe notices: {s_dup_fix}'
+  - '{s_dup_fix|cap}, keep a sent log'
+  role: billing
+  title:
+  - Duplicate premium notices
+  - Members receiving notices twice
+  - Grace notices sent twice
+  - Repeated member notices
+invoice_items:
+- Monthly premium
+- Administrative fee
+issues:
+  billing:
+  - body:
+    - - '{b_raised}, {b_scope}.'
+    - - '{il_1} {il_2}'
+    - - '{il_3} {il_4}'
+    - - '{il_5} {il_6}'
+    comments:
+    - '{b_cm_repro} with a retro term in {2-9} days.'
+    - '{b_cm_check} the snapshot date.'
+    - '{b_cm_later}'
+    labels:
+    - bug
+    let:
+      kind:
+      - '{b_customer}'
+    title:
+    - Retro term not credited on invoice
+    - Termed members still billed on the {kind} invoice
+    - Invoice lists members termed last month
+    - Retro changes missing from the bill
+  - body:
+    - - '{b_raised}, {b_scope}.'
+    - - '{il_7} {il_8}'
+    - - '{il_9} {il_10}'
+    - - '{il_11} {il_12}'
+    - - Compliance must confirm each rule.
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_check} the plan filing.'
+    labels:
+    - bug
+    - needs-decision
+    let:
+      plan:
+      - '{il_plan}'
+    title:
+    - Grace period ends early for {plan} members
+    - Coverage ended inside the grace period
+    - Grace period length differs for {plan}
+    - Lapse notice sent inside grace period
+  - body:
+    - - '{b_pscope}.'
+    - - '{il_13} {il_14}'
+    - - '{il_15} {il_16}'
+    - - Fix the run, review paid claims.
+    comments:
+    - '{b_cm_check} the birthday logic.'
+    - '{b_cm_repro} with a dependent born on the {2-28}th.'
+    labels:
+    - bug
+    let:
+      age:
+      - '26'
+      - '19'
+      - '23'
+    title:
+    - Dependents not removed at age {age}
+    - Age-out run missed members turning {age}
+    - Premium still includes a dependent over {age}
+    - Student dependent rule breaks at age {age}
+  - body:
+    - - '{b_raised}, {b_scope}.'
+    - - '{il_17} {il_18}'
+    - - '{il_19} {il_20}'
+    comments:
+    - '{b_cm_hand} by {2-9} dollars.'
+    - '{b_cm_ask_who}'
+    labels:
+    - bug
+    let:
+      rate:
+      - the continuation rate
+      - the COBRA rate
+      - the surcharge
+      - the admin fee
+    title:
+    - '{rate|cap} calculated wrong for continuation coverage'
+    - Continuation premium off by a percentage
+    - Wrong {rate} on COBRA invoices
+    - '{rate|cap} applied twice on a continuation bill'
+  - body:
+    - - '{b_pscope}.'
+    - - '{il_21} {il_22}'
+    - - '{il_23} {il_24}'
+    - - '{b_urgent}'
+    comments:
+    - '{b_cm_check} the suspense queue.'
+    - '{b_cm_fix_up}'
+    labels:
+    - bug
+    let:
+      kind:
+      - ACH
+      - check
+      - card
+      - payroll deduction
+    title:
+    - Premium paid after termination not refunded
+    - Refund missing after a policy surrender
+    - Overpayment held after a {kind} payment
+    - Returned {kind} payment did not reverse
+  data:
+  - body:
+    - - '{il_41} {il_42}'
+    - - '{il_43} {il_44}'
+    - - '{il_45} {il_46}'
+    - - Alert when the file is late.
+    comments:
+    - '{b_cm_check} the transfer log.'
+    - Rerun fixed it, add a guard.
+    labels:
+    - bug
+    - incident
+    let:
+      file:
+      - '{il_edi}'
+    title:
+    - '{file|cap} rejected for {2-40} employer groups'
+    - '{file|cap} arrived {p_delay} late'
+    - Enrollment loaded twice from {file}
+    - Missing members after {file} on {day}
+  - body:
+    - - '{il_47} {il_48}'
+    - - '{il_49} {il_50}'
+    - - Keep the latest version per claim.
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_plan}'
+    labels:
+    - data-quality
+    let:
+      table:
+      - '{p_table}'
+    title:
+    - Duplicate {table} after a claim replacement
+    - Replaced claims create extra {table}
+    - '{table|cap} doubled by frequency code 7'
+    - '{2-400} extra {table} in the warehouse'
+  - body:
+    - - '{il_51} {il_52}'
+    - - '{il_53} {il_54}'
+    - - Which system should win?
+    comments:
+    - '{b_cm_hand} on the {day} snapshot.'
+    - '{b_cm_ask_who}'
+    labels:
+    - data-quality
+    - question
+    let:
+      table:
+      - '{p_table}'
+    title:
+    - Eligibility and claims disagree on {2-400} members
+    - Enrollment and {table} differ by {p_dollars}
+    - Reconciliation break on {table}
+    - Billed members missing from eligibility
+  - body:
+    - - '{il_55} {il_56}'
+    - - '{il_57} {il_58}'
+    - - Rerun the extract after the fix.
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_plan}'
+    labels:
+    - bug
+    - data-quality
+    let:
+      measure:
+      - a quality measure
+      - a risk score
+      - a utilization report
+      - a star rating input
+    title:
+    - Extract for {measure} misses {2-400} members
+    - Quality reports drop late claim members
+    - Diagnosis codes missing for {measure}
+    - Report for {measure} excludes terminated members
+  docs:
+  - body:
+    - - '{il_71} {il_72}'
+    - - '{il_73} {il_74}'
+    comments:
+    - I will add it next week.
+    - '{b_cm_ask_who}'
+    labels:
+    - docs
+    - bug
+    let:
+      runbook:
+      - '{p_runbook}'
+      step:
+      - pause the eligibility load
+      - notify the employer group
+      - scale the member portal
+      - record the file id
+    title:
+    - '{runbook} misses a step: {step}'
+    - Reject runbook skips how to {step}
+    - Cutoff notes skip when to {step}
+    - Runbook is silent on how to {step}
+  - body:
+    - - '{il_75} {il_76}'
+    - - '{il_77} {il_78}'
+    - - Add an owner and review date.
+    comments:
+    - '{b_cm_draft} the control matrix.'
+    - Link the tickets, not screenshots.
+    labels:
+    - docs
+    - enhancement
+    let:
+      control:
+      - change approval
+      - breach response
+      - access reviews
+      - vendor onboarding
+    title:
+    - Write up evidence for {control} for the audit
+    - Document how {control} works for HIPAA
+    - Regulator asked about {control}
+    - Where is the proof for {control}?
+  - body:
+    - - '{b_dc_a} {b_dc_b}'
+    - - '{il_79} {il_80}'
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_up} {b_cm_read2}'
+    labels:
+    - docs
+    - task
+    let:
+      topic:
+      - how a claim is adjudicated
+      - how enrollment files load
+      - how premiums are billed
+      - how a policy lapses
+    title:
+    - Handbook needs an overview of {topic}
+    - Explain {topic} for new engineers
+    - New starters ask {topic}
+    - Write a page on {topic}
+  infra:
+  - body:
+    - - '{il_59} {il_60}'
+    - - '{il_61} {il_62}'
+    - - Warn {14-30} days ahead, then page.
+    comments:
+    - '{b_cm_plan}'
+    - The partner needs {5-10} days notice.
+    labels:
+    - security
+    - enhancement
+    let:
+      cert:
+      - '{p_cert_host}'
+    title:
+    - Alert before {cert} expires
+    - '{cert|cap} expires in {2-9} days'
+    - Renewal of {cert} is manual
+    - Add expiry monitoring for {cert}
+  - body:
+    - - '{il_63} {il_64}'
+    - - '{il_65} {il_66}'
+    - - Measure before changing anything.
+    comments:
+    - "{b_cm_check} last year's peak."
+    - '{b_cm_later}'
+    labels:
+    - bug
+    - performance
+    let:
+      limit:
+      - autoscaling
+      - the connection pool
+      - the request timeout
+      - the queue size
+    title:
+    - Tune {limit} before open enrollment
+    - '{limit|cap} too low for the enrollment surge'
+    - Member portal slow during open enrollment
+    - Capacity review for {limit}
+  - body:
+    - - '{il_67} {il_68}'
+    - - '{il_69} {il_70}'
+    - - Fieldwork starts in {2-8} weeks.
+    comments:
+    - Attach the change ticket for each.
+    - '{b_cm_later}'
+    labels:
+    - security
+    - chore
+    let:
+      zone:
+      - the member data store
+      - the claims archive
+      - the EDI gateway
+      - the vendor connection
+    title:
+    - Review audit logging for {zone}
+    - 'HIPAA review: access logs for {zone}'
+    - Log retention for {zone} below policy
+    - Stale access found around {zone}
+  ops:
+  - body:
+    - - '{il_81} and it writes to {p_script_path}.'
+    - - '{il_82}'
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_later}'
+    labels:
+    - question
+    - chore
+    let:
+      script:
+      - '{p_script}'
+    title:
+    - Is {script} needed after the migration?
+    - Retire {script} from the batch hosts?
+    - '{script} still runs from the old cron'
+    - Can we delete {script}?
+  portal:
+  - body:
+    - - '{b_pscope}.'
+    - - '{il_25} {il_26}'
+    - - '{il_27} {il_28}'
+    comments:
+    - '{b_cm_check} the cache.'
+    - '{b_cm_clr2}'
+    labels:
+    - bug
+    let:
+      thing:
+      - group number
+      - member id
+      - primary doctor
+      - plan name
+    title:
+    - ID card shows the old {thing} after a plan change
+    - Member card lists the wrong {thing}
+    - Downloaded card has an outdated {thing}
+    - Card {thing} differs from the portal
+  - body:
+    - - '{b_pscope}.'
+    - - '{il_29} {il_30}'
+    - - '{il_31} {il_32}'
+    comments:
+    - '{b_cm_repro} {b_cm_stage}.'
+    - '{b_cm_plan}'
+    labels:
+    - bug
+    let:
+      kind:
+      - denied
+      - pending
+      - paid
+      - adjusted
+    title:
+    - Claim status says {kind}, the EOB says otherwise
+    - Portal shows {kind} after the claim was reprocessed
+    - Status of a {kind} claim lags {2-9} days
+    - Claim list and detail page disagree
+  - body:
+    - - '{b_pscope}.'
+    - - '{il_33} {il_34}'
+    - - '{il_35} {il_36}'
+    - - Please keep details in this issue.
+    comments:
+    - '{b_cm_repro} {b_cm_stage}.'
+    - Privacy should review the fix.
+    labels:
+    - bug
+    - security
+    let:
+      scope:
+      - an adult dependent's
+      - a former spouse's
+      - another member's
+    title:
+    - Policyholder can see {scope} claims
+    - Proxy access shows {scope} claim details
+    - Family view includes {scope} records
+    - EOB download open to wrong person
+  - body:
+    - - '{b_pscope}.'
+    - - '{il_37} {il_38}'
+    - - '{il_39} {il_40}'
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_check} the feed schedule.'
+    labels:
+    - bug
+    let:
+      kind:
+      - out of network
+      - not accepting patients
+      - retired
+      - at the wrong address
+    title:
+    - Provider search lists doctors who are {kind}
+    - Directory shows {kind} providers as available
+    - Listings {kind}, members find out too late
+    - Provider directory stale for {2-400} entries
+name: Insurance (life and health)
+name_suffixes:
+- Life
+- Health
+- Life and Health
+- Health Plan
+- Mutual
+- Assurance
+- Benefits
+names:
+  channels:
+    billing-team:
+    - premium-billing
+    - billing-eng
+    - enrollment-team
+    data-team:
+    - claims-data
+    - data-team
+    - actuarial-data
+    engineering:
+    - engineering
+    - tech
+    - it-dev
+    incidents:
+    - incidents
+    - prod-incidents
+    - ops-bridge
+    releases:
+    - releases
+    - change-calendar
+    - deploys
+    support:
+    - member-services
+    - support
+    - service-desk
+  repos:
+    billing-service:
+    - premium-billing
+    - group-billing
+    - enrollment-billing
+    - billing-engine
+    customer-portal:
+    - member-portal
+    - policyholder-portal
+    - broker-portal
+    - member-web
+    data-pipeline:
+    - claims-warehouse
+    - enrollment-loads
+    - eligibility-etl
+    - actuarial-loads
+    infra-config:
+    - infra-config
+    - environment-config
+    - platform-config
+    - deploy-config
+    ops-scripts:
+    - ops-scripts
+    - batch-jobs
+    - legacy-jobs
+    - admin-scripts
+    platform-docs:
+    - it-handbook
+    - operations-runbooks
+    - platform-handbook
+    - system-docs
+organization:
+  head: Chief Information Officer
+  it_admin: IT Operations Manager
+  teams:
+    billing:
+      department: Enrollment and Billing Systems
+      title: Software Engineer
+    data:
+      department: Data and Analytics
+      title: Data Engineer
+    operations:
+      department: Claims Operations
+      title: Claims Operations Analyst
+    platform:
+      department: Technology
+      title: Platform Engineer
+    product:
+      department: Digital Product
+      title: Product Manager
+    support:
+      department: Member Services
+      title: Member Services Representative
+slug: insurance-life-health
+symbols:
+  b_acct_size:
+  - '{3-12} dependents'
+  - '{200-900} enrolled members'
+  - '{15-60} covered locations'
+  - '{40-300} certificates'
+  b_cb_path:
+  - billing/payment_events.py
+  - billing/remittance.py
+  - billing/webhooks.py
+  b_check_path:
+  - the premium tests
+  - the notice tests
+  - the refund tests
+  - the remittance tests
+  b_cn_a:
+  - The guard in {b_credit_path}
+  - Validation in {b_credit_path}
+  - The check in {b_credit_path}
+  b_cn_b:
+  - only counts the first refund
+  - ignores earlier refunds
+  - skips refunds issued together
+  b_cn_c:
+  - The total of all refunds
+  - Refunds added together
+  - The combined premium credit
+  b_credit_path:
+  - billing/refunds.py
+  - billing/premium_credits.py
+  - billing/adjustments.py
+  b_currency:
+  - USD
+  - CAD
+  - GBP
+  - EUR
+  b_customer:
+  - individual
+  - employer group
+  - small employer
+  - Medicare
+  - annuity holder
+  - family plan
+  b_doc:
+  - premium notice
+  - group invoice
+  - explanation of benefits
+  - policy statement
+  - grace period notice
+  - annual benefits statement
+  b_mail_path:
+  - billing/notices.py
+  - billing/notice_queue.py
+  - billing/templates.py
+  - billing/sent_log.py
+  b_money_path:
+  - billing/premiums.py
+  - billing/group_invoices.py
+  - billing/adjustments.py
+  - billing/rounding.py
+  b_page:
+  - claims
+  - coverage
+  - ID cards
+  - documents
+  - billing
+  - the dashboard
+  b_pay_path:
+  - portal/payment_accounts.py
+  - portal/autopay.py
+  b_provider_event:
+  - premium paid
+  - payment returned
+  - enrollment confirmed
+  - coverage terminated
+  - premium refund issued
+  b_pwho:
+  - member services
+  - a broker
+  - '{person}'
+  - the claims team
+  - compliance
+  b_region:
+  - Ohio
+  - Texas
+  - Florida
+  - Illinois
+  - New Jersey
+  - Colorado
+  b_taxkind:
+  - premium tax
+  - state fees
+  - VAT
+  - withholding tax
+  b_ticket_noun:
+  - ticket
+  - case
+  - grievance
+  - escalation
+  b_who:
+  - member services
+  - claims operations
+  - the broker team
+  - finance
+  - compliance
+  c_customer:
+  - a member
+  - one of the larger employer groups
+  - a broker
+  - a policyholder
+  c_dep:
+  - the pdf library
+  - the http client
+  - the orm
+  - the date library
+  - the EDI parser
+  c_eng_area:
+  - the billing run
+  - the enrollment load
+  - the eligibility check
+  - the claims export
+  - the ID card generator
+  - the premium calc
+  il_1:
+  - The invoice reads enrollment
+  - The bill uses a snapshot
+  il_10:
+  - ', so one length is wrong.'
+  - and by state.
+  il_11:
+  - Members lose cover wrongly
+  - Claims were denied after the term
+  il_12:
+  - ', so this is urgent.'
+  - and then reversed.
+  il_13:
+  - The age-out job runs monthly
+  - Dependents are checked once a month
+  il_14:
+  - and some birthdays slip by.
+  - on the first.
+  il_15:
+  - Premiums stay too high
+  - Coverage continues past the limit
+  il_16:
+  - until someone notices.
+  - and claims get paid.
+  il_17:
+  - The rate adds a percent
+  - The percentage is applied
+  il_18:
+  - twice in one path.
+  - on top of an adjusted rate.
+  il_19:
+  - Former employees are billed more
+  - Qualified beneficiaries complain
+  il_2:
+  - taken at month start.
+  - before late changes load.
+  il_20:
+  - and the notice deadline is fixed.
+  - ', and they file complaints.'
+  il_21:
+  - The refund job skips terminated policies
+  - Payments after termination
+  il_22:
+  - stay in suspense.
+  - for months.
+  il_23:
+  - Estates and members wait
+  - Policyholders call about it
+  il_24:
+  - and finance sends refunds by hand.
+  - again and again.
+  il_25:
+  - The card is rendered nightly
+  - The PDF is cached
+  il_26:
+  - and not rebuilt at the change.
+  - so it lags a day.
+  il_27:
+  - Providers reject claims
+  - Visits are denied at the desk
+  il_28:
+  - when the card is wrong.
+  - and members call us.
+  il_29:
+  - The portal reads a status copy
+  - The list uses a cached view
+  il_3:
+  - Employers see members they cut
+  - Groups pay for people removed
+  il_30:
+  - and the detail page is live.
+  - updated nightly.
+  il_31:
+  - Members worry for no reason
+  - Members call to dispute
+  il_32:
+  - a claim that is fine.
+  - and tie up phone lines.
+  il_33:
+  - The family view lists all claims
+  - The route checks the account
+  il_34:
+  - but not the member.
+  - and nothing else.
+  il_35:
+  - This is protected health data
+  - '{il_reg|cap} limits who may see this'
+  il_36:
+  - ', so treat it as urgent.'
+  - and breach rules apply.
+  il_37:
+  - The directory loads weekly
+  - The feed is monthly
+  il_38:
+  - and corrections arrive late.
+  - from the credentialing system.
+  il_39:
+  - Regulators expect it accurate
+  - Directory accuracy is audited
+  il_4:
+  - and ask for credits.
+  - for months.
+  il_40:
+  - ', and members rely on it.'
+  - under {il_reg}.
+  il_41:
+  - The load waits for {file}
+  - Nothing starts until {file} lands
+  il_42:
+  - ', and then it runs.'
+  - ', then goes on.'
+  il_43:
+  - Eligibility was stale
+  - Claims pended on eligibility
+  il_44:
+  - for {1-3} days.
+  - until the file loaded.
+  il_45:
+  - The sender sent it late
+  - Their batch ran long
+  il_46:
+  - on their side.
+  - and sent no notice.
+  il_47:
+  - A replacement claim resends the row
+  - The new version lands as new
+  il_48:
+  - and the loader keeps both.
+  - without replacing the old.
+  il_49:
+  - Paid totals look inflated
+  - Costs are counted twice
+  il_5:
+  - Finance books manual credits
+  - Member services credits by hand
+  il_50:
+  - for {2-9} members.
+  - in the report.
+  il_51:
+  - Operations found it
+  - The recon job flagged it
+  il_52:
+  - while closing the month.
+  - on a {day} run.
+  il_53:
+  - The break shows after retro changes
+  - Late enrollment changes land next day
+  il_54:
+  - ', so the systems disagree.'
+  - and then it clears.
+  il_55:
+  - The extract filters on paid date
+  - Claims paid late are skipped
+  il_56:
+  - in the quarter.
+  - by the cutoff.
+  il_57:
+  - The submission has a deadline
+  - The regulator expects it
+  il_58:
+  - ', so this has a date.'
+  - each quarter.
+  il_59:
+  - Spotted during a change review
+  - Noticed while checking an alert
+  il_6:
+  - ', {2-30} so far.'
+  - each cycle.
+  il_60:
+  - ', and nobody owns renewal.'
+  - and the date is close.
+  il_61:
+  - Expiry would stop claim files
+  - Expiry would break EDI transfers
+  il_62:
+  - and member logins.
+  - until it is renewed.
+  il_63:
+  - Traffic jumps in November
+  - Enrollment traffic grows {2-9} times
+  il_64:
+  - and requests time out.
+  - and pages crawl.
+  il_65:
+  - Members cannot choose a plan
+  - Support got {3-12} reports
+  il_66:
+  - within the same hour.
+  - in the last season.
+  il_67:
+  - The auditor asked for access logs
+  - HIPAA needs a current review
+  il_68:
+  - and an owner for each rule.
+  - every year.
+  il_69:
+  - Logs are kept {30-180} days
+  - Retention is shorter
+  il_7:
+  - The job counts calendar days
+  - The grace window is a fixed {30-90} days
+  il_70:
+  - than the policy says.
+  - on some hosts.
+  il_71:
+  - Hit this during open enrollment
+  - The new on-call found it
+  il_72:
+  - ', and it cost time.'
+  - at night.
+  il_73:
+  - The page covers the happy path
+  - It predates the new file format
+  il_74:
+  - only.
+  - and nobody updated it.
+  il_75:
+  - '{il_reg|cap} asked for the process'
+  - The audit request lists it
+  il_76:
+  - and the last {2-4} cases.
+  - with recent examples.
+  il_77:
+  - We do the work
+  - The proof is in tickets
+  il_78:
+  - ', but evidence is scattered.'
+  - across several tools.
+  il_79:
+  - Claims knows it
+  - Member services knows it best
+  il_8:
+  - for every plan.
+  - in all cases.
+  il_80:
+  - ', so ask them to review.'
+  - and a diagram would help.
+  il_81:
+  - It was written for old formats
+  - Nobody current has touched it
+  il_82:
+  - Its retention differs from policy.
+  - Check with claims first.
+  il_9:
+  - Subsidized plans get longer
+  - The rules differ by plan
+  il_device:
+  - an older Android phone
+  - an iPhone on the new OS
+  - a tablet
+  - a low end phone
+  il_edi:
+  - the 834 enrollment file
+  - the 837 claim file
+  - the 835 remittance file
+  - the 270 eligibility request
+  il_plan:
+  - the individual plan
+  - a small group plan
+  - a Medicare plan
+  - a family plan
+  il_reg:
+  - HIPAA
+  - the state insurance department
+  - the ACA rules
+  - a CMS audit
+  - NAIC rules
+  p_alert_name:
+  - late EDI files
+  - eligibility service errors
+  - claims queue depth
+  - failed backups
+  - disk usage on batch hosts
+  p_cert_host:
+  - the member portal certificate
+  - the clearinghouse AS2 certificate
+  - the broker API certificate
+  - the staging wildcard certificate
+  p_dns_name:
+  - members.{domain}
+  - brokers.{domain}
+  - edi.{domain}
+  - status.{domain}
+  p_finance_ask:
+  - the controller
+  - the actuarial lead
+  - someone in finance
+  - the claims finance manager
+  p_howto:
+  - restore a database snapshot into staging
+  - reprocess a rejected enrollment file
+  - scale up for open enrollment
+  - answer a state regulator request
+  p_policy:
+  - the open enrollment change freeze
+  - quarterly access reviews
+  - access to member data
+  - on-call compensation
+  p_report:
+  - the claims lag report
+  - the enrollment reconciliation report
+  - the loss ratio dashboard
+  - the premium aging report
+  p_runbook:
+  - docs/runbooks/edi-rejects.md
+  - docs/runbooks/eligibility-loads.md
+  - docs/runbooks/open-enrollment.md
+  - docs/runbooks/dr-failover.md
+  p_script:
+  - claims_archive.sh
+  - sweep_edi_files.sh
+  - purge_eligibility_cache.sh
+  - rotate_logs.sh
+  - check_disk.sh
+  p_script_path:
+  - /srv/edi/inbound
+  - /srv/claims/archive
+  - /var/log/batch
+  - /mnt/backups/daily
+  p_secret_thing:
+  - the clearinghouse SFTP key
+  - the claims system password
+  - the pharmacy feed token
+  - the warehouse service account key
+  p_source:
+  - the clearinghouse claim files
+  - the employer enrollment files
+  - the pharmacy benefit feed
+  - the provider directory feed
+  p_table:
+  - members
+  - claims
+  - enrollments
+  - coverages
+  - dependents
+  - payments
+  s_cb_bad:
+  - elevated errors on remittance callbacks
+  - payment events failing
+  - bank callbacks erroring
+  - callback endpoint throwing 5xx
+  s_cb_fix:
+  - retry callbacks on timeout
+  - retry timed out payment events
+  - add a retry for callback timeouts
+  - retry events that time out
+  s_cust:
+  - a member on {s_plan}
+  - someone on {s_plan}
+  - a policyholder with {s_plan}
+  - an account on {s_plan}
+  s_dup_a:
+  - duplicate premium notices going out
+  - members got the notice twice
+  - same grace notice repeated
+  - notices sent twice
+  s_dup_fix:
+  - stop resending on retry
+  - skip notices already sent
+  - check the sent log first
+  - do not resend after a retry
+  s_inv_late:
+  - premium notices delayed
+  - group invoices running late
+  - grace notices not going out
+  - notice sends lagging
+  s_inv_late_b:
+  - oldest has waited {20-90} min
+  - nothing sent since {time}
+  - send lag keeps rising
+  - backlog growing fast
+  s_plan:
+  - the individual plan
+  - a small group plan
+  - a Medicare plan
+  - a term life policy
+  s_thing:
+  - the billing run
+  - the enrollment load
+  - the eligibility service
+  - the claims export
+  - the export
+  s_tool:
+  - the member system
+  - the claims system
+  - the broker console
+  - the ticket queue
+systems:
+  common:
+  - docusign
+  - splunk
+  - pagerduty
+  - twilio
+  - tableau
+  typical:
+  - github
+  - slack
+  - jira
+  - okta
+  - salesforce
+  - servicenow
+  - snowflake
+  - confluence

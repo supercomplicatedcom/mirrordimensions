@@ -1,0 +1,1332 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Insurance (property and casualty): extends the general profile (decision 0028). Templates, never whole sentences (0029).
+aliases:
+  - property and casualty insurance
+  - p and c insurance
+  - general insurance
+  - auto and home insurance
+  - non-life insurance
+chat:
+  direct:
+    - replies:
+        -   - '{s_ack}'
+            - sure, {s_soon}
+            - give me ten
+        -   - pro rata, mostly
+            - i will check the filing
+            - '{s_thx}'
+      root:
+        - '{s_hey}, review the refund change {s_soon}?'
+        - quick question on short rate
+        - move the cutover review to {time}?
+        - '{s_hey}, look at the notice mismatch?'
+    - replies:
+        -   - '{s_ack}, thanks'
+            - send me the checklist
+            - good luck
+        -   - '{c_lol}'
+            - same here
+            - congrats
+      root:
+        - handing over the billing run, out {s_soon}
+        - ugh, exam wants last year's evidence
+        - survived the audit, finally
+  engineering:
+    - replies:
+        -   - '{c_ack}, looking {c_when_eng}'
+            - is there a leap year test?
+            - what is the state rule here?
+        -   - pro rata, except two states
+            - use the mail date, yes
+            - '{c_thanks}'
+      root:
+        - review my pr on {repo}? refund math
+        - '{c_ci_fail} fails on the cancellation branch'
+        - should notices use the mail date?
+        - freeze for renewals from {day} {time}
+    - replies:
+        -   - check the file hash first
+            - claims ops has the checklist
+            - see the runbook, i think
+        -   - '{c_ack}'
+            - thanks, that helps
+            - i will write it up
+      root:
+        - how to replay a lockbox file?
+        - why does the billing run take {40-90} minutes?
+        - is the rating service down?
+        - who owns the notice period config?
+    - replies:
+        -   - author left, see the old pr
+            - '{person} knows that area'
+            - compliance has the state rules
+        -   - '{c_thanks}'
+            - good idea, will try
+      root:
+        - working on {issue}, who knows short rates?
+        - eyes on the CAT code fix, {issue}?
+        - tests on last month's billing data?
+  incidents:
+    - replies:
+        -   - seeing it too, since {time}
+            - '{c_ack}, looking'
+            - vendor says they are checking
+        -   - no cancels before it loads
+            - opened {issue}
+            - i will post in the thread
+      root:
+        - the claims export is late again
+        - 'handover: {s_oncall} is quiet, nothing open'
+        - anyone else seeing the rating service {s_symptom}?
+        - the lockbox file is {p_delay} late
+    - replies:
+        -   - '{c_ack}'
+            - is claims intake affected?
+            - ok, keep us posted
+        -   - yes, a retry saved it
+            - who is renewing it?
+            - '{c_thanks}'
+      root:
+        - the claims vendor posted an incident
+        - agent api cert expires in {2-9} days
+        - rolled back {repo}, policies look right
+        - near miss, notice check caught it
+    - replies:
+        -   - seeing it too
+            - '{c_ack}, on it'
+            - paging the platform team
+        -   - root cause is a full queue
+            - restarted the worker, clearing
+            - '{c_thanks}, will post a review'
+      root:
+        - '{s_al} claim intake form is timing out'
+        - cat surge after {ip_event}, scaling now
+        - quotes failing since {time}
+        - alerts stopped firing, checking now
+  off-topic:
+    - replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+            - not yet
+        -   - ''
+            - looks good
+            - count me in
+      root:
+        - did anyone catch the weather report?
+        - lunch ideas? sick of {c_food}
+        - anyone watching the {match/game/race}?
+        - who wants the charity run?
+    - replies:
+        -   - count me in
+            - '{c_lol}'
+            - what time?
+        -   - '{time}, meet by the lifts'
+            - ''
+            - '{c_yes}, bring umbrellas'
+      root:
+        - anyone want the charity run?
+        - birthday cake in {c_room} at {time}
+        - lunch at {s_lunch}, who is in?
+        - did anyone see the storm photos?
+  support:
+    - replies:
+        -   - can you paste the policy number?
+            - checking the billing run now
+            - looking, one sec
+        -   - payment was in transit, filed as {issue}
+            - '{c_ack}, reinstate and note the case'
+            - refund needs a manager
+        -   - '{c_thanks}'
+            - will tell the customer
+      root:
+        - customer says the premium doubled, {s_ticket}
+        - '{s_cust|cap} asks why they were cancelled'
+        - a refund shows pending since {time}
+        - '{s_cust} wants an ID card copy'
+    - replies:
+        -   - try a smaller photo
+            - known issue, {issue}
+            - '{c_ack}'
+        -   - the storm backlog is the problem
+            - is the agency code set?
+            - escalate to claims
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - claim photos will not upload, {s_ticket}
+        - agent cannot see a policy, {s_ticket}
+        - queue is at {20-80} open cases
+        - heads up, {s_cust} waits {2-9} days
+    - replies:
+        -   - it is under documents, ID cards
+            - we can reissue, ask billing
+            - '{c_ack}'
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - customer needs proof of insurance now
+        - customer wants last year's declarations
+        - closing my shift, {5-20} open cases
+  team:
+    - replies:
+        -   - '{c_ack}'
+            - i can cover
+            - on it
+        -   - '{c_thanks}'
+            - ping me if it slips
+      root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - i am {c_pto}, who covers storm intake?
+        - planning {day} at {time}, bring estimates
+        - 'escalation: {c_customer} was cancelled by mistake'
+    - replies:
+        -   - customer service approves
+            - i will update it {c_when_eng}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+      root:
+        - 'retro action: who approves big refunds?'
+        - who has the billing release checklist?
+        - is the board current?
+    - replies:
+        -   - i can take it
+            - '{person} has it'
+            - still waiting on claims
+        -   - '{c_ack}'
+            - '{c_thanks}'
+            - ''
+      root:
+        - who is on the catastrophe rota?
+        - agency call at {time} {day}, who joins?
+        - 'release prep for {repo}: any blockers?'
+        - show and tell {day} {time}, volunteers?
+  town-square:
+    - replies:
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - does the freeze cover reports?
+        -   - '{c_yes}, same as last year'
+            - ops has the calendar
+            - ''
+      root:
+        - '{c_hey}: renewal season starts {c_soon}, freeze applies'
+        - catastrophe team is on standby {c_soon}
+        - storm warning for {c_soon}, claims is on rota
+        - holiday {c_soon}, claims phones stay open
+    - replies:
+        -   - same course as last year?
+            - where is the link again?
+            - does the claims module count?
+        -   - new modules this year
+            - under learning in the hr portal
+            - '{c_idk}, ask {person}'
+      root:
+        - annual compliance training is due {c_soon}
+        - '{c_hey}: privacy training closes {c_soon}'
+        - fraud awareness modules lock {c_soon}
+        - training overdue for {2-9} people
+    - replies:
+        -   - '{c_ack}'
+            - will there be a briefing?
+        -   - '{day} at {time}, in {c_room}'
+            - compliance will send a note
+            - ''
+      root:
+        - state examiners visit {c_soon}
+        - exam week {c_soon}, send requests to {person}
+        - '{c_hey}: market conduct exam starts {day}'
+        - auditors visit {day}, answer only what is asked
+    - replies:
+        -   - welcome!
+            - '{c_thanks}'
+            - where do they sit?
+        -   - second floor, by claims
+            - '{c_idk}, ask {person}'
+            - ''
+      root:
+        - new hire on the claims team {c_soon}
+        - welcome {person} to customer service
+        - '{c_hey}: new analyst starts {c_soon}, say hi'
+comments:
+  - "{b_cm_check} the policy's effective date."
+  - Does it touch regulatory filings?
+  - Compliance should see this first.
+  - '{b_g_loop} claims, they run the intake.'
+  - What does the state rule say?
+description: An insurer that writes auto, home and business policies, bills premiums to policyholders, and settles claims after losses.
+extends: general
+group: Financial services
+incidents:
+  - alert:
+      - '{s_inv_late}, {s_inv_late_b}'
+      - '{s_al} {s_inv_late}'
+      - '{s_inv_late} - {s_inv_late_b}'
+    fix: billing/email_queue.py
+    fix_message:
+      - '{s_q_verb|cap} notices {s_q_how}'
+      - Queue premium notices, not inline sends
+      - '{s_q_verb|cap} policy mail {s_q_how}'
+    role: billing
+    title:
+      - Premium notices delayed
+      - Renewal notices arriving late
+      - Cancellation notice delivery slow
+      - Policy mail running behind
+  - alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix: billing/callbacks.py
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle bank timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+    role: billing
+    title:
+      - Lockbox callback errors
+      - Elevated errors on payment events
+      - Bank callbacks failing
+      - Payment events not handled
+  - alert:
+      - '{s_dup_a}'
+      - '{s_dup_a}, {s_dup_b}'
+      - '{s_al} {s_dup_a}, {s_dup_b}'
+    fix: billing/sent_log.py
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - 'Dedupe notices: {s_dup_fix}'
+      - '{s_dup_fix|cap}, keep a sent log'
+    role: billing
+    title:
+      - Duplicate renewal notices
+      - Policyholders receiving notices twice
+      - Cancellation notices sent twice
+      - Repeated policy notices
+invoice_items:
+  - Premium installment
+  - Policy fee
+issues:
+  billing:
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{ip_1} {ip_2}'
+        -   - '{ip_3} {ip_4}'
+        -   - '{ip_5} {ip_6}'
+      comments:
+        - '{b_cm_hand} by {2-9} dollars.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+      labels:
+        - bug
+        - needs-decision
+      let:
+        line:
+          - '{ip_line}'
+        st:
+          - '{ip_state}'
+      title:
+        - Return premium wrong on cancellation in {st}
+        - Short-rate penalty applied in {st} by mistake
+        - Unearned premium differs for {line} in {st}
+        - Midterm cancel refund is off
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{ip_7} {ip_8}'
+        -   - '{ip_9} {ip_10}'
+        -   - Legal must see this first.
+      comments:
+        - '{b_cm_check} the state calendar.'
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+        - security
+      let:
+        st:
+          - '{ip_state}'
+      title:
+        - Cancellation notice sent too early
+        - Non-payment notice goes out {2-9} days early in {st}
+        - Notice period for {st} not enforced
+        - Policy cancelled inside the notice period
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{ip_11} {ip_12}'
+        -   - '{ip_13} {ip_14}'
+        -   - '{ip_15} {ip_16}'
+      comments:
+        - '{b_cm_check} the order of the nightly jobs.'
+        - '{b_cm_repro} with a late lockbox file.'
+      labels:
+        - bug
+      let:
+        kind:
+          - ACH
+          - lockbox
+          - card
+          - agent bill
+      title:
+        - Policy cancelled with a {kind} payment in transit
+        - Payment arrived the day of cancellation
+        - Late {kind} payment did not stop a cancel
+        - Reinstatement missed after a {kind} payment
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{ip_17} {ip_18}'
+        -   - '{ip_19} {ip_20}'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} with a {fee} on {b_customer}.'
+        - '{b_cm_check} the filing for the state.'
+      labels:
+        - bug
+      let:
+        fee:
+          - policy fee
+          - installment fee
+          - late fee
+          - reinstatement fee
+      title:
+        - '{fee|cap} charged twice on a renewal'
+        - '{fee|cap} missing from the renewal total'
+        - Rounding of {fee} breaks premium tax
+        - State fees on endorsements calculated wrong
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{ip_21} {ip_22}'
+        -   - '{ip_23} {ip_24}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check} the suspense queue.'
+      labels:
+        - bug
+      let:
+        who:
+          - the mortgagee
+          - the lienholder
+          - the escrow company
+          - the agent
+      title:
+        - Payment from {who} not applied to the policy
+        - Escrow payment posted to wrong account
+        - Duplicate payment from {who} on one policy
+        - Mortgagee payment lags {2-9} days
+  data:
+    - body:
+        -   - '{ip_39} {ip_40}'
+        -   - '{ip_41} {ip_42}'
+        -   - '{ip_43} {ip_44}'
+        -   - Alert when the file is late.
+      comments:
+        - '{b_cm_check} the transfer log.'
+        - Rerun fixed it, add a guard.
+      labels:
+        - bug
+        - incident
+      let:
+        src:
+          - '{p_source}'
+      title:
+        - '{src|cap} arrived {p_delay} late'
+        - Quarter close blocked, {src} came late
+        - Missing rows in {src} on {day}
+        - Loads stopped by bad data in {src}
+    - body:
+        -   - '{ip_45} {ip_46}'
+        -   - '{ip_47} {ip_48}'
+        -   - Keep the latest version per claim.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+      labels:
+        - data-quality
+      let:
+        table:
+          - '{p_table}'
+      title:
+        - Duplicate {table} after a claim reopen
+        - Reopened claims create extra {table}
+        - '{table|cap} doubled after a reserve change'
+        - '{2-400} extra {table} in the warehouse'
+    - body:
+        -   - '{ip_49} {ip_50}'
+        -   - '{ip_51} {ip_52}'
+        -   - Backfill the code for the event.
+      comments:
+        - '{b_cm_hand} on the {day} snapshot.'
+        - '{b_cm_ask_who}'
+      labels:
+        - data-quality
+        - question
+      let:
+        event:
+          - '{ip_event}'
+      title:
+        - Catastrophe code missing on {2-400} claims
+        - Claims from {event} lack a CAT code
+        - Event coding wrong after {event}
+        - CAT claims untagged in the warehouse
+    - body:
+        -   - '{ip_53} {ip_54}'
+        -   - '{ip_55} {ip_56}'
+        -   - Join on the base number instead.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+        - data-quality
+      let:
+        table:
+          - '{p_table}'
+      title:
+        - New policy number format broke {table} joins
+        - '{table|cap} no longer match policies'
+        - Renewal suffix drops claims from {table}
+        - Orphan {table} after the policy system upgrade
+  docs:
+    - body:
+        -   - '{ip_68} {ip_69}'
+        -   - '{ip_70} {ip_71}'
+      comments:
+        - I will add it next week.
+        - '{b_cm_ask_who}'
+      labels:
+        - docs
+        - bug
+      let:
+        runbook:
+          - '{p_runbook}'
+        step:
+          - pause the cancellation job
+          - notify the claims team
+          - scale the intake form
+          - record the batch id
+      title:
+        - '{runbook} misses a step: {step}'
+        - Storm runbook skips how to {step}
+        - Cutoff notes skip when to {step}
+        - Runbook is silent on how to {step}
+    - body:
+        -   - '{ip_72} {ip_73}'
+        -   - '{ip_74} {ip_75}'
+        -   - Add an owner and review date.
+      comments:
+        - '{b_cm_draft} the control matrix.'
+        - Link the tickets, not screenshots.
+      labels:
+        - docs
+        - enhancement
+      let:
+        control:
+          - change approval
+          - policy data retention
+          - access reviews
+          - vendor onboarding
+      title:
+        - Write up evidence for {control} for the exam
+        - Document how {control} works for audit
+        - Regulator asked about {control}
+        - Where is the proof for {control}?
+    - body:
+        -   - '{b_dc_a} {b_dc_b}'
+        -   - '{ip_76} {ip_77}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_up} {b_cm_read2}'
+      labels:
+        - docs
+        - task
+      let:
+        topic:
+          - how a claim moves
+          - how a policy gets rated
+          - how renewals are billed
+          - how reserves are set
+      title:
+        - Handbook needs an overview of {topic}
+        - Explain {topic} for new engineers
+        - New starters ask {topic}
+        - Write a page on {topic}
+  infra:
+    - body:
+        -   - '{ip_57} {ip_58}'
+        -   - '{ip_59} {ip_60}'
+        -   - Measure before changing anything.
+      comments:
+        - '{b_cm_check} the last event.'
+        - '{b_cm_later}'
+      labels:
+        - bug
+        - performance
+      let:
+        limit:
+          - autoscaling
+          - the connection pool
+          - the request timeout
+          - the queue size
+      title:
+        - Tune {limit} before storm season
+        - '{limit|cap} too low for a catastrophe surge'
+        - Claims intake slowed during {ip_event}
+        - Capacity review for {limit}
+    - body:
+        -   - '{ip_61} {ip_62}'
+        -   - '{ip_63} {ip_64}'
+        -   - Warn {14-30} days ahead, then page.
+      comments:
+        - '{b_cm_plan}'
+        - Partners need {5-10} days notice.
+      labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - '{p_cert_host}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Renewal of {cert} is manual
+        - Add expiry monitoring for {cert}
+    - body:
+        -   - '{ip_65} {ip_66}'
+        -   - '{ip_67} and a note.'
+        -   - Fieldwork starts in {2-8} weeks.
+      comments:
+        - Attach the change ticket for each.
+        - '{b_cm_later}'
+      labels:
+        - security
+        - chore
+      let:
+        zone:
+          - the claims data store
+          - the document archive
+          - the agent API
+          - the vendor connection
+      title:
+        - Review access to {zone} before the audit
+        - 'Privacy review: rules for {zone}'
+        - Stale access found around {zone}
+        - Remove old access to {zone}
+  ops:
+    - body:
+        -   - '{ip_78} and it writes to {p_script_path}.'
+        -   - '{ip_79}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+      labels:
+        - question
+        - chore
+      let:
+        script:
+          - '{p_script}'
+      title:
+        - Is {script} needed after the migration?
+        - Retire {script} from the batch hosts?
+        - '{script} still runs from the old cron'
+        - Can we delete {script}?
+  portal:
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{ip_25} {ip_26}'
+        -   - '{ip_27} {ip_28}'
+        -   - '{ip_29} {ip_30}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+      let:
+        device:
+          - '{ip_device}'
+      title:
+        - Claim photo upload fails on {device}
+        - Loss notice form hangs on {device}
+        - Photos upload, never reach the claim
+        - Claim form loses data on {device}
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{ip_31} {ip_32}'
+        -   - '{ip_33} {ip_34}'
+      comments:
+        - '{b_cm_check} the cache.'
+        - '{b_cm_clr2}'
+      labels:
+        - bug
+      let:
+        doc:
+          - ID card
+          - declarations page
+          - policy booklet
+          - renewal notice
+      title:
+        - '{doc|cap} shows the old vehicle'
+        - '{doc|cap} not updated after the change'
+        - Downloaded {doc} has the wrong effective date
+        - '{doc|cap} PDF out of date for {2-40} policies'
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{ip_35} {ip_36}'
+        -   - '{ip_37} {ip_38}'
+        -   - Please keep details in this issue.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_fix_up}'
+      labels:
+        - bug
+        - security
+      let:
+        scope:
+          - another agency's
+          - a different branch's
+          - a former agent's
+      title:
+        - Agent can see {scope} policies
+        - Agent portal lists {scope} customers
+        - Policy search ignores the agency filter
+        - Export includes {scope} policyholders
+    - body:
+        -   - '{b_ac_a} {b_ac_b}'
+        -   - '{b_ac_c}'
+        -   - '{b_ac_d}'
+      comments:
+        - '{b_cm_sr} {b_cm_sr2}'
+        - '{b_cm_addl} {area}.'
+      labels:
+        - enhancement
+        - docs
+      let:
+        area:
+          - the claim form
+          - the payment page
+          - the ID card page
+          - the policy list
+        issue_kind:
+          - no labels
+          - a missing focus order
+          - low contrast
+          - unnamed buttons
+      title:
+        - 'Accessibility: {area} fails screen reader checks'
+        - Keyboard users cannot reach {area}
+        - '{area|cap} lacks labels and focus order'
+        - Contrast on {area} is below the guideline
+name: Insurance (property and casualty)
+name_suffixes:
+  - Insurance
+  - Mutual
+  - Indemnity
+  - Casualty
+  - Mutual Insurance
+  - Assurance
+  - Insurance Group
+names:
+  channels:
+    billing-team:
+      - policy-billing
+      - billing-eng
+      - premium-team
+    data-team:
+      - actuarial-data
+      - data-team
+      - claims-data
+    engineering:
+      - engineering
+      - tech
+      - it-dev
+    incidents:
+      - incidents
+      - prod-incidents
+      - cat-response
+    releases:
+      - releases
+      - change-calendar
+      - deploys
+    support:
+      - customer-service
+      - support
+      - service-desk
+  repos:
+    billing-service:
+      - premium-billing
+      - policy-billing
+      - billing-engine
+      - installments
+    customer-portal:
+      - policyholder-portal
+      - agent-portal
+      - customer-web
+      - claims-portal
+    data-pipeline:
+      - claims-warehouse
+      - policy-loads
+      - loss-data-etl
+      - actuarial-loads
+    infra-config:
+      - infra-config
+      - environment-config
+      - platform-config
+      - deploy-config
+    ops-scripts:
+      - ops-scripts
+      - batch-jobs
+      - legacy-jobs
+      - admin-scripts
+    platform-docs:
+      - it-handbook
+      - claims-runbooks
+      - platform-handbook
+      - system-docs
+organization:
+  head: Chief Information Officer
+  it_admin: IT Operations Manager
+  teams:
+    billing:
+      department: Policy and Billing Systems
+      title: Software Engineer
+    data:
+      department: Actuarial and Data
+      title: Data Engineer
+    operations:
+      department: Claims Operations
+      title: Claims Operations Analyst
+    platform:
+      department: Technology
+      title: Platform Engineer
+    product:
+      department: Digital Product
+      title: Product Manager
+    support:
+      department: Customer Service
+      title: Customer Service Representative
+slug: insurance-pc
+symbols:
+  b_acct_size:
+    - '{3-12} vehicles'
+    - '{2-9} properties'
+    - '{15-60} locations'
+    - '{40-300} certificates'
+  b_cb_path:
+    - billing/payment_events.py
+    - billing/lockbox_events.py
+    - billing/webhooks.py
+  b_check_path:
+    - the premium tests
+    - the notice tests
+    - the refund tests
+    - the lockbox tests
+  b_cn_a:
+    - The guard in {b_credit_path}
+    - Validation in {b_credit_path}
+    - The check in {b_credit_path}
+  b_cn_b:
+    - only counts the first refund
+    - ignores earlier refunds
+    - skips refunds issued together
+  b_cn_c:
+    - The total of all refunds
+    - Refunds added together
+    - The combined return premium
+  b_credit_path:
+    - billing/refunds.py
+    - billing/return_premium.py
+    - billing/adjustments.py
+  b_currency:
+    - USD
+    - CAD
+    - GBP
+    - AUD
+  b_customer:
+    - personal auto
+    - homeowners
+    - commercial property
+    - small business
+    - renters
+    - farm
+  b_doc:
+    - premium invoice
+    - renewal notice
+    - cancellation notice
+    - policy declaration
+    - billing statement
+    - endorsement invoice
+  b_mail_path:
+    - billing/notices.py
+    - billing/notice_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_money_path:
+    - billing/premiums.py
+    - billing/installments.py
+    - billing/earned_premium.py
+    - billing/rounding.py
+  b_page:
+    - policies
+    - billing
+    - claims
+    - documents
+    - ID cards
+    - the dashboard
+  b_pay_path:
+    - portal/payment_accounts.py
+    - portal/autopay.py
+  b_provider_event:
+    - payment received
+    - payment returned
+    - premium refund issued
+    - policy cancelled for non-payment
+    - policy reinstated
+  b_pwho:
+    - customer service
+    - an agent
+    - '{person}'
+    - the claims team
+    - underwriting
+  b_region:
+    - Florida
+    - Texas
+    - California
+    - Ontario
+    - Louisiana
+    - New York
+  b_taxkind:
+    - premium tax
+    - surplus lines tax
+    - stamp fees
+    - VAT
+  b_ticket_noun:
+    - ticket
+    - case
+    - complaint
+    - escalation
+  b_who:
+    - underwriting
+    - claims
+    - the agent network
+    - finance
+    - customer service
+  c_customer:
+    - a policyholder
+    - one of the larger agencies
+    - a commercial insured
+    - a farm client
+  c_dep:
+    - the pdf library
+    - the http client
+    - the orm
+    - the date library
+    - the geocoding client
+  c_eng_area:
+    - the billing run
+    - the cancellation job
+    - the rating call
+    - the claims export
+    - the ID card generator
+    - the earned premium calc
+  ip_1:
+    - The refund uses the short rate
+    - Return premium is pro rata
+  ip_10:
+    - ', and we are short.'
+    - ', so this has legal weight.'
+  ip_11:
+    - The cancellation job ran
+    - The nightly run saw no payment
+  ip_12:
+    - before the file was loaded.
+    - ', yet the payment was in it.'
+  ip_13:
+    - Policyholders lose coverage
+    - Customers keep their coverage on paper
+  ip_14:
+    - ', and then get a notice.'
+    - until we reinstate.
+  ip_15:
+    - Claims are affected
+    - Open claims are at risk
+  ip_16:
+    - if a loss falls in it.
+    - and need review.
+  ip_17:
+    - The fee is added at quote
+    - Fees are added twice
+  ip_18:
+    - when a renewal is rebilled.
+    - in the endorsement flow.
+  ip_19:
+    - Premium tax follows the total
+    - The tax base includes the fee
+  ip_2:
+    - for all states.
+    - in every case.
+  ip_20:
+    - and the state rules differ.
+    - for some lines.
+  ip_21:
+    - The payment has a policy number
+    - The file uses a loan number
+  ip_22:
+    - and matching fails.
+    - ', but it is not a match.'
+  ip_23:
+    - Customers get a lapse notice
+    - Notices go out while it sits
+  ip_24:
+    - although the loan is paid.
+    - in suspense.
+  ip_25:
+    - The upload works
+    - The photo uploads fine
+  ip_26:
+    - but the claim never gets it.
+    - and then the form resets.
+  ip_27:
+    - Policyholders retry
+    - People give up and phone in
+  ip_28:
+    - after a loss.
+    - and wait on hold.
+  ip_29:
+    - After a storm this becomes urgent
+    - Volume spikes after {ip_event}
+  ip_3:
+    - '{st} requires a pro rata refund'
+    - The state rule differs by line
+  ip_30:
+    - ', so it matters more.'
+    - every season.
+  ip_31:
+    - The PDF is cached
+    - The document is built nightly
+  ip_32:
+    - and not at the change.
+    - so it lags a day.
+  ip_33:
+    - Police may check the card
+    - Customers need it at once
+  ip_34:
+    - for proof of insurance.
+    - after a purchase.
+  ip_35:
+    - The search checks login
+    - The route checks the role
+  ip_36:
+    - but not the agency code.
+    - and nothing else.
+  ip_37:
+    - This exposes personal data
+    - Customer data must stay separate
+  ip_38:
+    - ', so treat it as urgent.'
+    - ', fix it first.'
+  ip_39:
+    - The load waits for {src}
+    - Nothing starts until {src} lands
+  ip_4:
+    - ', so one method is wrong.'
+    - and the regulator checks.
+  ip_40:
+    - ', and then it runs.'
+    - ', then goes on.'
+  ip_41:
+    - Actuarial reports were late
+    - Loss triangles missed the cut
+  ip_42:
+    - by {1-3} hours.
+    - for the quarter.
+  ip_43:
+    - The source sent it late
+    - Their batch ran long
+  ip_44:
+    - on their side.
+    - and sent no notice.
+  ip_45:
+    - A reopened claim resends the row
+    - Reserve changes create a version
+  ip_46:
+    - and the loader keeps both.
+    - without replacing the old.
+  ip_47:
+    - Loss totals look inflated
+    - Reserves are counted twice
+  ip_48:
+    - for {2-9} claims.
+    - in the report.
+  ip_49:
+    - Claims were tagged late
+    - The event code came after claims
+  ip_5:
+    - Finance wants the correct rule
+    - Compliance should confirm the method
+  ip_50:
+    - and the load missed it.
+    - in the claims system.
+  ip_51:
+    - Reinsurance reporting needs the code
+    - Actuarial relies on it
+  ip_52:
+    - for the reinsurance recovery.
+    - each quarter.
+  ip_53:
+    - The new number has a suffix
+    - The format gained a version
+  ip_54:
+    - and joins use the old key.
+    - after the upgrade.
+  ip_55:
+    - Reports show fewer matches
+    - Many claims have no policy
+  ip_56:
+    - since the release.
+    - in the warehouse.
+  ip_57:
+    - Traffic spikes after a storm
+    - Claims intake jumps {2-9} times
+  ip_58:
+    - and requests are rejected.
+    - and the form times out.
+  ip_59:
+    - Customers cannot report losses
+    - Support got {3-12} reports
+  ip_6:
+    - before anyone changes it.
+    - for each state.
+  ip_60:
+    - within the same hour.
+    - in the last event.
+  ip_61:
+    - Spotted during a change review
+    - Noticed while checking an alert
+  ip_62:
+    - ', and nobody owns renewal.'
+    - and the date is close.
+  ip_63:
+    - Expiry would stop quotes
+    - Expiry would break agent logins
+  ip_64:
+    - and the rating calls.
+    - until it is renewed.
+  ip_65:
+    - The auditor asked for access reviews
+    - State privacy rules need a review
+  ip_66:
+    - and an owner for each rule.
+    - every year.
+  ip_67:
+    - Unused rules should be removed
+    - Every removal needs a ticket
+  ip_68:
+    - Hit this during a catastrophe
+    - The new on-call found it
+  ip_69:
+    - ', and it cost time.'
+    - at night.
+  ip_7:
+    - The job counts from due date
+    - The notice clock starts too early
+  ip_70:
+    - The page covers the happy path
+    - It predates the new region
+  ip_71:
+    - only.
+    - and nobody updated it.
+  ip_72:
+    - '{ip_reg|cap} asked for the process'
+    - The exam request lists it
+  ip_73:
+    - and the last {2-4} cases.
+    - with recent examples.
+  ip_74:
+    - We do the work
+    - The proof is in tickets
+  ip_75:
+    - ', but evidence is scattered.'
+    - across several tools.
+  ip_76:
+    - Claims knows it
+    - Underwriting knows it best
+  ip_77:
+    - ', so ask them to review.'
+    - and a diagram would help.
+  ip_78:
+    - It was written for old formats
+    - Nobody current has touched it
+  ip_79:
+    - Its retention differs from policy.
+    - Check with claims first.
+  ip_8:
+    - ', not the mailing date.'
+    - and ignores the mail time.
+  ip_9:
+    - '{st} requires a fixed notice'
+    - State law sets the minimum notice
+  ip_device:
+    - an older Android phone
+    - an iPhone on the new OS
+    - a tablet
+    - a low end phone
+  ip_event:
+    - the hailstorm
+    - the hurricane
+    - the flood
+    - the wildfire
+    - the winter storm
+  ip_line:
+    - personal auto
+    - homeowners
+    - commercial auto
+    - workers compensation
+    - commercial property
+  ip_reg:
+    - the state regulator
+    - the rate filing
+    - the market conduct exam
+    - the NAIC annual statement
+  ip_state:
+    - Florida
+    - Texas
+    - California
+    - Louisiana
+    - Colorado
+    - Ohio
+  p_alert_name:
+    - late claims exports
+    - rating service errors
+    - lockbox file arrival
+    - failed backups
+    - disk usage on batch hosts
+  p_cert_host:
+    - the policyholder portal certificate
+    - the agent API certificate
+    - the rating service certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - my.{domain}
+    - agents.{domain}
+    - claims.{domain}
+    - status.{domain}
+  p_finance_ask:
+    - the controller
+    - the actuarial lead
+    - someone in finance
+    - the claims finance manager
+  p_howto:
+    - restore a database snapshot into staging
+    - scale up for a storm event
+    - replay a lockbox file
+    - answer a state regulator request
+  p_policy:
+    - the renewal season change freeze
+    - quarterly access reviews
+    - production data access
+    - on-call compensation
+  p_report:
+    - the loss ratio dashboard
+    - the earned premium report
+    - the open claims report
+    - the cancellations report
+  p_runbook:
+    - docs/runbooks/cat-response.md
+    - docs/runbooks/lockbox-loads.md
+    - docs/runbooks/rating-restarts.md
+    - docs/runbooks/dr-failover.md
+  p_script:
+    - claims_archive.sh
+    - sweep_lockbox_files.sh
+    - purge_quote_cache.sh
+    - rotate_logs.sh
+    - check_disk.sh
+  p_script_path:
+    - /srv/claims/exports
+    - /srv/lockbox/inbound
+    - /var/log/batch
+    - /mnt/backups/daily
+  p_secret_thing:
+    - the rating service key
+    - the lockbox SFTP key
+    - the claims system password
+    - the warehouse service account key
+  p_source:
+    - the claims system's nightly export
+    - the rating engine's output
+    - the lockbox payment files
+    - the agency management feed
+  p_table:
+    - policies
+    - claims
+    - payments
+    - coverages
+    - drivers
+    - reserves
+  s_cb_bad:
+    - elevated errors on lockbox callbacks
+    - payment events failing
+    - bank callbacks erroring
+    - callback endpoint throwing 5xx
+  s_cb_fix:
+    - retry callbacks on timeout
+    - retry timed out payment events
+    - add a retry for callback timeouts
+    - retry events that time out
+  s_cust:
+    - a customer on {s_plan}
+    - someone on {s_plan}
+    - a policyholder with {s_plan}
+    - an account on {s_plan}
+  s_dup_a:
+    - duplicate renewal notices going out
+    - policyholders got the notice twice
+    - same cancellation notice repeated
+    - notices sent twice
+  s_dup_fix:
+    - stop resending on retry
+    - skip notices already sent
+    - check the sent log first
+    - do not resend after a retry
+  s_inv_late:
+    - premium notices delayed
+    - renewal notices running late
+    - cancellation notices not going out
+    - notice sends lagging
+  s_inv_late_b:
+    - oldest has waited {20-90} min
+    - nothing sent since {time}
+    - send lag keeps rising
+    - backlog growing fast
+  s_plan:
+    - the standard auto policy
+    - a homeowners policy
+    - a business owners policy
+    - a renters policy
+  s_thing:
+    - the billing run
+    - the claims export
+    - the rating service
+    - the cancellation job
+    - the export
+  s_tool:
+    - the policy admin system
+    - the claims system
+    - the agent console
+    - the ticket queue
+systems:
+  common:
+    - docusign
+    - splunk
+    - pagerduty
+    - twilio
+    - tableau
+  typical:
+    - github
+    - slack
+    - jira
+    - okta
+    - duck creek
+    - salesforce
+    - servicenow
+    - snowflake
+    - guidewire
+    - applied epic

@@ -1,0 +1,1310 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Capital markets and asset management: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+aliases:
+  - asset management
+  - investment management
+  - capital markets
+  - broker-dealer
+  - hedge fund
+chat:
+  direct:
+    - replies:
+        -   - '{s_ack}'
+            - sure, {s_soon}
+            - give me ten
+        -   - half even, per policy
+            - i will check the contract
+            - '{s_thx}'
+      root:
+        - '{s_hey}, review the fee change {s_soon}?'
+        - quick question on rounding
+        - move the cutover review to {time}?
+        - '{s_hey}, look at the NAV mismatch?'
+    - replies:
+        -   - '{s_ack}, thanks'
+            - send me the checklist
+            - good luck
+        -   - '{c_lol}'
+            - same here
+            - congrats
+      root:
+        - handing over the close, out {s_soon}
+        - ugh, audit wants last year's evidence
+        - survived the exam, finally
+  engineering:
+    - replies:
+        -   - '{c_ack}, looking {c_when_eng}'
+            - is there a leap year test?
+            - what is the rounding rule here?
+        -   - round half even, per policy
+            - match on the trade id, yes
+            - '{c_thanks}'
+      root:
+        - review my pr on {repo}? fee accrual
+        - '{c_ci_fail} fails on the NAV branch'
+        - should trade matching ignore case?
+        - freeze for quarter end from {day} {time}
+    - replies:
+        -   - check the file hash first
+            - ops has the checklist
+            - see the runbook, i think
+        -   - '{c_ack}'
+            - thanks, that helps
+            - i will write it up
+      root:
+        - how to replay a custodian file?
+        - why does the NAV take {40-90} minutes?
+        - is the price vendor api down?
+        - who owns the cutoff time config?
+    - replies:
+        -   - author left, see the old pr
+            - '{person} knows that area'
+            - the fund docs have the rules
+        -   - '{c_thanks}'
+            - good idea, will try
+      root:
+        - working on {issue}, who knows high-water marks?
+        - eyes on the corporate action fix, {issue}?
+        - fee tests on last quarter's data?
+    - replies:
+        -   - '{c_ack}'
+            - i am, until {day}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - check the change calendar
+            - ''
+      root:
+        - 'tiny pr: fix typo in {repo} readme'
+        - who is on call this week?
+        - '{service} is slow, anyone changed something?'
+        - local env broke after {pulling main/a rebase}
+  incidents:
+    - replies:
+        -   - seeing it too, since {time}
+            - '{c_ack}, looking'
+            - vendor says they are checking
+        -   - do not publish until it ties
+            - opened {issue}
+            - i will post in the thread
+      root:
+        - price file is late again
+        - 'handover: {s_oncall} is quiet, nothing open'
+        - anyone else seeing the FIX session {s_symptom}?
+        - the NAV is {p_delay} late
+    - replies:
+        -   - '{c_ack}'
+            - is trading affected?
+            - ok, keep us posted
+        -   - yes, a retry saved it
+            - who is renewing it?
+            - '{c_thanks}'
+      root:
+        - the custodian posted an incident
+        - broker cert expires in {2-9} days
+        - rolled back {repo}, positions look right
+        - near miss, break check caught it
+    - replies:
+        -   - seeing it too
+            - '{c_ack}, on it'
+            - paging the trading tech team
+        -   - root cause is a full queue
+            - restarted the worker, clearing
+            - '{c_thanks}, will post a review'
+      root:
+        - '{s_al} order gateway is dropping sessions'
+        - trade break count above {2-9}
+        - quotes stale since {time}
+        - alerts stopped firing, checking now
+  off-topic:
+    - replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+            - not yet
+        -   - ''
+            - looks good
+            - '{c_thanks}'
+      root:
+        - did anyone follow the rate decision?
+        - lunch ideas? sick of {c_food}
+        - anyone watching the {match/game/race}?
+        - what are you all reading?
+    - replies:
+        -   - count me in
+            - '{c_lol}'
+            - what time?
+        -   - '{time}, meet by the lifts'
+            - ''
+            - '{c_yes}, bring umbrellas'
+      root:
+        - who wants the charity run?
+        - birthday cake in {c_room} at {time}
+        - lunch at {s_lunch}, who is in?
+        - did anyone watch the {match/game/race}?
+  support:
+    - replies:
+        -   - can you paste the account id?
+            - checking the fee run now
+            - looking, one sec
+        -   - aum was read early, filed as {issue}
+            - '{c_ack}, rebate and note the case'
+            - rebate needs compliance sign-off
+        -   - '{c_thanks}'
+            - will tell the client
+      root:
+        - client says fee is wrong, {s_ticket}
+        - '{s_cust|cap} asks why fees rose'
+        - an allocation looks off since {time}
+        - '{s_cust|cap} wants a fee rebate'
+    - replies:
+        -   - it refreshes after the load
+            - known issue, {issue}
+            - '{c_ack}'
+        -   - the as-of date confuses people
+            - is the entitlement set?
+            - escalate to operations
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - portal shows yesterday's prices, {s_ticket}
+        - advisor cannot see a client, {s_ticket}
+        - queue is at {20-80} open cases
+        - heads up, {s_cust} waits {2-9} days
+    - replies:
+        -   - it is under documents, reports
+            - we can reissue, ask finance
+            - '{c_ack}'
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - client needs last year's fee summary
+        - client wants a statement copy
+        - closing my shift, {5-20} open cases
+  team:
+    - replies:
+        -   - '{c_ack}'
+            - i can cover
+            - on it
+        -   - '{c_thanks}'
+            - ping me if it slips
+      root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - i am {c_pto}, who covers the close?
+        - planning {day} at {time}, bring estimates
+        - 'escalation: {c_customer} disputes a fee'
+    - replies:
+        -   - the client team approves
+            - i will update it {c_when_eng}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+      root:
+        - 'retro action: who approves fee waivers?'
+        - who has the fee release checklist?
+        - is the board current?
+  town-square:
+    - replies:
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - does that cover the NAV?
+        -   - '{c_yes}, same as last year'
+            - ops has the calendar
+            - ''
+      root:
+        - '{c_hey}: markets closed {c_soon}, batch still runs'
+        - exchange holiday {c_soon}, no settlement that day
+        - holiday schedule posted, early close {c_soon}
+        - markets shut {c_soon}, support is on rota
+    - replies:
+        -   - same course as last year?
+            - where is the link again?
+            - does the insider module count?
+        -   - new modules this year
+            - under learning in the hr portal
+            - '{c_idk}, ask {person}'
+      root:
+        - annual compliance training is due {c_soon}
+        - '{c_hey}: code of ethics sign-off closes {c_soon}'
+        - personal trading attestations due {c_soon}
+        - training overdue for {2-9} people
+    - replies:
+        -   - '{c_ack}'
+            - will there be a briefing?
+        -   - '{day} at {time}, in {c_room}'
+            - compliance will send a note
+            - ''
+      root:
+        - regulators are on site {c_soon}
+        - exam week {c_soon}, send requests to {person}
+        - '{c_hey}: audit fieldwork starts {day}'
+        - auditors visit {day}, answer only what is asked
+    - replies:
+        -   - welcome!
+            - '{c_thanks}'
+            - where do they sit?
+        -   - second floor, by the desk
+            - '{c_idk}, ask {person}'
+            - ''
+      root:
+        - new hire on the trade desk {c_soon}
+        - welcome {person} to client service
+        - '{c_hey}: new analyst starts {c_soon}, say hi'
+comments:
+  - "{b_cm_check} the custodian's event log."
+  - Does it touch the NAV?
+  - Compliance should see this first.
+  - '{b_g_loop} operations, they run the close.'
+  - What does the mandate say here?
+description: An investment firm that manages client portfolios, trades securities, values funds each day and bills clients management and performance fees.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+extends: general
+group: Financial services
+incidents:
+  - alert:
+      - '{s_inv_late}, {s_inv_late_b}'
+      - '{s_al} {s_inv_late}'
+      - '{s_inv_late} - {s_inv_late_b}'
+    fix: billing/email_queue.py
+    fix_message:
+      - '{s_q_verb|cap} notices {s_q_how}'
+      - Queue client statements, not inline sends
+      - '{s_q_verb|cap} client mail {s_q_how}'
+    role: billing
+    title:
+      - Client statements delayed
+      - Fee notices arriving late
+      - Capital call notice delivery slow
+      - Statement mail running behind
+  - alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix: billing/callbacks.py
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle custodian timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+    role: billing
+    title:
+      - Custodian callback errors
+      - Elevated errors on trade confirmations
+      - Custodian events failing
+      - Trade events not handled
+  - alert:
+      - '{s_dup_a}'
+      - '{s_dup_a}, {s_dup_b}'
+      - '{s_al} {s_dup_a}, {s_dup_b}'
+    fix: billing/sent_log.py
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - 'Dedupe notices: {s_dup_fix}'
+      - '{s_dup_fix|cap}, keep a sent log'
+    role: billing
+    title:
+      - Duplicate fee notices
+      - Clients receiving statements twice
+      - Capital call notices sent twice
+      - Repeated client notices
+invoice_items:
+  - Management fee
+  - Performance fee
+issues:
+  billing:
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_raised} on {kind} accounts, {b_scope}.'
+        -   - '{cm_1} {cm_2}'
+        -   - '{cm_3} {cm_4}'
+        -   - '{cm_5} {cm_6}'
+      comments:
+        - '{b_cm_hand} by {2-9} basis points.'
+        - '{b_cm_check} which price date it uses.'
+        - '{b_cm_later}'
+      labels:
+        - bug
+      let:
+        basis:
+          - month end value
+          - average daily value
+          - quarter end value
+        kind:
+          - '{b_customer}'
+      title:
+        - Management fee uses the wrong {basis}
+        - Fee base is {basis}, contract says otherwise
+        - Fee on {kind} accounts differs from the schedule
+        - AUM and fee base differ, why?
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{cm_7} {cm_8}'
+        -   - '{cm_9} {cm_10}'
+        -   - '{cm_11}'
+      comments:
+        - '{b_cm_check} the fund documents.'
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+        - needs-decision
+      let:
+        fund:
+          - '{cm_fund}'
+      title:
+        - Water mark reset after a redemption
+        - Performance fee ignores the mark
+        - Crystallization date wrong for {fund}
+        - Performance fee charged below the hurdle
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cm_12} {cm_13}'
+        -   - '{cm_14} {cm_15}'
+        -   - Finance has booked {3-40} corrections.
+      comments:
+        - '{b_cm_repro} with a {cur} account.'
+        - Which fixing source do contracts name?
+      labels:
+        - bug
+      let:
+        cur:
+          - '{b_currency}'
+      title:
+        - Fee in {cur} uses the wrong FX rate date
+        - '{cur} fee accrual differs from the ledger'
+        - Rate for {cur} fees is a day stale
+        - Currency conversion on fees off for {cur}
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{cm_16} {cm_17}'
+        -   - '{cm_18} {cm_19}'
+        -   - The client team must decide.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+      labels:
+        - enhancement
+        - needs-decision
+      let:
+        rule:
+          - household aggregation
+          - fee breakpoints
+          - minimum fees
+          - fee caps
+      title:
+        - Breakpoints ignore {rule} across accounts
+        - Apply {rule} across related accounts
+        - '{rule|cap} applied per account, not per client'
+        - Clients ask for {rule} on the statement
+  data:
+    - body:
+        -   - '{cm_36} {cm_37}'
+        -   - '{cm_38} {cm_39}'
+        -   - '{cm_40} {cm_41}'
+        -   - Alert when the file is late.
+      comments:
+        - '{b_cm_check} the transfer log.'
+        - Rerun fixed it, add a guard.
+      labels:
+        - bug
+        - incident
+      let:
+        src:
+          - '{p_source}'
+      title:
+        - '{src|cap} arrived {p_delay} late'
+        - NAV delayed, {src} came late
+        - Missing rows in {src} on {day}
+        - Price load blocked by {src}
+    - body:
+        -   - '{cm_42} {cm_43}'
+        -   - '{cm_44} {cm_45}'
+        -   - Reconcile and rerun the affected days.
+      comments:
+        - '{b_cm_hand} on the {day} snapshot.'
+        - Reproduced with the {day} snapshot.
+      labels:
+        - data-quality
+      let:
+        kind:
+          - split
+          - spin-off
+          - dividend
+          - merger
+          - rights issue
+      title:
+        - '{kind|cap} not applied to positions'
+        - Corporate action for a {kind} missed
+        - Holdings wrong after a {kind}
+        - Quantity off after the {kind}
+    - body:
+        -   - '{cm_46} {cm_47}'
+        -   - '{cm_48} {cm_49}'
+        -   - Which source should win?
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_hand} on the {day} snapshot.'
+      labels:
+        - data-quality
+        - question
+      let:
+        table:
+          - '{p_table}'
+      title:
+        - Trade breaks against the custodian
+        - '{table|cap} do not match the custodian'
+        - Reconciliation break on {table}, {p_dollars}
+        - Break count on {table} jumped on {day}
+    - body:
+        -   - '{cm_50} {cm_51}'
+        -   - '{cm_52} {cm_53}'
+        -   - Add a unique source key.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+        - data-quality
+      let:
+        id:
+          - ISIN
+          - CUSIP
+          - ticker
+          - internal id
+      title:
+        - Duplicate securities for one {id}
+        - '{id|cap} mapping wrong for {2-40} securities'
+        - Two records share the same {id}
+        - Reference data merge broke on {id}
+  docs:
+    - body:
+        -   - '{cm_66} {cm_67}'
+        -   - '{cm_68} {cm_69}'
+      comments:
+        - I will add it later.
+        - '{b_cm_ask_who}'
+      labels:
+        - docs
+        - bug
+      let:
+        runbook:
+          - '{p_runbook}'
+        step:
+          - confirm the price cut
+          - hold the NAV release
+          - notify the fund administrator
+          - record the batch id
+      title:
+        - '{runbook} misses a step: {step}'
+        - NAV close runbook skips how to {step}
+        - Cutoff notes skip when to {step}
+        - Runbook is silent on how to {step}
+    - body:
+        -   - '{cm_70} {cm_71}'
+        -   - '{cm_72} {cm_73}'
+        -   - Add an owner and review date.
+      comments:
+        - '{b_cm_draft} the control matrix.'
+        - Link the tickets, not screenshots.
+      labels:
+        - docs
+        - enhancement
+      let:
+        control:
+          - change approval
+          - books and records
+          - access reviews
+          - vendor onboarding
+      title:
+        - Write up evidence for {control} for the regulator
+        - Document how {control} works for audit
+        - 'Exam prep: proof for {control}'
+        - Compliance asked about {control}
+    - body:
+        -   - '{b_dc_a} {b_dc_b}'
+        -   - '{cm_74} {cm_75}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_up} {b_cm_read2}'
+      labels:
+        - docs
+        - task
+      let:
+        topic:
+          - how a trade settles
+          - how the NAV is built
+          - how fees accrue
+          - how corporate actions flow
+      title:
+        - Handbook needs an overview of {topic}
+        - Explain {topic} for new engineers
+        - New starters ask {topic}
+        - Write a page on {topic}
+  infra:
+    - body:
+        -   - '{cm_54} {cm_55}'
+        -   - '{cm_56} {cm_57}'
+        -   - Warn {14-30} days ahead, then page.
+      comments:
+        - '{b_cm_plan}'
+        - The broker needs {5-10} days notice.
+      labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - '{p_cert_host}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Renewal of {cert} is manual
+        - Add expiry monitoring for {cert}
+    - body:
+        -   - '{cm_58} {cm_59}'
+        -   - '{cm_60} {cm_61}'
+        -   - Fix the image, add a check.
+      comments:
+        - '{b_cm_check} the NTP config.'
+        - '{b_cm_later}'
+      labels:
+        - bug
+        - performance
+      let:
+        host:
+          - the order servers
+          - the FIX gateway
+          - the pricing hosts
+          - the batch hosts
+      title:
+        - Clock drift on {host} breaks trade timestamps
+        - Time sync check missing for {host}
+        - Timestamps on {host} differ by {2-90} ms
+        - '{host|cap} fail the clock sync audit'
+    - body:
+        -   - '{cm_62} {cm_63}'
+        -   - '{cm_64} {cm_65}'
+        -   - Fix it, rerun before the report.
+      comments:
+        - '{b_cm_check} the steps against {p_runbook}.'
+        - Add timings to the exercise report.
+      labels:
+        - bug
+        - incident
+      let:
+        system:
+          - the order system
+          - the FIX gateway
+          - the pricing service
+          - the NAV database
+      title:
+        - Failover of {system} missed the recovery objective
+        - 'DR exercise: {system} took {20-90} minutes'
+        - Recovery gaps found for {system}
+        - Replica for {system} lagged during failover
+  ops:
+    - body:
+        -   - '{cm_76} and it writes to {p_script_path}.'
+        -   - '{cm_77}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+      labels:
+        - question
+        - chore
+      let:
+        script:
+          - '{p_script}'
+      title:
+        - Is {script} needed after the migration?
+        - Retire {script} from the batch hosts?
+        - '{script} still runs from the old cron'
+        - Can we delete {script}?
+  portal:
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cm_20} {cm_21}'
+        -   - '{cm_22} {cm_23}'
+        -   - Show the as-of date clearly.
+      comments:
+        - '{b_cm_check} the cache setting.'
+        - '{b_cm_repro} {b_cm_stage}.'
+      labels:
+        - bug
+      let:
+        thing:
+          - prices
+          - holdings
+          - cash balances
+          - performance
+      title:
+        - Portal shows stale {thing} after the close
+        - '{thing|cap} lag a day on the dashboard'
+        - Holdings page uses yesterday's {thing}
+        - As-of date missing next to {thing}
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cm_24} {cm_25}'
+        -   - '{cm_26} {cm_27}'
+        -   - Please keep details in this issue.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_fix_up}'
+      labels:
+        - bug
+        - security
+      let:
+        scope:
+          - another advisor's
+          - a different team's
+          - a former advisor's
+      title:
+        - Advisor can open {scope} client accounts
+        - Entitlements ignored on the holdings export
+        - Report download shows {scope} clients
+        - Client list not filtered by book
+    - body:
+        -   - Compliance flagged it, {b_scope}.
+        -   - '{cm_28} {cm_29}'
+        -   - '{cm_30} {cm_31}'
+      comments:
+        - '{b_cm_ask_who}'
+        - Compliance must approve the final wording.
+      labels:
+        - bug
+        - docs
+      let:
+        doc:
+          - '{b_doc}'
+      title:
+        - Required disclosure missing from the {doc}
+        - Footer text on the {doc} is out of date
+        - '{doc|cap} lacks the risk warning'
+        - Disclosure wording differs between {doc} and portal
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{cm_32} {cm_33}'
+        -   - '{cm_34} {cm_35}'
+        -   - Label the method on every page.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check} the return calculation module.'
+      labels:
+        - bug
+      let:
+        kind:
+          - time-weighted
+          - money-weighted
+          - net of fees
+          - gross of fees
+      title:
+        - Performance chart differs from the statement
+        - Return shown is {kind}, statement says otherwise
+        - '{kind|cap} return does not match the report'
+        - Clients compare two returns
+name: Capital markets and asset management
+name_suffixes:
+  - Capital
+  - Asset Management
+  - Investments
+  - Securities
+  - Advisors
+  - Capital Management
+  - Partners
+names:
+  channels:
+    billing-team:
+      - fee-billing
+      - billing-eng
+      - fees-team
+    data-team:
+      - market-data
+      - data-team
+      - nav-data
+    engineering:
+      - engineering
+      - tech
+      - dev-desk
+    incidents:
+      - incidents
+      - prod-incidents
+      - trading-ops
+    releases:
+      - releases
+      - change-calendar
+      - deploys
+    support:
+      - client-service
+      - support
+      - client-desk
+  repos:
+    billing-service:
+      - fee-billing
+      - management-fees
+      - client-billing
+      - fee-engine
+    customer-portal:
+      - client-portal
+      - investor-portal
+      - advisor-portal
+      - reporting-portal
+    data-pipeline:
+      - market-data-loads
+      - positions-warehouse
+      - nav-loads
+      - reference-data-etl
+    infra-config:
+      - infra-config
+      - environment-config
+      - trading-infra
+      - platform-config
+    ops-scripts:
+      - ops-scripts
+      - eod-scripts
+      - legacy-jobs
+      - desk-tools
+    platform-docs:
+      - tech-handbook
+      - engineering-runbooks
+      - platform-handbook
+      - desk-docs
+organization:
+  head: Chief Technology Officer
+  it_admin: Head of IT Infrastructure
+  teams:
+    billing:
+      department: Fee and Billing Technology
+      title: Software Engineer
+    data:
+      department: Market Data and Analytics
+      title: Data Engineer
+    operations:
+      department: Trade Operations
+      title: Operations Analyst
+    platform:
+      department: Technology
+      title: Platform Engineer
+    product:
+      department: Investment Technology
+      title: Product Manager
+    support:
+      department: Client Service
+      title: Client Service Associate
+slug: capital-markets
+symbols:
+  b_acct_size:
+    - '{20-90} portfolios'
+    - '{3-12} funds'
+    - '{200-900} positions'
+    - '{15-60} sub-accounts'
+  b_cb_path:
+    - billing/custodian_events.py
+    - billing/trade_events.py
+    - billing/webhooks.py
+  b_check_path:
+    - the fee tests
+    - the notice tests
+    - the rebate tests
+    - the custodian tests
+  b_cn_a:
+    - The guard in {b_credit_path}
+    - Validation in {b_credit_path}
+    - The check in {b_credit_path}
+  b_cn_b:
+    - only counts the first rebate
+    - ignores earlier rebates
+    - skips rebates booked together
+  b_cn_c:
+    - The total of all rebates
+    - Rebates added together
+    - The combined fee credit
+  b_credit_path:
+    - billing/fee_rebates.py
+    - billing/refunds.py
+    - billing/adjustments.py
+  b_currency:
+    - USD
+    - EUR
+    - GBP
+    - CHF
+    - JPY
+  b_customer:
+    - institutional
+    - pension fund
+    - family office
+    - fund of funds
+    - advisor channel
+    - endowment
+  b_doc:
+    - client invoice
+    - fee statement
+    - performance fee statement
+    - capital call notice
+    - '{monthly/quarterly} statement'
+    - account statement
+  b_mail_path:
+    - billing/notices.py
+    - billing/notice_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_money_path:
+    - billing/fee_calc.py
+    - billing/aum.py
+    - billing/performance_fees.py
+    - billing/rounding.py
+  b_page:
+    - holdings
+    - performance
+    - statements
+    - documents
+    - transactions
+    - the dashboard
+  b_pay_path:
+    - portal/bank_instructions.py
+    - portal/payees.py
+  b_provider_event:
+    - trade settled
+    - trade failed to settle
+    - custodian file received
+    - corporate action posted
+    - capital call funded
+    - redemption processed
+  b_pwho:
+    - client service
+    - a portfolio manager
+    - '{person}'
+    - the sales desk
+    - compliance
+  b_region:
+    - Luxembourg
+    - Ireland
+    - Singapore
+    - Switzerland
+    - the Cayman Islands
+    - Delaware
+  b_taxkind:
+    - withholding tax
+    - stamp duty
+    - VAT on fees
+    - transaction tax
+  b_ticket_noun:
+    - ticket
+    - client query
+    - case
+    - escalation
+  b_who:
+    - the client team
+    - operations
+    - compliance
+    - finance
+    - portfolio management
+  c_customer:
+    - a client
+    - one of the larger institutions
+    - a family office
+    - a pension fund
+  c_dep:
+    - the pdf library
+    - the http client
+    - the orm
+    - the date library
+    - the numerics library
+  c_eng_area:
+    - the NAV job
+    - the fee accrual
+    - the trade matcher
+    - the FIX handler
+    - the price loader
+    - the position reconciliation
+  cm_1:
+    - The fee base is taken
+    - Assets under management are read
+  cm_10:
+    - ', so this is sensitive.'
+    - and queried it.
+  cm_11:
+    - Needs a ruling from compliance.
+    - Fund counsel should confirm.
+  cm_12:
+    - The accrual uses the prior rate
+    - The rate is read at runtime
+  cm_13:
+    - and not at the period end.
+    - ', not the closing fix.'
+  cm_14:
+    - Statements differ from the ledger
+    - Clients see a different fee
+  cm_15:
+    - by a small amount.
+    - in the reporting currency.
+  cm_16:
+    - The tier is chosen per account
+    - Each account is billed alone
+  cm_17:
+    - and the discount is lost.
+    - when assets are split.
+  cm_18:
+    - Clients with several accounts
+    - Family offices are hit most
+  cm_19:
+    - pay more than the schedule.
+    - and complain.
+  cm_2:
+    - from a price snapshot.
+    - before the close prices land.
+  cm_20:
+    - The page caches positions
+    - The portal reads a nightly copy
+  cm_21:
+    - until the next load.
+    - for the whole day.
+  cm_22:
+    - Clients phone the desk
+    - Advisors raise it every morning
+  cm_23:
+    - ', asking if it is wrong.'
+    - before the open.
+  cm_24:
+    - The export checks login
+    - The route checks the role
+  cm_25:
+    - but not the book of business.
+    - and nothing else.
+  cm_26:
+    - This is a privacy issue
+    - Client data must stay separate
+  cm_27:
+    - ', treat it as urgent.'
+    - ', fix it first.'
+  cm_28:
+    - The template was not updated
+    - Wording changed in the last review
+  cm_29:
+    - and the PDF kept old text.
+    - and nobody told engineering.
+  cm_3:
+    - The mandate says {basis}
+    - The contract says average value
+  cm_30:
+    - Regulators expect it on every statement
+    - '{cm_reg|cap} requires this text'
+  cm_31:
+    - ', so it has a date.'
+    - on all client reports.
+  cm_32:
+    - The chart uses one method
+    - The portal computes returns itself
+  cm_33:
+    - and the report uses the book.
+    - from the accounting system.
+  cm_34:
+    - Both are defensible
+    - Both numbers are right
+  cm_35:
+    - but they are not labelled.
+    - under different rules.
+  cm_36:
+    - The load waits for {src}
+    - Nothing starts until {src} lands
+  cm_37:
+    - ', and then it runs.'
+    - ', then goes on.'
+  cm_38:
+    - NAV was published late
+    - The close ran behind
+  cm_39:
+    - by {1-3} hours.
+    - and clients were told.
+  cm_4:
+    - ', so the numbers disagree.'
+    - and clients can check it.
+  cm_40:
+    - The vendor sent it late
+    - Their batch ran long
+  cm_41:
+    - on their side.
+    - and sent no notice.
+  cm_42:
+    - The action arrived after the load
+    - The vendor corrected it late
+  cm_43:
+    - and positions never updated.
+    - for {2-9} securities.
+  cm_44:
+    - The position differs
+    - Holdings differ from the custodian
+  cm_45:
+    - by the ratio.
+    - after the effective date.
+  cm_46:
+    - Operations found it
+    - The recon job flagged it
+  cm_47:
+    - while closing the day.
+    - on a {day} run.
+  cm_48:
+    - The break shows after amends
+    - Late amendments land next day
+  cm_49:
+    - ', so the days disagree.'
+    - and then it clears.
+  cm_5:
+    - Finance wants a correction
+    - Compliance wants affected clients listed
+  cm_50:
+    - The vendor reused an identifier
+    - A merge created two records
+  cm_51:
+    - and positions split across them.
+    - with different prices.
+  cm_52:
+    - Reports show doubled volume
+    - Positions look low
+  cm_53:
+    - for {2-9} funds.
+    - for one day.
+  cm_54:
+    - Spotted during a change review
+    - Noticed while checking an alert
+  cm_55:
+    - ', and nobody owns renewal.'
+    - and the date is close.
+  cm_56:
+    - Expiry would drop trading sessions
+    - Expiry would cut a broker link
+  cm_57:
+    - and halt order flow.
+    - until it is renewed.
+  cm_58:
+    - Regulators expect synced clocks
+    - '{cm_reg|cap} requires time accuracy'
+  cm_59:
+    - and an audit trail.
+    - for all order systems.
+  cm_6:
+    - ', not only a code fix.'
+    - before anything is changed.
+  cm_60:
+    - Drift appears after reboots
+    - NTP is not enforced
+  cm_61:
+    - on the older hosts.
+    - in the base image.
+  cm_62:
+    - This is in the continuity plan
+    - This was the annual recovery test
+  cm_63:
+    - ', and feeds the report.'
+    - for the regulator.
+  cm_64:
+    - DNS cutover took longer than planned
+    - One runbook step was stale
+  cm_65:
+    - and the replica was behind.
+    - ', and a script failed.'
+  cm_66:
+    - Hit this during a late close
+    - The new on-call found it
+  cm_67:
+    - ', and it cost time.'
+    - at quarter end.
+  cm_68:
+    - The page covers the happy path
+    - It predates the new fund
+  cm_69:
+    - only.
+    - and nobody updated it.
+  cm_7:
+    - The mark is stored per fund
+    - The mark lives on the fund
+  cm_70:
+    - The regulator asked for the process
+    - The exam request lists it
+  cm_71:
+    - and the last {2-4} cases.
+    - with recent examples.
+  cm_72:
+    - We do the work
+    - The proof is in tickets
+  cm_73:
+    - ', but evidence is scattered.'
+    - across several tools.
+  cm_74:
+    - Operations knows it
+    - The desk knows it best
+  cm_75:
+    - ', so ask them to review.'
+    - and a diagram would help.
+  cm_76:
+    - It was written for old formats
+    - Nobody current has touched it
+  cm_77:
+    - Its retention differs from policy.
+    - Check with operations first.
+  cm_8:
+    - and flows reset it.
+    - when a redemption posts.
+  cm_9:
+    - Investors may be overcharged
+    - A client noticed the charge
+  cm_asset:
+    - equities
+    - fixed income
+    - futures
+    - private credit
+    - ETFs
+  cm_fund:
+    - the flagship fund
+    - the credit fund
+    - the equity fund
+    - the multi-asset fund
+  cm_reg:
+    - MiFID II
+    - SEC rule 17a-4
+    - Form PF
+    - best execution rules
+    - AIFMD
+  cm_vendor:
+    - the price vendor
+    - the custodian
+    - the prime broker
+    - the index provider
+  cm_venue:
+    - the primary exchange
+    - the dark pool
+    - the broker's gateway
+    - the trading venue
+  p_alert_name:
+    - late price files
+    - FIX session drops
+    - trade break count
+    - failed backups
+    - disk usage on batch hosts
+  p_cert_host:
+    - the FIX gateway certificate
+    - the client portal certificate
+    - the prime broker connection certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - clients.{domain}
+    - fix.{domain}
+    - reports.{domain}
+    - status.{domain}
+  p_finance_ask:
+    - the CFO's office
+    - the fund controller
+    - someone in finance
+    - the head of operations
+  p_howto:
+    - restore a database snapshot into staging
+    - request market data entitlements
+    - replay a custodian file
+    - prepare for a regulator request
+  p_policy:
+    - the quarter end change freeze
+    - quarterly access reviews
+    - production data access
+    - on-call compensation
+  p_report:
+    - the daily NAV report
+    - the best execution report
+    - the AUM dashboard
+    - the fee accrual report
+  p_runbook:
+    - docs/runbooks/nav-close.md
+    - docs/runbooks/trade-breaks.md
+    - docs/runbooks/fix-sessions.md
+    - docs/runbooks/dr-failover.md
+  p_script:
+    - nav_archive.sh
+    - sweep_trade_files.sh
+    - purge_price_cache.sh
+    - rotate_logs.sh
+    - check_disk.sh
+  p_script_path:
+    - /srv/nav/inbound
+    - /srv/trades/archive
+    - /var/log/batch
+    - /mnt/backups/daily
+  p_secret_thing:
+    - the custodian SFTP key
+    - the market data API key
+    - the order system password
+    - the warehouse service account key
+  p_source:
+    - the custodian's position files
+    - the market data vendor feed
+    - the prime broker's reports
+    - the index provider files
+  p_table:
+    - positions
+    - trades
+    - prices
+    - accounts
+    - securities
+    - cash balances
+  s_cb_bad:
+    - elevated errors on custodian callbacks
+    - trade confirmations failing
+    - custodian events erroring
+    - callback endpoint throwing 5xx
+  s_cb_fix:
+    - retry callbacks on timeout
+    - retry timed out custodian events
+    - add a retry for callback timeouts
+    - retry events that time out
+  s_cust:
+    - a client on {s_plan}
+    - someone on {s_plan}
+    - a client with {s_plan}
+    - an account on {s_plan}
+  s_dup_a:
+    - duplicate fee notices going out
+    - clients got the statement twice
+    - same capital call notice repeated
+    - notices sent twice
+  s_dup_fix:
+    - stop resending on retry
+    - skip notices already sent
+    - check the sent log first
+    - do not resend after a retry
+  s_inv_late:
+    - client statements delayed
+    - fee notices running late
+    - capital call notices not going out
+    - statement sends lagging
+  s_inv_late_b:
+    - oldest has waited {20-90} min
+    - nothing sent since {time}
+    - send lag keeps rising
+    - backlog growing fast
+  s_plan:
+    - the standard fee schedule
+    - a negotiated fee schedule
+    - an institutional mandate
+    - a fund of one account
+  s_thing:
+    - the NAV job
+    - the position load
+    - the trade report
+    - the fee run
+    - the export
+  s_tool:
+    - the order system
+    - the client database
+    - the admin console
+    - the ticket queue
+systems:
+  common:
+    - splunk
+    - salesforce
+    - tableau
+    - docusign
+    - workiva
+    - datadog
+  typical:
+    - github
+    - slack
+    - jira
+    - okta
+    - confluence
+    - factset
+    - snowflake
+    - servicenow
+    - charles river
