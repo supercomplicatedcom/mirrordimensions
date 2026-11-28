@@ -862,10 +862,13 @@ def generate(manifest: Manifest, seeded: SeedContent | None = None) -> World:
                     labels=list(duplicate_of.labels),
                 )
             )
+    seeded_issues: set[int] = set()
+    if seeded and seeded.tickets:
+        seeded_issues = _seed_tickets(seeded, repos, active, history, rng.child("seed-tickets"))
     for repo in repos:
         _renumber(repo)
         for issue in repo.issues:
-            if not issue.event and id(issue) not in regressions:
+            if not issue.event and id(issue) not in regressions | seeded_issues:
                 comment_on(issue, repo)
     for repo in repos:
         for issue in (i for i in repo.issues if id(i) in regressions):
@@ -1423,6 +1426,79 @@ def _renamed(world: World, profile: profiles.Profile, rng: Rng) -> World:
         project.channel = channels.get(project.channel, project.channel)
     renamed.names = names
     return renamed
+
+
+def _seed_tickets(
+    seeded: SeedContent, repos: list[Repository], active: list[Person], history: int, rng: Rng
+) -> set[int]:
+    """The seed folder's tickets as issues, on the world's timeline (decision 0030): the
+    latest lands a day or two before the world starts and the rest keep their spacing,
+    squeezed only if they span more than the world's history. Returns the issues' ids."""
+    by_name = {r.name.lower(): r for r in repos}
+    by_role = {role: by_name[name] for name, role in profiles.CORE_ROLES.items() if name in by_name}
+    default = (
+        _repo_for(seeded.tickets_repo, by_name, by_role)
+        or by_name.get("billing-service")
+        or next(r for r in repos if not r.archived_feel)
+    )
+    people = {p.name.lower(): p for p in active} | {_first(p).lower(): p for p in active}
+    stamps = [
+        s
+        for t in seeded.tickets
+        for s in (t.created, t.closed_at, *(c.created for c in t.comments))
+        if s is not None
+    ]
+    latest = max(stamps) if stamps else 0.0
+    span_min = (latest - min(stamps)) / 60 if stamps else 0.0
+    room = (history - 3) * DAY
+    squeeze = min(1.0, room / span_min) if span_min > 0 else 1.0
+    anchor = DAY + rng.randint(0, DAY)
+
+    def ago(stamp: float | None, fallback: int) -> int:
+        if stamp is None:
+            return fallback
+        return anchor + int((latest - stamp) / 60 * squeeze)
+
+    def who(name: str | None) -> Person:
+        found = people.get((name or "").lower()) or people.get((name or "").split(" ")[0].lower())
+        return found or rng.choice(active)
+
+    ids: set[int] = set()
+    for ticket in seeded.tickets:
+        repo = _repo_for(ticket.repo, by_name, by_role) or default
+        opened = ago(ticket.created, rng.randint(2 * DAY, room))
+        closed: int | None = None
+        if ticket.closed:
+            closed = ago(ticket.closed_at, max(60, opened - rng.randint(DAY // 2, 5 * DAY)))
+            closed = min(closed, opened - 60) if opened > 120 else None
+        issue = Issue(
+            number=0,
+            title=ticket.title,
+            body=ticket.body,
+            author=who(ticket.author).id,
+            assignee=who(ticket.assignee).id if ticket.assignee else None,
+            ago=opened,
+            closed_ago=closed,
+            labels=list(ticket.labels),
+        )
+        at = opened
+        for c in ticket.comments:
+            at = ago(c.created, max(1, at - rng.randint(40, 2 * DAY)))
+            issue.comments.append(
+                Comment(ago=min(at, opened - 1), author=who(c.author).id, body=c.body)
+            )
+        issue.comments.sort(key=lambda c: -c.ago)
+        repo.issues.append(issue)
+        ids.add(id(issue))
+    return ids
+
+
+def _repo_for(
+    name: str | None, by_name: dict[str, Repository], by_role: dict[str, Repository]
+) -> Repository | None:
+    """The repository a ticket names: by the world's name, the usual name, or the role."""
+    key = (name or "").strip().lower()
+    return by_name.get(key) or by_role.get(key)
 
 
 def _remapped(remap: dict[int, int], index: int | None) -> int | None:

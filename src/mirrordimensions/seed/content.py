@@ -25,6 +25,7 @@ from mirrordimensions.config.common import StrictModel
 from mirrordimensions.errors import MirrorError
 from mirrordimensions.seed.detect import Personal, personal_in, without_secrets
 from mirrordimensions.seed.reader import Folder, SeedFile, read_folder
+from mirrordimensions.seed.tickets import SeedTicket, from_csv, from_json
 
 DOCUMENT_SUFFIXES = (".md", ".markdown", ".txt")
 _NAME_COLUMNS = ("name", "full name", "full_name", "display name", "display_name")
@@ -51,6 +52,10 @@ class SeedContent(BaseModel):
     digest: str = Field(description="Of everything below, so a change shows as pending")
     people: list[SeedPerson] = Field(default_factory=list[SeedPerson])
     documents: list[SeedDocument] = Field(default_factory=list[SeedDocument])
+    tickets: list[SeedTicket] = Field(default_factory=list[SeedTicket])
+    tickets_repo: str | None = Field(
+        default=None, description="Where tickets go that name no repository the world has"
+    )
 
 
 class ReviewItem(BaseModel):
@@ -90,6 +95,11 @@ class SeedSettings(StrictModel):
     """`seed.yaml` in the folder: how it builds, every time (decision 0030, point 4)."""
 
     leave_out: list[str] = Field(default_factory=list[str], description="Glob patterns")
+    tickets_repo: str | None = Field(
+        default=None,
+        description="The repository for tickets that name none the world has (its usual "
+        "name, such as billing-service, or the world's own)",
+    )
 
 
 def _settings(files: list[SeedFile]) -> SeedSettings:
@@ -172,6 +182,7 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
     review = SeedReview(folder=str(folder.root), not_read=list(folder.skipped))
     people: list[SeedPerson] = []
     documents: list[SeedDocument] = []
+    tickets: list[SeedTicket] = []
     for repo in folder.repositories:
         review.later.append(ReviewItem(path=repo, kind="git repository", becomes="a repository"))
     for f in folder.files:
@@ -180,11 +191,28 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
         if any(fnmatch.fnmatch(f.path, pattern) for pattern in settings.leave_out):
             review.not_read.append((f.path, "left out by seed.yaml"))
             continue
-        text, dropped = without_secrets(f.path, f.text)
+        suffix = Path(f.path).suffix.lower()
+        # JSON is read whole and has secrets taken out value by value; other text line by line.
+        text, dropped = (f.text, 0) if suffix == ".json" else without_secrets(f.path, f.text)
         if dropped:
             review.secrets_dropped.append(Dropped(path=f.path, lines=dropped))
-        suffix = Path(f.path).suffix.lower()
-        if suffix == ".csv" and (found := _people(text)) is not None:
+        sheet = (
+            from_json(f.text)
+            if suffix == ".json"
+            else from_csv(f.text)
+            if suffix == ".csv"
+            else None
+        )
+        if sheet is not None:
+            tickets.extend(sheet)
+            review.items.append(
+                ReviewItem(
+                    path=f.path,
+                    kind="tickets",
+                    becomes=f"{len(sheet)} issue{'' if len(sheet) == 1 else 's'}",
+                )
+            )
+        elif suffix == ".csv" and (found := _people(text)) is not None:
             people.extend(found)
             review.items.append(
                 ReviewItem(path=f.path, kind="people", becomes=f"{len(found)} of the staff")
@@ -195,9 +223,9 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
             review.items.append(
                 ReviewItem(path=f.path, kind="document", becomes=f"handbook page {doc.path}")
             )
-        elif suffix in (".csv", ".json"):
+        elif suffix == ".json":
             review.later.append(
-                ReviewItem(path=f.path, kind="tickets or chat", becomes="read by a later version")
+                ReviewItem(path=f.path, kind="chat export", becomes="read by a later version")
             )
             continue
         else:
@@ -208,7 +236,13 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
             for p in personal_in(f.path, text, company_domain)
         ]
     documents = _unique_paths(documents)
-    body = SeedContent(digest="", people=people, documents=documents)
+    body = SeedContent(
+        digest="",
+        people=people,
+        documents=documents,
+        tickets=tickets,
+        tickets_repo=settings.tickets_repo,
+    )
     digest = hashlib.sha256(body.model_dump_json().encode()).hexdigest()[:16]
     return body.model_copy(update={"digest": digest}), review
 
