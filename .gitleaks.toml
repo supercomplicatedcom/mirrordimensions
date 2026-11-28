@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # Gitleaks' default rules, plus two exceptions, fake by design: the golden synthetic world's
 # planted canary credentials (they exist to be leaked and traced), and the world import

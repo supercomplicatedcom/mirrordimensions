@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # The device platform's inputs and outputs (decision 0026). Errors are the platform's own
 # JSON, as its server sends them.

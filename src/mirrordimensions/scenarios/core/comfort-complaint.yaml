@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # Needs a world with a thermostat, and an agent granted `operator` on its site (decision
 # 0026). In the `devices` suite, not `core`.

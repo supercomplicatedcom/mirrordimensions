@@ -1,5 +1,4 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # Optional microVM runtime for agents (decision 0012): Kata Containers with the Firecracker
 # hypervisor, driven through containerd with the devmapper snapshotter (Firecracker has no

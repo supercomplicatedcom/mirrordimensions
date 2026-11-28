@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";

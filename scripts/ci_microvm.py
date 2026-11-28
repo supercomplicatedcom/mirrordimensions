@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """CI only: install the microVM runtime directly on a Linux runner with /dev/kvm and prove a
 workload runs in a Firecracker microVM (decision 0012). The same provisioning script and the

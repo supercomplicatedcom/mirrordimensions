@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """A minimal real agent: for each open issue assigned to it, ask Claude for a short triage
 note and post it as a comment. Settings come from the environment, as deployed."""

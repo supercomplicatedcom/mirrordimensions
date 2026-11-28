@@ -1,5 +1,4 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # Provision the engine guest: Docker Engine, gVisor, and the edge firewall.
 # The same script serves the lima and wsl drivers. Idempotent. Runs as root.

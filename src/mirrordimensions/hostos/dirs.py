@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Per-user folders for host-level state: engine settings, Docker client keys, Lima's home.
 

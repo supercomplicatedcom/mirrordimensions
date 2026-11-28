@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Scenarios, built-in and the project's own: `mirror scenario list|show` and the portal's
 Scenarios screen."""

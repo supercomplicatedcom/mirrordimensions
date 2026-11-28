@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """A stand-in for a company's own inference server (OpenAI-compatible), for tests only.
 It records the Authorization header it receives so a test can prove the gateway sent the

@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The result's physical consequences section (build spec, "What is evaluated"; decision
 0026, point 10): each disruptive or safety-critical command the agent tried, what it would

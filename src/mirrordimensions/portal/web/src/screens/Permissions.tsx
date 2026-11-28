@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // For one agent: what it is granted, set against what its last run used (the run's access
 // map), and the grants themselves, edited here and saved to the agent's file. Grants are

@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The environment as a map: agents, the gateway, each system and the model endpoints
 (build spec, "Portal", "Environment map requirements").

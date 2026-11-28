@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The device platform: a building-access service that fronts a company's doors, climate
 units, sensors and cameras with a REST API (decision 0026).

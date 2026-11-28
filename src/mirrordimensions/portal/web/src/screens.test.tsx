@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";

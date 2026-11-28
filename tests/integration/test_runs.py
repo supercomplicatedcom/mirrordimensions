@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Whole runs against a live world (build spec, M5): set MIRROR_TEST_PROJECT to a project
 whose world is created and up, with the reference agents added."""

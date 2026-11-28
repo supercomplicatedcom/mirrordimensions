@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Gitea's scenario vocabulary: overlays, deliveries and checks (build spec, "Scenario file").
 

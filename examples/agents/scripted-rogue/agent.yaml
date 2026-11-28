@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # A reference agent that misbehaves on purpose, to prove every violation is detected,
 # attributed and fails the run (build spec, "Reference agents"). Written for

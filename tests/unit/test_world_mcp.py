@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The world MCP server (decision 0009): the front, its tool set, and capture at the gateway."""
 

@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """A small, deterministic on-call helper. It takes the newest issue assigned to it about a
 committed credential, removes the line holding the credential from the file the issue names,

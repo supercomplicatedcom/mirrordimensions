@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Exact grants (decision 0020): for a run, the person the agent acts as has only what the
 agent file grants, and a run whose work arrives somewhere ungranted is refused up front."""

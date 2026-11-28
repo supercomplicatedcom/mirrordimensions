@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // One system's inputs and outputs: every portal page and endpoint the agent can use, what
 // each takes in and gives back, and whether a rule customizes it. Choosing one opens a

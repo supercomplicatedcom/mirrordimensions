@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // The live view's logic, kept apart from drawing so it can be tested: where each place sits
 // on the map, where a step puts the agent's marker, the trail behind it, and the totals.

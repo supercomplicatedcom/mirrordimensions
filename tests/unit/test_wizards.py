@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M7: the portal's two wizards write the same files as the command line, keep drafts that
 resume, and the portal switches to the world it creates (decision 0022)."""

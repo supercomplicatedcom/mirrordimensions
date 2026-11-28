@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # The same work and checks, for an agent that has only the company's MCP server.
 variant_of: fix-failing-test

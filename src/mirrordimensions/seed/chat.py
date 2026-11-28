@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Chat history from the seed folder: a Slack export or a Mattermost bulk export
 (decision 0030, point 2).

@@ -9,7 +9,7 @@ The repository stays private until every item is ticked. See decision 0007. Add 
 - [ ] Package `mirrordimensions` claimed on PyPI with a real first release (not a placeholder); decide whether to register a trademark for the name (none is held today); `mirrordimensions` GitHub organization claimed; `TRADEMARKS.md` published
 - [ ] No cloud-service code, configuration or references anywhere in the repository or its history
 - [x] Licence confirmed: Apache-2.0 (2026-11-23)
-- [ ] `LICENSE`, `NOTICE` and SPDX headers match it, naming Supercomplicated LLC as copyright holder
+- [ ] `LICENSE` and `NOTICE` match it, with `NOTICE` naming the copyright holder, and every source file carries `SPDX-License-Identifier: Apache-2.0`
 - [ ] DCO (or CLA) decided and enforced in CI
 - [ ] Lawyer review: licence, twin software licences (Gitea, Mattermost), catalog trademark use, dual-use scenarios, the product spec's "cloning third-party SaaS" risk
 

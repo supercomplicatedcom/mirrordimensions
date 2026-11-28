@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The company's people as the building knows them: a badge each, where they sit, and when
 they come in (decision 0026, point 9).

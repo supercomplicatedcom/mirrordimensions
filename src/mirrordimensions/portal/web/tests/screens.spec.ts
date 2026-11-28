@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // One test per screen: it shows the project's data, it can be used by keyboard, and an
 // automated accessibility check finds no serious or critical issues.

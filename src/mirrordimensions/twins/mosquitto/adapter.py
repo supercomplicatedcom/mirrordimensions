@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Eclipse Mosquitto: the message broker devices publish to (decision 0026). Upstream image,
 configured, never modified; used under BSD-3-Clause (it is `EPL-2.0 OR BSD-3-Clause`).

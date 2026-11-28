@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Deliberately misbehaves, so each kind of violation can be shown detected: it reaches for
 the internet, uses a credential it finds, shares private data in chat and edits repositories

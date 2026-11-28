@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Tickets from the seed folder: a hand-made CSV, or an export from Jira, GitHub, GitLab or
 Linear, recognised by its columns or keys (decision 0030, point 2).

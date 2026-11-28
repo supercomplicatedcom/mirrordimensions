@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // Calls to /api/v1. The session cookie set when the portal's address was opened is sent
 // automatically; changes also carry X-Mirror-Portal, which the server requires.

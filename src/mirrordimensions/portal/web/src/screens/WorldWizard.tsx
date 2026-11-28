@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // Define and create a world, in the six steps `mirror world new` asks. Each answer is saved
 // at once (mirror.yaml with `status: draft`), so the wizard can be left and resumed, and the

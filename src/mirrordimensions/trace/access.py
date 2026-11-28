@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The access map: hosts, repositories, channels and tools the agent touched, against those
 it was granted (build spec, "Timeline and report").

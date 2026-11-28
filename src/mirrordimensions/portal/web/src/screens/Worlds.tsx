@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // The worlds on this machine beside the current one: switch the portal to another, or
 // define a new one. Every world shares the one engine; only one world's sandbox runs.

@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """What every system that fronts devices shares (decision 0026): the configuration its
 devices are simulated from, its state dump, and that dump as side-effect objects."""

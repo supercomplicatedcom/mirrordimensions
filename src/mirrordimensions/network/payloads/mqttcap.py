@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The gateway's MQTT listener: TLS on 8883, relayed unchanged to the message broker, with
 every connect, subscribe, publish and disconnect recorded both ways (decision 0026).

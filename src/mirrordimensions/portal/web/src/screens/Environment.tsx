@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // The environment as a map: agents, the gateway, each system and the model endpoints, and
 // the devices each device platform fronts. The layout is computed from the graph (left to

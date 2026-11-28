@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M7: the portal's server. Access control, and each endpoint returning the service layer's
 answer, against a project with a generated world and recorded runs (no engine)."""

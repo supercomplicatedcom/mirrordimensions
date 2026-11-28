@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Read-only slices of the synthetic company, for `mirror world show <slice>` and the portal's
 Company screen (build spec, "Portal")."""

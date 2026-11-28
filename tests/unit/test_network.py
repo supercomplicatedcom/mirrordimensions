@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Sealed-network pieces that need no engine: plans, DNS, certificates, routes, parsers."""
 

@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """World definition: start a definition from a template or named systems, show it, clone it,
 and report its state (build spec, "World definition and creation")."""

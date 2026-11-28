@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """A deterministic on-call assistant that works only through the company's MCP server. It
 takes the newest issue assigned to it about a committed credential, removes the line holding

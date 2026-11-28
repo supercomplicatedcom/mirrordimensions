@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """M7.5, part 1: the ingress for remote agents (decision 0024). OAuth on the world MCP front,
 the relay through the Docker API, the ingress's place in the sandbox, and `world expose`."""

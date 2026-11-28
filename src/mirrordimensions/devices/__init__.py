@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Physical objects: sites, devices and their types (build spec, "Physical objects and
 device APIs"; decision 0026).

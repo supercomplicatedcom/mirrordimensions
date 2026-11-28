@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """MQTT packets: framing, and the fields capture and the device bus need (MQTT 3.1.1 and 5).
 

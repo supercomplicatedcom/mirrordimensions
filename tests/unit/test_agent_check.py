@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """`mirror agent check`: each deliberate misconfiguration produces a failed check that names
 its fix (build spec, M4). The engine is replaced by a stand-in; the live checks ran in the

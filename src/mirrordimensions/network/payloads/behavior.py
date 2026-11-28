@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """Surfaces and rules: the shared engine behind profiles, the gateway's behaviour add-on and
 `mirror system try`. Pure Python with no imports beyond the standard library, so the gateway

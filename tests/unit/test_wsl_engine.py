@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 """The wsl driver's command lines against a stand-in wsl.exe, and the engine's Docker TLS.
 

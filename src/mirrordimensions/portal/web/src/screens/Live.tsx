@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // The live view: the agent moving through the world as it works. A marker sits on the
 // resource it is acting on, a trail shows the path so far, and the Now panel says in plain

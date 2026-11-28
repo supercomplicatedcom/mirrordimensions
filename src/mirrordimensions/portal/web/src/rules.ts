@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // The System screen's rule form: the common customizations of one portal or endpoint
 // (a body size limit, added delay, a share of requests failing, who it applies to), read

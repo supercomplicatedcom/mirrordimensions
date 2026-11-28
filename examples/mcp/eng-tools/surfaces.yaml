@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
 # What each eng-tools tool calls in the world's twins (decision 0009). The tool list itself
 # (tools.json) is the production server's export, kept unchanged.
