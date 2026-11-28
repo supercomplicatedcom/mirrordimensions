@@ -186,3 +186,43 @@ def test_a_profile_builds_on_the_one_it_extends(monkeypatch: pytest.MonkeyPatch)
     assert merged.organization.teams["support"].department == "Patient Services"
     assert merged.systems == profiles.Systems.model_validate(base["systems"])
     assert merged.invoice_items == ["Room and board", "Lab panel"]
+
+
+def test_a_writer_gets_the_small_things_right() -> None:
+    from mirrordimensions.world.compose import Composer
+
+    say = Composer(Rng(1, "grammar"), {}).render
+    assert say("a infra-config change") == "An infra-config change"
+    assert say("an signer and a hour and an user") == "A signer and an hour and a user"
+    assert say("the the queue took 1 hours") == "The queue took 1 hour"
+    assert say("it took 2 hours") == "It took 2 hours"
+
+
+def test_companies_without_subscriptions_never_talk_about_proration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    general = profiles.load(profiles.GENERAL)
+    assert any(t.saas for t in general.issues["billing"])
+    child: dict[str, Any] = {
+        "extends": "general",
+        "slug": "county-water",
+        "name": "County water",
+        "group": "Government and public sector",
+        "description": "A water district.",
+        "subscriptions": False,
+    }
+    real = profiles._load  # pyright: ignore[reportPrivateUsage]
+
+    def fake(slug: str) -> dict[str, Any]:
+        return child if slug == "county-water" else real(slug)
+
+    monkeypatch.setattr(profiles, "_load", fake)
+    profiles.load.cache_clear()
+    try:
+        water = profiles.load("county-water")
+    finally:
+        profiles.load.cache_clear()
+    assert not any(t.saas for themes in water.issues.values() for t in themes)
+    assert len(water.issues["billing"]) == len(general.issues["billing"]) - sum(
+        t.saas for t in general.issues["billing"]
+    )

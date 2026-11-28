@@ -238,7 +238,7 @@ def _people(manifest: Manifest, rng: Rng, history: int, profile: profiles.Profil
 
     teams = _teams(profile)
     labels = profile.organization.teams
-    engineering = next(dept for team, dept, _, _ in teams if team == "billing")
+    engineering = profile.organization.engineering
     operations = next(dept for team, dept, _, _ in teams if team == "operations")
     it = iter(names)
     cto = add(

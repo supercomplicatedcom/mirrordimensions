@@ -73,6 +73,10 @@ class IssueTheme(StrictModel):
 
     labels: list[str] = Field(min_length=1)
     weight: int = Field(default=1, ge=1, le=10, description="How often, against the others")
+    saas: bool = Field(
+        default=False,
+        description="Only for companies that bill subscriptions: proration, dunning, retries",
+    )
     let: dict[str, list[str]] = Field(default_factory=dict[str, list[str]])
     title: list[str] = Field(min_length=1)
     body: list[list[str]] = Field(min_length=1, description="Sentences, each a list of templates")
@@ -133,6 +137,9 @@ class Organization(StrictModel):
 
     teams: dict[str, TeamLabel] = Field(default_factory=dict[str, TeamLabel])
     head: str = "VP of Engineering"
+    engineering: str = Field(
+        default="Engineering", description="The department the engineering head leads"
+    )
     it_admin: str = "IT Administrator"
 
 
@@ -156,6 +163,11 @@ class Profile(StrictModel):
         default_factory=lambda: ["Annual subscription", "Setup fee"], min_length=2, max_length=2
     )
     name_suffixes: list[str] = Field(default_factory=lambda: ["Group", "Partners", "Holdings"])
+    subscriptions: bool = Field(
+        default=True,
+        description="Whether this kind of company bills subscriptions; if not, the general "
+        "themes about proration, dunning and payment retries are left out",
+    )
 
 
 def _load(slug: str) -> dict[str, Any]:
@@ -238,6 +250,10 @@ _MERGED = frozenset(
 @cache
 def load(slug: str = GENERAL) -> Profile:
     profile = Profile.model_validate(_merged(slug))
+    if not profile.subscriptions:
+        profile.issues = {
+            role: [t for t in themes if not t.saas] for role, themes in profile.issues.items()
+        }
     missing = [line for line in LINES if not profile.lines.get(line)]
     absent = [kind for kind in CHAT_KINDS if not profile.chat.get(kind)]
     roles = set(CORE_ROLES.values()) - set(profile.issues)

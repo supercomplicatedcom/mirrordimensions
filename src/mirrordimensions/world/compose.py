@@ -124,12 +124,36 @@ def _raise(word: str) -> str:
     return word[:1].upper() + word[1:]
 
 
+# Words that take "an" though they start with a consonant letter, or "a" though they start
+# with a vowel letter, as they are said.
+_AN = re.compile(
+    r"^(hour|honest|honou?r|heir|mri|sla|sms|sso|sku|fyi|faq|nda|mfa|hr|hl7|x-?ray|8|11|18|80)",
+    re.I,
+)
+_A = re.compile(
+    r"^(use|user|usu|uni|unit|util|euro|eu\b|one|once|ui\b|url|usb|us\b|uk\b|ux\b)", re.I
+)
+
+
+def _article(match: re.Match[str]) -> str:
+    article, space, word = match.group(1), match.group(2), match.group(3)
+    vowel = bool(_AN.match(word)) or (word[:1].lower() in "aeiou" and not _A.match(word))
+    right = "an" if vowel else "a"
+    if article[0].isupper():
+        right = right.capitalize()
+    return right + space + word
+
+
 def _spaces(text: str) -> str:
     """One space between words, none before punctuation; an emoji code such as `:tada:`
-    keeps the space before it."""
+    keeps the space before it. Then the small things a person writing would get right: "a"
+    or "an" as the next word is said, no word twice in a row, and "1 hour" not "1 hours"."""
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r" ([,.;!?])", r"\1", text)
-    return re.sub(r" :(?![a-z0-9_+-]+:)", ":", text).strip()
+    text = re.sub(r" :(?![a-z0-9_+-]+:)", ":", text).strip()
+    text = re.sub(r"\b([Aa]n?)( )([A-Za-z0-9][\w-]*)", _article, text)
+    text = re.sub(r"\b([A-Za-z]+) \1\b", r"\1", text, flags=re.I)
+    return re.sub(r"\b1 (minute|hour|day|week|month|year|second)s\b", r"1 \1", text)
 
 
 def slots(template: str) -> Iterator[str]:

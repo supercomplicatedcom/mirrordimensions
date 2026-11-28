@@ -2836,6 +2836,7 @@ issues:
         - Should we clean {existing duplicates/old duplicates/the repeats} in this release?
     - labels:
         - enhancement
+      saas: true
       let:
         step:
           - three retries over a week
@@ -2897,6 +2898,7 @@ issues:
         - '{b_cm_fix_up} It builds the mail after finalising.'
     - labels:
         - performance
+      saas: true
       let:
         job:
           - the month-end run
@@ -2985,6 +2987,7 @@ issues:
     - labels:
         - bug
         - needs-decision
+      saas: true
       let:
         thing:
           - dunning emails
@@ -3014,6 +3017,7 @@ issues:
         - '{b_cm_nosusp} until this is settled.'
     - labels:
         - bug
+      saas: true
       let:
         change:
           - an upgrade mid-month
@@ -4938,7 +4942,7 @@ comments:
   - '{b_g_loop} {person}, they know this area.'
   - '{Thanks/Cheers/Thank you}, that helps.'
   - '{Good catch/Nice find/Good spot}.'
-  - '{+1/Same/Also seeing this}, {seen this too/it hit us/same here}.'
+  - '{Same here/Also seeing this/We see it as well/+1, it hit us too/Seeing it on our side}.'
   - '{b_g_same} {b_g_since}'
   - '{Agreed/Agree/Makes sense}.'
   - '{b_g_dir} {b_g_worry}'
