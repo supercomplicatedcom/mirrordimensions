@@ -145,7 +145,8 @@ def test_people_documents_and_seed_yaml(tmp_path: Path) -> None:
     assert content.people[2].title == "Head of Claims Engineering"
     assert [d.path for d in content.documents] == ["docs/runbooks/claims-backlog.md"]
     assert ("draft.md", "left out by seed.yaml") in review.not_read
-    assert [i.path for i in review.later] == ["tickets.csv"]  # tickets come in a later version
+    assert ("tickets.csv", "tickets") in {(i.path, i.kind) for i in review.items}
+    assert [t.title for t in content.tickets] == ["Batch stalls"]
 
 
 def test_the_world_is_built_from_the_folder_and_the_agent_cannot_see_where(
@@ -190,3 +191,115 @@ def test_a_new_seed_copy_rebuilds_the_company(tmp_path: Path) -> None:
     after = project_hash(project, manifest)
     assert first_stage_affected(before, after) == 1  # the company is generated again
     assert first_stage_affected(after, project_hash(project, manifest)) == 9  # and is stable
+
+
+def _json(value: object) -> str:
+    import json
+
+    return json.dumps(value)
+
+
+def test_tickets_from_a_sheet_and_from_jira_github_and_linear_exports(tmp_path: Path) -> None:
+    root = tmp_path / "seed"
+    root.mkdir()
+    (root / "sheet.csv").write_text(
+        "Summary,Status,Priority,Reporter,Comment\n"
+        "Claims batch stalls overnight,Open,High,Rosa Delgado,Seen again on Monday\n"
+        "Remit file rejected,Done,Low,,\n",
+        encoding="utf-8",
+    )
+    jira = {
+        "issues": [
+            {
+                "key": "CLM-12",
+                "fields": {
+                    "summary": "Eligibility check times out",
+                    "description": "Started after the payer change.\napi_key: sk-abcdefghijklmnopqrstuvwxyz",
+                    "status": {"name": "In Progress", "statusCategory": {"key": "indeterminate"}},
+                    "labels": ["eligibility"],
+                    "issuetype": {"name": "Bug"},
+                    "created": "2025-03-04T10:15:00.000+0000",
+                    "comment": {
+                        "comments": [
+                            {"body": "Looking", "author": {"displayName": "Tomasz Wierzbicki"}}
+                        ]
+                    },
+                },
+            }
+        ]
+    }
+    (root / "jira.json").write_text(_json(jira), encoding="utf-8")
+    github = [
+        {
+            "title": "Portal shows stale balance",
+            "body": "Refresh fixes it.",
+            "state": "closed",
+            "labels": [{"name": "bug"}],
+            "created_at": "2025-02-01T09:00:00Z",
+            "closed_at": "2025-02-03T09:00:00Z",
+        }
+    ]
+    (root / "github.json").write_text(_json(github), encoding="utf-8")
+    linear = {
+        "nodes": [
+            {"title": "Add payer to the remit report", "description": "", "state": {"name": "Todo"}}
+        ]
+    }
+    (root / "linear.json").write_text(_json(linear), encoding="utf-8")
+    content, review = read_seed(root, DOMAIN)
+    titles = {t.title: t for t in content.tickets}
+    assert set(titles) == {
+        "Claims batch stalls overnight",
+        "Remit file rejected",
+        "Eligibility check times out",
+        "Portal shows stale balance",
+        "Add payer to the remit report",
+    }
+    assert (
+        titles["Remit file rejected"].closed and not titles["Claims batch stalls overnight"].closed
+    )
+    assert titles["Claims batch stalls overnight"].comments[0].body == "Seen again on Monday"
+    jira_ticket = titles["Eligibility check times out"]
+    assert "sk-" not in jira_ticket.body and "payer change" in jira_ticket.body  # value by value
+    assert jira_ticket.labels == ["eligibility", "bug"] and jira_ticket.created is not None
+    assert titles["Portal shows stale balance"].closed
+    assert {i.kind for i in review.items} == {"tickets"}
+
+
+def test_tickets_land_on_the_worlds_timeline_keeping_their_spacing(tmp_path: Path) -> None:
+    root = init_project(tmp_path / "halden", seed=48213).root
+    project = Project(root=root)
+    folder = _folder(tmp_path)
+    tickets = [
+        {
+            "title": "First report of the remit gap",
+            "created_at": "2023-01-10T09:00:00Z",
+            "state": "open",
+            "repository": "data-pipeline",
+        },
+        {
+            "title": "Second report of the remit gap",
+            "created_at": "2023-01-20T09:00:00Z",
+            "state": "open",
+        },
+    ]
+    (folder / "tickets.json").write_text(_json(tickets), encoding="utf-8")
+    (folder / "seed.yaml").write_text("tickets_repo: infra\n", encoding="utf-8")
+    seed_svc.seed_world(project, folder)
+    loaded = YAML(typ="safe").load(project.manifest_path.read_text("utf-8"))  # pyright: ignore[reportUnknownMemberType]
+    world = generate(Manifest.model_validate(loaded), seed_svc.load_content(project))
+    names = {r.name: r for r in world.repositories}
+    from mirrordimensions.world import naming
+
+    data = names[naming.repos(world)["data-pipeline"]]
+    infra = names[naming.repos(world)["infra-config"]]
+    first = next(i for i in data.issues if i.title == "First report of the remit gap")
+    second = next(i for i in infra.issues if i.title == "Second report of the remit gap")
+    day = 24 * 60
+    assert day <= second.ago <= 2 * day  # the latest, a day or two before the world starts
+    assert first.ago - second.ago == 10 * day  # the spacing is kept
+    assert (
+        first.number < next(i.number for i in data.issues if i.ago < first.ago)
+        if any(i.ago < first.ago for i in data.issues)
+        else True
+    )  # numbers follow time

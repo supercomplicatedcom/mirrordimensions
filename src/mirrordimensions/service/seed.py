@@ -77,4 +77,10 @@ def load_review(project: Project) -> SeedReview | None:
 def seeded_texts(project: Project) -> frozenset[str]:
     """The user's own texts, left out of the public-text share (decision 0030, point 9)."""
     content = load_content(project)
-    return frozenset(d.text for d in content.documents) if content else frozenset()
+    if content is None:
+        return frozenset()
+    texts = {d.text for d in content.documents}
+    for ticket in content.tickets:  # as the check reads an issue: its title, then its body
+        texts.add(f"{ticket.title}. {ticket.body}")
+        texts.update(c.body for c in ticket.comments)
+    return frozenset(texts)
