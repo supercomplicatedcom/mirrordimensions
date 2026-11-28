@@ -32,6 +32,8 @@ A second proposal from the owner the same day: the person who installs the mirro
 
 ## Discovery from the user's computer
 
+> Replaced by decision 0030 (seed folder): the user chooses one folder and the mirror reads only that. This section is kept as the record of the earlier proposal.
+
 The profile makes the world read like the industry. Discovery makes it read like this company: its hostnames, its repositories and their layout, its tools and their exact interfaces, its conventions. An agent tested in the world then sends and receives what it would at work.
 
 This is not the build spec's discovery crawler, which crawls the company's production systems and stays out of scope. Discovery reads files that are already on the user's computer, and nothing else. It extends the importers of decision 0025, and keeps their rules.
