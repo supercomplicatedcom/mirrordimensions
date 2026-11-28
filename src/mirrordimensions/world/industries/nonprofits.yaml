@@ -1,0 +1,603 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Non-profits and foundations: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: nonprofits
+name: Non-profits and foundations
+group: Education and non-profit
+aliases: [nonprofit, charity, ngo, foundation, charitable organisation]
+description: A charity or foundation that raises gifts and grants, serves a cause, and tracks donors, members and funders.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Foundation, Alliance, Trust, Society, Fund, Relief, Association]
+invoice_items: ["Annual membership", "Event sponsorship"]
+organization:
+  head: Director of Technology
+  it_admin: IT Coordinator
+  teams:
+    platform: {department: Technology, title: Systems Engineer}
+    billing: {department: Technology, title: Giving Systems Developer}
+    data: {department: Development Operations, title: Data Analyst}
+    support: {department: Donor Care, title: Donor Care Specialist}
+    product: {department: Programs, title: Program Manager}
+    operations: {department: Finance and Operations, title: Operations Coordinator}
+names:
+  repos:
+    billing-service: [giving-service, donations, gift-processing, membership-billing, pledges-api]
+    platform-docs: [tech-handbook, platform-docs, runbooks, staff-tech-docs]
+    data-pipeline: [donor-data, giving-warehouse, crm-loads, fundraising-etl, impact-reporting]
+    infra-config: [infra-config, hosting-config, platform-config, deploy-config]
+    customer-portal: [donor-portal, giving-portal, member-portal, donate-web, supporter-hub]
+    ops-scripts: [ops-scripts, year-end-scripts, legacy-scripts, admin-tools]
+  channels:
+    engineering: [tech, engineering, dev, tech-team]
+    incidents: [incidents, giving-incidents, outages]
+    releases: [releases, shipping, deploys]
+    billing-team: [giving-team, gift-processing, billing-team]
+    platform-team: [platform-team, systems, platform]
+    data-team: [data-team, dev-ops-data, fundraising-data]
+    support: [donor-care, supporter-support, support]
+    leads: [leads, managers, directors]
+systems:
+  typical: [gitea, mattermost, Blackbaud, Salesforce, Stripe, Mailchimp, Microsoft 365, Zoom, bloomerang, fluxx]
+  common: [QuickBooks Online, Sage Intacct, Tableau, Zendesk, DocuSign, Google Workspace]
+symbols:
+  b_doc: ["gift receipt", "tax receipt", "pledge reminder", "membership invoice", "sponsorship invoice", "year-end statement"]
+  b_customer: [donor, member, "monthly giver", "corporate sponsor", "major donor", "grant funder"]
+  b_who: ["the development team", "the finance office", "the membership team", "donor care", "the grants team"]
+  b_pwho: ["donor care", "a donor", "{person}", "the development team", "a board member"]
+  b_currency: [USD, CAD, GBP, EUR, AUD]
+  b_taxkind: ["Gift Aid", "sales tax", VAT, GST, HST]
+  b_region: [Ontario, Scotland, Texas, California, Wales, Queensland]
+  b_page: ["giving history", pledges, "recurring gifts", receipts, "membership details", "event registrations"]
+  b_acct_size: ["{200-900} gifts", "{20-80} pledges", "{3-12} household members", "{40-300} saved addresses"]
+  c_customer: ["a major donor", "a monthly donor", "a corporate sponsor", "a long time member", "a program officer at a funder"]
+  s_plan: ["a monthly gift", "the annual membership", "a sustainer plan", "a corporate sponsorship"]
+  p_source: ["the payment processor's payout reports", "the email platform's campaign exports", "the donor database export", "the event ticketing exports", "the grants system's award list", "the volunteer sign-up sheets"]
+  p_report: ["the monthly giving dashboard", "the lapsed donor report", "the pledge aging report", "the grant spend report", "the year-end giving report"]
+  p_table: [gifts, pledges, donors, households, campaigns, memberships, grants, soft_credits]
+  p_finance_ask: ["the finance director", "the development director", "the grants accountant", "the controller"]
+  c_eng_area: ["the receipt job", "the pledge reminders", "the recurring gift run", "the donor import", "the login flow", "the export endpoint"]
+  s_thing: ["the receipt job", "the donor sync", "the export", "the report", "the cron", "the recurring gift run"]
+  np_peak: ["Giving Tuesday", "year-end giving", "the spring appeal", "the gala week", "the fiscal year close"]
+  np_benefit: ["the gala dinner", "a thank-you gift", "auction items", "a membership perk", "a signed print"]
+  np_slow: ["{3-9} minutes", "about {20-60} seconds", "over a minute", "{2-5} hours"]
+  np_fund: ["the general fund", "a restricted fund", "the scholarship fund", "an endowment fund", "the building fund"]
+  np_gift: ["a stock gift", "a gift in memory", "a matching gift", "a donor-advised gift", "an in-kind gift"]
+  np_staff: ["development officer", "gift processor", "program manager", "volunteer coordinator", "grants manager"]
+issues:
+  billing:
+    - labels: [bug]
+      weight: 3
+      let:
+        benefit: ["{np_benefit}"]
+        doc: ["{b_doc}"]
+      title:
+        - "{doc|cap} ignores the value of {benefit}"
+        - "Deductible amount wrong when {benefit} is included"
+        - "Receipt shows the full gift, ignoring {benefit}"
+        - "{doc|cap}s for {benefit} {overstate/overcount/inflate} the deductible part"
+        - "Why does {benefit} not reduce the {doc}?"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {b_customer} accounts, {b_scope}."]
+        - ["Rules need the benefit value stated.", "Donors must see goods value.", "Receipts must show what was received."]
+        - ["Finance wants it before year end.", "The auditors will ask about it.", ""]
+      comments:
+        - "{b_cm_repro} with a ticket plus a donation."
+        - "Where is the benefit value stored?"
+        - "{b_cm_check}, I think {b_money_path} skips it."
+    - labels: [bug]
+      let:
+        problem: ["charges twice after a card update", "skips a month after expiry", "keeps going after cancellation", "bills on the wrong day", "ignores the new amount"]
+      title:
+        - "Recurring gift {problem}"
+        - "Monthly donors report their gift {problem}"
+        - "Sustainer plan {problem}, {b_customer} accounts"
+        - "{problem|cap}: recurring gifts need a look"
+      body:
+        - ["{b_raised}, {b_scope}.", "Donor care has {2-9} {b_ticket_noun}s about it."]
+        - ["The schedule lives in the job.", "A card update makes two plans.", "The run reads the old amount."]
+        - ["Donors get upset about this one.", "Refunds are being done by hand.", ""]
+      comments:
+        - "Processor dashboard shows two plans."
+        - "Hold refunds until we know why."
+        - "{b_cm_fix_up}"
+    - labels: [needs-decision]
+      let:
+        question: ["refunds after a year-end receipt", "pledges that go unpaid", "matching gifts from employers", "gifts made in memory", "stock gifts", "gifts to a closed fund"]
+        who: ["the finance director", "the development director", "the board treasurer", "donor care"]
+      title:
+        - "Policy for {question}?"
+        - "Decision needed on {question}"
+        - "What is our rule for {question}?"
+        - "{question|cap}: who approves?"
+      body:
+        - ["Our gift policy is silent on {question}.", "Nothing in {b_credit_path} limits it.", "Today it depends on who asks."]
+        - ["{who|cap} should decide before we build.", "Needs an answer {b_timeframe}.", "The board may need it."]
+      comments:
+        - "Auditors will want it written down."
+        - "Let's decide on {day}, {person} can you bring examples?"
+    - labels: [enhancement]
+      let:
+        step: ["one receipt per household", "a combined year-end letter", "receipts in the donor's language", "a replacement receipt button", "emailing receipts on the day"]
+      title:
+        - "Year-end receipts: {step}"
+        - "Donors ask for {step}"
+        - "Add {step} to the receipt job"
+        - "{step|cap}, asked for again"
+      body:
+        - ["{b_raised}, {b_scope}.", "Donor care gets asked every January."]
+        - ["Today {someone/staff} does it by hand.", "It touches {b_mail_path} and the template.", "Receipts are batched at {time}."]
+      comments:
+        - "Rough size: about {3-8} days."
+        - "{b_cm_plan}"
+    - labels: [bug]
+      let:
+        change: ["a soft credit", "a pledge payment", "a split gift", "a gift to two funds", "a refunded gift"]
+      title:
+        - "Fund totals wrong after {change}"
+        - "{change|cap} lands in the wrong fund"
+        - "Allocation to {np_fund} breaks with {change}"
+      body:
+        - ["{b_raised}, {b_scope}.", "Finance found it at month end."]
+        - ["Cents go missing on split gifts.", "The last fund gets the remainder.", "The split is not rounded once."]
+      comments:
+        - "Round once, last fund gets it."
+        - "Restricted funds make this worse."
+  portal:
+    - labels: [bug, performance]
+      weight: 3
+      let:
+        peak: ["{np_peak}"]
+        size: ["{b_acct_size}"]
+      title:
+        - "Donation page slow during {peak}"
+        - "Giving form times out at {peak}"
+        - "{peak|cap}: checkout page crawls for {size}"
+        - "Payment step hangs for {np_slow} at {peak}"
+      body:
+        - ["Traffic jumps {3-12} times in an hour.", "Email appeals send everyone at once.", "Donors click from one big mailing."]
+        - ["Every abandoned gift is lost money.", "Development is watching the page live.", ""]
+      comments:
+        - "Warm extra pods before the {time} send."
+        - "{np_slow} on staging under load."
+        - "{b_cm_later}"
+    - labels: [bug, security]
+      let:
+        place: ["the honor roll page", "the public thank-you wall", "the event attendee list", "the receipt email", "the annual report list"]
+      title:
+        - "Anonymous gift shows the donor on {place}"
+        - "Donor name visible on {place} despite opt out"
+        - "Privacy choice ignored on {place}"
+      body:
+        - ["Found {b_sc_b}", "A donor wrote in about it.", "{b_raised}, {b_pscope}."]
+        - ["The flag reads the old field.", "Opt outs never reach the page.", "Only new gifts honor the choice."]
+        - ["Keep the name out of chat.", "Details stay in this issue.", ""]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Do we owe a note? Asking {person}."
+    - labels: [bug]
+      let:
+        problem: ["gifts missing", "the pledge balance wrong", "an old address shown", "receipts out of order", "duplicate entries"]
+      title:
+        - "Giving history shows {problem}"
+        - "Donors see {problem} in the portal"
+        - "Portal: {problem} on the giving page"
+      body:
+        - ["{b_pscope|cap}.", "{b_raised}, {b_scope}."]
+        - ["History comes from a cached copy.", "Soft credits are hidden there.", "The page reads the old table."]
+      comments:
+        - "Refresh after each gift, not nightly."
+        - "{b_cm_check}"
+    - labels: [bug]
+      let:
+        problem: ["declines valid cards", "loses the dedication", "drops the matching gift box", "forgets the amount on retry", "double posts on back"]
+      title:
+        - "Donation form {problem} on {b_browser}"
+        - "Checkout {problem} on {b_browser}"
+        - "{b_browser|cap}: the form {problem}"
+      body:
+        - ["{b_pscope|cap}.", "{b_raised}."]
+        - ["Works in the latest Chrome.", "Phones are worst.", "Only returning donors see it."]
+      comments:
+        - "Needs a check with the processor."
+        - "{b_cm_stage}, same result."
+    - labels: [enhancement, docs]
+      let:
+        issue: ["missing form labels", "low contrast buttons", "no focus ring", "unreadable error messages", "a keyboard trap"]
+        area: ["the donation form", "the pledge page", "the membership signup", "the event registration"]
+      title:
+        - "Accessibility: {issue} on {area}"
+        - "Donor reports {issue} on {area}"
+        - "{issue|cap} on {area}"
+      body:
+        - ["Many supporters use assistive tools.", "A donor wrote to the director.", "A funder asked for a statement."]
+        - ["Mostly markup, some styles.", "We should sweep other pages.", ""]
+      comments:
+        - "{b_cm_sr} {b_cm_sr2}"
+  docs:
+    - labels: [docs, bug]
+      let:
+        page: ["docs/gift-policy.md", "docs/receipts.md", "docs/year-end.md"]
+        stale: ["last year's tax receipt wording", "the old finance contact", "a retired fund code", "the previous board policy"]
+      title:
+        - "Handbook: {page} still lists {stale}"
+        - "{page} is out of date, mentions {stale}"
+        - "Update {page}, {stale} is gone"
+      body:
+        - ["Donor care links this page daily.", "Finance reads it at year end.", "New staff trust this page."]
+        - ["Check with {person} first.", "The finance director should review.", ""]
+      comments:
+        - "Who owns the policy pages now?"
+        - "{b_cm_docs}"
+    - labels: [docs, task]
+      let:
+        howto: ["reissue a lost receipt", "reconcile processor payouts", "book a stock gift", "close the fiscal year", "merge two donor records"]
+      title:
+        - "How-to: {howto}"
+        - "Write up how to {howto}"
+        - "Handbook needs steps to {howto}"
+      body:
+        - ["Only {person} knows the steps.", "It comes up every January.", "Finance asks every quarter."]
+        - ["List what can go wrong.", "Add the usual mistakes.", ""]
+      comments:
+        - "{b_cm_up} {b_cm_read2}"
+    - labels: [docs, enhancement]
+      let:
+        item: ["the year-end checklist", "the grant reporting calendar", "the donor data request steps", "the appeal launch checklist"]
+      title:
+        - "Write up {item}"
+        - "Add {item} to the handbook"
+        - "{item|cap} lives in one inbox"
+      body:
+        - ["Volunteers keep asking about it.", "New staff cannot find it.", "It matters during {np_peak}."]
+        - ["One page is enough.", "Name an owner for each step.", ""]
+      comments:
+        - "Put it under docs/runbooks."
+    - labels: [docs, needs-decision]
+      let:
+        topic: ["gift acceptance", "refund approvals", "donor data requests", "what we tell the board"]
+      title:
+        - "Docs and practice differ on {topic}"
+        - "Decide how to write up {topic}"
+        - "{topic|cap}: the page is wrong"
+      body:
+        - ["The page is {2-4} years old.", "Practice changed with the new director.", "Two pages contradict each other."]
+        - ["Needs a ruling from {b_who}.", ""]
+      comments:
+        - "I will ask {person}."
+  data:
+    - labels: [bug, incident]
+      let:
+        peak: ["{np_peak}", "the end of the fiscal year", "the spring appeal"]
+      title:
+        - "Giving load finished {np_slow} late during {peak}"
+        - "Nightly load late all week of {peak}"
+        - "Dashboards stale during {peak}"
+      body:
+        - ["Gift volume is {3-10} times normal.", "Processor files are huge that week.", "Development checks totals hourly."]
+        - ["Leadership wants figures by {6-8}am.", "The board reads the numbers.", ""]
+      comments:
+        - "Load gifts in batches of {500-2000}."
+        - "The clean step is slowest."
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+        cause: ["a household merge", "a CRM reimport", "an event upload", "two email addresses per donor", "a name change"]
+      title:
+        - "Duplicate donors in {table} after {cause}"
+        - "{table|cap} has two rows per donor, {cause}"
+        - "Giving totals inflated by {cause}"
+      body:
+        - ["Donor counts are too high, {b_scope}.", "Retention rates look better than real."]
+        - ["There is no stable donor id.", "We match on email and name.", "The merge keeps both rows."]
+      comments:
+        - "Match on the CRM id first."
+        - "{b_cm_check} how many per household."
+    - labels: [question, data-quality]
+      let:
+        report: ["{p_report}"]
+        gap: ["{p_dollars}", "{1-7} gifts", "{3-9} pledges"]
+      title:
+        - "{report|cap} does not match the ledger ({gap} off)"
+        - "Giving totals differ from finance by {gap}"
+        - "Why is {report} short by {gap}?"
+      body:
+        - ["Finance and development disagree again.", "The board pack uses this number.", "It started after the last import."]
+        - ["Timing of refunds may explain it.", "Soft credits count twice.", ""]
+      comments:
+        - "Compare by processor payout date."
+        - "{p_finance_ask} has the ledger export."
+    - labels: [enhancement, needs-decision]
+      let:
+        scope: ["do-not-contact requests", "a donor's deletion request", "unsubscribes", "a deceased donor flag"]
+      title:
+        - "Apply {scope} in the warehouse"
+        - "{scope|cap} do not reach the reports"
+        - "Honor {scope} everywhere"
+      body:
+        - ["The CRM knows, warehouse does not.", "Mail lists still include them.", "Only the app database is updated."]
+        - ["Donors have complained before.", "Privacy law sets the clock.", ""]
+      comments:
+        - "Needs sign-off from {p_finance_ask}."
+        - "Suppress first, delete later?"
+  infra:
+    - labels: [performance, enhancement]
+      let:
+        target: ["the donation web tier", "the receipt workers", "the database replicas", "the email relay", "the payment webhook handler"]
+      title:
+        - "Scale {target} before {np_peak}"
+        - "Load plan for {target} at {np_peak}"
+        - "{target|cap} struggled at {np_peak}"
+      body:
+        - ["Most gifts arrive in {2-6} hours.", "A single email can double traffic."]
+        - ["We need a plan {b_timeframe}.", "Last time it was manual.", "Autoscaling reacts too slowly."]
+      comments:
+        - "Warm {2-6} nodes before {time}."
+        - "{b_cm_later}"
+    - labels: [security, bug]
+      let:
+        item: ["the payment processor key", "the CRM integration token", "the mail provider key", "the receipt signing certificate"]
+      title:
+        - "Rotate {item}"
+        - "{item|cap} not rotated in {2-4} years"
+        - "Alert before {item} expires"
+      body:
+        - ["Found {b_sc_b}", "It expires {b_timeframe}.", "The rotation date has passed."]
+        - ["Card handling rules apply here.", "Keep it out of chat please.", ""]
+      comments:
+        - "Rotation plan is in the runbook, {person} please review."
+    - labels: [bug, incident]
+      let:
+        alert: ["failed gift postings", "webhook errors", "the receipt queue", "login failures"]
+      title:
+        - "Alert for {alert} is not reaching anyone"
+        - "{alert|cap} alert goes to a retired address"
+        - "Nobody is paged for {alert} on weekends"
+      body:
+        - ["Staff are volunteers on weekends.", "The rota changed in the spring."]
+        - ["Gifts come in at all hours.", "We found it by chance.", ""]
+      comments:
+        - "Route to the on-call phone."
+    - labels: [chore, security]
+      let:
+        what: ["the donor database", "the receipt archive", "the payment logs", "the uploaded files"]
+      title:
+        - "Check backups for {what} before year end"
+        - "Restore drill for {what}"
+        - "Retention for {what} is unclear"
+      body:
+        - ["Last restore was {2-4} years ago.", "Nobody remembers the steps.", "Retention is {7-30} days."]
+        - ["Auditors will ask.", ""]
+      comments:
+        - "Schedule a drill, quiet weekend."
+  ops:
+    - labels: [question]
+      let:
+        script: [year_end_receipts.sh, purge_lapsed_donors.sh, archive_gifts.py, fix_fund_codes.py]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+      body:
+        - ["It last ran {2-4} years ago."]
+      comments:
+        - "Ask {person}, they ran it each December."
+comments:
+  - "{b_cm_check}, this matters most at {np_peak}."
+  - "Donors will notice this one first."
+  - "Does it affect {b_customer} accounts only?"
+  - "Finance will want a note."
+  - "Which donor reported it?"
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: the office is closed {c_soon} for the holiday."
+        - "{np_peak} is {c_soon}, no deploys after {time}."
+        - "{c_hey}, appeal freeze begins {day} at {time}"
+        - "year-end giving freeze starts {day}, ship by {time}"
+        - "gala is {c_soon}, volunteers needed at {time}"
+      replies:
+        - ["does the freeze cover docs changes?", "who is on the rota?", "can we still fix typos?", "what about hotfixes?"]
+        - ["hotfixes need a director", "{c_yes}, docs are fine", "the rota is in the calendar", ""]
+        - ["{c_thanks}", "{c_ack}", ""]
+    - root:
+        - "welcome {person}, joining donor care {c_soon}"
+        - "{c_hey}: say hi to {person}, new {np_staff}"
+        - "new {np_staff} {person} starts {c_soon}"
+        - "please welcome {person} to the team this week"
+        - "{person} starts {c_soon}, find them for coffee"
+      replies:
+        - ["welcome!", "{c_em}", "welcome aboard"]
+        - ["need access to anything?", "any laptop issues?", ""]
+    - root:
+        - "board meeting is {day}, slides due {c_soon}"
+        - "{c_hey}: annual report photos needed by {c_soon}"
+        - "staff survey closes {c_soon}, takes {2-5} minutes"
+        - "volunteer thank-you lunch is {day} at {time}"
+        - "grant deadline {c_soon}, program team needs numbers"
+      replies:
+        - ["what numbers?", "is lunch vegetarian?", "where is the link?"]
+        - ["ask {person}", "{c_yes}, the link is in the invite", "{c_idk}", ""]
+        - ["{c_thanks}", ""]
+  off-topic:
+    - root:
+        - "anyone else in the volunteer {run/walk} on {saturday/sunday}?"
+        - "lunch? {s_lunch} at {time}"
+        - "{c_food} at {c_place} today?"
+        - "who is up for {c_food} on {day}?"
+        - "{s_lunch} again? i am tired of {c_food}"
+      replies:
+        - ["in", "can't, calls all day", "{c_yes}, give me {5-15} minutes"]
+        - ["{c_em}", ""]
+    - root:
+        - "anyone doing {c_sport} this weekend?"
+        - "weekend plans? i am doing {c_weekend}"
+        - "did anyone watch the {match/game} last night?"
+        - "{c_pet} chewed my charger again"
+        - "finally a quiet weekend, {c_weekend} for me"
+      replies:
+        - ["{c_agree}", "nice", "{c_lol}"]
+        - ["how was it?", "photos?", ""]
+    - root:
+        - "best charity ad ever?"
+        - "bake sale tomorrow, i bake {cookies/brownies/scones}"
+        - "office plant needs a home?"
+        - "who left a cardigan in {c_room}?"
+        - "{c_hey}: the donated snacks are in {c_room}"
+      replies:
+        - ["me!", "{c_lol}", "save me one"]
+        - ["{c_thanks}", ""]
+  engineering:
+    - root:
+        - "can someone review my pr on {repo}? {c_patch}, touches receipts"
+        - "pr up for {c_eng_area}, {c_patch}, please review"
+        - "review please: {c_eng_area} change in {repo}, {c_patch}"
+        - "{person}, could you look at my {c_eng_area} pr?"
+        - "small pr for {c_eng_area}, {c_patch}"
+      replies:
+        - ["looking now", "after standup", "{c_when_eng}"]
+        - ["left two comments", "{c_ack}, merging", "lgtm"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "heads up: webhook format changed"
+        - "{np_peak} is near, who owns the {c_eng_area} backlog?"
+        - "{c_eng_area} is slow for big donors{c_sep} anyone changed something?"
+        - "donor imports break without {an email/a postcode}"
+        - "keep the old CRM fields for {c_eng_area}, or drop them?"
+      replies:
+        - ["i can look {c_when_eng}", "{c_idk}, check the changelog", "which donor?"]
+        - ["{c_yes}, one of the bigger ones", "ticket is {s_ticket}", "will post a note", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "{c_ci_fail} is failing again on main"
+        - "{c_tool} broke after the lockfile update"
+        - "should we upgrade {c_dep}? a new major shipped"
+        - "{c_cmd} fails since the rebase"
+        - "who is on call during {np_peak}?"
+      replies:
+        - ["same here", "works for me", "retry it, it was flaky"]
+        - ["i will pin the version", "{c_ack}", "try clearing the cache"]
+        - ["{c_thanks}", ""]
+  team:
+    - root:
+        - "standup in {5-15} minutes, {c_status} on my side"
+        - "who covers donor care {c_soon}? i am {c_pto}"
+        - "sprint planning at {time} on {day}, bring estimates"
+        - "retro action: appeal calendar owners"
+        - "release prep for {repo}: who has the checklist?"
+      replies:
+        - ["i can take {c_soon}", "checklist is in the handbook", "{c_ack}"]
+        - ["thanks!", "{c_em}", ""]
+    - root:
+        - "escalation: {c_customer} never got their receipt"
+        - "development wants lapsed donors by {c_soon}"
+        - "{c_customer} says the pledge balance is wrong, {issue}"
+        - "finance call at {time}, can tech join?"
+        - "the program team is waiting on {issue}, any update?"
+      replies:
+        - ["i can join", "checking the logs", "who is the contact?"]
+        - ["the ticket is {s_ticket}", "they gave via {the form/a cheque}", "waiting on finance", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "who is picking up {issue}?"
+        - "anyone free to pair on {issue}?"
+        - "is the board current before {np_peak}?"
+        - "{person}{c_sep} review my pr when free?"
+        - "show and tell {day} {time}, volunteers?"
+      replies:
+        - ["i can pair {c_when_eng}", "mine", "not me, buried"]
+        - ["{c_thanks}", "{c_ack}", ""]
+  support:
+    - root:
+        - "donor cannot see last year's receipts{c_sep} anyone seen this?"
+        - "{s_cust|cap} asks why they were charged twice, {s_ticket}"
+        - "member wants a tax receipt copy, {s_ticket}"
+        - "monthly donor card update failed, {s_ticket}"
+        - "{s_cust|cap}: gift not showing{c_sep} now what?"
+      replies:
+        - ["checking the processor dashboard", "{c_yes}, seen it {2-5} times", "escalating to tech"]
+        - ["it was a card timeout", "send me the gift date", "filed as {issue}", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "refund request: {s_cust}, {s_money}, says they gave by mistake"
+        - "{s_cust|cap} wants to change their gift{c_sep} how?"
+        - "i updated the thank-you macro{c_sep} use the new one"
+        - "queue is at {20-90} open tickets, {np_peak} is here"
+        - "{s_cust|cap} is {s_mood}, been waiting {2-5} days"
+      replies:
+        - ["finance decides refunds", "ask {person} about timing", "use the macro, it has links"]
+        - ["{c_ack}", "will do", ""]
+    - root:
+        - "donor never got the thank you"
+        - "{s_cust|cap} cannot find the receipt link"
+        - "escalating to tech{c_sep} recurring gift stopped, filed as {issue}"
+        - "member wants off the mailing list"
+        - "{morning/evening} handover: {5-25} open tickets, nothing on fire"
+      replies:
+        - ["spam folder checked?", "i will resend it", "which email address?"]
+        - ["it is the club's filter", "the form is under help centre", "development owns that list", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "reminder: never share addresses in chat"
+        - "heads up, major donor visiting {c_soon}, be extra careful"
+        - "{s_cust|cap} asks how we use their data"
+        - "when is data deleted after requests?"
+      replies:
+        - ["policy is on the privacy page", "{c_idk}, ask development", "i will send the link"]
+        - ["{c_thanks}", ""]
+  incidents:
+    - root:
+        - "gifts not posting since {time}, processor webhooks failing"
+        - "{c_hey}, receipt queue backed up to {1-9},{100-900} jobs"
+        - "alert: donation page slow, p95 above {5-20}s"
+        - "paging: logins failing for members"
+        - "anyone else seeing the donate form {s_symptom}?"
+      replies:
+        - ["looking now", "seeing the same", "checking the dashboards"]
+        - ["it started after the {time} deploy", "one campaign only so far", "rolling back"]
+        - ["fixed, watching", ""]
+    - root:
+        - "near miss: a retry stopped doubles"
+        - "the receipt alert is flapping again"
+        - "post-incident review is {day} at {time}"
+        - "on-call handover: nothing open, {s_oncall} is quiet"
+        - "processor certificate expires in {2-9} days"
+      replies:
+        - ["noted", "thanks for the handover", "adding it to the review"]
+        - ["i will renew it {c_soon}", ""]
+    - root:
+        - "processor status page shows an incident"
+        - "the web host disk is at {80-97} percent"
+        - "rolled back {repo} after a bad deploy, all fine"
+        - "the webhook queue backed up to {1-9},{100-900} messages"
+        - "the receipt alert woke me at {time}"
+      replies:
+        - ["are donors affected?", "i see it too", "will check the logs"]
+        - ["donor facing, yes", "donor care is on it", "no impact so far", ""]
+  direct:
+    - root:
+        - "{s_hey}, could you look at {issue} {s_soon}?"
+        - "quick question: how are gifts matched?"
+        - "got a minute for appeal plans?"
+        - "{s_hey}, thought you'd like this donor story"
+        - "move the appeal review to {time}?"
+      replies:
+        - ["{c_yes}", "give me {5-15} minutes", "i will ping you"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "ugh, the CRM export has {2-9} date formats"
+        - "survived {np_peak}, finally"
+        - "read my write-up before {day}?"
+        - "handing over receipts while i'm out {s_soon}"
+        - "{s_hey}, review my pr when you can?"
+      replies:
+        - ["{c_lol}", "i feel that", "thanks for covering"]
+        - ["{c_ack}", ""]
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "i'm working from home {day}"
+        - "{s_hey}, got the notes from that call?"
+        - "can you cover my on-call {day}?"
+        - "{s_hey}, rule for donor data requests?"
+      replies:
+        - ["sure, see you there", "{c_yes}", "sorry, busy"]
+        - ["{c_thanks}", ""]

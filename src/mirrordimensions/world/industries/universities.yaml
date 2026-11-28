@@ -1,0 +1,583 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Universities and colleges: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: universities
+name: Universities and colleges
+group: Education and non-profit
+aliases: [higher education, higher ed, college, university, community college, academia]
+description: A university or college that admits and enrols students, bills tuition, disburses financial aid and runs the systems behind each term.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [State University, University, College, Community College, Institute of Technology, Polytechnic]
+invoice_items: [Tuition and fees, Housing and meal plan]
+organization:
+  head: Chief Information Officer
+  it_admin: Systems Administrator
+  teams:
+    platform: {department: Information Technology, title: Systems Engineer, lead: Director of Infrastructure}
+    billing: {department: Student Accounts, title: Student Systems Developer, lead: Student Accounts Systems Lead}
+    data: {department: Institutional Research, title: Data Analyst, lead: Director of Institutional Research}
+    support: {department: IT Service Desk, title: Service Desk Analyst, lead: Service Desk Manager}
+    product: {department: Student Services, title: Student Systems Analyst, lead: Student Systems Product Owner}
+    operations: {department: Campus Operations, title: Operations Analyst, lead: Operations Manager}
+names:
+  repos:
+    billing-service: [bursar-billing, student-accounts, tuition-billing, student-billing]
+    platform-docs: [it-handbook, campus-tech-docs, systems-runbooks, central-it-wiki]
+    data-pipeline: [ir-loads, institutional-data, sis-extracts, enrolment-etl]
+    infra-config: [campus-infra, central-it-config, campus-systems-config, datacentre-config]
+    customer-portal: [student-portal, campus-portal, student-self-service, my-campus]
+    ops-scripts: [legacy-campus-scripts, old-sysadmin-tools, registrar-scripts, nightly-scripts]
+  channels:
+    engineering: [central-it-dev, student-systems-dev, dev]
+    incidents: [outages, campus-outages, incidents]
+    releases: [releases, term-changes, deploys]
+    billing-team: [student-accounts-tech, bursar-tech, billing-team]
+    platform-team: [infrastructure, central-infra, platform-team]
+    data-team: [institutional-research, ir-data, data-team]
+    support: [service-desk, it-support, campus-support]
+    leads: [it-leads, directors, leads]
+systems:
+  typical: [Gitea, Mattermost, Ellucian, Instructure Canvas, Microsoft 365, Microsoft Entra ID, Workday, Okta, ellucian banner, slate, moodle]
+  common: [Zoom, ServiceNow, Blackbaud, Salesforce, Tableau, Snowflake]
+symbols:
+  b_doc: [tuition bill, tuition statement, fee statement, housing statement]
+  b_customer: [undergraduate, graduate, international, part-time, sponsored]
+  b_who: [the bursar's office, the registrar, financial aid, the student accounts team]
+  b_pwho: [a student, the bursar's office, "{person}", the registrar]
+  b_currency: [USD, CAD, GBP, EUR]
+  b_taxkind: [residency rate, tuition rate, fee schedule, tax withholding]
+  b_region: [another state, Canada, a partner campus, the online programme, the graduate school]
+  b_provider_event: [payment succeeded, payment failed, refund completed, chargeback opened, instalment collected]
+  b_page: [tuition bills, financial aid awards, payment methods, course history, the student dashboard]
+  b_acct_size: ["{20-120} course charges", "{4-9} terms of history", "{2-8} authorized payers", "{40-300} aid disbursements"]
+  b_browser: [Safari, Firefox, an older Chrome, Edge, Chrome on a lab machine]
+  c_customer: [a student, a department chair, a parent payer, an advisor]
+  s_plan: [the full time plan, a payment plan, the dining plan, a sponsored account]
+  p_source: [the admissions application export, the library system feed, the housing assignment file, the grants office extract]
+  p_report: [the enrolment census, the term revenue report, the aid disbursement report, the retention dashboard]
+  p_table: [students, enrolments, course sections, charges, aid awards, applicants, grades]
+  p_finance_ask: [the bursar, someone in student accounts, the controller, the grants accountant]
+  c_eng_area: [the registration job, the aid disbursement feed, the tuition posting job, the grade passback, the single sign on flow]
+  s_thing: [the grade passback, the enrolment export, the nightly report, the tuition posting job]
+  s_inv_late: [tuition bill emails delayed, statement mail running late, student notices not going out, bill sends lagging behind]
+  s_dup_a: [students got the tuition bill twice, duplicate statement emails, same bill mailed repeatedly, tuition bills sent twice]
+  s_dup_fix: [skip bills already sent, check the sent log first, do not resend after a retry, stop resending on retry]
+  s_page_fix: [paginate the charge history, page the course list, add pagination to charges, load charge history in pages]
+  s_portal_slow: [student portal timeouts for long histories, long histories see portal 504s, charges page times out, portal slow for returning students]
+  us_term: [registration day, census date, the first week of term, finals week, drop deadline]
+  us_dept: [the registrar, financial aid, admissions, the bursar, the library, housing]
+  us_sys: [the student information system, the learning platform, the registration system, the aid system, the housing system]
+  us_cert: [the single sign on certificate, the portal certificate, the wifi authentication certificate, the lab proxy certificate]
+  us_report: [the census file, the aid reconciliation, the enrolment report, the retention report]
+  us_hold: [a bursar hold, a balance hold, an immunisation hold, a library hold]
+  us_amt: ["{40-300}", "{500-4800}", "{1200-3900}"]
+  us_gripe: [the lab printer is dead again, parking is full again, the library lift is out, the shuttle is late again]
+  us_stu: [a transfer student, an international student, a first year, a graduate student, an athlete]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        event: [a drop, a late disbursement, a loan adjustment, a withdrawal]
+      title:
+        - "Aid credit refund goes out {twice/late/short} after {event}"
+        - "Aid credit refund is wrong after {event}"
+        - "Credit balance refund {misses/doubles} students after {event}"
+        - "Why does {event} change the refund amount?"
+      body:
+        - ["{b_raised}, {b_scope}.", "Financial aid noticed it, {b_pscope}."]
+        - ["Refunds come out of {b_credit_path}.", "The amount ignores the latest disbursement."]
+        - ["{b_urgent}", "{b_urgent} {b_offer}"]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Federal rules set the refund deadline, {day} at worst."
+        - "{b_cm_check}, event order matters."
+    - labels: [bug]
+      let:
+        kind: [international, graduate, part-time, dual enrolled]
+        box: [box 1, box 5, the scholarship total, the prior year adjustments]
+      title:
+        - "1098-T {box} is wrong for {kind} students"
+        - "Tax form totals off for {kind} students"
+        - "{box|cap} on the 1098-T misses charges"
+        - "Year end tax forms: {kind} students disagree with the ledger"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised}, {b_pscope}."]
+        - ["Qualified charges are grouped in {b_money_path}.", "Late payments hit the wrong year."]
+        - ["Forms go out in January."]
+      comments:
+        - "Which tax year owns December charges?"
+        - "{b_cm_later}"
+        - "Finance signs off the grouping."
+    - labels: [bug]
+      let:
+        problem: [skips an instalment, charges twice, ignores a hold, collects after a drop, takes the wrong card]
+      title:
+        - "Payment plan {problem}"
+        - "Instalment plans: {problem} for some students"
+        - "Plan that {problem} after a schedule change"
+      body:
+        - ["{b_raised}, {b_scope}.", "Student accounts has {2-9} {b_ticket_noun}s."]
+        - ["Plans rebuild when charges change.", "The nightly job reads stale plans."]
+      comments:
+        - "{b_cm_repro} with a mid-term drop."
+        - "Plan rows keep the old schedule."
+    - labels: [bug]
+      let:
+        hold: ["{us_hold}"]
+      title:
+        - "{hold|cap} stays on after payment"
+        - "Registration blocked by {hold} that was paid"
+        - "Hold not cleared after payment, {2-9} days later"
+        - "Students asked to pay twice for {hold}"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised}, students cannot register."]
+        - ["Holds clear in a nightly batch.", "The callback never touches the hold."]
+        - ["{b_urgent}"]
+      comments:
+        - "Clear it on the callback."
+        - "{b_cm_plan}"
+    - labels: [enhancement]
+      let:
+        sponsor: [an employer, a scholarship fund, a veterans benefit office, an embassy sponsor, a department]
+      title:
+        - "Bill {sponsor} directly for tuition"
+        - "Third party billing for {sponsor}"
+        - "Sponsor accounts: invoice {sponsor}, not the student"
+      body:
+        - ["{b_raised}, {b_scope}.", "Today staff do it by hand."]
+        - ["Sponsors may cover only some charges.", "Authorisations expire each term."]
+      comments:
+        - "Needs a sponsor and student split."
+        - "{b_cm_plan} for the backend."
+    - labels: [needs-decision]
+      let:
+        question: [refunds after the census date, partial refunds on withdrawal, late fees for aid recipients, refunds to a parent payer, charges for audited courses]
+      title:
+        - "Policy for {question}?"
+        - "Decision needed on {question}"
+        - "What is the rule for {question}"
+        - "{question|cap}: who approves?"
+      body:
+        - ["Nothing in {b_credit_path} limits it.", "The code allows anything today."]
+        - ["The bursar and registrar disagree.", "Needs an answer {b_timeframe}."]
+      comments:
+        - "Check the catalog policy first."
+        - "Let's decide on {day}, {person} can you bring numbers?"
+    - labels: [bug]
+      let:
+        change: [a drop after census, adding a lab section, a switch to part time, a swap of two courses]
+      title:
+        - "Tuition recalculated wrong after {change}"
+        - "Charges wrong after {change}"
+        - "{change|cap} leaves a leftover charge"
+      body:
+        - ["After {change} the charge is wrong, {b_scope}."]
+        - ["Rates differ by credit hour bands.", "Flat rate bands start at {12-15} credits."]
+      comments:
+        - "Band edges are the problem."
+        - "{b_cm_repro} with a part time switch."
+  portal:
+    - labels: [performance, bug]
+      let:
+        load: ["{us_term}", the evening before term, the first minute of registration, the day aid is posted]
+      title:
+        - "Student portal times out on {load}"
+        - "Portal crawls on {load}"
+        - "Prepare the portal for {load}"
+        - "{load|cap} brings errors for students"
+      body:
+        - ["Students saw errors for {20-90} minutes.", "The service desk took {40-300} calls."]
+        - ["Most time is the schedule query.", "The cart saves each field."]
+      comments:
+        - "Last term peaked at {800-4000} sessions."
+        - "{b_cm_prof} {b_cm_prof2}"
+    - labels: [bug, security]
+      let:
+        payer: [an authorized payer, a parent payer, a sponsor contact, a former proxy]
+        thing: [grades, holds, class schedules, aid details]
+      title:
+        - "{payer|cap} can see {thing}"
+        - "Proxy access shows {thing} to {payer}"
+        - "Revoked proxy still sees {thing}"
+      body:
+        - ["{b_raised}, {b_scope}.", "A student noticed it."]
+        - ["Proxy rights are checked in {b_sess_path}.", "Payers should see charges only."]
+        - ["{b_pm_e}"]
+      comments:
+        - "FERPA consent is per student."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        what: [room, start time, instructor, section]
+        device: [iPhones, Android phones, the app, Safari]
+      title:
+        - "Schedule shows the wrong {what} on {device}"
+        - "{what|cap} on the class schedule is stale"
+        - "Calendar export has the wrong {what}"
+      body:
+        - ["{b_raised}, {b_scope}.", "Advisors report it from {2-9} students."]
+        - ["Changes reach the feed {1-6} hours late.", "The cache lives {2-15} minutes."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Is the timezone set per campus?"
+    - labels: [bug]
+      let:
+        kind: [new transfer, international, alumni, dual enrolment, returning]
+      title:
+        - "Sign in loops for {kind} students"
+        - "Single sign on fails for {kind} accounts"
+        - "{kind|cap} students cannot reach the portal"
+      body:
+        - ["{b_raised}, {b_pscope}.", "{b_raised} from the service desk."]
+        - ["Account creation takes {1-24} hours.", "The identity record lacks a field."]
+      comments:
+        - "Is it the attribute mapping?"
+        - "{b_cm_repro} on a fresh account."
+  docs:
+    - labels: [docs, bug]
+      let:
+        page: [the academic calendar page, the registrar deadlines page, the term start checklist, the aid timeline page]
+        stale: [last year's census date, the old drop deadline, last term's holidays, the retired form name]
+      title:
+        - "{page|cap} still lists {stale}"
+        - "{Docs/Handbook}: {page} mentions {stale}"
+        - "Update {page}, it has {stale}"
+      body:
+        - ["{b_raised}.", "Noticed during the term review."]
+        - ["Dates go stale every term.", "Nobody owns the refresh."]
+      comments:
+        - "Could the registrar supply dates?"
+        - "{b_cm_docs}"
+    - labels: [docs, task]
+      let:
+        event: [the census extract, term rollover, aid disbursement day, grade submission, graduation processing]
+      title:
+        - "Runbook for {event}"
+        - "{event|cap} lacks a step in the handbook"
+        - "Write down who does what on {event}"
+      body:
+        - ["Only {person} knows the order.", "The checklist is in email."]
+        - ["List the usual failures too.", "Include who to call."]
+      comments:
+        - "I can walk someone through it."
+        - "{b_cm_draft} the incident."
+    - labels: [docs, needs-decision]
+      let:
+        request: [records requests from students, subpoenas for records, directory information holds, proxy access for parents]
+      title:
+        - "Write up how we handle {request}"
+        - "Decide who answers {request}"
+        - "{request|cap}: no written procedure"
+      body:
+        - ["Today it is case by case.", "Answers differ by office."]
+        - ["Counsel should review the wording.", "FERPA time limits apply."]
+      comments:
+        - "The registrar has a draft."
+        - "{b_cm_when} we agreed to log each request."
+  data:
+    - labels: [bug, incident]
+      let:
+        problem: ["missing {2-90} students", double counting dual enrolment, wrong on residency, short on credit hours]
+      title:
+        - "Census extract is {problem}"
+        - "Federal enrolment file {problem}"
+        - "{problem|cap} in the reporting submission"
+      body:
+        - ["The deadline is {b_timeframe}.", "The window closes on {day}."]
+        - ["{b_raised}.", "Institutional research caught it."]
+      comments:
+        - "Compare against the registrar roll for {us_term}."
+        - "{b_cm_repro}, late withdrawals are the cause."
+    - labels: [bug, data-quality]
+      let:
+        kind: [pass fail grades, incompletes, repeated courses, audit grades]
+      title:
+        - "Grade passback loses {kind}"
+        - "Learning platform grades disagree on {kind}"
+        - "{kind|cap} do not reach the student system"
+      body:
+        - ["Instructors see grades the registrar lacks.", "{b_raised}, {b_scope}."]
+        - ["The mapping lacks a row.", "The job skips unknown codes."]
+      comments:
+        - "Dedupe on student, section and term?"
+        - "{b_cm_check}, the code map changed."
+    - labels: [bug]
+      let:
+        kind: [cross-listed sections, lab sections, online sections, summer sections]
+      title:
+        - "Course sync duplicates {kind}"
+        - "{kind|cap} appear twice in the catalog feed"
+        - "Rosters wrong for {kind}"
+      body:
+        - ["Duplicates share a course id.", "Rows differ only in section."]
+        - ["Instructors saw two course shells.", "{b_raised}, {b_scope}."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Key it on the parent section."
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{us_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} expired with no warning"
+        - "Track expiry dates for campus certificates"
+      body:
+        - ["Expiry mid term blocks everyone.", "The service desk knew first."]
+        - ["Warn {14-30} days ahead.", "Put renewals on the rota."]
+      comments:
+        - "{b_cm_plan}"
+        - "Renew between terms."
+    - labels: [enhancement, performance]
+      let:
+        peak: ["{us_term}", the day aid is posted, the first day of classes]
+      title:
+        - "Scale the portal for {peak}"
+        - "Capacity plan for {peak}"
+        - "Tune {p_setting} before {peak}"
+      body:
+        - ["The pool ran dry by {time} last term.", "Traffic was {3-9} times a normal day."]
+        - ["Scale up {b_timeframe}, back down after.", "The database needs a plan too."]
+      comments:
+        - "{b_cm_prof}"
+        - "Registration opens in waves."
+    - labels: [bug, security]
+      let:
+        system: ["{us_sys}"]
+        problem: ["retention is {7-30} days", the last restore was never tried, not covered after the upgrade, kept in one building only]
+      title:
+        - "Backups for {system}: {problem}"
+        - "{system|cap} backup gap: {problem}"
+        - "Can we restore {system}? {problem}"
+      body:
+        - ["Student records have legal retention.", "Accreditors will ask about it."]
+        - ["Needs a restore drill between terms.", "Try it on a copy first."]
+      comments:
+        - "Add it to the break checklist."
+        - "{b_cm_check}"
+  ops:
+    - labels: [question, chore]
+      let:
+        thing: [housing export, library feed, parking permit sync, old grade export, directory sync]
+      title:
+        - "Can we retire {p_script}? It feeds the {thing}"
+        - "Is the {thing} still read by {p_script}?"
+        - "{p_script} writes the {thing}, anyone use it?"
+      body:
+        - ["No department has asked about it.", "The cron still runs at {time}."]
+      comments:
+        - "Ask {us_dept} first."
+        - "{b_cm_later}"
+comments:
+  - "Checked with {us_dept}, it matches what they see."
+  - "A chair asked about this {day}."
+  - "Counted {2-60} students affected so far."
+  - "Better after {us_term}, nothing risky now."
+  - "{us_dept|cap} confirmed it on their side."
+  - "Needs care, this touches student records."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: campus is closed {c_soon}."
+        - "offices shut {c_soon}, the service desk is on call"
+        - "{c_hey|cap}, all staff meeting {day} at {time}"
+        - "weather closure {c_soon}? decision by {time}"
+        - "building closed {c_soon} for maintenance, wfh if you can"
+      replies:
+        - ["{c_thanks}", "{c_ack}", "does that include the library?"]
+        - ["{c_yes}, all buildings", "{c_no}, just the admin building", ""]
+    - root:
+        - "welcome {person}, joining us as a {systems analyst/service desk analyst/developer} {c_soon}"
+        - "{c_hey}, {person} starts {c_soon}, say hi"
+        - "new hire {person} is at the service desk today"
+        - "please welcome {person} to central IT"
+        - "{person} joins {c_soon}, laptop please"
+      replies:
+        - ["welcome {person}!", "{c_em}", "{c_hey}"]
+        - ["which team?", "is the laptop ready?", ""]
+        - ["{c_thanks}", "{c_ack}", ""]
+    - root:
+        - "reminder: benefits enrolment closes {c_soon}"
+        - "faculty senate meets {day} at {time}"
+        - "{c_hey}: staff survey closes {c_soon}, takes 5 minutes"
+        - "commencement is {day}, expect road closures"
+        - "parking permits renew {c_soon}"
+      replies:
+        - ["where is the agenda?", "is it recorded?", "does it cover the branch campus?"]
+        - ["{c_yes}", "{c_idk}", "check the staff site"]
+  off-topic:
+    - root:
+        - "did anyone catch the {basketball/soccer/volleyball} game {last night/on friday}?"
+        - "who is going to the {concert/open mic/art show} {c_soon}?"
+        - "{c_hey}, bake sale for the {robotics club/choir/rowing team} {c_soon}"
+        - "anyone have a good {plumber/dentist/vet} near campus?"
+        - "campus is quiet over break"
+      replies:
+        - ["{c_agree}", "{c_lol}", "count me in"]
+        - ["what time?", "where?", ""]
+    - root:
+        - "lunch ideas? {us_gripe}"
+        - "anyone want {c_food} {c_soon}?"
+        - "{c_place} has a lunch deal{c_sep} who is in?"
+        - "the vending machine ate {1-3} dollars again"
+        - "{c_food} or {c_food} for lunch?"
+      replies:
+        - ["{c_yes}", "{c_agree}", "not today, {s_busy}"]
+        - ["what time?", "{c_thanks}", ""]
+    - root:
+        - "{c_hey}, anyone doing anything this long weekend?"
+        - "going on {c_weekend} over the break, you?"
+        - "{c_pet} chewed my lanyard, again"
+        - "happy birthday {person}!"
+        - "summer plans? mine are {c_weekend}"
+      replies:
+        - ["{c_em}", "have fun!", "{c_lol}"]
+        - ["nothing planned", "{c_idk}", "{c_weekend} for me"]
+  engineering:
+    - root:
+        - "grade passback broke after the update{c_sep} seen it?"
+        - "passback job failed at {time}, {us_dept} has no grades"
+        - "sync to the learning platform is {2-9} hours behind"
+        - "{c_eng_area} is erroring again for {us_term}"
+        - "why does {c_eng_area} delete sections first?"
+      replies:
+        - ["{c_ack}, looking now", "same here", "{b_cm_check}"]
+        - ["vendor changed the api yesterday", "it was the {day} deploy", "{c_idk}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "deploy freeze before {us_term}?"
+        - "change freeze for {us_term}, from {day} until {c_soon}"
+        - "heads up, no changes to {us_sys} before {us_term}"
+        - "proposal: freeze changes the week of {us_term}"
+        - "who needs a deploy before the {day} freeze?"
+      replies:
+        - ["{c_yes}, makes sense", "{c_agree}", "what about hotfixes?"]
+        - ["hotfixes need a lead's ok", "{c_yes}", ""]
+        - ["{c_ack}", ""]
+    - root:
+        - "{c_ci_fail} is failing again on main"
+        - "tuition posting is slow at {time}, anyone looked?"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "who changed the {us_report} export?"
+        - "{c_tool} broke for me after the update"
+      replies:
+        - ["{c_ack}", "{c_agree}", "me too"]
+        - ["looking after {c_when_eng}", "{c_idk}", ""]
+        - ["{c_thanks}", ""]
+  team:
+    - root:
+        - "who is covering the service desk {c_soon}?"
+        - "{c_pto}, can someone take the {registration/help} desk?"
+        - "i am {c_pto}, who covers the phones?"
+        - "need front desk cover at {us_dept} {c_soon}"
+        - "coverage for {us_dept} on {day}, anyone?"
+      replies:
+        - ["i can do the morning", "{c_yes}, i have it", "{c_no}, sorry"]
+        - ["{c_thanks}", "{c_ack}", ""]
+    - root:
+        - "term start list: {laptops/labs} owner?"
+        - "{us_term} prep meeting {day} at {time}"
+        - "who is picking up {issue}?"
+        - "standup in {5-15} minutes, {c_status} on my side"
+        - "anyone free to pair on {issue}?"
+      replies:
+        - ["i have the labs", "i can take accounts", "{c_idk}"]
+        - ["{c_ack}", "{c_thanks}", ""]
+    - root:
+        - "{us_dept} says {the portal is slow/charges look wrong/holds are stuck}"
+        - "escalation from {us_dept}: {c_eng_area} again"
+        - "a dean is asking about {issue}"
+        - "{us_dept|cap} needs {us_sys} fixed before {c_soon}"
+        - "customer escalation: {c_customer} cannot see charges"
+      replies:
+        - ["which campus?", "since when?", "{b_cm_check}"]
+        - ["main campus", "since {day}", "{c_idk}"]
+        - ["i will call them", "{c_ack}", ""]
+  support:
+    - root:
+        - "a student cannot see {aid/charges/holds}{c_sep} {after a transfer/after a drop/after the rollover}"
+        - "{s_cust} cannot see their aid award"
+        - "student says portal lists no courses, {s_ticket}"
+        - "locked out of the portal, {s_ticket}"
+        - "{c_customer} lost access after the {day} update"
+      replies:
+        - ["check the account status first", "{s_look}, one sec", "{c_ack}"]
+        - ["fixed, ask them to refresh", "it was the rollover", "{c_idk}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "refund request: {s_cust}, {us_amt} dollars, says {charged twice/dropped in time/aid posted}"
+        - "billing dispute on {s_ticket}, {us_amt} dollars"
+        - "{s_cust} says a refund never arrived, {s_ticket}"
+        - "housing deposit refund for {us_stu}, {us_amt} dollars"
+        - "parent asks why the bill is {us_amt} dollars"
+      replies:
+        - ["approved, send it", "needs the bursar", "{s_look} at the ledger"]
+        - ["done", "{c_thanks}", ""]
+    - root:
+        - "queue is at {3-40} open tickets, mostly password resets"
+        - "handover: {5-20} open tickets, nothing on fire"
+        - "heads up, {us_dept} is {s_mood} today, {2-9} tickets"
+        - "updated the macro for {aid questions/lockouts/holds}"
+        - "tickets doubled since {us_term}"
+      replies:
+        - ["{c_ack}", "{c_thanks}", "{c_em}"]
+        - ["i can take {us_dept}", "{s_busy} here", ""]
+  incidents:
+    - root:
+        - "payment page erroring since {time}"
+        - "card payments failing since {time}"
+        - "refund batch skipped last night"
+        - "{us_dept} cannot post payments, started {time}"
+        - "payment callbacks failing for {2-9} students"
+      replies:
+        - ["{c_ack}, checking the callback job", "same at {us_dept}", "is it the provider?"]
+        - ["provider status shows an incident", "restarted the job", "{c_idk}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "{us_sys} is {slow/down/timing out} right now"
+        - "is anyone else seeing {us_sys} {s_symptom}?"
+        - "{us_sys} {s_symptom} {s_since}"
+        - "sign on is down, no logins"
+        - "federal portal is down, file due {c_soon}"
+      replies:
+        - ["{c_ack}", "{b_cm_check}", "same here"]
+        - ["opened {issue}", "vendor is aware", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "certificate for {us_cert} expires in {2-9} days"
+        - "the {p_alert_name} alert is flapping again"
+        - "post-incident review is {day} at {time}"
+        - "on-call handover: nothing open, {s_oncall} is quiet"
+        - "{s_al} wifi in the library dropped, {2-9} access points"
+      replies:
+        - ["{c_ack}", "i will renew it {c_soon}", "{c_thanks}"]
+        - ["{c_agree}", ""]
+  direct:
+    - root:
+        - "{s_hey}, could you {s_look} at {us_sys} {s_soon}?"
+        - "quick question: where do the {us_report} files go?"
+        - "{s_hey}, can you read my notes on {us_report} before {day}?"
+        - "got a minute, grade issue?"
+        - "{s_hey}, do you have the login for {us_sys}?"
+      replies:
+        - ["{s_ack}", "{c_yes}, one sec", "{c_no}, {s_busy}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "{s_hey}, thought you would like this: {us_gripe}"
+        - "ugh, {us_gripe}"
+        - "{s_hey}, coming to the staff meeting {day}?"
+        - "can we move our check in {time}?"
+      replies:
+        - ["{s_ack}", "{c_agree}", "{c_lol}"]
+        - ["see you there", ""]
+    - root:
+        - "handing over {the census work/the aid feed/the service desk} while i am {c_pto}"
+        - "i am working from home {c_soon}"
+        - "survived {us_term}, finally"
+        - "can you cover my {registration/help} desk shift {c_soon}?"
+        - "off to the other campus later"
+      replies:
+        - ["{c_ack}", "{c_thanks}", "{c_em}"]
+        - ["have a good one", ""]
