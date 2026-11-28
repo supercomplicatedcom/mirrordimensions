@@ -1,0 +1,1299 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Social services and benefits: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: social-services
+name: Social services and benefits
+group: Government and public sector
+aliases:
+  - human services
+  - benefits agency
+  - welfare agency
+  - family services
+  - public assistance
+description: A human services agency that determines eligibility for benefits, pays providers, and recovers overpayments under strict notice and timeliness rules.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Human Services
+  - Family Services
+  - Social Services
+  - Benefits Agency
+  - Community Services
+  - County Services
+invoice_items:
+  - Overpayment recovery claim
+  - Child care copayment
+organization:
+  head: Director of Information Systems
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Information Systems
+      title: Platform Engineer
+    billing:
+      department: Financial Systems
+      title: Software Engineer
+      lead: Financial Systems Lead
+    data:
+      department: Data and Reporting
+      title: Data Engineer
+    support:
+      department: Call Center
+      title: Eligibility Specialist
+    product:
+      department: Benefits Programs
+      title: Business Analyst
+    operations:
+      department: IT Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - billing-service
+      - overpayment-recovery
+      - provider-payments
+      - claims-core
+    platform-docs:
+      - platform-docs
+      - program-handbook
+      - policy-handbook
+      - runbooks
+    data-pipeline:
+      - data-pipeline
+      - caseload-loads
+      - federal-reporting
+      - wage-matches
+    infra-config:
+      - infra-config
+      - office-network
+      - hosting-config
+      - env-baselines
+    customer-portal:
+      - customer-portal
+      - benefits-portal
+      - apply-online
+      - client-services
+    ops-scripts:
+      - ops-scripts
+      - legacy-scripts
+      - batch-jobs
+      - old-extracts
+  channels:
+    engineering:
+      - engineering
+      - app-dev
+      - dev-chat
+    incidents:
+      - incidents
+      - queue-alerts
+      - incident-response
+    releases:
+      - releases
+      - change-notices
+      - release-notes
+    billing-team:
+      - billing-team
+      - recovery-eng
+      - payments-dev
+    support:
+      - support
+      - caseworker-help
+      - service-desk
+    leads:
+      - leads
+      - section-leads
+      - eng-leads
+systems:
+  typical:
+    - gitlab
+    - microsoft teams
+    - jira
+    - confluence
+    - servicenow
+    - okta
+    - splunk
+    - salesforce
+    - curam
+  common:
+    - pega
+    - appian
+    - genesys cloud
+    - twilio
+    - mulesoft
+    - tableau
+symbols:
+  b_doc:
+    - overpayment notice
+    - benefit determination letter
+    - recoupment statement
+    - copayment invoice
+    - '{monthly/quarterly} account statement'
+  b_customer:
+    - benefit recipient
+    - caretaker
+    - child care provider
+    - landlord
+    - employer
+    - foster parent
+    - applicant
+    - authorized representative
+  b_who:
+    - the eligibility office
+    - the overpayment unit
+    - the fraud unit
+    - the call center
+    - the program office
+  b_pwho:
+    - the call center
+    - a caseworker
+    - '{person}'
+    - the eligibility office
+    - the overpayment unit
+  b_money_path:
+    - billing/claims.py
+    - billing/recoupment.py
+    - billing/totals.py
+    - billing/rounding.py
+  b_mail_path:
+    - billing/notices.py
+    - billing/notice_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_cb_path:
+    - billing/payment_events.py
+    - billing/callbacks.py
+    - billing/benefit_events.py
+  b_credit_path:
+    - billing/adjustments.py
+    - billing/waivers.py
+    - billing/refunds.py
+  b_check_path:
+    - the claim tests
+    - the notice tests
+    - the waiver tests
+    - the callback tests
+  b_provider_event:
+    - payment posted
+    - recoupment applied
+    - refund issued
+    - payment returned
+    - file received
+  b_currency:
+    - zero-dollar
+    - negative
+    - partial
+    - recoupment-only
+  b_taxkind:
+    - copayment
+    - recoupment rate
+    - late fee
+    - fee schedule
+  b_region:
+    - another county
+    - a different office
+    - another state
+    - a tribal area
+  b_page:
+    - benefits
+    - my cases
+    - documents
+    - notices
+    - reports
+    - the dashboard
+    - renewals
+    - account settings
+  b_acct_size:
+    - '{200-900} cases'
+    - '{15-60} users'
+    - '{3-12} household members'
+    - '{40-300} documents'
+  c_customer:
+    - a recipient
+    - one of the larger providers
+    - a caseworker
+    - a landlord
+    - an advocate
+  s_plan:
+    - a repayment plan
+    - a hardship waiver
+    - an installment plan
+    - a wage withholding
+  s_cust:
+    - a recipient on {s_plan}
+    - a caller on {s_plan}
+    - a provider on {s_plan}
+    - someone on {s_plan}
+    - an advocate on {s_plan}
+  p_table:
+    - cases
+    - applications
+    - households
+    - benefits
+    - payments
+    - overpayments
+    - appointments
+    - documents
+  p_report:
+    - the monthly caseload report
+    - the application timeliness dashboard
+    - the overpayment aging report
+    - the recertification backlog report
+    - the federal reporting package
+  p_source:
+    - the wage records feed
+    - the state benefit system's updates
+    - the call center's ticket export
+    - the mail vendor's delivery events
+    - the provider payment files
+  p_finance_ask:
+    - the program manager
+    - someone in fiscal
+    - the finance chief
+    - the grants officer
+  gv_note:
+    - 'Note:'
+    - 'Also:'
+    - 'Detail:'
+    - 'Context:'
+    - 'Aside:'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        thing:
+          - cap
+          - monthly
+          - hardship
+        n:
+          - '{3-90}'
+      title:
+        - Recoupment withholds more than the cap
+        - Monthly recoupment passes the {thing} limit
+        - Withholding exceeds the allowed {thing}
+        - '{n} households lose too much to recoupment'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Advocates wrote in about {2-9} households.
+        -   - '{gv_note} The cap is a benefit percent.'
+            - The cap is a benefit percent.
+            - Our job uses the old percent.
+        -   - '{gv_note} Reversals are manual.'
+            - Families are short on food money.
+            - Reversals are manual.
+        -   - '{b_offer}'
+            - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_check}, the cap table is old.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        thing:
+          - claim
+          - balance
+          - recoupment plan
+      title:
+        - Overpayment recalculated twice after an appeal
+        - Appeal outcome not applied to the {thing}
+        - Balance wrong after a hearing decision
+        - '{thing|cap} still shows the old amount'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - The hearings office caught {2-9} cases.
+        -   - '{gv_note} The decision updates the case only.'
+            - The decision updates the case only.
+            - The claim keeps the old balance.
+        -   - '{gv_note} Notices then cite wrong amounts.'
+            - Notices then cite wrong amounts.
+            - Some people pay too much.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} with an appealed claim.'
+        - Link the decision to the claim.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        thing:
+          - review
+          - appeal
+          - waiver request
+          - reconsideration
+      title:
+        - Overpayment notice sent before review ends
+        - Notice goes out during the {thing} window
+        - Collections start during an open appeal
+        - Demand letter ignores the {thing} period
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Advocates raised it on {day}.
+        -   - The job checks the claim date.
+            - It never reads the appeal flag.
+        -   - '{gv_note} Counsel was told.'
+            - Rules require a waiting period.
+            - Counsel was told.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} with an open appeal.'
+        - Check the rule text first.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - needs-decision
+      let:
+        thing:
+          - agency error
+          - small
+          - old
+          - disputed
+        n:
+          - '50'
+          - '100'
+          - '200'
+      title:
+        - Waive overpayments caused by agency error?
+        - Policy for {thing} overpayments
+        - Who approves a waiver for {thing}?
+        - Rule for waiving {thing}
+      body:
+        -   - '{b_who|cap} decides case by case.'
+            - No written rule exists.
+        -   - '{gv_note} Policy staff have not ruled.'
+            - 'Options: {always waive/waive under {n} dollars/ask the supervisor}.'
+            - Policy staff have not ruled.
+        -   - '{gv_note} Notices depend on it.'
+            - Federal rules limit the choices.
+            - Notices depend on it.
+        -   - '{b_cm_later}'
+            - Needs a decision before the run.
+      comments:
+        - '{b_cm_ask_who}'
+        - I lean towards waiving small amounts.
+        - Write it in {p_docpage}.
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        n:
+          - '{3-90}'
+        thing:
+          - family home
+          - center
+          - rural
+      title:
+        - Provider payment batch skipped {n} providers
+        - Child care providers paid late
+        - Payment run missed {thing} providers
+        - Provider payments stuck since {day}
+      body:
+        -   - '{b_pwho|cap} had {2-30} calls.'
+            - '{b_raised}, {b_scope}.'
+        -   - Batch fails on a bad row.
+            - Rejected rows are not retried.
+        -   - '{b_urgent}'
+            - Small providers feel it most.
+        -   - '{b_ask_logs}'
+      comments:
+        - '{b_cm_repro} with the failed file.'
+        - Skip the row, keep going.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+  portal:
+    - labels:
+        - bug
+      let:
+        doc:
+          - a pay stub
+          - a lease
+          - an ID
+          - a bill
+      title:
+        - Document upload fails from phones
+        - Photo of {doc} rejected as too big
+        - '{doc|cap} upload fails for photos'
+        - Phone photos of {doc} will not attach
+      body:
+        -   - '{b_pwho|cap} sees {2-9} cases {a week/this month}.'
+            - '{b_raised}, {b_scope}.'
+        -   - Photos are over {5-12} MB.
+            - The format is not accepted.
+        -   - '{b_urgent}'
+            - People wait in line instead.
+        -   - '{b_ask_logs}'
+      comments:
+        - '{b_cm_repro} with a phone photo.'
+        - Resize on the device.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        status:
+          - pending
+          - received
+          - under review
+          - interview needed
+        event:
+          - the interview was done
+          - documents were verified
+          - a decision was made
+          - a worker was assigned
+      title:
+        - Status stays {status} after the interview
+        - Case shows {status} after {event}
+        - Applicants see {status} though {event}
+        - '{status|cap} never clears after {event}'
+      body:
+        -   - '{b_pwho|cap} fields calls about it {daily/weekly}.'
+            - '{b_raised}, {b_scope}.'
+        -   - The portal reads a stale cache.
+            - Status moves in overnight batches.
+        -   - '{b_urgent}'
+            - People reapply and make duplicates.
+        -   - '{b_offer}'
+      comments:
+        - The case system event is published.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_fix_up}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - enhancement
+      let:
+        channel:
+          - text
+          - email
+          - phone
+        thing:
+          - renewal
+          - an interview
+          - a deadline
+        county:
+          - a nearby county
+          - one office
+      title:
+        - Recertification reminders by text
+        - Send renewal reminders by {channel}
+        - Remind recipients before {thing}
+        - Add {channel} reminders for {thing}
+      body:
+        -   - Missed renewals close cases.
+            - A pilot in {county} helped.
+        -   - '{gv_note} Opt-in is required.'
+            - Opt-in is required.
+            - Messages carry no case details.
+        -   - '{b_offer}'
+            - 'Rough size: {two/three} sprints.'
+      comments:
+        - Agree, small texts work well.
+        - '{b_cm_plan}'
+        - Privacy should review the text.
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - security
+      let:
+        thing:
+          - notice
+          - benefit amount
+          - document
+          - appointment
+      title:
+        - Portal shows another household's notice
+        - Notice list leaks {thing}
+        - A recipient sees someone else's {thing}
+        - '{thing|cap} mixed between accounts'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - A recipient called on {day}.
+        -   - The lookup joins on a name.
+            - Duplicate people share a key.
+        -   - '{gv_note} Leadership was told.'
+            - This is a privacy breach.
+            - Leadership was told.
+        -   - '{gv_note} Keep details out of open channels.'
+            - Keep details out of open channels.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Disabled the list first.
+        - '{b_cm_fix_up}'
+        - Privacy staff were told.
+    - labels:
+        - enhancement
+        - docs
+      let:
+        language:
+          - Spanish
+          - Vietnamese
+          - Somali
+          - Hmong
+          - Arabic
+          - Mandarin
+        thing:
+          - renewal notice
+          - denial letter
+          - application form
+          - reminder text
+      title:
+        - 'Language access: {thing} for {language}'
+        - Add {language} to the {thing}
+        - Notices need a {language} version
+        - '{thing|cap} lacks {language} text'
+      body:
+        -   - '{b_pwho|cap} gets calls in {language}.'
+            - Federal rules require meaningful access.
+        -   - '{gv_note} Letters are English only.'
+            - Only the web form is translated.
+            - Letters are English only.
+        -   - '{gv_note} A vendor reviews translations.'
+            - A vendor reviews translations.
+            - Cost is about {200-2000} dollars.
+        -   - '{b_cp_c}'
+      comments:
+        - '{b_cm_plan}'
+        - Who reviews the translated text?
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+  docs:
+    - labels:
+        - docs
+        - bug
+      let:
+        page:
+          - docs/notices.md
+          - docs/timeliness.md
+          - docs/appeals.md
+          - docs/languages.md
+        thing:
+          - advance notice
+          - hearing rights
+          - interpreter offer
+          - expedited timeline
+      title:
+        - Notice rules page lacks the {thing} requirement
+        - 'Policy handbook: {page} cites the old {thing}'
+        - Update {page} for the new {thing}
+        - '{page|cap} disagrees with the rule on {thing}'
+      body:
+        -   - A federal review asked about it.
+            - Policy staff sent the change.
+        -   - '{gv_note} Timely notice has strict days.'
+            - Timely notice has strict days.
+            - Links point to a dead page.
+        -   - '{b_urgent}'
+            - Reviewers read this page.
+        -   - '{p_fix_soon}'
+      comments:
+        - I can take the update.
+        - Needs a review from {person}.
+        - '{b_cm_later}'
+    - labels:
+        - docs
+        - enhancement
+      let:
+        event:
+          - a rule change
+          - a school break
+          - a storm
+          - a plant closing
+          - the renewal cycle
+      title:
+        - Runbook for the surge after {event}
+        - Plan for application surges after {event}
+        - Write up how to scale for {event}
+        - Document the {event} surge plan
+      body:
+        -   - The last change doubled calls.
+            - Only {person} knew the steps.
+        -   - '{gv_note} Say which systems scale first.'
+            - List who to call and when.
+            - Say which systems scale first.
+        -   - '{b_dc_e}'
+            - A handbook page is plenty.
+      comments:
+        - Will draft it after the release.
+        - '{b_cm_ask_who}'
+        - Please link the policy memo.
+    - labels:
+        - docs
+        - chore
+      let:
+        thing:
+          - income limit
+          - asset rule
+          - work requirement
+          - copayment table
+        page:
+          - docs/rules.md
+          - docs/changes.md
+      title:
+        - Program rules change log is stale
+        - Log the {thing} change in the handbook
+        - Update {thing} rules in {page}
+      body:
+        -   - The rule took effect on {day}.
+            - Workers follow the new text.
+        -   - '{gv_note} Notices cite the old rule.'
+            - Screens still show the old limit.
+            - Notices cite the old rule.
+        -   - '{b_urgent}'
+      comments:
+        - I can take the rewrite.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        report:
+          - the timeliness report
+          - the monthly caseload report
+          - the expedited processing report
+          - the recertification report
+        n:
+          - '{3-90}'
+          - '{100-900}'
+      title:
+        - '{report|cap} counts weekends as processing days'
+        - Timeliness is {n} points off
+        - '{report|cap} is {n} cases off the system'
+        - Fix the day count in {report}
+      body:
+        -   - '{b_who|cap} spotted it before submission.'
+            - The state office asked on {day}.
+        -   - The rule uses calendar days.
+            - Our report skips holidays.
+        -   - '{gv_note} Federal reviews read this report.'
+            - Federal reviews read this report.
+            - A correction needs sign-off.
+        -   - '{b_offer}'
+      comments:
+        - "{b_cm_repro} on last month's data."
+        - '{b_cm_check} the day count first.'
+        - '{b_cm_prof}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - data-quality
+      let:
+        n:
+          - '{3-90}'
+        kind:
+          - new hire
+          - late
+          - corrected
+          - quarterly
+        thing:
+          - last name
+          - date of birth
+          - employer id
+      title:
+        - Wage match records fail to match {n} cases
+        - Income match drops {kind} records
+        - Wage feed does not match on {thing}
+        - Fix the {thing} match for wages
+      body:
+        -   - '{b_who|cap} noticed on {day}.'
+            - Workers see blank matches.
+        -   - '{gv_note} Names differ by spelling.'
+            - Names differ by spelling.
+            - The feed has a new format.
+        -   - '{b_urgent}'
+            - Cases may be wrong then.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} with the latest file.'
+        - '{b_cm_check} the key first.'
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - needs-decision
+        - enhancement
+      let:
+        table:
+          - '{p_table}'
+        agency:
+          - the housing office
+          - the school district
+          - the labor department
+          - the health department
+      title:
+        - Share {table} with {agency} under the agreement
+        - Data sharing request from {agency}
+        - '{agency|cap} wants a daily feed of {table}'
+      body:
+        -   - The agreement allows one feed.
+            - Privacy staff have not signed off.
+        -   - '{gv_note} Fields with personal data stay out.'
+            - Fields with personal data stay out.
+            - They want it by {c_soon}.
+        -   - Needs a decision before building.
+      comments:
+        - Asking the privacy office.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+  infra:
+    - labels:
+        - bug
+        - incident
+      let:
+        thing:
+          - the daily file
+          - the eligibility update
+          - the payment file
+          - the status feed
+      title:
+        - State system interface times out
+        - Batch to the state fails at {time}
+        - State file exchange stalls on {thing}
+        - '{thing|cap} transfer to the state is late'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - The window is {1-3} hours.
+        -   - '{gv_note} Our job retries too fast.'
+            - Their endpoint is slow after {time}.
+            - Our job retries too fast.
+        -   - '{b_urgent}'
+            - Workers see old data.
+        -   - '{b_ask_logs}'
+      comments:
+        - Opened a ticket with the state.
+        - '{b_cm_ask_who}'
+        - Added backoff to the retry.
+        - '{b_cm_later}'
+    - labels:
+        - security
+        - bug
+      let:
+        thing:
+          - card numbers
+          - social security numbers
+          - medical details
+          - addresses
+        n:
+          - '{30-365}'
+      title:
+        - Call recordings contain {thing}
+        - Recorded calls keep {thing} too long
+        - Mask {thing} in call recordings
+        - Recordings of {thing} need a purge
+      body:
+        -   - The audit noted it on {day}.
+            - The vendor stores audio {n} days.
+        -   - '{gv_note} Callers read details aloud.'
+            - Callers read details aloud.
+            - Pause and resume is manual.
+        -   - '{b_urgent}'
+            - Privacy staff were told.
+      comments:
+        - '{b_cm_plan}'
+        - Which vendor setting applies?
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - performance
+      let:
+        n:
+          - '{1-3}'
+      title:
+        - Phone queue overflows at month start
+        - Call center system slows on the {n}th
+        - Telephony hits its limit at {time}
+        - Callers get busy signals on the {n}th
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Volume triples around benefit dates.
+        -   - '{gv_note} The trunk has {n} lines.'
+            - The trunk has {n} lines.
+            - Staff cannot answer fast enough.
+        -   - '{b_urgent}'
+            - Callers retry and make it worse.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_check}, overflow routing is off.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+  ops:
+    - labels:
+        - question
+        - chore
+      let:
+        script:
+          - export_batch.sh
+          - tape_copy.sh
+          - nightly_extract.sh
+          - print_notices.sh
+        legacy:
+          - mainframe job
+          - overnight file transfer
+          - old caseload export
+          - paper notice feed
+      title:
+        - Is {script} for the {legacy} still used?
+        - Can we retire {script}? It feeds {legacy}
+        - '{script|cap} runs nightly, nobody owns {legacy}'
+      body:
+        -   - It writes to a folder {legacy} reads.
+            - The {legacy} was retired in {2015-2021}.
+        -   - Nobody remembers who asked for it.
+            - Old cron host still runs it.
+        -   - '{gv_note} Retiring it needs a records check.'
+            - Retiring it needs a records check.
+      comments:
+        - Not used since {2019-2023}, I think.
+        - '{b_cm_ask_who}'
+        - Check the access log first.
+comments:
+  - '{b_cm_check}, the rule is in state policy.'
+  - Keep personal details out of here.
+  - Needs a note in the handbook.
+  - The privacy officer should read this.
+chat:
+  support:
+    - let:
+        thing:
+          - overpayment notice
+          - benefit amount
+          - copayment
+          - denial letter
+      root:
+        - '{s_cust|cap} says the {thing} is wrong, {s_ticket}'
+        - '{s_cust} got a {thing} but never received benefits'
+        - '{s_cust|cap} asks why the {thing} is {s_money} dollars'
+      replies:
+        -   - checking the case
+            - '{s_look}, one sec'
+            - '{s_ack}, looking'
+        -   - the appeal is still open
+            - recoupment started this month
+            - the notice was mailed {c_soon}
+        -   - can you send them the breakdown?
+            - '{s_thx}, i will tell them'
+    - root:
+        - caller cannot upload a pay stub, {s_ticket}
+        - '{s_cust|cap} says the status page is stuck'
+        - renewal stuck at documents for {s_cust}
+      replies:
+        -   - is it a phone photo?
+            - which month is the stub?
+            - '{s_look}'
+        -   - it just spins
+            - same error as the last case
+            - no idea, asking
+        -   - tell them to use the office
+            - escalating to tier two
+            - '{s_thx}'
+    - let:
+        what:
+          - the upload page rejecting photos
+          - status not updating
+          - notices going out early
+          - the portal sign-in loop
+      root:
+        - 'escalating to eng: {what}, filed as {issue}'
+        - '{what} again today, {issue} has details, {s_since}'
+      replies:
+        -   - thanks, adding it to the board
+            - '{s_ack}, will take a look'
+            - ''
+        -   - any workaround for callers?
+            - should i tell them to wait?
+        -   - come by the office
+            - wait for the fix, on it
+    - let:
+        shift:
+          - morning
+          - afternoon
+          - evening
+      root:
+        - '{shift} handover: {5-30} open tickets, {2-6} waiting on policy'
+        - call spike, notices went out {c_soon}
+      replies:
+        -   - probably the mailing
+            - it is the rule change
+            - '{c_idk}'
+        -   - can we add a banner?
+            - should i post an update?
+        -   - yes please, text is below
+            - talking to the program office
+  team:
+    - let:
+        thing:
+          - work rules
+          - income limits
+          - child care
+          - appeals
+      root:
+        - the legislature meets {c_soon}, any bill touching benefits?
+        - federal guidance on {thing} is out, who reads it?
+        - new rule passed, notices change by {c_soon}
+      replies:
+        -   - i read the text, two changes
+            - '{c_idk}, asking {person}'
+            - i can summarize it {c_soon}
+        -   - put notes in the shared folder
+            - link it in the ticket
+            - ''
+        -   - '{c_ack}'
+            - thanks, ticking it off
+    - root:
+        - budget hearing {day} at {time}, need numbers for the cut
+        - budget due, anything to add by {c_soon}?
+        - hiring freeze again, backfill status?
+      replies:
+        -   - i have the hosting numbers
+            - i will ask {person}, they track it
+            - '{c_idk}'
+        -   - assume flat funding
+            - heard the grant may end
+            - let's plan for the worst case
+        -   - ok i will send a draft
+            - '{c_ack}'
+    - let:
+        topic:
+          - the new notices
+          - the upload page
+          - the phone system
+          - the state interface
+        site:
+          - call center
+          - district office
+          - hearings office
+      root:
+        - '{person} and i visit the {site} about {topic}, join?'
+        - walkthrough at the {site} on {day}, agenda is in the doc
+      replies:
+        -   - i can come if after {time}
+            - who is driving, you?
+            - which room?
+        -   - call, no room
+            - '{c_room}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+  engineering:
+    - let:
+        change:
+          - the portal release
+          - the database patch
+          - the notice template update
+          - the state interface change
+        event:
+          - month end issuance
+          - renewal week
+          - the audit
+      root:
+        - no deploys during {event}, freeze starts {day}
+        - who presents {change} at the change review?
+        - '{change} bounced, needs a rollback plan'
+      replies:
+        -   - i have the rollback steps
+            - not yet, writing it now
+            - '{c_idk}'
+        -   - put it in the ticket please
+            - can you review the plan?
+        -   - done, linked
+            - '{c_thanks}'
+    - let:
+        scan:
+          - weekly scan
+          - container scan
+          - dependency check
+      root:
+        - '{c_dep} has an advisory, we are affected'
+        - the {scan} flagged a new high in {c_dep}
+        - 'alert for {c_dep}: patch now or wait?'
+      replies:
+        -   - i can bump it {c_when_eng}
+            - '{c_ack}, taking it'
+            - only the build image has it
+        -   - we need an exception if late
+            - we log it if late
+        -   - '{c_ack}'
+    - let:
+        thing:
+          - eligibility
+          - payment
+          - wage
+          - status
+      root:
+        - the state changed the {thing} file format again
+        - '{thing} import broke after the state update'
+        - who talks to the state about {thing}?
+      replies:
+        -   - '{c_idk}, ask {person}'
+            - i have their contact
+            - i can read the new spec
+        -   - did they send notice?
+            - it has no version number
+            - we should pin it
+        -   - opened a ticket
+            - '{c_ack}'
+  incidents:
+    - let:
+        thing:
+          - the portal
+          - the upload page
+          - the status page
+      root:
+        - the benefits portal is erroring, {s_since}
+        - '{thing} is slow for applicants, {s_since}'
+        - paged for {thing}, looks like the state side
+      replies:
+        -   - workers are getting calls
+            - checking the logs now
+            - i see it too
+        -   - it is the state, not us
+            - restarting the pool
+            - looks like it cleared
+        -   - posting an update
+            - will write it up later
+    - let:
+        thing:
+          - the portal
+          - the phone queue
+          - the status page
+      root:
+        - month start rush, {thing} at {70-99} percent
+        - '{thing} is slow, deadline is tomorrow'
+        - traffic is {3-5}x normal, scaling up
+      replies:
+        -   - added {2-4} more instances
+            - database connections are the limit
+            - '{c_ack}'
+        -   - can we hold the batch jobs?
+            - pausing the nightly load tonight
+        -   - volume easing now
+            - '{c_thanks}'
+    - let:
+        job:
+          - the provider payment run
+          - the recoupment job
+          - the notice run
+          - the wage match load
+      root:
+        - the batch window overran, {job} still running at {time}
+        - overnight {job} failed, nothing posted
+        - '{job} is {3-5} hours late, fiscal is asking'
+      replies:
+        -   - rerunning from the checkpoint
+            - looking at the lock
+            - '{c_ack}'
+        -   - it should finish by {time}
+            - records are fine, just late
+        -   - i will tell fiscal
+            - '{c_thanks}'
+    - let:
+        site:
+          - the district office
+          - the call center
+          - the hearings office
+        n:
+          - '{20-300}'
+      root:
+        - phone system dropped calls at {time}, {n} callers lost
+        - '{site} lost the network, running on paper'
+        - call queue is stuck, {s_since}
+      replies:
+        -   - sending a tech now
+            - is the backup working?
+            - '{c_ack}'
+        -   - yes, the floor has it
+            - back up in ten minutes
+            - it was the switch
+        -   - thanks, adding it to the notes
+  town-square:
+    - let:
+        training:
+          - privacy training
+          - security awareness training
+          - records training
+          - harassment prevention training
+      root:
+        - 'reminder: annual {training} due {c_soon}, about {20-60} minutes'
+        - the {training} course is open, finish by {c_soon}
+        - '{c_hey}: mandatory {training}, link in the email'
+      replies:
+        -   - same course as last year?
+            - do contractors need it too?
+            - '{c_thanks}'
+        -   - yes contractors too
+            - new this year, the phishing part
+            - '{c_yes}'
+    - root:
+        - offices closed {c_soon}, call center is open
+        - '{c_hey}: food drive boxes in the lobby'
+        - 'storm plan: check the alert first'
+      replies:
+        -   - is the call center open?
+            - who is on the rota?
+            - '{c_thanks}'
+        -   - yes, the rota is posted
+            - see the calendar
+            - '{c_idk}, ask hr'
+    - let:
+        team:
+          - platform
+          - billing
+          - data
+          - call center
+        years:
+          - '10'
+          - '15'
+          - '20'
+          - '25'
+      root:
+        - welcome {person} to the {team} team, starting {c_soon}
+        - '{c_hey}: the break room fridge gets cleaned {c_soon}'
+        - congrats to {person} on {years} years of service!
+      replies:
+        -   - welcome!
+            - '{c_em}'
+            - '{c_agree}'
+        -   - thanks all
+            - '{c_thanks}'
+  direct:
+    - let:
+        form:
+          - access request
+          - change request
+          - training certificate
+        doc:
+          - notice template
+          - rollback plan
+          - rules table
+        duty:
+          - pager shift
+          - help desk shift
+          - on-call slot
+      root:
+        - '{s_hey}, can you sign the {form} before {day}?'
+        - '{s_hey}, got a minute for the {doc}?'
+        - can you cover my {duty} {c_soon}?
+      replies:
+        -   - '{s_ack}'
+            - sure, send it over
+            - will do after lunch
+        -   - '{s_thx}'
+            - '{s_sorry}, forgot'
+    - let:
+        item:
+          - access request
+          - hiring approval
+          - contract extension
+          - laptop order
+        office:
+          - privacy office
+          - procurement office
+          - budget office
+      root:
+        - did you hear back about the {item}?
+        - my {item} has not come through, nudge them?
+        - '{s_hey}, any news on the {item}?'
+      replies:
+        -   - not yet, still with the {office}
+            - approved yesterday
+            - '{s_no}'
+        -   - '{s_thx}'
+            - ok i will wait
+  off-topic:
+    - let:
+        event:
+          - retirement party
+          - potluck
+          - farewell lunch
+          - birthday celebration
+      root:
+        - anyone going to the {event} at lunch {c_soon}?
+        - '{c_food} in {c_room} for the {event}, help yourselves'
+      replies:
+        -   - what time?
+            - i will be there
+            - bringing a dessert
+        -   - '{c_thanks}'
+            - '{c_em}'
+    - root:
+        - the parking lot is full again
+        - traffic is wild, anyone wfh today?
+        - '{c_sport} after work {c_soon}, anyone in?'
+      replies:
+        -   - same, {c_lol}
+            - i am at home today
+            - '{c_idk}'
+        -   - stay safe
+            - '{c_em}'
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Overpayment notice emails delayed
+      - Delayed overpayment notice emails
+      - Overpayment notice emails arriving late
+      - Overpayment notice mail delivery slow
+    alert:
+      - overpayment notice emails delayed, {s_inv_late_b}
+      - '{s_al} overpayment notice mail running late'
+      - overpayment notice emails delayed, queue age {s_age}
+      - overpayment notice emails not going out, {s_inv_late_b}
+    fix_message:
+      - '{s_q_verb|cap} overpayment notice emails {s_q_how}'
+      - '{s_q_verb|cap} overpayment notice mail {s_q_how}'
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment processor callback errors
+      - Elevated errors on payment processor callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - '{s_cb_fix|cap}, log each attempt'
+      - 'Handle timeouts: {s_cb_fix}'
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate overpayment notice emails
+      - Overpayment notice mailed twice
+      - Repeated overpayment notice emails
+    alert:
+      - duplicate overpayment notice emails going out, {s_dup_b}
+      - '{s_al} overpayment notice mailed twice, {s_dup_b}'
+      - overpayment notice emails sent twice, {s_dup_b}
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - '{s_dup_fix|cap}, log each skip'
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Portal timeouts for large providers
+      - Slow portal for large providers
+      - Large providers see portal 504s
+    alert:
+      - portal timeouts for large providers, {s_portal_b}
+      - '{s_al} portal slow for large providers, {s_portal_b}'
+      - large providers see 504s, {s_portal_b}
+    fix_message:
+      - Paginate the case history list
+      - Page the case history list
+      - Load case history in pages
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Portal sign-in errors after deploy
+      - Sign-in failures since the release
+      - Applicants cannot sign in after deploy
+    alert:
+      - portal sign-in errors after deploy, {s_login_b}
+      - '{s_al} sign-in failures since the release, {s_login_b}'
+      - applicants cannot sign in, {s_login_b}
+    fix_message:
+      - '{s_sess_fix|cap}'
+      - '{s_sess_fix|cap}, check the domain'
+      - Put the cookie domain back

@@ -1,0 +1,1296 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Public health agencies: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: public-health
+name: Public health agencies
+group: Government and public sector
+aliases:
+  - health department
+  - health district
+  - county health
+  - local health department
+  - health authority
+description: A public health department that runs clinics, disease reporting, vital records and environmental permits under health privacy rules.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Health Department
+  - Public Health District
+  - Health Agency
+  - Board of Health
+  - Health Services
+  - Health Authority
+invoice_items:
+  - Clinic visit fee
+  - Vital record certificate
+organization:
+  head: Director of Health Informatics
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Health Informatics
+      title: Platform Engineer
+    billing:
+      department: Clinic Revenue
+      title: Software Engineer
+      lead: Clinic Revenue Lead
+    data:
+      department: Epidemiology and Data
+      title: Data Engineer
+    support:
+      department: Client Services
+      title: Client Services Specialist
+    product:
+      department: Program Support
+      title: Program Analyst
+    operations:
+      department: IT Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - billing-service
+      - clinic-billing
+      - fee-collections
+      - claims-core
+    platform-docs:
+      - platform-docs
+      - informatics-handbook
+      - privacy-handbook
+      - runbooks
+    data-pipeline:
+      - data-pipeline
+      - surveillance-loads
+      - registry-feeds
+      - lab-interfaces
+    infra-config:
+      - infra-config
+      - clinic-network
+      - hosting-config
+      - env-baselines
+    customer-portal:
+      - customer-portal
+      - client-portal
+      - records-portal
+      - permit-portal
+    ops-scripts:
+      - ops-scripts
+      - legacy-scripts
+      - batch-jobs
+      - old-extracts
+  channels:
+    engineering:
+      - engineering
+      - app-dev
+      - dev-chat
+    incidents:
+      - incidents
+      - interface-alerts
+      - incident-response
+    releases:
+      - releases
+      - change-notices
+      - release-notes
+    billing-team:
+      - billing-team
+      - clinic-revenue
+      - claims-dev
+    data-team:
+      - data-team
+      - epi-data
+      - surveillance-eng
+    support:
+      - support
+      - client-help
+      - service-desk
+    leads:
+      - leads
+      - section-leads
+      - eng-leads
+systems:
+  typical:
+    - gitlab
+    - microsoft teams
+    - jira
+    - confluence
+    - servicenow
+    - okta
+    - splunk
+    - tableau
+  common:
+    - athenahealth
+    - qualtrics
+    - twilio
+    - informatica
+    - snowflake
+symbols:
+  b_doc:
+    - clinic statement
+    - vital record receipt
+    - permit invoice
+    - inspection fee notice
+    - '{monthly/quarterly} account statement'
+  b_customer:
+    - patient
+    - insured patient
+    - restaurant owner
+    - funeral home
+    - hospital
+    - school
+    - child care center
+    - pharmacy
+  b_who:
+    - the clinic billing office
+    - the registrar's office
+    - the environmental health office
+    - the epidemiology team
+    - the finance office
+  b_pwho:
+    - the registrar's office
+    - a patient
+    - '{person}'
+    - the clinic billing office
+    - the environmental health office
+  b_money_path:
+    - billing/charges.py
+    - billing/sliding_scale.py
+    - billing/totals.py
+    - billing/rounding.py
+  b_mail_path:
+    - billing/statements.py
+    - billing/statement_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_cb_path:
+    - billing/claim_events.py
+    - billing/callbacks.py
+    - billing/payment_events.py
+  b_credit_path:
+    - billing/adjustments.py
+    - billing/refunds.py
+    - billing/write_offs.py
+  b_check_path:
+    - the charge tests
+    - the claim tests
+    - the adjustment tests
+    - the callback tests
+  b_provider_event:
+    - claim accepted
+    - claim denied
+    - payment posted
+    - refund issued
+    - remittance file received
+  b_currency:
+    - zero-dollar
+    - negative
+    - partial
+    - sliding-scale
+  b_taxkind:
+    - clinic fee
+    - permit fee
+    - certificate fee
+    - late fee
+  b_region:
+    - another county
+    - a different district
+    - an out-of-state birth
+    - a tribal area
+  b_page:
+    - statements
+    - orders
+    - permits
+    - records
+    - inspection results
+    - the dashboard
+    - receipts
+    - account settings
+  b_acct_size:
+    - '{200-900} certificates'
+    - '{15-60} users'
+    - '{3-12} billing contacts'
+    - '{40-300} permits'
+  c_customer:
+    - a patient
+    - one of the larger clinics
+    - a restaurant owner
+    - a funeral director
+    - a school nurse
+  s_plan:
+    - a sliding fee
+    - a payment plan
+    - a fee waiver
+    - a hardship discount
+  s_cust:
+    - a patient on {s_plan}
+    - a caller on {s_plan}
+    - a restaurant owner on {s_plan}
+    - someone on {s_plan}
+    - a parent on {s_plan}
+  p_table:
+    - cases
+    - lab_results
+    - immunizations
+    - certificates
+    - permits
+    - inspections
+    - encounters
+    - claims
+  p_report:
+    - the weekly surveillance report
+    - the immunization coverage dashboard
+    - the monthly clinic revenue report
+    - the inspection backlog report
+    - the grant reporting package
+  p_source:
+    - the state lab's result feed
+    - the immunization registry's updates
+    - the clearinghouse's remittance files
+    - the call center's ticket export
+    - the clinic scheduling export
+  p_finance_ask:
+    - the health officer's staff
+    - someone in grants management
+    - the finance manager
+    - the program manager
+  gv_note:
+    - 'Note:'
+    - 'Also:'
+    - 'Detail:'
+    - 'Context:'
+    - 'Aside:'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        thing:
+          - poverty guideline
+          - income table
+          - family size rule
+        month:
+          - January
+          - April
+          - July
+        n:
+          - '{3-90}'
+      title:
+        - Sliding scale uses last year's guideline
+        - Clinic fees ignore the new {thing}
+        - Fee tier wrong after the {thing} update
+        - '{n} patients billed at the old scale'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_pwho|cap} had {2-9} complaints.'
+        -   - '{gv_note} The guideline changed in {month}.'
+            - The guideline changed in {month}.
+            - The scale table is cached.
+            - Tiers key on the old year.
+        -   - '{gv_note} Some patients paid too much.'
+            - Some patients paid too much.
+            - Others got too big a discount.
+        -   - '{b_offer}'
+            - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_check}, the scale table is old.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        field:
+          - rendering provider id
+          - diagnosis pointer
+          - service date
+          - referral number
+        n:
+          - '{3-90}'
+      title:
+        - 'Clinic claim rejected: missing {field}'
+        - Payer rejects {n} visits for {field}
+        - Claim denied without {field}
+        - '{field|cap} missing on {n} clinic claims'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - The clearinghouse sent the denial list.
+        -   - '{gv_note} Our export drops the field.'
+            - The visit form leaves it blank.
+            - Our export drops the field.
+        -   - '{gv_note} Each denial needs a resubmission.'
+            - Each denial needs a resubmission.
+            - Revenue lags the grant budget.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} with a denied claim.'
+        - '{b_cm_check}, the mapping skips it.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        case:
+          - veterans
+          - people experiencing homelessness
+          - foster youth
+          - victims of a disaster
+      title:
+        - Fee exemption ignored for {case}
+        - Certificate fee charged to {case}
+        - '{case|cap} should pay no certificate fee'
+        - Waiver for {case} not applied
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - The registrar's office caught {2-9} orders.
+        -   - '{gv_note} The exemption flag is optional.'
+            - The exemption flag is optional.
+            - The rule is in state law.
+        -   - '{b_urgent}'
+            - Refunds are manual.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} with an exempt requester.'
+        - Check the statute text first.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - needs-decision
+      let:
+        thing:
+          - restaurant
+          - pool
+          - child care center
+          - food truck
+      title:
+        - 'Free re-inspections for a {thing}: how many?'
+        - Policy for re-inspection fees
+        - 'Fee for a {thing} re-inspection: who decides?'
+        - Rule for repeat inspections
+      body:
+        -   - '{b_who|cap} decides case by case.'
+            - No written rule exists.
+        -   - '{gv_note} The board has not ruled.'
+            - 'Options: {one free/two free/charge from the first}.'
+            - The board has not ruled.
+        -   - '{gv_note} Counsel should check the code.'
+            - Counsel should check the code.
+            - The notice text depends on it.
+        -   - '{b_cm_later}'
+            - Needs a decision before the run.
+      comments:
+        - '{b_cm_ask_who}'
+        - I lean towards one free.
+        - Write it in {p_docpage}.
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - security
+      let:
+        thing:
+          - clinic type
+          - service name
+          - diagnosis code
+          - provider name
+      title:
+        - Statement shows the {thing}
+        - Mailed bill reveals the {thing}
+        - Confidential visit appears on a statement
+        - Remove the {thing} from statements
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - A parent called about it {day}.
+        -   - The template prints every field.
+            - Privacy rules say minimum necessary.
+        -   - '{gv_note} The privacy officer was told.'
+            - Mail goes to a shared address.
+            - The privacy officer was told.
+        -   - '{gv_note} Keep details out of open channels.'
+            - Keep details out of open channels.
+      comments:
+        - '{b_cm_repro} with a mailing copy.'
+        - Needs a field allow list.
+        - '{b_cm_fix_up}'
+        - Privacy officer is on it.
+  portal:
+    - labels:
+        - bug
+      let:
+        who:
+          - a grandparent
+          - a legal guardian
+          - an adult child
+          - a spouse
+      title:
+        - Birth certificate order rejects {who}
+        - Eligibility check fails for {who}
+        - '{who|cap} cannot order a certificate online'
+        - Requester check loops for {who}
+      body:
+        -   - '{b_pwho|cap} sees {2-9} cases {a week/this month}.'
+            - '{b_raised}, {b_scope}.'
+        -   - The check allows parents only.
+            - The rule list is old.
+        -   - '{b_urgent}'
+            - People come to the counter.
+        -   - '{b_ask_logs}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - State law lists who may order.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - performance
+      let:
+        thing:
+          - the record lookup
+          - the clinic finder
+          - the order page
+          - the appointment page
+      title:
+        - Immunization lookup times out in August
+        - Back-to-school rush slows {thing}
+        - '{thing|cap} is unusable at the school deadline'
+        - Records lookup stalls during the {thing}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Every year the same thing happens.
+        -   - '{gv_note} Connections run out first.'
+            - Queries scan the whole table.
+            - Connections run out first.
+        -   - '{gv_note} Callers hear busy signals.'
+            - Callers hear busy signals.
+            - Staff cannot help in time.
+        -   - '{b_offer}'
+      comments:
+        - Autoscaling did not help.
+        - '{b_cm_check}, an index is missing.'
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - enhancement
+      let:
+        page:
+          - the permit page
+          - the food page
+          - the search page
+        thing:
+          - restaurant
+          - pool
+          - school
+          - child care
+      title:
+        - Show the latest inspection score on {page}
+        - Publish restaurant inspection results
+        - Public page for {thing} inspections
+        - Let residents search {thing} results
+      body:
+        -   - Residents call to ask about scores.
+            - The board asked for it on {day}.
+        -   - Show date, score and violations.
+            - Hide anything under appeal.
+        -   - '{b_offer}'
+            - 'Rough size: {two/three} sprints.'
+      comments:
+        - Agree, calls are a time sink.
+        - '{b_cm_plan}'
+        - Do we show old results?
+        - '{b_cm_later}'
+    - labels:
+        - enhancement
+      let:
+        thing:
+          - clinic
+          - vaccine
+          - screening
+          - WIC
+        channel:
+          - text
+          - email
+          - phone
+      title:
+        - Appointment reminder texts for {thing}
+        - Send reminders by {channel}
+        - Opt-out for {thing} reminders
+        - Reminders cut missed {thing} visits
+      body:
+        -   - No-shows cost clinics money.
+            - A pilot at one site helped.
+        -   - '{gv_note} Opt-in is required.'
+            - Opt-in is required.
+            - Messages carry no health details.
+        -   - '{b_offer}'
+            - 'Rough size: {two/three} sprints.'
+      comments:
+        - Agree, small texts work well.
+        - '{b_cm_plan}'
+        - Privacy should review the text.
+        - '{b_cm_later}'
+    - labels:
+        - enhancement
+        - docs
+      let:
+        area:
+          - the order form
+          - the clinic finder
+          - the payment form
+          - the records request page
+          - the inspection page
+        issue_kind:
+          - missing labels
+          - no visible focus ring
+          - low contrast
+          - unreadable scanned PDFs
+          - no captions
+      title:
+        - 'Accessibility: {issue_kind} on {area}'
+        - 'Public site: {issue_kind} on {area}'
+        - '{area|cap}: {issue_kind}, found in the review'
+        - Fix {issue_kind} on {area}
+      body:
+        -   - Found by a resident complaint.
+            - A screen reader user reported it {day}.
+        -   - Affects {2-30} pages from one template.
+            - Scanned PDFs are part of it.
+        -   - '{gv_note} Legal asked for a date.'
+            - It is on the remediation plan.
+            - Legal asked for a date.
+        -   - '{b_ac_d}'
+      comments:
+        - Retest with two screen readers afterwards.
+        - '{b_cm_sr} {b_cm_sr2}'
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+  docs:
+    - labels:
+        - docs
+        - security
+      let:
+        page:
+          - docs/privacy.md
+          - docs/access.md
+          - docs/hosting.md
+          - docs/backup.md
+        thing:
+          - breach reporting
+          - access logging
+          - media disposal
+          - business associate list
+      title:
+        - '{page|cap} lacks the minimum necessary rule'
+        - 'Privacy page: {thing} missing'
+        - Update {page} for the new {thing}
+        - '{page|cap} disagrees with the HIPAA policy'
+      body:
+        -   - The audit asked on {day}.
+            - The privacy officer sent a version.
+        -   - '{gv_note} Rules for {thing} are not listed.'
+            - Rules for {thing} are not listed.
+            - Links point to a dead page.
+        -   - '{b_urgent}'
+            - Auditors read this page.
+        -   - '{p_fix_soon}'
+      comments:
+        - I can take the update.
+        - Needs a review from {person}.
+        - '{b_cm_later}'
+    - labels:
+        - docs
+        - enhancement
+      let:
+        thing:
+          - the call line
+          - the clinic finder
+          - the reporting form
+          - the results portal
+      title:
+        - Runbook for call line surge staffing
+        - 'Outbreak response: {thing} steps are missing'
+        - Write up how to scale {thing} in a surge
+        - Document the {thing} surge plan
+      body:
+        -   - The last outbreak showed the gaps.
+            - Only {person} knew the steps.
+        -   - '{gv_note} Say which systems scale first.'
+            - List who to call and when.
+            - Say which systems scale first.
+        -   - '{b_dc_e}'
+            - A handbook page is plenty.
+      comments:
+        - Will draft it after the release.
+        - '{b_cm_ask_who}'
+        - Please link the response plan.
+    - labels:
+        - docs
+        - chore
+      let:
+        table:
+          - '{p_table}'
+      title:
+        - Add a data dictionary for {table}
+        - Document the {table} fields
+        - '{table|cap}: what does each code mean?'
+      body:
+        -   - New analysts keep asking.
+            - Only {person} knows them.
+        -   - '{gv_note} List codes, units and owners.'
+            - List codes, units and owners.
+            - Mark which fields are personal.
+        -   - '{gv_note} A short page is plenty.'
+            - A short page is plenty.
+      comments:
+        - I can start with main fields.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        code:
+          - test code
+          - result code
+          - specimen type
+        kind:
+          - respiratory
+          - enteric
+          - sexually transmitted
+          - hepatitis
+        n:
+          - '{3-90}'
+      title:
+        - Lab messages arrive with an unmapped {code}
+        - '{n} lab results rejected: unknown {code}'
+        - Electronic lab feed drops {kind} results
+        - Fix the {code} mapping for {kind}
+      body:
+        -   - '{b_who|cap} spotted the gap.'
+            - The lab changed its code list.
+        -   - '{gv_note} Messages fail validation at the engine.'
+            - Messages fail validation at the engine.
+            - Rows land in an error queue.
+        -   - '{b_urgent}'
+            - Cases may be missed.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} with an error message.'
+        - '{b_cm_check} the code table first.'
+        - '{b_cm_prof}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - security
+      let:
+        thing:
+          - case
+          - vaccination
+          - birth
+          - overdose
+      title:
+        - Dashboard shows counts under five
+        - Small numbers appear on the {thing} dashboard
+        - Suppress small cells in {thing}
+        - '{thing|cap} shows exact counts for small groups'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - A reader could identify people.
+        -   - '{gv_note} The chart skips suppression.'
+            - 'Rule: hide counts under {5/10}.'
+            - The chart skips suppression.
+        -   - '{b_urgent}'
+            - Privacy staff were told.
+      comments:
+        - '{b_cm_repro} with a rural zip.'
+        - Suppress in the query itself.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - incident
+      let:
+        table:
+          - '{p_table}'
+        problem:
+          - a bad row
+          - a missing header
+          - a large file
+      title:
+        - Registry feed arrives late or twice
+        - Immunization updates duplicated in {table}
+        - Registry load stalls on {problem}
+        - '{table|cap} out of sync with the registry'
+      body:
+        -   - '{b_who|cap} noticed on {day}.'
+            - Clinics saw old records.
+        -   - '{gv_note} The vendor changed the file.'
+            - The feed retries without a key.
+            - The vendor changed the file.
+        -   - '{b_urgent}'
+            - Coverage numbers are off.
+        -   - '{b_offer}'
+      comments:
+        - "{b_cm_repro} with last night's file."
+        - Key on the message id.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+  infra:
+    - labels:
+        - security
+        - chore
+      let:
+        target:
+          - the clinic database
+          - the file server
+          - the registry copy
+          - the interface engine
+      title:
+        - Encrypt {target} backups
+        - Backups of {target} are not encrypted
+        - Patient data in {target} backups needs a key
+        - Rotate keys for {target} backups
+      body:
+        -   - The risk assessment noted it.
+            - HIPAA requires protection at rest.
+        -   - '{gv_note} Tapes go offsite in the clear.'
+            - Tapes go offsite in the clear.
+            - Cloud copies use the default key.
+        -   - '{b_urgent}'
+            - Cost is small.
+      comments:
+        - '{b_cm_plan}'
+        - Who holds the keys?
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - incident
+      let:
+        queue:
+          - lab
+          - registry
+          - clinic
+          - billing
+      title:
+        - Interface engine queue backs up at {time}
+        - HL7 messages stuck in the {queue} queue
+        - Queue depth grows on the {queue} channel
+        - Engine stops sending to {queue}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Channel stalls on a bad message.
+        -   - '{gv_note} Messages wait {2-9} hours.'
+            - Messages wait {2-9} hours.
+            - Nobody is paged for it.
+        -   - '{b_urgent}'
+            - Clinics lose results.
+        -   - '{b_ask_logs}'
+      comments:
+        - Cleared the bad message, queue drains.
+        - '{b_cm_ask_who}'
+        - Added a depth alert.
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        site:
+          - the east clinic
+          - the mobile unit
+          - the WIC office
+          - the vaccine site
+        n:
+          - '{3-30}'
+      title:
+        - Clinic network drops at {site}
+        - '{site|cap} loses connection {n} times a day'
+        - Fix the link to {site}
+        - '{site|cap} cannot reach the record system'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Staff there use paper meanwhile.
+        -   - '{gv_note} Logs show resets at {time}.'
+            - The carrier says the line's fine.
+            - Logs show resets at {time}.
+        -   - '{b_urgent}'
+            - It affects walk-in hours.
+        -   - '{b_ask_logs}'
+      comments:
+        - Opened a ticket with the carrier.
+        - '{b_cm_ask_who}'
+        - Swapped the router, no change.
+        - '{b_cm_later}'
+  ops:
+    - labels:
+        - question
+        - chore
+      let:
+        script:
+          - export_batch.sh
+          - tape_copy.sh
+          - nightly_extract.sh
+          - print_certificates.sh
+        legacy:
+          - mainframe job
+          - overnight file transfer
+          - old registry export
+          - paper certificate feed
+      title:
+        - Is {script} for the {legacy} still used?
+        - Can we retire {script}? It feeds {legacy}
+        - '{script|cap} runs nightly, nobody owns {legacy}'
+      body:
+        -   - It writes to a folder {legacy} reads.
+            - The {legacy} was retired in {2015-2021}.
+        -   - Nobody remembers who asked for it.
+            - Old cron host still runs it.
+        -   - '{gv_note} Retiring it needs a records check.'
+            - Retiring it needs a records check.
+      comments:
+        - Not used since {2019-2023}, I think.
+        - '{b_cm_ask_who}'
+        - Check the access log first.
+comments:
+  - '{b_cm_check}, the rule is in state code.'
+  - Keep personal details out of here.
+  - Needs a note in the handbook.
+  - The privacy officer should read this.
+chat:
+  support:
+    - let:
+        thing:
+          - clinic bill
+          - certificate fee
+          - permit fee
+          - inspection fee
+      root:
+        - '{s_cust|cap} says the {thing} is {s_money} dollars, {s_ticket}'
+        - '{s_cust} got a {thing} but insurance paid'
+        - '{s_cust|cap} asks why the {thing} changed'
+      replies:
+        -   - checking the claim
+            - '{s_look}, one sec'
+            - '{s_ack}, looking'
+        -   - the sliding scale changed
+            - insurance paid part of it
+            - the fee went up in july
+        -   - can you send them the breakdown?
+            - '{s_thx}, i will tell them'
+    - root:
+        - caller cannot find their immunization record, {s_ticket}
+        - '{s_cust|cap} says the birth certificate order failed'
+        - order stuck at payment for {s_cust}
+      replies:
+        -   - what is their date of birth?
+            - which county was it?
+            - '{s_look}'
+        -   - it just spins
+            - same error as the last case
+            - no idea, asking
+        -   - send them the paper form
+            - escalating to tier two
+            - '{s_thx}'
+    - let:
+        what:
+          - the record lookup
+          - certificate orders failing
+          - the payment page timing out
+          - statements with extra fields
+      root:
+        - 'escalating to eng: {what}, filed as {issue}'
+        - '{what} again today, {issue} has details, {s_since}'
+      replies:
+        -   - thanks, adding it to the board
+            - '{s_ack}, will take a look'
+            - ''
+        -   - any workaround for callers?
+            - should i tell them to wait?
+        -   - come by the counter
+            - wait for the fix, on it
+    - let:
+        shift:
+          - morning
+          - afternoon
+          - evening
+      root:
+        - '{shift} handover: {5-30} open tickets, {2-6} waiting on the registrar'
+        - call spike, school forms are due {c_soon}
+      replies:
+        -   - probably the school deadline
+            - it is the new fee
+            - '{c_idk}'
+        -   - can we add a banner?
+            - should i post an update?
+        -   - yes please, text is below
+            - talking to the clinic office
+  team:
+    - let:
+        thing:
+          - technical
+          - budget
+          - data
+          - reporting
+      root:
+        - the board meets {day}, anything for us on the agenda?
+        - grant report is due {c_soon}, who owns the {thing} section?
+        - new state rule, fee changes by {c_soon}
+      replies:
+        -   - i read the text, two changes
+            - '{c_idk}, asking {person}'
+            - i can summarize it {c_soon}
+        -   - put notes in the shared folder
+            - link it in the ticket
+            - ''
+        -   - '{c_ack}'
+            - thanks, ticking it off
+    - root:
+        - budget hearing {day} at {time}, need numbers for the cut
+        - grant budget due, anything to add?
+        - hiring freeze again, backfill status?
+      replies:
+        -   - i have the hosting numbers
+            - i will ask {person}, they track it
+            - '{c_idk}'
+        -   - assume flat funding
+            - heard the grant may end
+            - let's plan for the worst case
+        -   - ok i will send a draft
+            - '{c_ack}'
+    - let:
+        topic:
+          - the new lab feed
+          - the clinic network
+          - the order portal
+          - the registry upgrade
+        site:
+          - east clinic
+          - registrar's office
+          - lab
+      root:
+        - '{person} and i visit the {site} about {topic}, join?'
+        - walkthrough at the {site} on {day}, agenda is in the doc
+      replies:
+        -   - i can come if after {time}
+            - who is driving, you?
+            - which room?
+        -   - call, no room
+            - '{c_room}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+  engineering:
+    - let:
+        change:
+          - the portal release
+          - the database patch
+          - the fee table update
+          - the interface change
+        event:
+          - flu season
+          - the vaccine clinic week
+          - the audit
+      root:
+        - no deploys during {event}, freeze starts {day}
+        - who presents {change} at the change review?
+        - '{change} bounced, needs a rollback plan'
+      replies:
+        -   - i have the rollback steps
+            - not yet, writing it now
+            - '{c_idk}'
+        -   - put it in the ticket please
+            - can you review the plan?
+        -   - done, linked
+            - '{c_thanks}'
+    - let:
+        scan:
+          - weekly scan
+          - container scan
+          - dependency check
+      root:
+        - '{c_dep} has an advisory, we are affected'
+        - the {scan} flagged a new high in {c_dep}
+        - 'alert for {c_dep}: patch now or wait?'
+      replies:
+        -   - i can bump it {c_when_eng}
+            - '{c_ack}, taking it'
+            - only the build image has it
+        -   - we need an exception if late
+            - we log it if late
+        -   - '{c_ack}'
+    - let:
+        thing:
+          - result
+          - registry
+          - order
+          - claim
+      root:
+        - the lab changed its format again
+        - '{thing} feed broke after the vendor update'
+        - who talks to the lab about {thing}?
+      replies:
+        -   - '{c_idk}, ask {person}'
+            - i have their contact
+            - i can read the new spec
+        -   - did they send notice?
+            - it has no version number
+            - we should pin it
+        -   - opened a ticket
+            - '{c_ack}'
+  incidents:
+    - let:
+        thing:
+          - lab results
+          - the registry feed
+          - the order portal
+      root:
+        - the results interface is stuck, {s_since}
+        - '{thing} lagging for clinics, {s_since}'
+        - paged for {thing}, looks like the engine
+      replies:
+        -   - clinics are using paper
+            - checking the logs now
+            - i see it too
+        -   - it is the engine, not us
+            - restarting the channel
+            - looks like it cleared
+        -   - posting an update
+            - will write it up later
+    - let:
+        thing:
+          - the portal
+          - the clinic finder
+          - the results page
+      root:
+        - outbreak surge, {thing} at {70-99} percent
+        - '{thing} is slow, call volume is high'
+        - traffic is {3-5}x normal, scaling up
+      replies:
+        -   - added {2-4} more instances
+            - database connections are the limit
+            - '{c_ack}'
+        -   - can we hold the batch jobs?
+            - pausing the nightly load tonight
+        -   - volume easing now
+            - '{c_thanks}'
+    - let:
+        job:
+          - the lab load
+          - the registry sync
+          - the claim submission
+          - the statement run
+      root:
+        - the batch window overran, {job} still running at {time}
+        - overnight {job} failed, nothing posted
+        - '{job} is {3-5} hours late, epi is asking'
+      replies:
+        -   - rerunning from the checkpoint
+            - looking at the lock
+            - '{c_ack}'
+        -   - it should finish by {time}
+            - records are fine, just late
+        -   - i will tell the epi team
+            - '{c_thanks}'
+    - let:
+        site:
+          - the east clinic
+          - the central pharmacy
+          - the vaccine site
+          - the mobile unit
+      root:
+        - freezer alarm at {site}, vaccines at risk
+        - '{site} lost power, running on backup'
+        - temperature alert at {site}, {s_since}
+      replies:
+        -   - who is on site?
+            - is the data logger working?
+            - '{c_ack}'
+        -   - yes, nurse is there
+            - back in ten minutes
+            - moving stock now
+        -   - thanks, adding it to the notes
+  town-square:
+    - let:
+        training:
+          - privacy training
+          - security awareness training
+          - records training
+          - harassment prevention training
+      root:
+        - 'reminder: annual {training} due {c_soon}, about {20-60} minutes'
+        - the {training} course is open, finish by {c_soon}
+        - '{c_hey}: mandatory {training}, link in the email'
+      replies:
+        -   - same course as last year?
+            - do contractors need it too?
+            - '{c_thanks}'
+        -   - yes contractors too
+            - new this year, the phishing part
+            - '{c_yes}'
+    - root:
+        - flu clinic is at {c_floor} {c_soon}, walk-ins welcome
+        - '{c_hey}: the vaccine drive needs volunteers'
+        - health fair {c_soon}, sign up in the lobby
+      replies:
+        -   - can staff get a shot too?
+            - what time does it start?
+            - '{c_thanks}'
+        -   - yes, bring your badge
+            - see the flyer
+            - '{c_idk}, ask hr'
+    - let:
+        team:
+          - platform
+          - billing
+          - data
+          - client services
+        years:
+          - '10'
+          - '15'
+          - '20'
+          - '25'
+      root:
+        - welcome {person} to the {team} team, starting {c_soon}
+        - '{c_hey}: the break room fridge gets cleaned {c_soon}'
+        - congrats to {person} on {years} years of service!
+      replies:
+        -   - welcome!
+            - '{c_em}'
+            - '{c_agree}'
+        -   - thanks all
+            - '{c_thanks}'
+  direct:
+    - let:
+        form:
+          - access request
+          - change request
+          - training certificate
+        doc:
+          - fee table
+          - rollback plan
+          - code mapping
+        duty:
+          - pager shift
+          - help desk shift
+          - on-call slot
+      root:
+        - '{s_hey}, can you sign the {form} before {day}?'
+        - '{s_hey}, got a minute for the {doc}?'
+        - can you cover my {duty} {c_soon}?
+      replies:
+        -   - '{s_ack}'
+            - sure, send it over
+            - will do after lunch
+        -   - '{s_thx}'
+            - '{s_sorry}, forgot'
+    - let:
+        item:
+          - access request
+          - hiring approval
+          - contract extension
+          - laptop order
+        office:
+          - privacy office
+          - procurement office
+          - budget office
+      root:
+        - did you hear back about the {item}?
+        - my {item} has not come through, nudge them?
+        - '{s_hey}, any news on the {item}?'
+      replies:
+        -   - not yet, still with the {office}
+            - approved yesterday
+            - '{s_no}'
+        -   - '{s_thx}'
+            - ok i will wait
+  off-topic:
+    - let:
+        event:
+          - retirement party
+          - potluck
+          - farewell lunch
+          - birthday celebration
+      root:
+        - anyone going to the {event} at lunch {c_soon}?
+        - '{c_food} in {c_room} for the {event}, help yourselves'
+      replies:
+        -   - what time?
+            - i will be there
+            - bringing a dessert
+        -   - '{c_thanks}'
+            - '{c_em}'
+    - root:
+        - the parking lot is full again
+        - traffic is wild, anyone wfh today?
+        - '{c_sport} after work {c_soon}, anyone in?'
+      replies:
+        -   - same, {c_lol}
+            - i am at home today
+            - '{c_idk}'
+        -   - stay safe
+            - '{c_em}'
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Clinic statement emails delayed
+      - Delayed clinic statement emails
+      - Clinic statement emails arriving late
+      - Clinic statement mail delivery slow
+    alert:
+      - clinic statement emails delayed, {s_inv_late_b}
+      - '{s_al} clinic statement mail running late'
+      - clinic statement emails delayed, queue age {s_age}
+      - clinic statement emails not going out, {s_inv_late_b}
+    fix_message:
+      - '{s_q_verb|cap} clinic statement emails {s_q_how}'
+      - '{s_q_verb|cap} clinic statement mail {s_q_how}'
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment processor callback errors
+      - Elevated errors on payment processor callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - '{s_cb_fix|cap}, log each attempt'
+      - 'Handle timeouts: {s_cb_fix}'
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate clinic statement emails
+      - Clinic statement mailed twice
+      - Repeated clinic statement emails
+    alert:
+      - duplicate clinic statement emails going out, {s_dup_b}
+      - '{s_al} clinic statement mailed twice, {s_dup_b}'
+      - clinic statement emails sent twice, {s_dup_b}
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - '{s_dup_fix|cap}, log each skip'
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Portal timeouts for large clinics
+      - Slow portal for large clinics
+      - Large clinics see portal 504s
+    alert:
+      - portal timeouts for large clinics, {s_portal_b}
+      - '{s_al} portal slow for large clinics, {s_portal_b}'
+      - large clinics see 504s, {s_portal_b}
+    fix_message:
+      - Paginate the order history list
+      - Page the order history list
+      - Load order history in pages
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Portal sign-in errors after deploy
+      - Sign-in failures since the release
+      - Residents cannot sign in after deploy
+    alert:
+      - portal sign-in errors after deploy, {s_login_b}
+      - '{s_al} sign-in failures since the release, {s_login_b}'
+      - residents cannot sign in, {s_login_b}
+    fix_message:
+      - '{s_sess_fix|cap}'
+      - '{s_sess_fix|cap}, check the domain'
+      - Put the cookie domain back
