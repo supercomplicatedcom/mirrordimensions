@@ -439,3 +439,106 @@ def test_seeded_chat_joins_its_channel_or_makes_its_own_on_the_timeline(tmp_path
     assert day <= seeded.ago <= 2 * day  # the latest message, a day or two before the world starts
     names = [c.name for c in world.channels]
     assert len(names) == len(set(names))  # the world's own names never collide with seeded ones
+
+
+def _repo(folder: Path, name: str) -> Path:
+    from dulwich import porcelain
+
+    path = folder / name
+    path.mkdir(parents=True)
+    porcelain.init(str(path))
+    steps = [
+        (
+            1_700_000_000,
+            "Rosa Delgado",
+            {
+                "README.md": "# Claims service\n\nRoutes claims to payers.\n",
+                "claims/route.py": "def route(claim):\n    return claim.payer\n",
+            },
+        ),
+        (
+            1_700_000_000 + 5 * 86400,
+            "Tomasz Wierzbicki",
+            {
+                "claims/route.py": "def route(claim):\n    return claim.payer or 'self-pay'\n",
+                "config.env": "PAYER_URL=https://payer.internal\nPAYER_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123456789\n",
+                "logo.png": "\x89PNG\x00\x00binary",
+            },
+        ),
+    ]
+    for when, who, files in steps:
+        for rel, text in files.items():
+            target = path / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(text.encode("latin-1") if rel.endswith(".png") else text.encode())
+            porcelain.add(str(path), [str(target)])
+        porcelain.commit(
+            str(path),
+            message=f"Change by {who}".encode(),
+            author=f"{who} <{who.split()[0].lower()}@vendorcorp.example.net>".encode(),
+            committer=b"CI <ci@vendorcorp.example.net>",
+            author_timestamp=when,
+            commit_timestamp=when,
+            no_verify=True,
+        )
+    return path
+
+
+def test_a_repository_comes_in_with_its_history_and_nothing_runs(tmp_path: Path) -> None:
+    root = tmp_path / "seed"
+    root.mkdir()
+    repo = _repo(root, "claims-service")
+    marker = tmp_path / "hook-ran"
+    hook = repo / ".git" / "hooks" / "post-checkout"
+    hook.write_text(f"#!/bin/sh\ntouch {marker}\n", encoding="utf-8")
+    hook.chmod(0o755)
+    content, review = read_seed(root, DOMAIN)
+    assert not marker.exists()  # objects are read, nothing is checked out or run
+    seeded = content.repositories[0]
+    assert seeded.name == "claims-service" and seeded.language == "Python"
+    assert seeded.description == "Routes claims to payers."
+    assert [c.author for c in seeded.commits] == ["Rosa Delgado", "Tomasz Wierzbicki"]
+    second = seeded.commits[1].files
+    assert "logo.png" not in second  # binary files are left out
+    assert "PAYER_TOKEN" not in (second["config.env"] or "") and "PAYER_URL" in (
+        second["config.env"] or ""
+    )
+    assert any(d.path == "claims-service" for d in review.secrets_dropped)
+    assert ("claims-service", "git repository") in {(i.path, i.kind) for i in review.items}
+
+
+def test_a_repository_that_reaches_outside_the_folder_is_refused(tmp_path: Path) -> None:
+    root = tmp_path / "seed"
+    root.mkdir()
+    elsewhere = _repo(tmp_path, "elsewhere")
+    worktree = root / "pointer"
+    worktree.mkdir()
+    (worktree / ".git").write_text(f"gitdir: {elsewhere / '.git'}\n", encoding="utf-8")
+    borrowed = _repo(root, "borrowed")
+    (borrowed / ".git" / "objects" / "info").mkdir(parents=True, exist_ok=True)
+    (borrowed / ".git" / "objects" / "info" / "alternates").write_text(
+        str(elsewhere / ".git" / "objects") + "\n", encoding="utf-8"
+    )
+    content, review = read_seed(root, DOMAIN)
+    assert content.repositories == []
+    why = dict(review.not_read)
+    assert "worktree or submodule" in why["pointer"]
+    assert "borrows objects" in why["borrowed"]
+
+
+def test_seeded_repositories_join_the_world_on_its_timeline(tmp_path: Path) -> None:
+    root = init_project(tmp_path / "halden", seed=48213).root
+    project = Project(root=root)
+    folder = _folder(tmp_path)
+    _repo(folder, "claims-service")
+    seed_svc.seed_world(project, folder, accept_personal=True)  # the commits' vendor addresses
+    loaded = YAML(typ="safe").load(project.manifest_path.read_text("utf-8"))  # pyright: ignore[reportUnknownMemberType]
+    world = generate(Manifest.model_validate(loaded), seed_svc.load_content(project))
+    repo = next(r for r in world.repositories if r.name == "claims-service")
+    first, second = sorted(repo.commits, key=lambda c: -c.ago)
+    day = 24 * 60
+    assert day <= second.ago <= 2 * day and first.ago - second.ago == 5 * day
+    people = {p.id: p.name for p in world.people}
+    assert people[first.author] == "Rosa Delgado" and people[second.author] == "Tomasz Wierzbicki"
+    assert any("claims-service" in p.repositories for p in world.projects)
+    assert len({r.name for r in world.repositories}) == len(world.repositories)

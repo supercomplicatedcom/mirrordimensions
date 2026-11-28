@@ -26,6 +26,7 @@ from mirrordimensions.errors import MirrorError
 from mirrordimensions.seed.chat import SeedChannel, from_mattermost, from_slack, slack_roots
 from mirrordimensions.seed.detect import Personal, personal_in, without_secrets
 from mirrordimensions.seed.reader import Folder, SeedFile, read_folder
+from mirrordimensions.seed.repos import Refused, SeedRepository, read_repository
 from mirrordimensions.seed.tickets import SeedTicket, from_csv, from_json
 
 DOCUMENT_SUFFIXES = (".md", ".markdown", ".txt")
@@ -55,6 +56,7 @@ class SeedContent(BaseModel):
     documents: list[SeedDocument] = Field(default_factory=list[SeedDocument])
     tickets: list[SeedTicket] = Field(default_factory=list[SeedTicket])
     channels: list[SeedChannel] = Field(default_factory=list[SeedChannel])
+    repositories: list[SeedRepository] = Field(default_factory=list[SeedRepository])
     tickets_repo: str | None = Field(
         default=None, description="Where tickets go that name no repository the world has"
     )
@@ -205,8 +207,37 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
                 PersonalFound(path=p.path, line=p.line, kind=p.kind, shown=p.shown)
                 for p in personal_in(path, text, company_domain)
             ]
-    for repo in folder.repositories:
-        review.later.append(ReviewItem(path=repo, kind="git repository", becomes="a repository"))
+    repositories: list[SeedRepository] = []
+    for rel in folder.repositories:
+        if rel == ".":
+            review.not_read.append(
+                (".", "the seed folder itself is a repository; put repositories in folders in it")
+            )
+            continue
+        try:
+            repo, lost = read_repository(folder.root, rel)
+        except Refused as why:
+            review.not_read.append((rel, f"repository not read: {why}"))
+            continue
+        if lost:
+            review.secrets_dropped.append(Dropped(path=rel, lines=lost))
+        repositories.append(repo)
+        review.items.append(
+            ReviewItem(
+                path=rel,
+                kind="git repository",
+                becomes=f"repository {repo.name}, {len(repo.commits)} commit(s)",
+            )
+        )
+        latest: dict[str, str | None] = {}
+        for commit in repo.commits:
+            latest.update(commit.files)
+        for path, text in latest.items():
+            if text:
+                review.personal += [
+                    PersonalFound(path=p.path, line=p.line, kind=p.kind, shown=p.shown)
+                    for p in personal_in(f"{rel}/{path}", text, company_domain)
+                ]
     for f in folder.files:
         if f.path == "seed.yaml" or f.path in consumed:
             continue
@@ -273,6 +304,7 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
         documents=documents,
         tickets=tickets,
         channels=channels,
+        repositories=repositories,
         tickets_repo=settings.tickets_repo,
     )
     digest = hashlib.sha256(body.model_dump_json().encode()).hexdigest()[:16]

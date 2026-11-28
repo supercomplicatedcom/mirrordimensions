@@ -84,4 +84,8 @@ def seeded_texts(project: Project) -> frozenset[str]:
         texts.add(f"{ticket.title}. {ticket.body}")
         texts.update(c.body for c in ticket.comments)
     texts.update(m.text for c in content.channels for m in c.messages)
+    for repo in content.repositories:
+        for commit in repo.commits:
+            texts.add(commit.message)
+            texts.update(text for text in commit.files.values() if text)
     return frozenset(texts)
