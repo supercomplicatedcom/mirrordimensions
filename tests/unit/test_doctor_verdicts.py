@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
-"""Doctor reports each guarantee on its own (decision 0027)."""
+"""Doctor reports each design goal on its own (decision 0027)."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ def test_a_slow_gateway_is_not_a_broken_seal() -> None:
     assert [c.suite for c in report.failed_in(frozenset({"transparency"}))] == ["transparency"]
 
 
-def test_each_guarantee_fails_on_its_own_checks() -> None:
+def test_each_goal_fails_on_its_own_checks() -> None:
     assert report_from(_checks(egress=True), "lima", "x").isolation == "failed"
     assert report_from(_checks(inside_out=True), "lima", "x").isolation == "failed"
     assert report_from(_checks(capture=True), "lima", "x").coverage == "incomplete"

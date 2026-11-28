@@ -477,7 +477,7 @@ test("World import: the wizard's import step and the review, from files on this 
   await accessible(page);
 });
 
-test("Onboarding: a remote agent, with the reduced guarantees shown and accepted", async ({
+test("Onboarding: a remote agent, with the reduced protections shown and accepted", async ({
   page,
 }, testInfo) => {
   // A retry gets its own name: a failed attempt can leave its draft behind.
@@ -491,12 +491,12 @@ test("Onboarding: a remote agent, with the reduced guarantees shown and accepted
   await page.getByRole("button", { name: "Start" }).click();
   await step("How does the agent connect?");
   await page.getByRole("radio", { name: /Remote gateway/ }).check();
-  const notice = page.getByRole("note", { name: "Reduced guarantees" });
+  const notice = page.getByRole("note", { name: "Reduced protections" });
   await expect(notice).toContainText("detected but not blocked");
   await expect(page.getByLabel(/Container image/)).toBeHidden();
   const next = page.getByRole("button", { name: "Next" });
   await expect(next).toBeDisabled(); // until accepted
-  await page.getByLabel(/I accept these reduced guarantees/).check();
+  await page.getByLabel(/I accept these reduced protections/).check();
   await accessible(page);
   await next.click();
   // Each step is waited for: a click while the next one loads would be lost.

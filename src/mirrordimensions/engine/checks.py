@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 # SPDX-License-Identifier: Apache-2.0
-"""Engine checks for M0.5: prove the engine's guarantees from the outside.
+"""Engine checks for M0.5: check the engine from the outside.
 
 Each check starts real containers in the engine and tries what must fail. Every
 "must fail" check also runs a positive control, so a check that cannot fail is caught.

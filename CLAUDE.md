@@ -18,11 +18,11 @@ In the repository:
 
 Never copy material from `enterprise-mirror-package/` into the repository without the owner's say-so: parts of it are private.
 
-The mirror runs on macOS (Apple Silicon), Windows 11 x64 and Linux x64 with equal guarantees. All containers run in a mirror-managed Linux VM, the engine; the control plane runs natively on the host. See `docs/decisions/0001` to `0006`.
+The mirror runs on macOS (Apple Silicon), Windows 11 x64 and Linux x64 with the same design and the same checks. All containers run in a mirror-managed Linux VM, the engine; the control plane runs natively on the host. See `docs/decisions/0001` to `0006`.
 
 Work one milestone at a time, in the order M0, M0.5, M1 to M7, M7.5, M8, M9. Do not start a milestone until the one before it is accepted.
 
-## Three guarantees that outrank convenience
+## Three design goals that outrank convenience
 
 - **Isolation.** Nothing leaves the sandbox except calls to the configured model endpoint.
 - **Complete coverage.** Every way the agent can touch something is captured or does not exist.
@@ -50,7 +50,7 @@ Work one milestone at a time, in the order M0, M0.5, M1 to M7, M7.5, M8, M9. Do 
 
 **Platforms**
 
-- Every host gets the same guarantees. Never add a code path that is weaker on one OS without reporting it in the result's `platform` block and in `docs/platforms.md`.
+- Every host gets the same protections. Never add a code path that is weaker on one OS without reporting it in the result's `platform` block and in `docs/platforms.md`.
 - OS-specific code lives only in `src/mirrordimensions/hostos/` and `src/mirrordimensions/engine/`. Nothing else checks which OS it runs on.
 - Never share a host folder with the engine, publish a twin port to the host, or give any container a route to the host. Everything crosses through the Docker API.
 - Never use or change the user's own Docker context, Lima instances or global WSL settings.

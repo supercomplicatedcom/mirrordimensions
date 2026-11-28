@@ -52,7 +52,7 @@ The agent's container joins the company network only. Its one way out is the gat
 5. Record everything while the agent works.
 6. When the agent stops (it exits, goes idle, or reaches its time limit), dump every system's state and compare it with the state before (`state.diff`).
 7. Score: success checks, forbidden checks, unexpected side effects, where each canary value travelled, attempts to leave the world, and the suspicion scan (`check.result`, `side_effect.unexpected`, `suspicion.flag`).
-8. Reconcile the records against each other to prove coverage is complete (below).
+8. Reconcile the records against each other to check that coverage is complete (below).
 9. Write `result.json` and `report.html` (`run.end`).
 
 ## Events

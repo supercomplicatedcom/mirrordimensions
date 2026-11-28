@@ -9,7 +9,7 @@ These are the steps of the README's "From clone to a first passing run", in Powe
 - **The engine is a WSL2 distribution of its own**, `mirrordimensions-engine`, imported from Ubuntu 26.04's published WSL image (pinned by checksum) into `%LOCALAPPDATA%\mirrordimensions\wsl`. The mirror never changes your other distributions. It never reads or changes your `.wslconfig` either.
 - **It shares a VM with your other distributions.** WSL runs every distribution in one lightweight VM with one kernel. So results on Windows record `boundary: shared-vm` (decision 0002), where macOS and Linux record `dedicated-vm`.
 - **The engine uses whatever CPUs and memory WSL gives every distribution.** `--cpus`, `--memory` and `--disk` have no effect on Windows. To change those limits you would edit `.wslconfig` yourself; that changes them for all your distributions.
-- **Nothing from Windows is shared with the engine:**
+- **The engine is set up to share nothing with Windows:**
   - no drives under `/mnt/c`;
   - no Windows programs;
   - no Windows `PATH`;
@@ -60,7 +60,7 @@ mirror engine check
 3. writes the engine's `wsl.conf`, so nothing is shared with Windows;
 4. installs Docker Engine and gVisor, and puts Docker behind mutual TLS.
 
-`engine check` proves the engine's guarantees from the outside. It checks:
+`engine check` checks the engine from the outside. It checks:
 
 - gVisor;
 - that the Docker endpoint refuses a connection without the client certificate;
@@ -79,7 +79,7 @@ cd northfield
 mirror world create
 ```
 
-## 4. Start the sealed network and prove it is sealed
+## 4. Start the sealed network and check that it is sealed
 
 ```powershell
 mirror up

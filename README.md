@@ -1,18 +1,20 @@
 # MirrorDimensions
 
-A sealed, self-hosted test range for AI agents. An agent does real work inside a synthetic company and its systems (code hosting, chat, tickets) at production-style hostnames over valid TLS. It cannot reach the internet, everything it touches is recorded, and each run is scored. The agent must never be able to tell it is in a test.
+A sealed, self-hosted test range for AI agents. An agent does real work inside a synthetic company and its systems (code hosting, chat, tickets) at production-style hostnames over valid TLS. It is designed so the agent cannot reach the internet and everything it touches is recorded, and each run is scored. The aim is that the agent cannot tell it is in a test.
 
 > **Status: prototype.** Every milestone of the build plan is in: the engine, the sealed network, two twins (Gitea and Mattermost), generated worlds with snapshots, agent access, the runner and evaluator, the timeline and report, the portal, remote agents, worlds described from your own files, and devices. It runs on macOS (Apple Silicon) and Linux x64; Windows 11 is experimental. Expect rough edges and breaking changes before the first release.
 
-## Three guarantees
+## Design goals
 
-- **Isolation.** Nothing leaves the sandbox except calls to the configured model endpoint.
-- **Complete coverage.** Every way the agent can touch something is captured, or it does not exist.
-- **The agent must not know.** Nothing it can see reveals a test, and nothing that builds, runs or scores the world is reachable from inside it.
+The project is built around three goals. They are what it is designed and tested for, not guarantees: this is open-source software, provided as is and without warranty (see [LICENSE](LICENSE)). `mirror doctor` checks each one on your own machine; review its results, and your runs, yourself.
+
+- **Isolation.** Nothing should leave the sandbox except calls to the configured model endpoint.
+- **Coverage.** Every way the agent can touch something should be captured; what cannot be captured is meant not to exist in the world.
+- **The agent should not be able to tell.** Nothing it can see should reveal a test, and nothing that builds, runs or scores the world should be reachable from inside it.
 
 ## Platforms
 
-macOS on Apple Silicon, Windows 11 x64 and Linux x64, with the same guarantees on each. Every host runs the sandbox in a Linux VM the project manages (the engine), with gVisor inside it. Windows is **experimental** until it has been verified on real hardware; its steps are in [docs/platforms/windows.md](docs/platforms/windows.md). See [docs/platforms.md](docs/platforms.md) and the decision records in [docs/decisions/](docs/decisions/).
+macOS on Apple Silicon, Windows 11 x64 and Linux x64, with the same design and the same checks on each. Every host runs the sandbox in a Linux VM the project manages (the engine), with gVisor inside it. Windows is **experimental** until it has been verified on real hardware; its steps are in [docs/platforms/windows.md](docs/platforms/windows.md). See [docs/platforms.md](docs/platforms.md) and the decision records in [docs/decisions/](docs/decisions/).
 
 ## From clone to a first passing run
 
@@ -44,7 +46,7 @@ cd northfield
 mirror world create
 ```
 
-**4. Start the sealed network** and prove it is sealed.
+**4. Start the sealed network** and check that it is sealed.
 
 ```sh
 mirror up
@@ -96,7 +98,7 @@ Tools that start runs or edit the world need `confirm=true`, and nothing destruc
 
 - **Set it up for your company:** [docs/your-company.md](docs/your-company.md). It covers setting up your laptop, what a world can run today (Gitea and Mattermost, in place of GitHub and Slack), using your company's name and domain, describing your systems from your own files, adding your model, and how your agent has to connect.
 - **Your own agent:** [docs/agent-file.md](docs/agent-file.md), every field of the agent file, the variables and certificates the agent receives, and its grants.
-- **Other agents.** `examples/agents/` has `scripted-rogue` (misbehaves on purpose, to show every violation is caught), `browser-basic` (works through the web pages), `mcp-good` (works only through the company's MCP server), `scripted-facilities` (the `devices` suite: opens a visitor's door over the building's REST API and adjusts a thermostat over MQTT) and `llm-example` (a real model through the model gateway; needs a model route in `mirror.yaml` and the provider's key in your environment when the sandbox starts: `mirror up`, or `mirror apply` after adding the route). `mirror agent new` writes a file for your own. An agent that runs on its vendor's platform is onboarded with `--mode remote`: it accepts the reduced guarantees (leaks are detected, not blocked), reaches the world through an MCP server exposed with `mirror world expose`, and `examples/remote/` holds a reference platform and agent file.
+- **Other agents.** `examples/agents/` has `scripted-rogue` (misbehaves on purpose, to show its violations being caught), `browser-basic` (works through the web pages), `mcp-good` (works only through the company's MCP server), `scripted-facilities` (the `devices` suite: opens a visitor's door over the building's REST API and adjusts a thermostat over MQTT) and `llm-example` (a real model through the model gateway; needs a model route in `mirror.yaml` and the provider's key in your environment when the sandbox starts: `mirror up`, or `mirror apply` after adding the route). `mirror agent new` writes a file for your own. An agent that runs on its vendor's platform is onboarded with `--mode remote`: it accepts reduced protections (leaks are detected, not blocked), reaches the world through an MCP server exposed with `mirror world expose`, and `examples/remote/` holds a reference platform and agent file.
 - **All the built-in scenarios:** `mirror run core --agent <name>`; in a world with devices, `mirror run devices --agent <name>` too.
 - **Your own scenarios:** [docs/writing-a-scenario.md](docs/writing-a-scenario.md).
 - **How it works:** [docs/architecture.md](docs/architecture.md).
