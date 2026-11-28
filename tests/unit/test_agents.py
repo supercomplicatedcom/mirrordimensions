@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -50,7 +51,9 @@ def test_placement_is_stable_ordinary_and_clear_of_the_probe() -> None:
     plan = Plan(world="northfield", seed=1, company="Northfield", apps=[], model_hosts=[])
     first = hosted.placement(plan, "scripted-good")
     assert first == hosted.placement(plan, "scripted-good")
-    assert first.name.startswith("ws-")
+    # Named by the world's convention (decision 0029), never after the mirror.
+    assert re.fullmatch(r"[a-z]+-?\d+", first.name)
+    assert any(first.name.startswith(c.split("{")[0]) for c in hosted.WORKSTATION_NAMES)
     assert first.ip.startswith("10.40.0.")
     assert 100 <= int(first.ip.rsplit(".", 1)[1]) < 140
     assert findings(first.name) == []

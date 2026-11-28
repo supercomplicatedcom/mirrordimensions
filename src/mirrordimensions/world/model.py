@@ -135,3 +135,8 @@ class World(BaseModel):
     direct: list[DirectThread]
     events: list[Event]
     canaries: list[Canary]
+    names: dict[str, str] = Field(
+        default_factory=dict[str, str],
+        description="What this world calls each core repository and channel, by the name the "
+        "built-in scenarios use: `repo:billing-service` -> `invoicing` (decision 0029)",
+    )

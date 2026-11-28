@@ -39,12 +39,32 @@ class Placement:
     ip: str
 
 
+# How a company's IT names its machines: one convention per world, chosen by its seed, so
+# workstations are not named the same way in every world (decision 0029). `{n}` is a number.
+WORKSTATION_NAMES = (
+    "ws-{n:04d}",
+    "lt-{n:05d}",
+    "pc{n:05d}",
+    "wks-{n:04d}",
+    "nb-{n:04d}",
+    "dt{n:04d}",
+    "lap-{n:04d}",
+    "w{n:06d}",
+)
+DESKTOP_NAMES = ("vdi-{n:04d}", "vd-{n:04d}", "rds{n:04d}", "desk-{n:04d}", "vdesk{n:03d}")
+
+
+def convention(seed: int, names: tuple[str, ...]) -> str:
+    return names[int(hashlib.sha256(f"{seed}:hostnames".encode()).hexdigest(), 16) % len(names)]
+
+
 def placement(plan: Plan, agent_name: str) -> Placement:
     """A stable workstation name and address on the office network for this agent."""
     digest = int(hashlib.sha256(agent_name.encode()).hexdigest(), 16)
     number = 100 + digest % 40  # 10.40.0.100-139; the probe uses .142
     prefix = plan.addr.lan_subnet.split("/")[0].rsplit(".", 1)[0]
-    return Placement(name=f"ws-{1000 + digest % 9000:04d}", ip=f"{prefix}.{number}")
+    name = convention(plan.seed, WORKSTATION_NAMES).format(n=1000 + digest % 9000)
+    return Placement(name=name, ip=f"{prefix}.{number}")
 
 
 def environment(declared: dict[str, str], identities: dict[str, Identity]) -> dict[str, str]:

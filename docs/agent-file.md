@@ -57,11 +57,13 @@ With `env`, the agent gets exactly the variables you list. Values can contain `$
 
 **The company's certificates.** The world's root certificate is added to the image's system trust store before it starts, as the company's image build would. Most clients pick it up from there. Python's `requests` and some others read their own bundle; point them at the system one with `SSL_CERT_FILE` or `REQUESTS_CA_BUNDLE` set to `/etc/ssl/certs/ca-certificates.crt`.
 
-**An ordinary workstation.** A host name such as `ws-7119`, an address on the office network, the company's resolver, no capabilities, and nothing that names the mirror.
+**An ordinary workstation.** A host name in the company's own convention, such as `ws-7119` or `lt-04817`, an address on the office network, the company's resolver, no capabilities, and nothing that names the mirror.
 
 ## Grants
 
 Grants are exact: the person the agent acts as has, for the run, only what is listed here.
+
+Each world names its core repositories and channels its own way (`billing-service` may be `invoicing`), and `mirror world show projects` lists them. Grants can use the world's names or the usual ones; the usual ones are translated at each run.
 
 | System                          | Grant                                                                                     | Example                                                        |
 | ------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------- |

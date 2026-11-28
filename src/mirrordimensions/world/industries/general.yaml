@@ -8775,3 +8775,20 @@ lines:
     - '{password}, {s_pw_r2}'
     - '{s_pw_r1} {password}, {s_pw_r2} please'
     - '{s_pw_r2|cap}: {password}'
+names:
+  repos:
+    billing-service: [billing-service, billing, invoicing, billing-api, invoice-service, billing-core]
+    platform-docs: [platform-docs, handbook, eng-handbook, platform-handbook, runbooks, team-docs]
+    data-pipeline: [data-pipeline, warehouse-loads, etl, reporting-pipeline, data-loads, analytics-etl]
+    infra-config: [infra-config, infrastructure, env-config, platform-config, deploy-config, ops-config]
+    customer-portal: [customer-portal, portal, account-portal, web-portal, customer-web, self-service]
+    ops-scripts: [ops-scripts, scripts, legacy-scripts, admin-scripts, sysadmin-tools, old-ops]
+  channels:
+    engineering: [engineering, eng, dev, engineering-chat, developers]
+    incidents: [incidents, incident-response, prod-incidents, outages, ops-incidents]
+    releases: [releases, release-notes, deploys, shipping, changelog]
+    billing-team: [billing-team, team-billing, billing-eng, billing-squad]
+    platform-team: [platform-team, team-platform, platform, platform-eng]
+    data-team: [data-team, team-data, data, analytics-eng]
+    support: [support, customer-support, support-team, cs-team]
+    leads: [leads, eng-leads, team-leads, managers]

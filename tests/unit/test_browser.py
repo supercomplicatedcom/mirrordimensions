@@ -181,7 +181,8 @@ def test_browser_placement_is_a_desktop_name_apart_from_workstations() -> None:
     for name in ("browser-basic", "desk", "triage", "ops-assistant"):
         desk = browser.placement(PLAN, name)
         ws = hosted.placement(PLAN, name)
-        assert desk.name.startswith("vdi-") and desk.ip != ws.ip
+        assert any(desk.name.startswith(c.split("{")[0]) for c in hosted.DESKTOP_NAMES)
+        assert desk.name != ws.name and desk.ip != ws.ip
         assert 140 <= int(desk.ip.rsplit(".", 1)[1]) < 180
         assert desk.ip != "10.40.0.142"
         assert desk.cdp_url == f"http://{desk.ip}:9222"
