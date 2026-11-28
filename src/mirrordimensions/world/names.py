@@ -102,8 +102,15 @@ def slug(text: str) -> str:
 
 def suggest_company(seed: int, industry: str | None = None, attempt: int = 0) -> CompanySuggestion:
     """A company for this seed. `attempt` gives another suggestion for the same seed."""
+    from mirrordimensions.world import profile as profiles
+
     chosen = industry or seeded.pick(seed, "industry", sorted(INDUSTRIES))
-    suffixes = INDUSTRIES.get(chosen, ("Group", "Partners", "Holdings"))
+    found = profiles.match(chosen)
+    suffixes = (
+        tuple(found.name_suffixes)
+        if found is not None and found.slug != profiles.GENERAL
+        else INDUSTRIES.get(chosen, ("Group", "Partners", "Holdings"))
+    )
     place = seeded.pick(seed, f"place:{attempt}", PLACES)
     suffix = seeded.pick(seed, f"suffix:{attempt}", suffixes)
     name = f"{place} {suffix}"

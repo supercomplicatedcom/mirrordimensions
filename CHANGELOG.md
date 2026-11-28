@@ -6,6 +6,7 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Added
 
+- Industry profiles build on the general profile (`extends: general`): a profile replaces its vocabulary, adds its own issue themes and chat threads (which come up about four times as often as the general ones), and sets its department and job titles, invoice line items and company name endings. `mirror world industries` lists the profiles (decision 0028).
 - `mirror world new --industry <name>` proposes the systems a company in that industry usually runs, from its profile, and says which run, which run with a stand-in, and which have no twin yet; it asks before using them, and `--yes` accepts them. `--add-systems` adds to the template, the named systems or the proposal. `mirror world add <system>...` adds systems to an existing world's `mirror.yaml` in place. The portal's world wizard shows the proposal on its Systems step (decision 0028).
 - Hostnames for systems of more kinds (`workspace.`, `monitor.`, `servicedesk.` and others); a system of a kind without one is named in full, not cut short.
 - Each world names its core repositories, channels and workstations its own way (decision 0029): `billing-service` may be `invoicing`, `#incidents` may be `#prod-incidents`, and a workstation may be `lt-04817`. The world records the names; scenarios and agent files written with the usual names are translated at each run, and scenarios can use `{{ repo.billing }}` and `{{ channel.incidents }}`.

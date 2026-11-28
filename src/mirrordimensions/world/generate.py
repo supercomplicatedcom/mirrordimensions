@@ -188,7 +188,24 @@ def _names(rng: Rng, size: int) -> list[tuple[str, str]]:
     return names
 
 
-def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
+ENGINEERING_TEAMS = ("platform", "billing", "data")
+
+
+def _teams(profile: profiles.Profile) -> list[tuple[str, str, str, list[Role]]]:
+    """The teams, with the department and job each has in this industry."""
+    org = profile.organization.teams
+    return [
+        (
+            team,
+            org[team].department if team in org else dept,
+            org[team].title if team in org else title,
+            roles,
+        )
+        for team, dept, title, roles in TEAMS
+    ]
+
+
+def _people(manifest: Manifest, rng: Rng, history: int, profile: profiles.Profile) -> list[Person]:
     domain = manifest.company.domain
     names = _names(rng, manifest.company.size)
     people: list[Person] = []
@@ -219,21 +236,26 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
         people.append(person)
         return person
 
+    teams = _teams(profile)
+    labels = profile.organization.teams
+    engineering = next(dept for team, dept, _, _ in teams if team == "billing")
+    operations = next(dept for team, dept, _, _ in teams if team == "operations")
     it = iter(names)
     cto = add(
         *next(it),
-        "VP of Engineering",
-        "Engineering",
+        profile.organization.head,
+        engineering,
         None,
         ["manager"],
         None,
         history + 900 * DAY + rng.randint(0, DAY - 1),
     )
     leads: dict[str, Person] = {}
-    for team, dept, _, roles in TEAMS:
+    for team, dept, _, roles in teams:
+        usual = f"{team.capitalize()} Lead" if team in ENGINEERING_TEAMS else f"Head of {dept}"
         lead = add(
             *next(it),
-            f"{team.capitalize()} Lead" if dept == "Engineering" else f"Head of {dept}",
+            (labels[team].lead if team in labels else None) or usual,
             dept,
             team,
             ["manager", *roles],
@@ -243,8 +265,8 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
         leads[team] = lead
     add(
         *next(it),
-        "IT Administrator",
-        "Operations",
+        profile.organization.it_admin,
+        operations,
         "operations",
         ["admin"],
         leads["operations"].id,
@@ -264,7 +286,7 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
     ]
     for i, (first, last) in enumerate(remaining):
         team = weights[i % len(weights)]
-        _, dept, title, roles = next(t for t in TEAMS if t[0] == team)
+        _, dept, title, roles = next(t for t in teams if t[0] == team)
         contractor = i == len(remaining) - 2
         started = (
             rng.randint(30, history + 600) * DAY if not contractor else rng.randint(40, 90) * DAY
@@ -284,6 +306,14 @@ def _people(manifest: Manifest, rng: Rng, history: int) -> list[Person]:
                 0, DAY - 1
             )  # someone who left
     return people
+
+
+def _section(person: Person) -> str:
+    """Which part of the company a person works in, by team, whatever this industry calls
+    its departments: the engineering head belongs to engineering."""
+    if person.team in ENGINEERING_TEAMS or (person.team is None and person.manager is None):
+        return "engineering"
+    return person.team or ""
 
 
 def _first(person: Person) -> str:
@@ -388,8 +418,9 @@ class _Chat:
     ) -> list[tuple[str, str]] | None:
         """[(author id, text)] for one thread, or None if nothing fresh fits."""
         threads = self.profile.chat[kind]
-        least = min(self.uses.get((kind, i), 0) for i in range(len(threads)))
-        order = [i for i in range(len(threads)) if self.uses.get((kind, i), 0) <= least + 1]
+        load = [self.uses.get((kind, i), 0) / threads[i].weight for i in range(len(threads))]
+        least = min(load)
+        order = [i for i in range(len(threads)) if load[i] <= least + 1]
         for index in self.rng.sample(order, len(order)):
             if any(abs(ago - t) < RECUR_AFTER for t in self.at.get((kind, index), [])):
                 continue
@@ -511,8 +542,14 @@ def generate(manifest: Manifest) -> World:
     want_repos = data.repositories if data and data.repositories is not None else 6
     rng = Rng(seed, "world")
     org = slug(manifest.company.name.split()[0])
-    item_a, item_b = content.INDUSTRY_ITEMS.get(
-        manifest.company.industry, ("Annual subscription", "Setup fee")
+    profile = profiles.for_industry(manifest.company.industry)
+    # The industry's own profile names its line items; until it has one, the old table does.
+    item_a, item_b = (
+        (profile.invoice_items[0], profile.invoice_items[1])
+        if profile.slug != profiles.GENERAL
+        else content.INDUSTRY_ITEMS.get(
+            manifest.company.industry, (profile.invoice_items[0], profile.invoice_items[1])
+        )
     )
     ctx = {
         "company": manifest.company.name,
@@ -521,7 +558,6 @@ def generate(manifest: Manifest) -> World:
         "item_a": item_a,
         "item_b": item_b,
     }
-    profile = profiles.for_industry(manifest.company.industry)
     utc_offset = rng.child("tz").choice(TIME_ZONES)
     if manifest.sites:  # the company keeps its first site's hours, as its people do
         sign, hours, minutes = (
@@ -530,7 +566,7 @@ def generate(manifest: Manifest) -> World:
         )
         utc_offset = (1 if sign == "+" else -1) * (int(hours) * 60 + int(minutes))
 
-    people = _people(manifest, rng.child("people"), history)
+    people = _people(manifest, rng.child("people"), history, profile)
     by_id = {p.id: p for p in people}
     active = [p for p in people if p.left_ago is None]
     by_team: dict[str, list[Person]] = {}
@@ -661,10 +697,10 @@ def generate(manifest: Manifest) -> World:
         if not themes:
             return None
         for _ in range(40):
-            least = min(theme_uses.get((role, i), 0) for i in range(len(themes)))
-            index = irng.choice(
-                [i for i in range(len(themes)) if theme_uses.get((role, i), 0) == least]
-            )
+            # The least used for its weight, so heavier themes come up more often.
+            load = [theme_uses.get((role, i), 0) / themes[i].weight for i in range(len(themes))]
+            least = min(load)
+            index = irng.choice([i for i in range(len(themes)) if load[i] == least])
             theme = themes[index]
             said = Composer(irng, profile.symbols, issue_facts(repo))
             bound = said.bind(theme.let)
@@ -1032,21 +1068,21 @@ def generate(manifest: Manifest) -> World:
             "Engineering",
             False,
             "Engineering discussion",
-            [p.id for p in active if p.department == "Engineering"],
+            [p.id for p in active if _section(p) == "engineering"],
         ),
         (
             "incidents",
             "Incidents",
             False,
             "Customer-facing incidents and follow-ups",
-            [p.id for p in active if p.department in ("Engineering", "Operations")],
+            [p.id for p in active if _section(p) in ("engineering", "operations")],
         ),
         (
             "releases",
             "Releases",
             False,
             "Release notes",
-            [p.id for p in active if p.department in ("Engineering", "Product")],
+            [p.id for p in active if _section(p) in ("engineering", "product")],
         ),
         (
             "billing-team",
@@ -1074,7 +1110,7 @@ def generate(manifest: Manifest) -> World:
             "Support",
             False,
             "Customer support",
-            [p.id for p in active if p.department in ("Customer Support", "Operations")],
+            [p.id for p in active if _section(p) in ("support", "operations")],
         ),
         ("leads", "Leads", True, "Team leads", [p.id for p in managers]),
     ]

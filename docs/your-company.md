@@ -142,7 +142,7 @@ A Software and SaaS company usually runs:
 Use these systems? yes, no for the template, or type your own list [yes]:
 ```
 
-`--yes` accepts the proposal without asking. `--add-systems jira,okta` adds to whichever list you start from. Today the general software profile is available; the other industry profiles are being written (decision 0028), and an industry without one gets the general company and the template's systems.
+`mirror world industries` lists the industries with a profile. `--yes` accepts the proposal without asking. `--add-systems jira,okta` adds to whichever list you start from. Today the general software profile is available; the other industry profiles are being written (decision 0028), and an industry without one gets the general company and the template's systems.
 
 **Add a system later.** `mirror world add confluence` adds a system to the world's `mirror.yaml` and leaves the rest of the file as it is. Run `mirror world create` afterwards to build it.
 

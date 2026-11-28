@@ -72,6 +72,7 @@ class IssueTheme(StrictModel):
     """One kind of issue: its labels, values chosen once, a title and a body of sentences."""
 
     labels: list[str] = Field(min_length=1)
+    weight: int = Field(default=1, ge=1, le=10, description="How often, against the others")
     let: dict[str, list[str]] = Field(default_factory=dict[str, list[str]])
     title: list[str] = Field(min_length=1)
     body: list[list[str]] = Field(min_length=1, description="Sentences, each a list of templates")
@@ -83,6 +84,7 @@ class IssueTheme(StrictModel):
 class ThreadTheme(StrictModel):
     """One kind of chat thread: a first message and the replies, in order."""
 
+    weight: int = Field(default=1, ge=1, le=10, description="How often, against the others")
     let: dict[str, list[str]] = Field(default_factory=dict[str, list[str]])
     root: list[str] = Field(min_length=1)
     replies: list[list[str]] = Field(default_factory=list[list[str]])
@@ -117,7 +119,25 @@ class Systems(StrictModel):
     common: list[str] = Field(default_factory=list[str])
 
 
+class TeamLabel(StrictModel):
+    """What this industry calls a team's department and its people's job."""
+
+    department: str
+    title: str
+    lead: str | None = Field(default=None, description="The lead's title, if not the usual")
+
+
+class Organization(StrictModel):
+    """Labels for the company's teams. The teams themselves are the same in every world
+    (platform, billing, data, support, product, operations), so scenarios work everywhere."""
+
+    teams: dict[str, TeamLabel] = Field(default_factory=dict[str, TeamLabel])
+    head: str = "VP of Engineering"
+    it_admin: str = "IT Administrator"
+
+
 class Profile(StrictModel):
+    extends: str | None = Field(default=None, description="The profile this one builds on")
     slug: str
     name: str
     group: str
@@ -131,6 +151,11 @@ class Profile(StrictModel):
     lines: dict[str, list[str]]
     names: Names = Field(default_factory=Names)
     systems: Systems = Field(default_factory=Systems)
+    organization: Organization = Field(default_factory=Organization)
+    invoice_items: list[str] = Field(
+        default_factory=lambda: ["Annual subscription", "Setup fee"], min_length=2, max_length=2
+    )
+    name_suffixes: list[str] = Field(default_factory=lambda: ["Group", "Partners", "Holdings"])
 
 
 def _load(slug: str) -> dict[str, Any]:
@@ -158,9 +183,61 @@ def always(template: str, symbols: dict[str, list[str]], depth: int = 0) -> set[
     return found
 
 
+def _merged(slug: str, depth: int = 0) -> dict[str, Any]:
+    """A profile's data with the one it extends beneath it (decision 0028): its symbols,
+    lines and names replace the base's of the same name; its issue themes, chat threads and
+    comments are added; its incidents replace the base's for the same fix."""
+    raw = _load(slug)
+    base_slug = raw.get("extends")
+    if not base_slug:
+        return raw
+    if depth > 4 or base_slug == slug:
+        raise MirrorError(
+            f"The industry profile {slug} extends itself.",
+            f"extends: {base_slug}",
+            "A profile extends the general profile, or another that does.",
+        )
+    base = _merged(str(base_slug), depth + 1)
+    out = {**base, **{k: v for k, v in raw.items() if k not in _MERGED}}
+    out["symbols"] = {**base.get("symbols", {}), **raw.get("symbols", {})}
+    out["lines"] = {**base.get("lines", {}), **raw.get("lines", {})}
+    out["comments"] = [*base.get("comments", []), *raw.get("comments", [])]
+    for key in ("issues", "chat"):
+        merged = {k: list(v) for k, v in base.get(key, {}).items()}
+        for k, v in raw.get(key, {}).items():
+            # The industry's own themes come up more often than the general ones, so about
+            # half of what is said is the industry's own.
+            own = [{"weight": OWN_WEIGHT, **theme} for theme in v]
+            merged[k] = [*merged.get(k, []), *own]
+        out[key] = merged
+    mine = {(i["role"], i["fix"]): i for i in raw.get("incidents", [])}
+    out["incidents"] = [mine.pop((i["role"], i["fix"]), i) for i in base.get("incidents", [])]
+    out["incidents"] += list(mine.values())
+    names = dict(base.get("names", {}))
+    for part in ("repos", "channels"):
+        names[part] = {**base.get("names", {}).get(part, {}), **raw.get("names", {}).get(part, {})}
+    out["names"] = names
+    org = dict(base.get("organization", {}))
+    org.update({k: v for k, v in raw.get("organization", {}).items() if k != "teams"})
+    org["teams"] = {
+        **base.get("organization", {}).get("teams", {}),
+        **raw.get("organization", {}).get("teams", {}),
+    }
+    out["organization"] = org
+    out["extends"] = base_slug
+    return out
+
+
+OWN_WEIGHT = 4
+
+_MERGED = frozenset(
+    {"symbols", "lines", "comments", "issues", "chat", "incidents", "names", "organization"}
+)
+
+
 @cache
 def load(slug: str = GENERAL) -> Profile:
-    profile = Profile.model_validate(_load(slug))
+    profile = Profile.model_validate(_merged(slug))
     missing = [line for line in LINES if not profile.lines.get(line)]
     absent = [kind for kind in CHAT_KINDS if not profile.chat.get(kind)]
     roles = set(CORE_ROLES.values()) - set(profile.issues)
