@@ -8,6 +8,7 @@ Nothing here is reachable from the sandbox.
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 from mirrordimensions.config.loader import load_model
@@ -56,6 +57,15 @@ def seed_world(
         _dir(project) / "content.json", content.model_dump_json(indent=2) + "\n", owner_only=True
     )
     return review
+
+
+def forget(project: Project) -> bool:
+    """Stop building this world from a seed folder: its copy and review are removed, and the
+    next build generates everything. The folder itself is never touched. Returns whether
+    there was one."""
+    found = _dir(project).is_dir()
+    shutil.rmtree(_dir(project), ignore_errors=True)
+    return found
 
 
 def load_content(project: Project) -> SeedContent | None:

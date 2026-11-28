@@ -17,8 +17,13 @@ export class PortalError extends Error {
 }
 
 async function parse<T>(response: Response): Promise<T> {
+  if (response.status === 204) return null as T; // nothing to say: done
   if (response.ok) return (await response.json()) as T;
-  let detail: ApiError = { what: `The portal answered ${response.status}.`, why: "", fix: "" };
+  let detail: ApiError = {
+    what: `The portal answered ${response.status}.`,
+    why: "",
+    fix: "",
+  };
   try {
     detail = (await response.json()) as ApiError;
   } catch {
@@ -31,12 +36,19 @@ export async function get<T>(path: string): Promise<T> {
   return parse<T>(await fetch(API + path, { credentials: "same-origin" }));
 }
 
-export async function send<T>(method: "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
+export async function send<T>(
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
+  path: string,
+  body?: unknown,
+): Promise<T> {
   return parse<T>(
     await fetch(API + path, {
       method,
       credentials: "same-origin",
-      headers: { "X-Mirror-Portal": "1", ...(body === undefined ? {} : { "Content-Type": "application/json" }) },
+      headers: {
+        "X-Mirror-Portal": "1",
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      },
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
   );
@@ -68,7 +80,12 @@ export function useApi<T>(path: string | null): Loaded<T> {
         }
       })
       .catch((err: unknown) => {
-        if (live) setError(err instanceof PortalError ? err : new PortalError(0, { what: String(err), why: "", fix: "" }));
+        if (live)
+          setError(
+            err instanceof PortalError
+              ? err
+              : new PortalError(0, { what: String(err), why: "", fix: "" }),
+          );
       })
       .finally(() => {
         if (live) setLoading(false);

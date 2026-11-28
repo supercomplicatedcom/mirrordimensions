@@ -422,6 +422,66 @@ test("World wizard: six steps write mirror.yaml as they go, as the command line 
   ).toBeVisible();
 });
 
+test("World wizard: a seed folder of test data, read in place, with personal data accepted first", async ({
+  page,
+}, testInfo) => {
+  // A synthetic folder from the repository's fixtures, read where it is (decision 0030).
+  const seed = path.resolve(process.cwd(), "../../../../tests/fixtures/seed");
+  const folder = testInfo.retry
+    ? `halden-seeded-${testInfo.retry}`
+    : "halden-seeded";
+  await page.goto("/worlds/new");
+  await page.getByLabel(/Folder/).fill(folder);
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(
+    page.getByRole("heading", { name: "How do you want to start?" }),
+  ).toBeVisible();
+  for (const next of [
+    "The company",
+    "The systems attached to it",
+    "How the systems connect, and how much they hold",
+  ]) {
+    await page.getByRole("button", { name: "Next" }).click();
+    await expect(page.getByRole("heading", { name: next })).toBeVisible();
+  }
+  const panel = page.getByRole("region", {
+    name: "Your own test data (optional)",
+  });
+  await panel.getByLabel(/Seed folder/).fill(seed);
+  await panel.getByRole("button", { name: "Read the folder" }).click();
+  await expect(
+    panel.getByRole("table", { name: "What each file becomes" }),
+  ).toContainText("people.csv");
+  // The phone number is listed by file and line; nothing is used until it is accepted.
+  const personal = panel.getByRole("note", { name: "Personal data" });
+  await expect(personal).toContainText("runbooks/claims-backlog.md:5");
+  await expect(personal).toContainText("Nothing from the folder is used");
+  const yaml = page.getByRole("complementary", { name: /mirror.yaml/ });
+  await expect(yaml).toContainText("--seed-folder");
+  await expect(yaml).not.toContainText("--accept-personal-data");
+  await accessible(page);
+  const accept = panel.getByRole("button", { name: "Accept and use it" });
+  await expect(accept).toBeDisabled();
+  await panel.getByLabel(/This is test data/).check();
+  await accept.click();
+  await expect(personal).toContainText("You accepted it as test data");
+  await expect(yaml).toContainText("--accept-personal-data");
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Review what will be created" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/files from .*seed; the rest is generated/),
+  ).toBeVisible();
+  // Stopping goes back to an all-generated world.
+  await page.getByRole("button", { name: "Back" }).click();
+  await panel.getByRole("button", { name: "Stop using it" }).click();
+  await expect(
+    panel.getByRole("button", { name: "Read the folder" }),
+  ).toBeVisible();
+  await expect(yaml).not.toContainText("--seed-folder");
+});
+
 test("World import: the wizard's import step and the review, from files on this computer", async ({
   page,
 }, testInfo) => {
