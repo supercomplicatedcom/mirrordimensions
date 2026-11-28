@@ -1289,6 +1289,8 @@ def generate(manifest: Manifest, seeded: SeedContent | None = None) -> World:
             timed.append((author, t, _typo(mrng, text)))
         post(ch, timed)
         total += len(timed)
+    if seeded and seeded.channels:
+        _seed_chat(seeded, channels, active, history, rng.child("seed-chat"))
     for ch in channels:
         order = sorted(range(len(ch.messages)), key=lambda i: (-ch.messages[i].ago, i))
         remap = {old: new for new, old in enumerate(order)}
@@ -1388,7 +1390,10 @@ def generate(manifest: Manifest, seeded: SeedContent | None = None) -> World:
 def _renamed(world: World, profile: profiles.Profile, rng: Rng) -> World:
     """The world with its core repositories and channels named as this company names them:
     one name per role from the profile, chosen by the seed (decision 0029, point 4)."""
-    taken: set[str] = set()
+    # Names the world does not choose (a seed folder's own channels) are taken first.
+    taken: set[str] = {
+        c.name.lower() for c in world.channels if c.name not in profile.names.channels
+    }
 
     def choose(default: str, options: list[str]) -> str:
         free = [o for o in options if o.lower() not in taken] or [default]
@@ -1491,6 +1496,61 @@ def _seed_tickets(
         repo.issues.append(issue)
         ids.add(id(issue))
     return ids
+
+
+# Slack's default channels are Mattermost's.
+_SLACK_DEFAULTS = {"general": "town-square", "random": "off-topic"}
+
+
+def _seed_chat(
+    seeded: SeedContent, channels: list[Channel], active: list[Person], history: int, rng: Rng
+) -> None:
+    """The seed folder's chat history, in the channel of the same name or a new one, on the
+    world's timeline: the latest message a day or two before the world starts, the rest
+    keeping their spacing (decision 0030)."""
+    by_name = {c.name: c for c in channels}
+    people = {p.name.lower(): p for p in active} | {_first(p).lower(): p for p in active}
+    stamps = [m.created for c in seeded.channels for m in c.messages if m.created is not None]
+    latest = max(stamps) if stamps else 0.0
+    span_min = (latest - min(stamps)) / 60 if stamps else 0.0
+    room = (history - 3) * DAY
+    squeeze = min(1.0, room / span_min) if span_min > 0 else 1.0
+    anchor = DAY + rng.randint(0, DAY)
+    everyone = sorted(p.id for p in active)
+    for source in seeded.channels:
+        slug = re.sub(r"[^a-z0-9_-]+", "-", source.name.lower()).strip("-")[:60] or "general"
+        slug = _SLACK_DEFAULTS.get(slug, slug)
+        ch = by_name.get(slug)
+        if ch is None:
+            ch = Channel(
+                name=slug,
+                display=slug.replace("-", " ").title(),
+                purpose=source.purpose,
+                members=everyone,
+            )
+            channels.append(ch)
+            by_name[slug] = ch
+        base = len(ch.messages)
+        at = rng.randint(2 * DAY, room)
+        for m in source.messages:
+            if m.created is not None:
+                at = anchor + int((latest - m.created) / 60 * squeeze)
+            else:
+                at = max(1, at - rng.randint(1, 90))
+            found = people.get((m.author or "").lower()) or people.get(
+                (m.author or "").split(" ")[0].lower()
+            )
+            author = found or rng.choice(active)
+            if author.id not in ch.members:
+                ch.members = sorted({*ch.members, author.id})
+            ch.messages.append(
+                Message(
+                    ago=max(1, at),
+                    author=author.id,
+                    text=m.text,
+                    reply_to=base + m.reply_to if m.reply_to is not None else None,
+                )
+            )
 
 
 def _repo_for(

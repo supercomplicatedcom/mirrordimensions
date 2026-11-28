@@ -83,4 +83,5 @@ def seeded_texts(project: Project) -> frozenset[str]:
     for ticket in content.tickets:  # as the check reads an issue: its title, then its body
         texts.add(f"{ticket.title}. {ticket.body}")
         texts.update(c.body for c in ticket.comments)
+    texts.update(m.text for c in content.channels for m in c.messages)
     return frozenset(texts)

@@ -19,7 +19,7 @@ MAX_FILES = 5000
 MAX_FILE_BYTES = 10 * 1024 * 1024
 MAX_TOTAL_BYTES = 200 * 1024 * 1024
 MAX_DEPTH = 12
-TEXT_SUFFIXES = frozenset({".md", ".markdown", ".txt", ".csv", ".json", ".yaml", ".yml"})
+TEXT_SUFFIXES = frozenset({".md", ".markdown", ".txt", ".csv", ".json", ".jsonl", ".yaml", ".yml"})
 
 
 @dataclass(frozen=True)

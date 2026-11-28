@@ -23,6 +23,7 @@ from ruamel.yaml import YAML
 
 from mirrordimensions.config.common import StrictModel
 from mirrordimensions.errors import MirrorError
+from mirrordimensions.seed.chat import SeedChannel, from_mattermost, from_slack, slack_roots
 from mirrordimensions.seed.detect import Personal, personal_in, without_secrets
 from mirrordimensions.seed.reader import Folder, SeedFile, read_folder
 from mirrordimensions.seed.tickets import SeedTicket, from_csv, from_json
@@ -53,6 +54,7 @@ class SeedContent(BaseModel):
     people: list[SeedPerson] = Field(default_factory=list[SeedPerson])
     documents: list[SeedDocument] = Field(default_factory=list[SeedDocument])
     tickets: list[SeedTicket] = Field(default_factory=list[SeedTicket])
+    channels: list[SeedChannel] = Field(default_factory=list[SeedChannel])
     tickets_repo: str | None = Field(
         default=None, description="Where tickets go that name no repository the world has"
     )
@@ -183,10 +185,30 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
     people: list[SeedPerson] = []
     documents: list[SeedDocument] = []
     tickets: list[SeedTicket] = []
+    channels: list[SeedChannel] = []
+    consumed: set[str] = set()
+    for export in slack_roots(folder.files):
+        found_channels, used = from_slack(export, folder.files)
+        consumed.update(used)
+        channels.extend(found_channels)
+        count = sum(len(c.messages) for c in found_channels)
+        review.items.append(
+            ReviewItem(
+                path=export or ".",
+                kind="Slack export",
+                becomes=f"{len(found_channels)} channel(s), {count} message(s)",
+            )
+        )
+        for path in used:
+            text = next(f.text for f in folder.files if f.path == path)
+            review.personal += [
+                PersonalFound(path=p.path, line=p.line, kind=p.kind, shown=p.shown)
+                for p in personal_in(path, text, company_domain)
+            ]
     for repo in folder.repositories:
         review.later.append(ReviewItem(path=repo, kind="git repository", becomes="a repository"))
     for f in folder.files:
-        if f.path == "seed.yaml":
+        if f.path == "seed.yaml" or f.path in consumed:
             continue
         if any(fnmatch.fnmatch(f.path, pattern) for pattern in settings.leave_out):
             review.not_read.append((f.path, "left out by seed.yaml"))
@@ -203,7 +225,18 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
             if suffix == ".csv"
             else None
         )
-        if sheet is not None:
+        posts = from_mattermost(f.text) if suffix == ".jsonl" else None
+        if posts is not None:
+            channels.extend(posts)
+            count = sum(len(c.messages) for c in posts)
+            review.items.append(
+                ReviewItem(
+                    path=f.path,
+                    kind="Mattermost export",
+                    becomes=f"{len(posts)} channel(s), {count} message(s)",
+                )
+            )
+        elif sheet is not None:
             tickets.extend(sheet)
             review.items.append(
                 ReviewItem(
@@ -223,10 +256,8 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
             review.items.append(
                 ReviewItem(path=f.path, kind="document", becomes=f"handbook page {doc.path}")
             )
-        elif suffix == ".json":
-            review.later.append(
-                ReviewItem(path=f.path, kind="chat export", becomes="read by a later version")
-            )
+        elif suffix in (".json", ".jsonl"):
+            review.not_read.append((f.path, "JSON that is not tickets or a chat export"))
             continue
         else:
             review.not_read.append((f.path, "not a kind of file the mirror reads yet"))
@@ -241,6 +272,7 @@ def read_seed(root: Path, company_domain: str) -> tuple[SeedContent, SeedReview]
         people=people,
         documents=documents,
         tickets=tickets,
+        channels=channels,
         tickets_repo=settings.tickets_repo,
     )
     digest = hashlib.sha256(body.model_dump_json().encode()).hexdigest()[:16]
