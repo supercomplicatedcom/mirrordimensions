@@ -1,6 +1,6 @@
 # 0030. A seed folder the user chooses shapes and fills the world
 
-Status: Proposed. Replaces the "Discovery from the user's computer" section of decision 0028.
+Status: Accepted (owner, 2026-11-28). Replaces the "Discovery from the user's computer" section of decision 0028.
 
 ## Context
 
@@ -71,7 +71,7 @@ The owner chose, the same day:
 - A hostile folder is refused or read safely: links out, a repository with hooks and a `core.fsmonitor` setting, huge files, deep nesting, malformed JSON.
 - Nothing from the seed folder's path or review appears in anything the agent can read.
 
-## Open questions for the owner
+## Answered by the owner (2026-11-28)
 
-1. Should a seeded world still use an industry profile for what the folder lacks (the default), or only the folder's own style?
-2. Should seeded issues and messages keep their own dates, or be moved onto the world's timeline (the default: the latest item lands a day or two before the world starts, and the rest keep their spacing)?
+- What the folder lacks is filled from the world's industry profile.
+- Seeded issues and messages are moved onto the world's timeline: the latest lands a day or two before the world starts, and the rest keep their spacing.
