@@ -1,0 +1,965 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Fitness clubs and studios: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: fitness-clubs
+name: Fitness clubs and studios
+group: Consumer, fitness and wellness
+aliases:
+  - gyms
+  - health clubs
+  - fitness studios
+  - boutique fitness
+  - gym chain
+description: A chain of gyms and studios that sells memberships, classes and personal training, and runs the systems behind check-in, bookings and monthly dues.
+name_suffixes:
+  - Fitness
+  - Athletic Club
+  - Health Club
+  - Gym
+  - Strength Studio
+  - Wellness Club
+invoice_items:
+  - Monthly membership dues
+  - Personal training sessions
+organization:
+  head: Head of Technology
+  it_admin: IT Manager
+  teams:
+    platform: {department: Technology, title: Platform Engineer}
+    billing: {department: Technology, title: Membership Billing Engineer}
+    data: {department: Data and Insights, title: Data Engineer}
+    support: {department: Member Services, title: Member Services Advisor, lead: Member Services Manager}
+    product: {department: Digital Product, title: Product Manager}
+    operations: {department: Club Operations, title: Club Operations Analyst}
+names:
+  repos:
+    billing-service: [dues-billing, membership-billing, billing-service, member-invoicing]
+    platform-docs: [platform-docs, tech-handbook, club-tech-runbooks, runbooks]
+    data-pipeline: [attendance-loads, member-data-pipeline, reporting-loads, data-pipeline]
+    infra-config: [infra-config, club-network-config, platform-config, env-config]
+    customer-portal: [member-portal, member-app-web, portal, member-web]
+    ops-scripts: [club-scripts, ops-scripts, legacy-scripts, front-desk-tools]
+  channels:
+    engineering: [engineering, tech, dev, product-eng]
+    incidents: [incidents, club-outages, prod-incidents, systems-down]
+    releases: [releases, app-releases, deploys, shipping]
+    billing-team: [billing-team, dues-team, membership-billing, billing-eng]
+    platform-team: [platform-team, club-platform, platform, door-and-network]
+    data-team: [data-team, insights, data, reporting]
+    support: [member-services, support, member-support, front-desk-help]
+    leads: [leads, club-leads, managers, tech-leads]
+systems:
+  typical: [github, slack, stripe, hubspot, zendesk, google workspace, quickbooks online, okta, mindbody]
+  common: [mailchimp, twilio, tableau, kisi, brivo]
+symbols:
+  b_doc: [membership invoice, dues statement, dues receipt, pro-rated invoice, "{monthly/annual} fee notice", class pack receipt]
+  b_customer: [monthly member, annual member, corporate-plan, student, family-plan, off-peak, day-pass, frozen]
+  b_who: [member services, the front desk, club managers, finance, the regional manager]
+  b_pwho: [member services, a club manager, "{person}", the front desk, finance]
+  b_ticket_noun: [ticket, case, desk note, complaint]
+  b_since: [last month, this week, since the first of the month, since the January rush, "for about {2-6} weeks"]
+  b_money_path: [billing/dues.py, billing/prorate.py, billing/fees.py, billing/rounding.py]
+  b_check_path: [the dues tests, the freeze tests, the receipt tests, the callback tests]
+  b_credit_path: [billing/credits.py, billing/refunds.py, billing/adjustments.py]
+  b_provider_event: [debit succeeded, debit returned, card payment failed, refund completed, chargeback opened, payout settled]
+  b_page: [bookings, membership, payment methods, "class schedule", visit history, family members, guest passes]
+  b_acct_size: ["{2-6} family members", "{40-200} past bookings", "{3-9} linked children", "over {300-900} visits on record"]
+  b_dl_path: [billing/receipts.py, billing/documents.py]
+  b_export_path: [billing/jobs/export.py, billing/export.py]
+  p_table: [members, memberships, visits, bookings, class_sessions, payments, freezes, pt_sessions, door_events]
+  p_report: [the weekly attendance report, the monthly dues report, the churn dashboard, the club utilisation report, the failed debit report, the joiners and leavers report]
+  p_source: [the door controller event export, the booking system feed, the debit provider's return files, the class scheduling export, the wearable check-in feed, the card terminal settlement files]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the regional finance manager]
+  p_pipeline_file: [pipeline/load.py, pipeline/clean.py, pipeline/validate.py, pipeline/lock.py, schedule.yaml]
+  p_alert_name: [door controller heartbeats, failed debit runs, booking queue depth, the nightly load finishing late, certificate expiry, error rate on the member app, replication lag]
+  s_plan: [the annual membership, a monthly membership, the off-peak plan, a corporate plan, a student plan, a day pass]
+  c_customer: [a member, one of the corporate partners, an annual member, a long standing member, a family account, a student member]
+  s_tool: [the member lookup, the club admin, the front desk console, the ticket queue, the billing admin]
+  s_thing: [the dues run, the door sync, the class export, the reminder job, the booking page, the check-in kiosk, the cron, the webhook handler]
+  c_eng_area: [the dues run, the freeze logic, the booking queue, the check-in flow, the door sync, the class waitlist, the QR code login, the export endpoint]
+  c_place: [the juice bar, the cafe next door, the bakery on the corner, the noodle shop, the burger van]
+  c_sport: [a run, climbing, swimming, football, a spin class, tennis, a long bike ride]
+  fc_club: [Riverside, Northgate, Station Road, Harbour, Park Road, West End, Canal Street]
+  fc_member: [a member, a corporate member, a family member, a new joiner, a student member, an annual member, a long standing member]
+  fc_class: [spin, yoga, reformer pilates, HIIT, boxing, a strength class, swim lessons, an early morning class]
+  fc_freeze: [injury, travel, a medical reason, pregnancy, a long work trip, military leave]
+  fc_notice: ["{30/28/14} days notice", "one full billing month", "the end of the contract term", "a calendar month"]
+  fc_door: [the turnstile, the entry gate, the door controller, the QR reader, the card reader, the kiosk]
+  fc_peak: [the January rush, the new year sign-up wave, the summer slump, the September restart, the pre-holiday dip]
+  fc_hour: ["{5/6/7}am", "the 6pm peak", "lunchtime", "the Saturday morning peak"]
+  fc_fix: [reset the controller, restart the sync, re-send the roster, clear the queue, power cycle the reader]
+  fc_limit: [the class capacity, the booking window, the guest pass limit, the waitlist length]
+  fc_device: [the front desk terminal, the card reader, the kiosk, the tablet at reception, the turnstile controller]
+  fc_complaint: [charged after cancelling, charged during a freeze, locked out at the door, double booked, charged for a class they missed, kept on the waitlist]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        reason: ["{fc_freeze}"]
+        customer: ["{b_customer}"]
+        path: ["{b_money_path}"]
+      title:
+        - "Frozen members still charged ({reason})"
+        - "Freeze for {reason} does not stop dues"
+        - "{doc|cap} issued during an active freeze"
+        - "Dues taken mid-freeze, {reason}"
+        - "{customer|cap} members charged while frozen"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_raised} on {customer} accounts, {b_scope}."
+        -   - "The freeze for {reason} was in place."
+            - "A freeze was active, entered for {reason}."
+        -   - "{path|cap} only reads the start date."
+            - "The run skips the freeze end."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with a freeze starting {tomorrow/on the 1st/mid month}."
+        - "{b_cm_check}, I think {path} compares dates badly."
+        - "Refunds for {2-9} members need {b_pwho}."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        event: ["{b_provider_event}"]
+        customer: ["{b_customer}"]
+        step: [wait for payday, retry on the pay cycle, back off after two tries, retry only once]
+      title:
+        - "Returned debits retried before payday"
+        - "Failed debit retried on fixed days"
+        - "{customer|cap} members retried {2/3/4} times in a week"
+        - "Retry schedule ignores the {customer} billing day"
+        - "Too many retries on returned debits"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "Each {event} gets {2/3/4} attempts in a week."
+        -   - "Banks charge the member per attempt."
+            - "Each return costs a bank fee."
+            - "Bank fee complaints came in {b_since}."
+        -   - "{b_rt_d}"
+            - "{b_rt_a} {b_rt_b}, {b_rt_c}"
+        -   - "{b_urgent}"
+      comments:
+        - "Return codes: {2-9} of {10-40} are insufficient funds."
+        - "We could wait for the {1st/15th/last working day}."
+        - "{b_cm_plan}"
+        - "A grace period would {cover most/fix most}, {person}?"
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        customer: ["{b_customer}"]
+      title:
+        - "Mid month joiners billed in full"
+        - "Pro-rating wrong for {the 1st/the 31st} joiners"
+        - "{customer|cap} joiner charged before the start date"
+        - "First {doc} counts the joining day twice"
+        - "First {doc} is a few cents out"
+      body:
+        -   - "{b_pr_a} {b_pr_b} {b_pr_c} {b_pr_d}"
+        -   - "A member joined on {the 3rd/the 28th/a Friday}."
+            - "Joined on {the 3rd/the 28th/a Friday}, paid {3-9} extra days."
+            - "They paid for {3-9} extra days."
+            - "The front desk logged {2-9} {b_ticket_noun}s {b_since}."
+        -   - "{b_pr_e}"
+            - "{b_pr_e} {b_cm_start}"
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_hand} for a {28/30/31} day month."
+        - "Club transfers are hit too."
+        - "{b_cm_later}"
+    - labels: [needs-decision]
+      let:
+        notice: ["{fc_notice}"]
+        who: ["{b_who}"]
+        question: [online cancellations, cancelling in the cooling off period, refunds after cancelling, cancelling during a freeze]
+      title:
+        - "Notice period for online cancellations?"
+        - "Cancellation notice, {notice} or end of term?"
+        - "Policy: cancelling in the first {14/30} days"
+        - "Which date is the cancellation date?"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} answers these {b_nd_b} {b_nd_c}"
+        -   - "Contracts say {notice}."
+            - "The code counts billing days."
+            - "The app says {notice}, the contract another."
+        -   - "{/Also, /And /}online cancelling rules differ by region."
+            - "Regulators expect cancelling to match joining."
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who} first."
+      comments:
+        - "Legal wants a simple cancel form."
+        - "{b_cm_lean} counting from the request day."
+        - "Confirmation must show the end date."
+    - labels: [bug]
+      let:
+        pack: [personal training pack, class pack, ten session card, guest pass bundle]
+      title:
+        - "Unused {pack} sessions expire a month early"
+        - "{pack|cap} expiry off by the freeze length"
+        - "Members lose {pack} sessions after a freeze"
+        - "Remaining {pack} sessions show zero"
+      body:
+        -   - "Expiry counts from the {sale/purchase/first use} date."
+            - "A freeze does not extend a {pack}."
+        -   - "{b_raised}, {b_scope}."
+            - "{b_raised} by trainers, {b_scope}."
+        -   - "{/Also, /And /}trainers see members with sessions left."
+            - "The app says they are gone."
+            - "The desk adds sessions by hand."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Which date wins during a freeze?"
+        - "Will add freeze days in {b_money_path}."
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [a new club opening, a studio rename, a club closing for works, a temporary club merge, an extra studio room]
+        topic: [new club setup, closing a club, renaming a studio, adding a room]
+      title:
+        - "How-to: set up {thing}"
+        - "Checklist for {thing}"
+        - "Write down what changes for {thing}"
+        - "Runbook for {thing}"
+      body:
+        -   - "Nobody keeps a list for {thing}."
+            - "Last time {person} did {thing} from memory."
+        -   - "{/Also, /And /}door groups need edits."
+            - "The class timetable needs edits too."
+            - "The debit schedule changes as well."
+        -   - "{b_dc_a} {b_dc_b}"
+        -   - "{b_dc_c} would be plenty."
+            - "A page would be enough."
+      comments:
+        - "Old checklist is in my notes."
+        - "Do not forget the {card reader/terminal} merchant id."
+        - "Add the door vendor contact."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/door-controllers.md", "docs/runbooks/dues-run.md", "docs/runbooks/class-booking.md", "docs/runbooks/front-desk-terminals.md"]
+        step: [checking the heartbeat first, draining the booking queue, switching the club to offline mode, taking a snapshot of the roster, checking the member sync]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "Door runbook skips {step}"
+        - "{runbook}: {step} not mentioned"
+        - "Update {runbook} after the controller upgrade"
+      body:
+        -   - "Followed {runbook} in an outage."
+            - "It skipped {step}."
+        -   - "{person} posted {step} in chat only."
+            - "{step|cap} only lives in chat."
+        -   - "{/Also, /And /}club staff read this page."
+            - "The desk team uses this page."
+            - "Staff follow this at night."
+            - "Keep it plain."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Controller page screenshots would help."
+        - "Checking it against last week's outage."
+    - labels: [docs, enhancement]
+      let:
+        flow: [check-in, a freeze, a cancellation, a class booking, a waitlist promotion]
+      title:
+        - "Explain how {flow} reaches the member record"
+        - "Architecture note: {flow}"
+        - "Describe what happens on {flow}"
+        - "One page on {flow} end to end"
+      body:
+        -   - "New joiners ask how {flow} works."
+            - "Only {person} knows how {flow} flows through."
+        -   - "{/Also, /And /}one diagram and a short page."
+            - "A diagram would be plenty."
+            - "Short page, one picture."
+        -   - "{/Also, /And /}include what happens offline."
+            - "Cover the offline case too."
+            - "Say what happens offline."
+            - "Add the offline behaviour."
+      comments:
+        - "I can draw it, someone check?"
+        - "Please include the offline case."
+        - "Link it from the handbook index."
+  data:
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+        club: ["{fc_club}"]
+        src: [the door controller, the door export, the turnstile log, the hand count]
+      title:
+        - "Check-ins disagree with {src} at {club}"
+        - "Visits in {table} are {2-9} percent below {src}"
+        - "Second scan counted as a visit"
+        - "{club|cap} visits missing for {3-9} days"
+      body:
+        -   - "The weekly report is {20-400} visits short."
+            - "{club|cap} totals miss what the club counted."
+            - "{club|cap} counts less than the club does."
+        -   - "{/Also, /And /}repeat scans look like separate visits."
+            - "Events without a member id vanish."
+        -   - "{p_noticed|cap}."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Counted by hand on {day}, {src} was right."
+        - "Clean step drops too many events."
+        - "One visit per {10/15/30} minutes would settle it."
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "Frozen members counted as active in {report}"
+        - "{report|cap} counts members past their end date"
+        - "Churn understated, freezes are not leavers"
+        - "Joiners and leavers miss the total"
+      body:
+        -   - "Churn is {2-6} points better than finance."
+            - "Finance shows churn {2-6} points higher."
+        -   - "{b_ex_a}."
+            - "{b_ex_a}, {b_ex_b} {b_ex_c}"
+        -   - "{/Also, /And /}freezes count as active."
+            - "So do notice periods."
+        -   - "{p_finance_ask|cap} needs this {before the board pack/for the close}."
+      comments:
+        - "Needs statuses for notice and frozen."
+        - "I will update the data dictionary."
+        - "Keep the old figure for trends."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the nightly load"
+        - "Add {source} to the data pipeline"
+        - "Should the warehouse have {source}?"
+      body:
+        -   - "Club managers ask for {source} weekly."
+            - "{person} pulls {source} by hand each Monday."
+            - "It is a Monday chore for {person}."
+        -   - "{/Also, /And /}it would feed staffing reports."
+            - "Managers would plan shifts with it."
+            - "Staffing reports could use it."
+            - "Rotas depend on it."
+        -   - "{/Also, /And /}never store card numbers."
+            - "Skip the health questionnaire answers."
+      comments:
+        - "Which clubs send {source} today?"
+        - "Retention should be {1/2/3} years at most."
+        - "{b_cm_plan}"
+    - labels: [bug, performance]
+      let:
+        peak: ["{fc_peak}"]
+      title:
+        - "Nightly load slower in {peak}"
+        - "Load runs long when {2-9} clubs close late"
+        - "Booking history makes the load crawl"
+        - "January loads run past {6/7}am"
+      body:
+        -   - "Loads take {1-3} hours longer {b_since}."
+            - "Visit history grows fast in {peak}."
+        -   - "{/Also, /And /}the slowest step reads all visits."
+            - "One step scans every visit."
+        -   - "{b_pf_e}"
+      comments:
+        - "An incremental visits load would help."
+        - "Partition visits by month?"
+        - "{b_cm_prof} {b_cm_prof2}"
+  portal:
+    - labels: [bug]
+      let:
+        class: ["{fc_class}"]
+        club: ["{fc_club}"]
+      title:
+        - "Waitlist email for {class} arrives after the start"
+        - "Waitlist promotions reach members too late"
+        - "Waitlist spot at {club} offered after the cutoff"
+        - "Waitlist promotion sends two emails"
+      body:
+        -   - "A member got a {class} spot {5-45} minutes late."
+            - "{b_raised}, {b_scope}."
+        -   - "The job runs every {5/10/15} minutes."
+            - "The mail queue adds delay."
+            - "Mail adds minutes on top."
+        -   - "Late cancels make it worse around {fc_hour}."
+            - "Cancels near {fc_hour} make it worse."
+        -   - "{p_priority}"
+      comments:
+        - "Promotion should stop {10/15/30} minutes before the start."
+        - "{b_cm_repro} on staging with a full class."
+        - "Push would be quicker than email."
+    - labels: [bug]
+      let:
+        door: ["{fc_door}"]
+      title:
+        - "QR check-in fails at {door} when offline"
+        - "App QR code expires too quickly"
+        - "QR works at the desk, not {door}"
+        - "Check-in code outlives the membership"
+      body:
+        -   - "Members hit an error at {door}."
+            - "It happens {2/3} times a week."
+        -   - "The app refreshes a token every {1-5} minutes."
+            - "Basement clubs have no signal."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "A longer offline window is fine."
+        - "The code must stop after cancellation."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Does the club wifi reach {door}?"
+    - labels: [enhancement]
+      let:
+        ask: [freeze their membership, request a cancellation, pause and restart, change their payment day]
+      title:
+        - "Let members {ask} without calling"
+        - "Members want to {ask} in the app"
+        - "Self-service: {ask}"
+        - "Add a way to {ask}"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+      comments:
+        - "Cap freezes yearly, proof for medical."
+        - "Expect a spike on the 1st."
+        - "Legal wants a simple form."
+    - labels: [bug]
+      let:
+        browser: ["{b_browser}"]
+      title:
+        - "Class timetable misaligned in {browser}"
+        - "Booking button disabled in {browser}"
+        - "Calendar download fails in {browser}"
+        - "{browser|cap} users cannot open the schedule"
+      body:
+        -   - "Classes stack on each other in {browser}."
+            - "The book button stays grey in {browser}."
+        -   - "{b_bq_c}"
+        -   - "{p_priority}"
+      comments:
+        - "{b_cm_repro} on an older phone."
+        - "Probably the flex gap, {b_cm_syn}"
+        - "{b_cm_check}, old iOS is the usual suspect."
+  infra:
+    - labels: [bug, incident]
+      let:
+        device: ["{fc_device}"]
+        club: ["{fc_club}"]
+      title:
+        - "Door controllers at {club} drop offline overnight"
+        - "{device|cap} loses its address after a reboot"
+        - "No failover link at {club}"
+        - "Door controller certificates expire unannounced"
+      body:
+        -   - "The {club} heartbeat went quiet {2-6} times."
+            - "Staff opened doors by hand at {fc_hour}."
+        -   - "{device|cap} needs a power cycle."
+            - "Only a power cycle fixes {device}."
+        -   - "{/Also, /And /}mobile data failover could cover it."
+            - "A mobile backup link might help."
+        -   - "{p_priority}"
+      comments:
+        - "The next firmware has the fix."
+        - "A static lease for {device} would help."
+        - "Alert after {2/3} missed heartbeats."
+    - labels: [security, chore]
+      title:
+        - "Split guest wifi from desk network"
+        - "Card terminals share a kiosk network"
+        - "Which clubs run the old router?"
+        - "List clubs on unmanaged routers"
+      body:
+        -   - "Payment terminals must be isolated."
+            - "Some clubs share one subnet."
+            - "Two clubs share a subnet."
+        -   - "{/Also, /And /}the card audit asks about this."
+            - "It came up in the questionnaire."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Which clubs still need the change?"
+        - "I can do two clubs weekly."
+        - "The rest need the local manager."
+    - labels: [enhancement]
+      title:
+        - "Alert when a club goes silent"
+        - "Page if dues run misses {5/6}am"
+        - "Dashboard for offline readers"
+        - "Status board of every club door"
+      body:
+        -   - "The desk phones us about doors."
+            - "The desk calls when doors fail."
+            - "Staff phone us when doors fail."
+            - "We hear from the desk first."
+        -   - "A silent club alerts within {10/15/20} minutes."
+            - "Silence for {10/15/20} minutes should alert."
+        -   - "{p_alert_channel|cap} is the right place."
+      comments:
+        - "Needs quiet hours for closed clubs."
+        - "Put the club in the alert."
+        - "I can add it to {p_alert_channel}."
+  ops:
+    - labels: [question]
+      let:
+        script: ["sync_door_cards.sh", "export_roster.sh", "send_freeze_list.sh", "restart_kiosk.sh", "{p_script}"]
+      title:
+        - "Is {script} still used by the clubs?"
+        - "Can we delete {script}?"
+        - "Does any club still call {script}?"
+        - "Retire {script} after the door change?"
+      body:
+        -   - "Found {script} while tidying."
+            - "No one I asked uses {script}."
+        -   - "{/Also, /And /}written for the old door system."
+            - "Built for the previous door vendor."
+        -   - "{p_owner_ask}"
+      comments:
+        - "A club desk may run it."
+        - "Cron on {p_old_ref} has no entry for {script}."
+        - "Not called by anything I know."
+comments:
+  - "Front desk saw {2-9} of these today."
+  - "{b_pwho|cap} has a member at the desk."
+  - "Is this also true for {fc_member}?"
+  - "Does it happen at {fc_club} too?"
+  - "It matters most during {fc_peak}."
+  - "Member services will tell {2-9} members."
+  - "Checked the door export, same result."
+  - "I would not change this during {fc_peak}."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: {fc_club} is closed {c_soon} for a deep clean."
+        - "{fc_club} closes early {c_soon}, pool maintenance"
+        - "heads up, {fc_club} is shut {c_soon}, members were emailed"
+        - "{c_hey}, works at {fc_club} start {c_soon}"
+        - "{fc_club} is closed {c_soon}, boiler repair"
+      replies:
+        -   - "which classes move?"
+            - "where do members go instead?"
+            - "is the sauna shut too?"
+        -   - "the app shows it, doors updated {time}"
+            - "members can use {fc_club}"
+            - "{c_idk}, ask {person}"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "{fc_peak} is coming, planning {c_soon}"
+        - "{c_hey}: {fc_peak} planning {day} at {time}, bring questions"
+        - "reminder: no deploys during {fc_peak}"
+        - "expect {2-4}x app traffic in {fc_peak}"
+        - "{fc_peak}: desk numbers up, shout if slow"
+      replies:
+        -   - "do we freeze releases?"
+            - "will support hours stretch?"
+            - "who is on call weekends?"
+        -   - "{c_yes}, from {day} until {c_soon}"
+            - "rota is in the calendar"
+            - "{c_idk}, will ask {person}"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "new instructors start {c_soon}, they need booking app accounts"
+        - "welcome {person}, joining the club team {c_soon}"
+        - "{c_hey}, staff uniform fitting {c_soon} in {c_room}"
+        - "instructor onboarding is {day} at {time}"
+        - "who covers reception at {fc_club} {c_soon}?"
+      replies:
+        -   - "do they see the member list?"
+            - "trainer app or just the timetable?"
+            - "{c_ack}"
+        -   - "only their own classes"
+            - "timetable only, ask {person} for more"
+            - ""
+    - root:
+        - "staff gym access is changing {c_soon}, check your badge"
+        - "reminder: staff memberships renew {c_soon}"
+        - "{c_hey}, free staff class {day} at {time}"
+      replies:
+        -   - "does my guest pass still work?"
+            - "can family join the class?"
+        -   - "same as before, two guests monthly"
+            - "{c_idk}"
+            - ""
+        -   - "{c_thanks}"
+  off-topic:
+    - root:
+        - "anyone tried {fc_class} at {fc_club}?"
+        - "who is joining {fc_class} {c_soon}?"
+        - "{fc_class} at {fc_hour}, anyone in?"
+        - "my legs are gone after {fc_class}"
+        - "thinking of trying {fc_class}, any good?"
+      replies:
+        -   - "{c_lol}, good luck"
+            - "best one of the week"
+            - "go early, it fills up"
+        -   - "i'll come if the waitlist moves"
+            - "can i bring a guest?"
+            - ""
+        -   - "{c_em}"
+            - ""
+    - root:
+        - "protein shake or real food?"
+        - "what do you eat after {fc_class}?"
+        - "lunch ideas that are not {c_food}"
+        - "{c_place} has a post workout bowl now"
+        - "meal prep sunday, anyone?"
+      replies:
+        -   - "eggs"
+            - "{c_food}, obviously"
+            - "just eat a banana"
+        -   - "{c_lol}"
+            - "agreed"
+            - ""
+    - root:
+        - "did anyone run the {5/10}k {c_soon}?"
+        - "marathon training starts {c_soon}, who is in?"
+        - "{c_sport} {c_soon}, anyone want to join?"
+        - "personal best on the rower today"
+      replies:
+        -   - "nice one"
+            - "i'll join if it stays dry"
+            - "not me, my knees say no"
+        -   - "{c_em}"
+            - ""
+  engineering:
+    - root:
+        - "the dues run took {40-90} minutes, anyone changed something?"
+        - "{c_ci_fail} is failing on the freeze branch"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "who wrote the {fc_freeze} handling?"
+        - "does {service} still call the door vendor?"
+      replies:
+        -   - "i bumped the batch size on {day}"
+            - "i think the freeze check"
+            - "{c_idk}, checking"
+        -   - "i'll look {c_when_eng}"
+            - "can you paste the log?"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "waitlist promotion: job or on cancel?"
+        - "design question for {c_eng_area}, should it be async?"
+        - "is the app cache stale?"
+        - "{c_hey}, why do check-in tokens last {1-5} minutes?"
+      replies:
+        -   - "on cancel, plus a backup job"
+            - "job, simpler to retry"
+            - "ask {person}, they wrote it"
+        -   - "the cache is {1-10} minutes, that fits"
+            - "{c_idk}"
+            - ""
+    - root:
+        - "heads up, deploy freeze from {day} at {time}, {fc_peak}"
+        - "who owns the door vendor webhook?"
+        - "is {c_tool} broken for anyone else?"
+        - "local env broke after {pulling main/a rebase}"
+      replies:
+        -   - "{c_ack}"
+            - "does it include app releases?"
+            - "me, until {c_soon}"
+        -   - "{c_yes}, same here"
+            - "restart the dev container"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the dues fixes, standup in {5-15} minutes"
+        - "who is picking up {issue}?"
+        - "retro: who owns the freeze rules?"
+        - "sprint planning at {time} on {day}, estimates please"
+        - "anyone free to pair on {issue}?"
+      replies:
+        -   - "me, after standup"
+            - "i can take it {c_when_eng}"
+            - "{c_pto} next week, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {fc_member} was {fc_complaint}"
+        - "club manager at {fc_club} says {fc_member} was {fc_complaint}"
+        - "{c_hey}, {fc_complaint} again, {2-9}th this week"
+        - "member services flagged {fc_complaint}, {issue} maybe?"
+      replies:
+        -   - "which club was it?"
+            - "{issue} looks like it"
+            - "paste the member id, no name"
+        -   - "{c_ack}, taking it"
+            - "i'll check the logs"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers club support?"
+        - "show and tell {day} {time}, volunteers?"
+      replies:
+        -   - "it is in the handbook"
+            - "i do"
+            - "{c_ack}"
+        -   - "{c_thanks}"
+  support:
+    - let:
+        who: ["{fc_member}"]
+        complaint: ["{fc_complaint}"]
+      root:
+        - "{who|cap} says they were {complaint}"
+        - "{s_hey}, complaint from {who}: {complaint}"
+        - "{who} wrote in, {complaint}, ticket {4100-4999}"
+        - "{who} was {complaint}, how do we fix it?"
+        - "{who} is upset, {complaint}"
+      replies:
+        -   - "check the debit log in {s_tool}"
+            - "it is {issue}, known problem"
+            - "double booking, refunding the class"
+            - "send me the member id?"
+        -   - "{s_ack}, will update them"
+            - "fixed on my side, {s_thx}"
+            - "{s_thx}, replying now"
+            - ""
+    - let:
+        why: [injury, a new job, moving away, money is tight, a long trip, a baby]
+      root:
+        - "member wants to freeze, says {why}"
+        - "{s_hey}, freeze request: {why}, do they need a note?"
+        - "member asks to backdate a freeze, {why}"
+        - "freeze for {why}, how many months can we give?"
+      replies:
+        -   - "up to {2-6} months, proof for medical"
+            - "no backdating, next billing day"
+            - "ask the club manager"
+        -   - "{s_ack}, thanks"
+            - "will tell them"
+            - ""
+    - let:
+        item: ["{item_a}", "{item_b}"]
+        sum: ["{s_money}"]
+      root:
+        - "{s_cust|cap} asks why {item} is {sum} this month"
+        - "member disputes the {item} charge of {sum}"
+        - "can someone explain the {item} line? member is asking"
+        - "{item} went up, they noticed"
+      replies:
+        -   - "price letter went out {c_soon}"
+            - "they changed plan last month"
+            - "{s_look} at the debit history"
+        -   - "{s_thx}"
+            - "{s_ack}"
+            - ""
+    - root:
+        - "queue is at {20-90} open tickets, mostly cancelling"
+        - "{s_hey}, the cancel form is getting {2-9}x usual traffic"
+        - "member cannot book, the app says {fc_limit} is reached"
+        - "guest pass fails at the door"
+      replies:
+        -   - "known, see {issue}"
+            - "let me check their pass"
+            - "let them in, fix it after"
+        -   - "{s_ack}"
+            - "{s_thx}"
+  incidents:
+    - let:
+        door: ["{fc_door}"]
+        club: ["{fc_club}"]
+      root:
+        - "{door} is offline at {club}, members queuing"
+        - "{club}: doors not opening, {door} has no heartbeat"
+        - "{s_hey}, the desk at {club} says {door} is dead"
+        - "{door} flapping at {club} since {time}"
+      replies:
+        -   - "can they open doors by hand?"
+            - "whole club or one door?"
+            - "{s_oncall} is on it"
+        -   - "{fc_fix} and check again"
+            - "power cycled it, watching"
+            - "back online at {time}"
+        -   - "{s_ack}, please file an issue"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "the dues run is {20-90} minutes late, finance is asking"
+        - "{s_al} dues run not done by {5/6}am"
+        - "bank rejected the debit file"
+        - "payment provider reports an incident"
+      replies:
+        -   - "does it block the bank cutoff?"
+            - "can we resend later today?"
+            - "rerunning with a smaller batch"
+        -   - "cutoff is {2-4}pm, still ok"
+            - "resent, accepted this time"
+            - ""
+        -   - "{s_thx}"
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed, a retry saved it"
+        - "review of the door outage is {day} at {time}"
+        - "on-call handover: nothing open, {s_oncall} is quiet"
+      replies:
+        -   - "threshold is tight, i'll raise it"
+            - "worth an issue?"
+            - "works for me"
+        -   - "{s_ack}, file it"
+            - "{s_thx}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you cover the {fc_class} queue {s_soon}?"
+        - "{s_hey}, could you check the dues report {s_soon}?"
+        - "which clubs have the new doors?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this: {fc_member} loved us"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - "lifesaver"
+            - ""
+    - root:
+        - "gym after work? {fc_class} at {fc_hour}"
+        - "lunch? {s_lunch} at {time}"
+        - "{s_hey}, ugh, the kiosk at {fc_club} froze again"
+        - "survived {fc_peak}, finally"
+      replies:
+        -   - "yes, count me in"
+            - "can't today, deadline"
+            - "same, long week"
+        -   - "tomorrow?"
+            - "{c_em}"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Receipt emails delayed
+      - Dues receipt emails arriving late
+      - Member receipts not sent
+    alert:
+      - "dues receipts delayed, oldest waited {20-90} min"
+      - "{s_al} receipt mail queue age {s_age}"
+      - "receipts not going out since {time}"
+    fix_message:
+      - "Queue receipt emails, not inline sends"
+      - "{s_q_verb|cap} receipt emails {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Debit provider callback errors
+      - Elevated errors on debit callbacks
+      - Payment return callbacks failing
+    alert:
+      - "debit callbacks failing, rate above {5-30} percent"
+      - "{s_al} returned debit callbacks erroring since {time}"
+      - "callback endpoint throwing 5xx errors"
+    fix_message:
+      - "Retry debit callbacks that time out"
+      - "Retry callbacks on timeout"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate dues receipts
+      - Members got the receipt twice
+      - Duplicate receipt emails
+    alert:
+      - "members got receipts twice, {3-12} reports"
+      - "{s_al} duplicate receipts after the retry"
+      - "same receipt mailed twice, started after {day}"
+    fix_message:
+      - "Check the sent log before resending"
+      - "Skip receipts already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly attendance load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad door rows"
+      - "{s_al} warehouse load aborted, attendance report stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed door event rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Attendance load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "attendance load ran twice, visits doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}, reports show double"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Member app timeouts for large accounts
+      - Booking history page times out
+      - Visit history slow for old members
+    alert:
+      - "member app timeouts, p95 above {5-20}s"
+      - "{s_al} visit history 504s, largest accounts only"
+      - "booking history slow since {time}"
+    fix_message:
+      - "Page the visit history"
+      - "Add pagination to booking history"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Member app login errors after deploy
+      - Members signed out after the release
+      - Login loop after the app release
+    alert:
+      - "member logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "members cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - Door vendor certificate expired
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}, deploys blocked"
+      - "{s_al} tls errors on staging, no renewal"
+      - "door gateway certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - Door heartbeat alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "door heartbeat alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight, route missing"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "same at the front desk"
+    - "checking the door dashboards now"
+    - "one club or all of them?"
+    - "might be the deploy from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the member app, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the freeze rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} picks the debit day? {s_un_c}"
+    - "{s_un_a} why the door sync slowed? {s_un_c}"

@@ -1,0 +1,899 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Consumer goods and packaged foods: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: consumer-goods
+name: Consumer goods and packaged foods
+group: Consumer, fitness and wellness
+aliases:
+  - cpg
+  - packaged foods
+  - food and beverage manufacturing
+  - fmcg
+  - household products
+description: A maker of branded packaged goods that sells to retailers and distributors through EDI, tracks lots from plant to shelf, and manages trade promotions and deductions.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Foods
+  - Brands
+  - Consumer Products
+  - Provisions
+  - Kitchens
+  - Household Brands
+invoice_items:
+  - Wholesale case shipments
+  - Freight and handling charges
+organization:
+  head: Head of IT
+  it_admin: IT Systems Administrator
+  teams:
+    platform: {department: Information Technology, title: Platform Engineer}
+    billing: {department: Order to Cash Systems, title: Finance Systems Engineer}
+    data: {department: Data and Analytics, title: Data Engineer}
+    support: {department: Customer Service, title: Customer Service Representative, lead: Customer Service Manager}
+    product: {department: Digital Commerce, title: Product Manager}
+    operations: {department: Supply Chain, title: Supply Chain Analyst}
+names:
+  repos:
+    billing-service: [order-to-cash, invoicing, billing-service, deductions-service]
+    platform-docs: [it-handbook, platform-docs, recall-runbooks, team-docs]
+    data-pipeline: [sales-data-loads, warehouse-loads, data-pipeline, scan-data-etl]
+    infra-config: [infra-config, plant-network-config, env-config, deploy-config]
+    customer-portal: [retailer-portal, customer-portal, trade-portal, buyer-portal]
+    ops-scripts: [ops-scripts, edi-scripts, legacy-scripts, plant-tools]
+  channels:
+    engineering: [engineering, it-dev, dev, systems]
+    incidents: [incidents, edi-alerts, prod-incidents, outages]
+    releases: [releases, deploys, change-log, shipping]
+    billing-team: [order-to-cash, billing-team, finance-systems, billing-eng]
+    platform-team: [platform-team, it-platform, platform, infra]
+    data-team: [data-team, analytics, data, reporting]
+    support: [customer-service, support, order-desk, cs-team]
+    leads: [leads, it-leads, managers, team-leads]
+systems:
+  typical: [github, slack, sap s/4hana cloud, salesforce, kinaxis, tableau, snowflake, workday]
+  common: [blue yonder, coupa, microsoft power bi, jira, okta, servicenow]
+symbols:
+  b_doc: [invoice, credit memo, debit memo, pro forma invoice, deduction notice, rebate statement]
+  b_customer: [grocery chain, club store, distributor, convenience wholesaler, e-commerce retailer, foodservice, export, drugstore]
+  b_who: [customer service, the sales team, finance, the key account team, the trade marketing team]
+  b_pwho: [customer service, a buyer, "{person}", the key account team, finance]
+  b_ticket_noun: [ticket, case, claim, dispute]
+  b_since: [last month, this week, since the weekly run, since the quarter start, "for about {2-6} weeks"]
+  b_money_path: [billing/invoice.py, billing/deductions.py, billing/allowances.py, billing/rounding.py]
+  b_check_path: [the invoice tests, the deduction tests, the EDI tests, the allowance tests]
+  b_provider_event: [remittance received, payment short-paid, deduction posted, remittance rejected, payment returned, credit applied]
+  b_page: [orders, invoices, shipment status, deductions, price lists, statements, delivery appointments]
+  b_acct_size: ["{200-900} open orders", "{15-60} ship-to locations", "{40-300} item codes", "over {1000-4000} order lines"]
+  b_currency: [USD, CAD, MXN, EUR, GBP, AUD]
+  b_taxkind: [sales tax, VAT, GST, excise tax, bottle deposit, packaging levy]
+  b_region: [Canada, Mexico, the UK, Ireland, Germany, Australia]
+  p_table: [orders, shipments, invoices, deductions, items, lots, promotions, pos_scans, trade_funds]
+  p_report: [the weekly shipments report, the trade spend dashboard, the fill rate report, the aging deductions report, the retailer sell-through report, the forecast accuracy report]
+  p_source: [the retailers' scan data feeds, the EDI gateway logs, the warehouse shipment confirmations, the plant production reports, the carrier tracking updates, the promotion calendar export]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the trade finance manager, the controller]
+  p_alert_name: [EDI gateway queue depth, plant data feed, order import errors, the nightly load finishing late, certificate expiry, error rate on the retailer portal, replication lag]
+  s_plan: [a standard account, a key account, a distributor account, a club account, a new listing, a promotional order]
+  c_customer: [a buyer, one of the key accounts, a distributor, a club chain buyer, a regional wholesaler, a retailer's planner]
+  s_tool: [the order console, the customer service desk, the pricing admin, the EDI dashboard, the ticket queue]
+  s_thing: [the order import, the EDI job, the invoice run, the export, the cron, the pricing sync, the ASN sender, the deduction matcher]
+  c_eng_area: [the order import, the EDI mapping, the deduction matcher, the ASN sender, the price list sync, the invoice run, the lot lookup, the export endpoint]
+  c_food: [pizza, sushi, noodles, tacos, a sandwich, leftover samples]
+  cg_retailer: [the grocery account, the club account, the drugstore chain, the big box account, a regional distributor, the convenience wholesaler]
+  cg_edi: [850 purchase orders, 855 acknowledgements, 856 ship notices, 810 invoices, 820 remittances, 997 acknowledgements]
+  cg_line: [the cereal line, frozen entrees, the snack range, the beverage line, pet food, the organic range, seasonal packs]
+  cg_promo: [a buy one get one, a temporary price cut, a scan-back allowance, an off-invoice discount, a display allowance]
+  cg_ded: [a pricing deduction, a shortage claim, a damage claim, a promotion deduction, a late delivery fine, a compliance fine]
+  cg_lot: [lot code, best before date, plant code, batch number]
+  cg_site: [the Ohio plant, the north plant, the east bakery, the co-packer, the main warehouse]
+  cg_peak: [the holiday build, the summer promotion, back to school, the quarter end push, the new year reset]
+  cg_audit: [the food safety audit, the recall drill, the SOX review, the retailer audit, the allergen review]
+  cg_fail: [a rejected ASN, a duplicate PO, a price mismatch, a missing pallet label, a short ship, a late delivery]
+  cg_edierr: [a wrong GTIN, a unit of measure mismatch, an unknown ship-to, a duplicate control number]
+  cg_cert: [the AS2 certificate, the VAN credentials, the retailer portal login, the signing key]
+  cg_fix: [resent the file, reloaded the map, restarted the gateway, cleared the queue]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        ded: ["{cg_ded}"]
+        retailer: ["{cg_retailer}"]
+        path: ["{b_money_path}"]
+      title:
+        - "Short pay linked to wrong promotion"
+        - "{ded|cap} posted against the wrong {b_doc}"
+        - "Deduction matcher pairs {ded} badly"
+        - "Unmatched deductions pile up for {retailer}"
+        - "Wrong promotion on {ded}"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_raised} on {retailer}, {b_scope}."
+        -   - "The matcher links {ded} by amount."
+            - "Matching uses amount, not promo id."
+        -   - "{path|cap} ignores the promotion dates."
+            - "Overlapping promotions confuse the match."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with two overlapping promotions."
+        - "{b_cm_check}, {path} sorts by date wrongly."
+        - "Trade finance has {2-9} cases open."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        err: ["{cg_edierr}"]
+        retailer: ["{cg_retailer}"]
+      title:
+        - "810 invoices rejected for {err}"
+        - "{retailer|cap} rejects invoices, {err}"
+        - "EDI invoices rejected after map change"
+        - "Invoices bounce back with {err}"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{retailer|cap} sends a 997 with errors."
+        -   - "The reject reason is {err}."
+            - "Rejects mention {err}."
+        -   - "{/Also, /And /}rejected invoices block payment."
+            - "Payment waits for a clean invoice."
+            - ""
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "Compared the map with their spec."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Resent {2-9} by hand, accepted."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        promo: ["{cg_promo}"]
+        doc: ["{b_doc}"]
+      title:
+        - "{promo|cap} applied twice on the {doc}"
+        - "Off-invoice discount counted twice"
+        - "Allowance on the {doc} and on remittance"
+        - "Double allowance for {promo}"
+      body:
+        -   - "A promotion has {promo}."
+            - "The deal uses {promo}."
+        -   - "It reduces the {doc} price."
+            - "The invoice already shows it."
+        -   - "{/Also, /And /}the retailer deducts it again."
+            - "Remittance takes it a second time."
+            - ""
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "Flag allowances that are off-invoice."
+        - "{b_cm_hand}"
+        - "{b_cm_plan}"
+    - labels: [needs-decision]
+      let:
+        who: ["{b_who}"]
+        question: [writing off small deductions, disputing a late delivery fine, who approves a damage claim, paying a retailer claim without proof]
+      title:
+        - "Policy for {question}?"
+        - "Who approves {question}?"
+        - "Write-off limit for deductions"
+        - "Decide how we handle {question}"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} handles {question} {b_nd_b}."
+        -   - "{/Also, /And /}limits differ by account manager."
+            - "Today the limit is a habit."
+            - ""
+        -   - "{/Also, /And /}auditors ask for a written rule."
+            - "SOX testing needs the policy."
+            - ""
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who}."
+      comments:
+        - "Maybe a threshold per account tier."
+        - "{b_cm_lean} auto write-off under a limit."
+        - "Finance must sign off the limit."
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+      title:
+        - "Freight charge uses the wrong weight"
+        - "Fuel surcharge missing on the {doc}"
+        - "Handling fee per pallet, not case"
+        - "Freight differs from the carrier bill"
+      body:
+        -   - "The freight line is {2-9} percent off."
+            - "Freight differs from the carrier bill."
+        -   - "{/Also, /And /}it uses gross weight."
+            - "The weight comes from the order."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Use shipped weight from the dock."
+        - "Carrier bills arrive a week later."
+        - "{b_cm_later}"
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [a lot trace, a mock recall, a hold on a lot, a retailer recall notice, a label change]
+      title:
+        - "How-to: run {thing}"
+        - "Checklist for {thing}"
+        - "Write down how we do {thing}"
+        - "Runbook: {thing}"
+      body:
+        -   - "Nobody keeps steps for {thing}."
+            - "{person} does {thing} from memory."
+        -   - "{/Also, /And /}audits ask for a written trace."
+            - "The recall drill showed gaps."
+            - ""
+        -   - "{b_dc_c} would be plenty."
+            - "One page with the contacts."
+      comments:
+        - "Notes from the last drill exist."
+        - "Add the retailer contacts."
+        - "Mention the {2/4/24} hour target."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/edi-gateway.md", "docs/runbooks/order-import.md", "docs/runbooks/lot-trace.md", "docs/runbooks/plant-vpn.md"]
+        step: [pausing the order import, checking the control numbers, holding the ASN queue, switching to the backup gateway, notifying the key accounts]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "Runbook skips {step}"
+        - "{runbook}: {step} not listed"
+        - "Update {runbook} after the SAP change"
+      body:
+        -   - "Followed {runbook} in an outage."
+            - "It left out {step}."
+        -   - "{person} told us in chat only."
+            - "{step|cap} sits in one head."
+        -   - "{p_owner_ask}"
+            - "{p_reviewer_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Add the retailer cutoff times."
+        - "{b_cm_docs}"
+    - labels: [docs, enhancement]
+      let:
+        flow: [an order from EDI to invoice, a deduction from remittance to credit, a shipment from dock to ASN, a lot from plant to shelf]
+      title:
+        - "Write up how {flow} works"
+        - "Architecture note: {flow}"
+        - "Explain {flow}"
+        - "One page on {flow}"
+      body:
+        -   - "New joiners ask how it works."
+            - "Only {person} knows the whole path."
+        -   - "{/Also, /And /}one diagram and a short page."
+            - "A simple picture would do."
+            - ""
+      comments:
+        - "I can draw it, someone check."
+        - "Include the retailer specific rules."
+        - "{b_cm_docs}"
+  data:
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+        retailer: ["{cg_retailer}"]
+      title:
+        - "Scan data from {retailer} arrives late"
+        - "Duplicate rows in {table} after a resend"
+        - "{retailer|cap} sends scan data twice"
+        - "Sell-through gaps for {2-9} days"
+      body:
+        -   - "The weekly file arrives on {day}."
+            - "A resend doubled the rows."
+        -   - "{/Also, /And /}the load treats it as new."
+            - "No key stops the duplicates."
+            - ""
+        -   - "{p_noticed|cap}."
+            - "Planning noticed first."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Key on store, item, week."
+        - "Ask {retailer} to flag resends."
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "{report|cap} does not match billing"
+        - "Shipments and invoices differ by {2-9} percent"
+        - "Trade spend dashboard misses deductions"
+        - "Fill rate disagrees with customer service"
+      body:
+        -   - "The report is {2-9} percent off."
+            - "Finance sees another total."
+        -   - "{/Also, /And /}credit memos land in another week."
+            - "Short ships count as shipped."
+            - ""
+        -   - "{b_ex_a}."
+            - "{who|cap} needs it before the review."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Counted shipments by ship date."
+        - "Define fill rate in one place."
+        - "{b_cm_check}"
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the nightly load"
+        - "Add {source} to the pipeline"
+        - "Should planning get {source}?"
+      body:
+        -   - "Planners ask for {source} weekly."
+            - "{person} pulls {source} by hand."
+        -   - "{/Also, /And /}it would sharpen the forecast."
+            - "Promo lifts could use it."
+            - ""
+        -   - "{/Also, /And /}keep retailer data separate."
+            - "Contracts limit who sees it."
+            - ""
+      comments:
+        - "Which retailers send {source}?"
+        - "Retention is {2/3} years by contract."
+        - "{b_cm_plan}"
+    - labels: [performance]
+      let:
+        peak: ["{cg_peak}"]
+      title:
+        - "Nightly load slow during {peak}"
+        - "Load runs long in promo weeks"
+        - "Scan data load crawls on Mondays"
+      body:
+        -   - "Loads take {1-3} hours longer."
+            - "{peak|cap} doubles the volume."
+        -   - "{/Also, /And /}the slowest step reads all scans."
+            - "One query joins the whole table."
+            - ""
+        -   - "{b_pf_e}"
+      comments:
+        - "Load only the new weeks."
+        - "Partition scans by week?"
+        - "{b_cm_prof} {b_cm_prof2}"
+  portal:
+    - labels: [bug]
+      let:
+        retailer: ["{cg_retailer}"]
+      title:
+        - "Wrong shipment status on the portal"
+        - "ASN says delivered, truck still here"
+        - "Portal lists shipments twice"
+        - "Delivery date a day off, {retailer}"
+      body:
+        -   - "A buyer sees the wrong status."
+            - "{retailer|cap} planners saw it first."
+        -   - "{/Also, /And /}the portal reads the ASN time."
+            - "Time zones differ by site."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Store ship times in UTC."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        browser: ["{b_browser}"]
+      title:
+        - "Dispute upload fails for large files"
+        - "Claim photos fail in {browser}"
+        - "Proof of delivery upload times out"
+        - "Dispute form loses attachments"
+      body:
+        -   - "Buyers attach {2-9} scans."
+            - "Files over {5-20} MB fail."
+        -   - "The form shows a vague error."
+            - "The upload hangs in {browser}."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Raise the limit to {20/50} MB."
+        - "{b_cm_repro} on staging."
+        - "Chunk the upload."
+    - labels: [enhancement]
+      let:
+        ask: [download a price list, see an open deduction, request a pallet label, change a ship-to address]
+      title:
+        - "Let buyers {ask} without calling"
+        - "Portal: {ask}"
+        - "Buyers want to {ask}"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+      comments:
+        - "Needs account manager approval."
+        - "Customer service gets {2-9} calls weekly."
+        - "{b_cm_srv}"
+    - labels: [bug, security]
+      title:
+        - "Buyer sees another account's prices"
+        - "Price list download ignores the account"
+        - "Distributor logins see retail pricing"
+      body:
+        -   - "One buyer opened another's price list."
+            - "Pricing leaked across accounts."
+        -   - "{/Also, /And /}the download route skips the account."
+            - "Lookup uses the file id only."
+            - ""
+        -   - "{/Also, /And /}keep the details out of chat."
+            - "Please keep this in the issue."
+            - ""
+      comments:
+        - "Check the access log."
+        - "{b_cm_fix_up}"
+        - "Tell the key account team."
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{cg_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} expires without a warning"
+        - "Who renews {cert}?"
+        - "Renewal reminder for {cert}"
+      body:
+        -   - "It expires in {10-60} days."
+            - "Nobody owns the renewal."
+        -   - "{/Also, /And /}A lapse stops EDI traffic."
+            - "Retailers cannot reach the gateway."
+            - ""
+        -   - "{p_owner_ask}"
+      comments:
+        - "I will add a {30/14} day alert."
+        - "Test the new one on staging."
+        - "{b_cm_plan}"
+    - labels: [bug]
+      let:
+        site: ["{cg_site}"]
+      title:
+        - "VPN to {site} drops every night"
+        - "{site|cap} loses its link at shift change"
+        - "Plant network has no failover"
+      body:
+        -   - "The tunnel resets near {time}."
+            - "Scales and labels lose their link."
+        -   - "{/Also, /And /}production waits on manual entry."
+            - "Lines print labels by hand."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "The firewall renegotiates keys."
+        - "A second line would help."
+        - "{b_cm_check}"
+    - labels: [enhancement]
+      title:
+        - "Alert if EDI files wait long"
+        - "Page if no orders by {6/7}am"
+        - "Threshold for the gateway queue"
+      body:
+        -   - "We hear from customer service first."
+            - "Retailers call before we notice."
+        -   - "Queue age over {10/15/30} minutes should alert."
+        -   - "{p_alert_channel|cap} is the right place."
+      comments:
+        - "Quiet hours for weekends."
+        - "Put the retailer in the alert."
+        - "{b_cm_later}"
+  ops:
+    - labels: [question]
+      let:
+        script: ["send_asn_resend.sh", "pull_scan_files.sh", "archive_edi_logs.sh", "{p_script}"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+        - "Does anything call {script}?"
+        - "Retire {script}?"
+        - "{script}: anyone using this?"
+      body:
+        -   - "Found {script} while tidying."
+            - "{script|cap} has no recent changes."
+        -   - "{/Also, /And /}written for the old EDI host."
+            - "It predates the new gateway."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Will remove it next month."
+      comments:
+        - "Not used by us."
+        - "Check cron on {p_old_ref}."
+        - "Keep it until the move ends."
+comments:
+  - "Customer service has {2-9} of these open."
+  - "{b_pwho|cap} has a buyer waiting."
+  - "Is this only {cg_retailer}?"
+  - "Does it hit {cg_retailer} as well?"
+  - "Matters most during {cg_peak}."
+  - "Checked the EDI log, same result."
+  - "Trade finance is watching this."
+  - "Hold off until {cg_peak} ends."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: plant tour for office staff {c_soon}"
+        - "{cg_site} has a recall drill {c_soon}"
+        - "new product samples in {c_room} {c_soon}"
+        - "{c_hey}, {cg_peak} planning {day} at {time}"
+        - "reminder: {cg_audit} is {c_soon}"
+      replies:
+        -   - "can we taste the new range?"
+            - "who needs to attend?"
+            - "do we wear hairnets?"
+        -   - "{c_yes}, sign up in the thread"
+            - "all leads, yes"
+            - "{c_idk}, ask {person}"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "welcome {person} to the supply chain team"
+        - "{c_hey}, new buyer joins {c_soon}"
+        - "all hands {day} at {time} in {c_room}"
+        - "{c_hey}: benefits enrolment closes {c_soon}"
+      replies:
+        -   - "welcome!"
+            - "{c_em}"
+            - "will it be recorded?"
+        -   - "{c_yes}, afterwards"
+            - ""
+    - root:
+        - "office closed {c_soon}, plant stays open"
+        - "{c_hey}, it patching {c_soon}, restart please"
+        - "parking at {cg_site} is full {c_soon}"
+      replies:
+        -   - "{c_ack}"
+            - "{c_thanks}"
+        -   - ""
+            - "thanks for the heads up"
+  off-topic:
+    - root:
+        - "who tried the new {cg_line}?"
+        - "samples in {c_room}, go go go"
+        - "lunch ideas, sick of {c_food}"
+        - "{c_place} is closed again"
+        - "anyone want to split a pizza?"
+      replies:
+        -   - "the new flavour is odd"
+            - "better than the old one"
+            - "save me some"
+        -   - "{c_lol}"
+            - ""
+    - root:
+        - "{c_sport} {c_soon}, anyone in?"
+        - "{c_weekend} {c_soon}, anyone?"
+        - "did anyone catch the {match/game/race}?"
+        - "{c_pet} is learning tricks"
+      replies:
+        -   - "i'm in"
+            - "nice"
+            - "can't, sorry"
+        -   - "{c_em}"
+            - ""
+  engineering:
+    - root:
+        - "order import slow since the patch"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "{c_ci_fail} is failing on main"
+        - "who owns the {cg_edi} mapping?"
+        - "should we bump {c_dep}? new major is out"
+      replies:
+        -   - "i'll look {c_when_eng}"
+            - "paste the control number"
+            - "{c_idk}, checking"
+        -   - "it is the new map"
+            - "rolled back, watching"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "design question for {c_eng_area}, async?"
+        - "heads up, change freeze from {day} for {cg_peak}"
+        - "why does {c_eng_area} retry {2-9} times?"
+        - "who is on call this week?"
+      replies:
+        -   - "async, with a dead letter queue"
+            - "ask {person}"
+            - "it is in the handbook"
+        -   - "{c_ack}"
+            - "ok, thanks"
+            - ""
+    - root:
+        - "local env broke after {pulling main/a rebase}"
+        - "is {c_tool} down for anyone else?"
+        - "tiny pr: fix typo in {repo} readme"
+      replies:
+        -   - "restart the dev container"
+            - "same here"
+            - "merged"
+        -   - "{c_thanks}"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the deduction fixes, standup in {5-15} minutes"
+        - "who picks up {issue}?"
+        - "sprint planning {day} at {time}, bring estimates"
+        - "anyone free to pair on {issue}?"
+        - "retro: who owns the EDI maps?"
+      replies:
+        -   - "me, after standup"
+            - "i can {c_when_eng}"
+            - "{c_pto}, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {c_customer} has {cg_fail}"
+        - "customer service says {cg_fail} at {cg_retailer}"
+        - "{c_hey}, {cg_fail} again, {2-9}th this week"
+        - "{cg_retailer} flagged {cg_fail}, {issue} maybe?"
+      replies:
+        -   - "which po?"
+            - "{issue} looks like it"
+            - "send me the control number"
+        -   - "{c_ack}, taking it"
+            - "checking the log"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers order desk support?"
+      replies:
+        -   - "in the handbook"
+            - "i do"
+        -   - "{c_thanks}"
+            - ""
+  support:
+    - let:
+        who: ["{c_customer}"]
+        fail: ["{cg_fail}"]
+      root:
+        - "{who|cap} reports {fail}"
+        - "{s_hey}, {who}: {fail}, case {4100-4999}"
+        - "{who} is upset, {fail}"
+        - "{fail} at {cg_retailer}, what do we say?"
+        - "buyer says {fail} again"
+      replies:
+        -   - "check the EDI dashboard"
+            - "known, see {issue}"
+            - "send me the po number"
+        -   - "{s_ack}, will reply"
+            - "{s_thx}"
+            - "fixed on my side"
+            - ""
+    - let:
+        ded: ["{cg_ded}"]
+        sum: ["{s_money}"]
+      root:
+        - "{cg_retailer} deducted {sum}, {ded}"
+        - "{s_hey}, how do we dispute {ded}?"
+        - "claim for {sum}, looks like {ded}"
+        - "buyer disputes {ded} of {sum}"
+      replies:
+        -   - "attach the proof of delivery"
+            - "trade finance owns that one"
+            - "check the promo calendar first"
+        -   - "{s_thx}"
+            - "{s_ack}"
+            - ""
+    - let:
+        item: ["{item_a}", "{item_b}"]
+        sum: ["{s_money}"]
+      root:
+        - "{s_cust|cap} asks why {item} is {sum}"
+        - "buyer questions the {item} line"
+        - "can someone explain {item}? customer asks"
+        - "{item} went up, they noticed"
+      replies:
+        -   - "price list changed on the 1st"
+            - "freight follows the carrier rate"
+            - "{s_look} at the order"
+        -   - "{s_thx}"
+            - ""
+    - root:
+        - "queue is at {20-90} open cases, mostly short ships"
+        - "{s_hey}, {cg_retailer} wants a lot trace for {cg_line}"
+        - "buyer cannot see new price list"
+        - "pallet labels rejected at the dock"
+      replies:
+        -   - "known, see {issue}"
+            - "i'll ask quality"
+            - "send me the {cg_lot}"
+        -   - "{s_ack}"
+            - "{s_thx}"
+  incidents:
+    - root:
+        - "EDI gateway queue is backing up"
+        - "no {cg_edi} since {time}"
+        - "{cg_retailer} says our {cg_edi} are rejected"
+        - "{s_hey}, order import is {s_symptom}"
+      replies:
+        -   - "is it all retailers?"
+            - "{s_oncall} is looking"
+            - "restarting the gateway"
+        -   - "{cg_fix}, watching"
+            - "back at {time}"
+            - ""
+        -   - "{s_thx}, file an issue"
+            - ""
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed"
+        - "review of the EDI outage is {day} at {time}"
+        - "on-call handover: nothing open"
+      replies:
+        -   - "threshold is tight, raising it"
+            - "worth an issue"
+            - "works for me"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "{cg_cert} expires in {2-9} days"
+        - "{s_al} plant feed stale since {time}"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "{s_al} gateway queue at {1-9},{100-900}"
+      replies:
+        -   - "renewing now"
+            - "i'll check the plant side"
+            - "looks like the new map"
+        -   - "{s_ack}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you check the {cg_edi} mapping {s_soon}?"
+        - "{s_hey}, can you cover order desk {s_soon}?"
+        - "quick question: where do deductions land?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this: {cg_line} sells out"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - ""
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "ugh, the label printer jammed again"
+        - "survived {cg_peak}, finally"
+        - "{s_hey}, got a minute for {cg_audit} prep?"
+      replies:
+        -   - "yes, count me in"
+            - "can't today"
+            - "same, long week"
+        -   - "tomorrow?"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Invoice emails delayed
+      - Customer invoice mail running late
+      - Statements not sent
+    alert:
+      - "invoice emails delayed, oldest waited {20-90} min"
+      - "{s_al} statement queue age {s_age}"
+      - "invoice mail not going out since {time}"
+    fix_message:
+      - "Queue invoice emails, not inline sends"
+      - "{s_q_verb|cap} invoice mail {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Remittance feed errors
+      - Elevated errors on remittance files
+      - Payment advice processing failing
+    alert:
+      - "remittance files failing, rate above {5-30} percent"
+      - "{s_al} 820 processing erroring since {time}"
+      - "remittance backlog growing, retries piling up"
+    fix_message:
+      - "Retry remittance files that time out"
+      - "Retry files on timeout"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate invoices sent
+      - Retailers got the invoice twice
+      - Invoice resent after a retry
+    alert:
+      - "retailers got invoices twice, {3-12} reports"
+      - "{s_al} duplicate 810s after a retry"
+      - "same invoice sent twice since {day}"
+    fix_message:
+      - "Check the sent log first"
+      - "Skip invoices already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly sales load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad scan rows"
+      - "{s_al} warehouse load aborted, dashboards stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed scan rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Sales load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "sales load ran twice, shipments doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Retailer portal timeouts for big accounts
+      - Order list times out
+      - Portal slow for large accounts
+    alert:
+      - "retailer portal timeouts, p95 above {5-20}s"
+      - "{s_al} order list 504s, largest accounts only"
+      - "portal slow for key accounts since {time}"
+    fix_message:
+      - "Page the order list"
+      - "Add pagination to orders"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Retailer portal login errors after deploy
+      - Buyers signed out after the release
+      - Login loop on the portal
+    alert:
+      - "buyer logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "buyers cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - AS2 certificate expired on staging
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}"
+      - "{s_al} tls errors on staging, no renewal"
+      - "AS2 certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - EDI alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "EDI alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "same at the order desk"
+    - "checking the EDI dashboard now"
+    - "is it one retailer or all?"
+    - "might be the deploy from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the order system, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the deduction rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} maps the 810? {s_un_c}"
+    - "{s_un_a} why the order import slowed? {s_un_c}"
