@@ -70,6 +70,7 @@ from mirrordimensions.twins.base import (
     product_of,
 )
 from mirrordimensions.twins.relay import Relay
+from mirrordimensions.world import naming
 from mirrordimensions.world.clock import WorkClock
 from mirrordimensions.world.model import Person, World
 
@@ -160,8 +161,16 @@ class _Run:
         self.plan = world_plan(project, self.manifest)
         self.secrets = app_secrets(project, self.manifest)
         self.world = agents_svc._world(project)  # pyright: ignore[reportPrivateUsage]
+        # The scenario and the agent file, with this world's names (decision 0029).
+        names = naming.Translator(self.world)
+        item = type(item).model_validate(names.value(item.model_dump(by_alias=True)))
+        self.scenario = item
+        self.agent = self.agent.model_copy(
+            update={"grants": {k: names.grants(v) for k, v in self.agent.grants.items()}}
+        )
         self.person = agents_svc.resolve_person(self.world, self.agent)
         self.values = {
+            **naming.template_values(self.world),
             **scenario.canaries(self.plan.seed, item.id),
             "acts_as.username": self.person.username,
             "acts_as.name": self.person.name,
@@ -222,6 +231,11 @@ class _Run:
     def execute(self) -> RunOutcome:
         make_dir(self.dir, owner_only=True)
         docker, driver, boundary, offset = _docker()
+        for name in (sandbox.DNS_NAME, sandbox.GATEWAY_NAME, sandbox.RELAY_NAME):
+            if not docker.is_running(name):
+                raise MirrorError(
+                    "The sandbox is not up.", f"{name} is not running.", "Run: mirror up"
+                )
         self.docker = docker
         self.relay = Relay(docker)
         bridges = {

@@ -36,6 +36,7 @@ from mirrordimensions.service.sandbox import (
 from mirrordimensions.service.sandbox import world_plan as project_plan
 from mirrordimensions.twins.base import Identity, get_twin
 from mirrordimensions.twins.relay import Relay
+from mirrordimensions.world import naming
 from mirrordimensions.world.model import Person, World
 
 ARCH = {"aarch64": "arm64", "arm64": "arm64", "x86_64": "amd64", "amd64": "amd64"}
@@ -216,7 +217,7 @@ def resolve_person(world: World, agent: Agent) -> Person:
 
 
 def _grants(agent: Agent, app: sandbox.App, world: World) -> dict[str, Any]:
-    grants = dict(agent.grants.get(app.id, {}))
+    grants = naming.Translator(world).grants(agent.grants.get(app.id, {}))
     grants.setdefault("owner", world.org)  # repositories without an owner are the company's
     grants.setdefault("team", world.org)  # chat channels are the company's team's
     return grants

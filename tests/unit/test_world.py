@@ -13,6 +13,7 @@ from ruamel.yaml import YAML
 
 from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.service.project import render_manifest
+from mirrordimensions.world import naming
 from mirrordimensions.world.denylist import PLACEHOLDER_WORDS
 from mirrordimensions.world.generate import generate, world_json
 from mirrordimensions.world.names import suggest_company
@@ -36,7 +37,10 @@ def test_new_seed_new_company_same_shape() -> None:
     a, b = generate(manifest(48213)), generate(manifest(1234))
     assert a.company != b.company
     assert len(a.people) == len(b.people) == 25
-    assert [r.name for r in a.repositories] == [r.name for r in b.repositories]
+    # The same core repositories and channels, named each world's own way (decision 0029).
+    assert sorted(a.names) == sorted(b.names)
+    assert len(a.repositories) == len(b.repositories)
+    assert a.names != b.names
 
 
 def test_sizes_follow_the_manifest() -> None:
@@ -172,7 +176,7 @@ def test_every_repository_s_own_tests_pass(tmp_path: Path) -> None:
 
 def test_release_notes_list_only_shipped_changes() -> None:
     w = generate(manifest())
-    releases = next(c for c in w.channels if c.name == "releases").messages
+    releases = next(c for c in w.channels if c.name == naming.channels(w)["releases"]).messages
     assert releases
     for m in releases:
         for line in m.text.splitlines()[1:]:

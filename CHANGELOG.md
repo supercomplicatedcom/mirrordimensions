@@ -6,6 +6,7 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Added
 
+- Each world names its core repositories, channels and workstations its own way (decision 0029): `billing-service` may be `invoicing`, `#incidents` may be `#prod-incidents`, and a workstation may be `lt-04817`. The world records the names; scenarios and agent files written with the usual names are translated at each run, and scenarios can use `{{ repo.billing }}` and `{{ channel.incidents }}`.
 - Industry profiles and the text composer (decisions 0028 and 0029). A world's issues, comments, chat and announcements are composed per world from a profile's templates and the world's own facts, instead of picked from fixed sentences. The general profile (`world/industries/general.yaml`) replaces `world/pools.py`. In the template world, issues, comments and chat that share an eight-word run with the package fall from 76% to under 1%. The core repositories' code is still fixed, and the check reports it.
 - A public-text check (decision 0029): `mirror world create` and `mirror doctor` report how many of the texts an agent can read hold a run of eight or more words found in the published package. It reports only for now; the template world is at 75%, against a limit of 2%.
 

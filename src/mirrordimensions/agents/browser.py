@@ -101,7 +101,8 @@ def placement(plan: Plan, agent_name: str) -> BrowserPlacement:
     number = 140 + digest % 40  # 10.40.0.140-179, clear of workstations (.100-.139)
     if number == 142:  # the address doctor's probe uses
         number = 143
-    return BrowserPlacement(name=f"vdi-{1000 + digest % 9000:04d}", ip=f"{prefix}.{number}")
+    name = hosted.convention(plan.seed, hosted.DESKTOP_NAMES).format(n=1000 + digest % 9000)
+    return BrowserPlacement(name=name, ip=f"{prefix}.{number}")
 
 
 CHROMIUM_FLAGS = (

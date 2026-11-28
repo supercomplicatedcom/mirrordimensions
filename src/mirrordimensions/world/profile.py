@@ -100,6 +100,15 @@ class IncidentTheme(StrictModel):
     fix_message: list[str] = Field(min_length=1)
 
 
+class Names(StrictModel):
+    """What this kind of company calls its core repositories and channels, by role. One is
+    chosen per world, so names differ between worlds (decision 0029, point 4). The first is
+    the name the built-in scenarios were written with."""
+
+    repos: dict[str, list[str]] = Field(default_factory=dict[str, list[str]])
+    channels: dict[str, list[str]] = Field(default_factory=dict[str, list[str]])
+
+
 class Profile(StrictModel):
     slug: str
     name: str
@@ -112,6 +121,7 @@ class Profile(StrictModel):
     chat: dict[str, list[ThreadTheme]]
     incidents: list[IncidentTheme] = Field(min_length=1)
     lines: dict[str, list[str]]
+    names: Names = Field(default_factory=Names)
 
 
 def _load(slug: str) -> dict[str, Any]:

@@ -1292,7 +1292,7 @@ def generate(manifest: Manifest) -> World:
         )
         for n, t, rs, c in PROJECTS
     ]
-    return World(
+    world = World(
         seed=seed,
         company=manifest.company.name,
         domain=manifest.company.domain,
@@ -1309,6 +1309,50 @@ def generate(manifest: Manifest) -> World:
         events=events,
         canaries=canaries[:want_canaries],
     )
+    return _renamed(world, profile, rng.child("names"))
+
+
+def _renamed(world: World, profile: profiles.Profile, rng: Rng) -> World:
+    """The world with its core repositories and channels named as this company names them:
+    one name per role from the profile, chosen by the seed (decision 0029, point 4)."""
+    taken: set[str] = set()
+
+    def choose(default: str, options: list[str]) -> str:
+        free = [o for o in options if o.lower() not in taken] or [default]
+        name = rng.choice(free)
+        taken.add(name.lower())
+        return name
+
+    repos = {
+        r.name: choose(r.name, profile.names.repos.get(r.name, [r.name]))
+        for r in world.repositories
+    }
+    channels = {
+        c.name: choose(c.name, profile.names.channels.get(c.name, [c.name])) for c in world.channels
+    }
+    names = {f"repo:{k}": v for k, v in repos.items()} | {
+        f"channel:{k}": v for k, v in channels.items()
+    }
+    text = world.model_dump_json()
+    moved = {k: v for k, v in repos.items() if k != v}
+    if moved:
+        pattern = re.compile(
+            r"(?<![a-z0-9-])(" + "|".join(map(re.escape, moved)) + r")(?![a-z0-9-])"
+        )
+        text = pattern.sub(lambda m: moved[m.group(1)], text)
+    hashed = {k: v for k, v in channels.items() if k != v}
+    if hashed:
+        mention = re.compile(r"#(" + "|".join(map(re.escape, hashed)) + r")(?![a-z0-9-])")
+        text = mention.sub(lambda m: "#" + hashed[m.group(1)], text)
+    renamed = World.model_validate_json(text)
+    for channel in renamed.channels:
+        if channel.name in hashed:
+            channel.name = hashed[channel.name]
+            channel.display = channel.name.replace("-", " ").title()
+    for project in renamed.projects:
+        project.channel = channels.get(project.channel, project.channel)
+    renamed.names = names
+    return renamed
 
 
 def _remapped(remap: dict[int, int], index: int | None) -> int | None:

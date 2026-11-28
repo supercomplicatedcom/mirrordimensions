@@ -25,6 +25,7 @@ from mirrordimensions.service import agents as agents_svc
 from mirrordimensions.service import changes as changes_svc
 from mirrordimensions.service.changes import Change
 from mirrordimensions.twins.base import get_twin
+from mirrordimensions.world import naming
 
 NodeKind = Literal["agent", "gateway", "system", "model", "device"]
 
@@ -378,6 +379,10 @@ def _known(project: Project, manifest: Manifest, app_id: str, key: str, name: st
             if key == "repos"
             else [c.name for c in world.channels]
         )
+        # The usual names are kept as written and translated at each run (decision 0029).
+        usual = naming.repos(world) if key == "repos" else naming.channels(world)
+        if name.split("/")[-1] in usual:
+            return
     elif key == "tools":
         from mirrordimensions.service.sandbox import world_plan
 
