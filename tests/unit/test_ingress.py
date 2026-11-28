@@ -61,7 +61,7 @@ def exposed(tmp_path: Path) -> Iterator[str]:
         "people": {
             "tamar.gonzaga": {
                 "salt": salt,
-                "sha256": hashlib.sha256((salt + PASSWORD).encode()).hexdigest(),
+                "pbkdf2_sha256": front.password_hash(salt, PASSWORD),
                 "token": TOKEN,
             }
         },

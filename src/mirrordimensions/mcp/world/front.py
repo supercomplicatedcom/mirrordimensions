@@ -221,9 +221,16 @@ def s256(verifier: str) -> str:
     return base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
 
 
+PBKDF2_ROUNDS = 600_000  # PBKDF2-HMAC-SHA256, as OWASP recommends for passwords
+
+
+def password_hash(salt: str, password: str) -> str:
+    return hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), PBKDF2_ROUNDS).hex()
+
+
 def password_ok(person: dict[str, Any], password: str) -> bool:
-    digest = hashlib.sha256((str(person["salt"]) + password).encode()).hexdigest()
-    return hmac.compare_digest(digest, str(person["sha256"]))
+    digest = password_hash(str(person["salt"]), password)
+    return hmac.compare_digest(digest, str(person["pbkdf2_sha256"]))
 
 
 SIGN_IN = """<!doctype html>

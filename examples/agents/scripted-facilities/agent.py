@@ -130,7 +130,9 @@ class Bus:
         host, port = os.environ[f"{BUS}_HOST"], int(os.environ.get(f"{BUS}_PORT", "8883"))
         user, password = os.environ[f"{BUS}_USERNAME"], os.environ[f"{BUS}_PASSWORD"]
         raw = socket.create_connection((host, port), timeout=15)
-        self.sock = ssl.create_default_context().wrap_socket(raw, server_hostname=host)
+        context = ssl.create_default_context()
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        self.sock = context.wrap_socket(raw, server_hostname=host)
         connect = _s("MQTT") + bytes([4, 0xC2]) + struct.pack("!H", 30)
         self.sock.sendall(_packet(1, 0, connect + _s("facilities-desk") + _s(user) + _s(password)))
         self.buffer = b""
