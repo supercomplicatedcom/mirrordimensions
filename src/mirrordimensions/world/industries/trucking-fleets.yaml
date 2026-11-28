@@ -1,0 +1,1047 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Trucking and fleets: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: trucking-fleets
+name: Trucking and fleets
+group: Transport and logistics
+aliases:
+  - trucking
+  - fleet management
+  - road haulage
+  - motor carrier
+description: A trucking company that runs a fleet of tractors and trailers, tracks drivers and loads, and bills shippers and brokers per load.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Trucking
+  - Transport
+  - Freight Lines
+  - Carriers
+  - Fleet Services
+  - Express
+invoice_items:
+  - Line haul
+  - Detention
+organization:
+  head: Director of IT
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Information Technology
+      title: Platform Engineer
+    billing:
+      department: Billing and Settlements Systems
+      title: Billing Systems Engineer
+    data:
+      department: Fleet Data
+      title: Data Engineer
+    support:
+      department: Customer Service
+      title: Customer Service Representative
+    product:
+      department: Digital Products
+      title: Product Manager
+    operations:
+      department: Dispatch Technology
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, load-billing, freight-billing, settlement-service]
+    platform-docs: [platform-docs, it-handbook, dispatch-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, telematics-loads, fleet-etl, load-warehouse]
+    infra-config: [infra-config, terminal-network-config, environments, platform-config]
+    customer-portal: [customer-portal, shipper-portal, load-tracking, broker-portal]
+    ops-scripts: [ops-scripts, dispatch-scripts, legacy-scripts, yard-scripts]
+  channels:
+    engineering: [engineering, dev, it-chat]
+    incidents: [incidents, fleet-alerts, outages]
+    support: [support, customer-service, load-support]
+    data-team: [data-team, fleet-data, telematics]
+    billing-team: [billing-team, settlements, load-billing]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - oracle netsuite
+    - samsara
+    - motive
+    - geotab
+    - servicenow
+    - mcleod
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - salesforce
+    - verizon connect
+symbols:
+  b_doc:
+    - freight invoice
+    - detention invoice
+    - fuel surcharge statement
+    - accessorial invoice
+    - credit memo
+  b_customer:
+    - broker
+    - shipper
+    - dedicated contract customer
+    - retailer
+    - drayage client
+    - government contract
+  b_who:
+    - dispatch
+    - the billing office
+    - safety and compliance
+    - driver settlements
+    - the fleet manager
+  b_pwho:
+    - a broker
+    - dispatch
+    - '{person}'
+    - the billing office
+    - driver settlements
+  b_region:
+    - Texas
+    - Ohio
+    - Georgia
+    - Ontario
+    - California
+    - Tennessee
+    - Illinois
+    - Alberta
+  b_taxkind:
+    - fuel tax
+    - IFTA tax
+    - sales tax
+    - GST
+    - road use tax
+    - VAT
+  b_currency:
+    - USD
+    - CAD
+    - MXN
+    - EUR
+    - GBP
+  b_page:
+    - loads
+    - tracking
+    - invoices
+    - proof of delivery
+    - rate confirmations
+    - account settings
+    - the dashboard
+    - payment history
+  b_acct_size:
+    - '{200-900} loads'
+    - '{15-60} users'
+    - '{3-12} billing contacts'
+    - '{20-120} lanes'
+    - '{40-300} stops'
+  b_provider_event:
+    - payment received
+    - payment failed
+    - ACH return
+    - factoring remittance posted
+    - wire confirmed
+    - chargeback opened
+  c_customer:
+    - a broker
+    - one of the larger shippers
+    - a dedicated customer
+    - a retailer
+  s_plan:
+    - a contract lane rate
+    - a spot load
+    - a dedicated fleet deal
+    - a drayage agreement
+  p_source:
+    - the ELD provider's logs
+    - the telematics event feed
+    - the fuel card transactions
+    - the broker load boards
+    - the toll provider statements
+    - the maintenance system export
+  p_report:
+    - the daily load report
+    - the on-time delivery dashboard
+    - the revenue per mile report
+    - the unbilled loads list
+    - the fuel efficiency report
+  p_table:
+    - loads
+    - trip legs
+    - ELD logs
+    - fuel purchases
+    - work orders
+    - stop events
+  p_finance_ask:
+    - the billing manager
+    - someone in settlements
+    - the controller
+    - the safety director
+  c_eng_area:
+    - the mileage calculation
+    - the detention clock
+    - the fuel surcharge lookup
+    - the ELD import
+    - the load tender form
+    - the IFTA report
+  s_thing:
+    - the invoice run
+    - the ELD import
+    - the telematics feed
+    - the settlement run
+    - the nightly load
+  p_alert_name:
+    - ELD feed lag
+    - the invoice run finishing late
+    - telematics gateway errors
+    - failed backups of the dispatch database
+    - fuel card feed delays
+  p_cert_host:
+    - the shipper portal certificate
+    - the telematics gateway certificate
+    - the in-cab app certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the ELD provider API key
+    - the fuel card credentials
+    - the payments provider token
+    - the toll provider password
+  tf_lane:
+    - Dallas to Atlanta
+    - Chicago to Columbus
+    - Laredo to Houston
+    - Toronto to Detroit
+    - Memphis to Nashville
+    - Fresno to Phoenix
+  tf_equip:
+    - dry vans
+    - reefers
+    - flatbeds
+    - tankers
+    - day cabs
+    - sleeper tractors
+  tf_stop:
+    - the {Elmwood/Harbor/Westfield} distribution centre
+    - the {north/south} terminal
+    - the {Gateway/Riverside} yard
+    - the customer dock
+  tf_event:
+    - a winter storm
+    - a road closure
+    - a driver shortage
+    - a port delay
+    - a breakdown
+    - an inspection blitz
+  tf_peak:
+    - peak season
+    - produce season
+    - month end
+    - the holiday rush
+  tf_note:
+    - Raised by the billing office.
+    - Dispatch hit it first.
+    - '{person} saw it on a {tf_equip} load.'
+    - A broker queried it.
+  tf_cm:
+    - Checked against the rate confirmation.
+    - Same on the last batch.
+    - Rerun after the fix looks right.
+    - Numbers match the ELD log.
+  tf_when:
+    - before the next invoice run
+    - before the peak season
+    - ahead of month end
+    - before the IFTA filing
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        stop:
+          - '{tf_stop}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Detention clock starts at appointment
+        - '{doc|cap} for {stop} counts from check in'
+        - Detention ignores the free two hours
+        - Wait time rounds down
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{tf_note}'
+            - A broker disputed the detention.
+            - Dispatch flagged the stop.
+        -   - The clock starts at check in.
+            - The contract says appointment time.
+            - Free time is not subtracted.
+            - Hours round down per stop.
+            - '{tf_note}'
+        -   - The gap is about {2-9} percent.
+            - Over a month that adds up.
+            - Credits will be needed.
+            - '{tf_note}'
+        -   - Needs a fix {tf_when}.
+            - '{p_owner_ask}'
+            - '{b_urgent}'
+            - '{tf_note}'
+      comments:
+        - '{tf_cm}'
+        - Use the later of both times.
+        - '{b_cm_plan}'
+        - Credits may follow for earlier loads.
+    - labels: [bug]
+      let:
+        lane:
+          - '{tf_lane}'
+      title:
+        - Mileage for {lane} differs from the contract
+        - Practical miles used, not shortest
+        - Loaded miles include the empty leg
+        - Rate per mile hits wrong miles
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - A shipper compared miles to theirs.
+            - '{tf_note}'
+        -   - The contract names a mileage guide.
+            - We use the routing engine.
+            - The guide version differs.
+            - Empty miles get billed.
+            - '{tf_note}'
+        -   - The gap is {2-9} percent.
+            - Invoices on {lane} are high.
+            - '{tf_note}'
+        -   - '{b_urgent}'
+            - '{p_priority}'
+            - '{tf_note}'
+      comments:
+        - '{tf_cm}'
+        - Store the guide version per contract.
+        - Check the zip centroid lookup.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        peak:
+          - '{tf_peak}'
+      title:
+        - Fuel surcharge uses last week's price
+        - Surcharge table not updated on Mondays
+        - Fuel percentage differs from the broker
+        - Surcharge for {peak} loads is stale
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Brokers compare to the index.
+            - '{tf_note}'
+        -   - The price is published weekly.
+            - The table loads on Tuesday.
+            - Loads use the old week.
+            - '{tf_note}'
+        -   - The gap is about {2-9} percent.
+            - '{tf_note}'
+        -   - '{p_priority}'
+            - '{b_urgent}'
+            - '{tf_note}'
+      comments:
+        - Load the table on Monday.
+        - '{tf_cm}'
+        - Credits for the week may follow.
+    - labels: [bug]
+      let:
+        what:
+          - proof of delivery
+          - rate confirmation
+          - lumper receipt
+      title:
+        - Invoices held for a missing {what}
+        - '{what|cap} attached to the wrong load'
+        - Billing waits on a {what} that exists
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Cash flow suffers.
+            - '{tf_note}'
+        -   - Drivers upload photos from the cab.
+            - The upload links to the trip.
+            - A split load has two trips.
+            - '{tf_note}'
+        -   - Billing sees no document.
+            - '{tf_note}'
+        -   - '{b_urgent}'
+            - '{p_owner_ask}'
+            - '{tf_note}'
+      comments:
+        - Link documents to the load id.
+        - '{tf_cm}'
+        - Add a manual override for billing.
+    - labels: [bug]
+      let:
+        tax:
+          - '{b_taxkind}'
+      title:
+        - '{tax|cap} miles split wrongly by state'
+        - State miles miss the trip total
+        - Quarterly report rounds each state
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - The filing is due soon.
+            - '{tf_note}'
+        -   - Miles come from the ELD.
+            - Each state is rounded alone.
+            - A border stop is counted twice.
+            - '{tf_note}'
+        -   - Totals miss by a few miles.
+            - '{tf_note}'
+        -   - '{p_owner_ask}'
+            - '{p_priority}'
+            - '{tf_note}'
+      comments:
+        - Give the remainder to one state.
+        - '{tf_cm}'
+        - The auditor will ask.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - detention waivers
+          - layover credits
+          - fuel surcharge disputes
+      title:
+        - Who approves {question}?
+        - Policy for {question}
+        - Limits for {question}
+      body:
+        -   - '{b_nd_a}'
+            - Answers differ by person.
+            - '{tf_note}'
+        -   - '{b_raised}, {b_scope}.'
+            - '{tf_note}'
+        -   - Needs a ruling from {who}.
+            - '{b_nd_f}'
+            - '{tf_note}'
+      comments:
+        - Set a dollar limit per desk.
+        - Legal should check the terms.
+        - Track approvals in the ticket.
+  portal:
+    - labels: [bug]
+      let:
+        equip:
+          - '{tf_equip}'
+      title:
+        - Load tracking shows an old position
+        - Truck pin for {equip} lags by minutes
+        - ETA jumps back after a stop
+        - Tracking link never updates
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Shippers plan docks from the ETA.
+            - '{tf_note}'
+        -   - Positions arrive late from trucks.
+            - The page caches the last ping.
+            - '{tf_note}'
+        -   - Coverage is thin on rural roads.
+            - '{tf_note}'
+        -   - '{b_urgent}'
+            - '{tf_note}'
+      comments:
+        - Show ping time on the map.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        what:
+          - driver locations
+          - loads
+          - invoices
+      title:
+        - Shipper users can see {what} of others
+        - '{what|cap} list ignores the company'
+        - Tracking links expose {what}
+      body:
+        -   - A user saw {what} not theirs.
+            - '{b_raised}, {b_scope}.'
+            - '{tf_note}'
+        -   - The link has a guessable id.
+            - The list filters by user only.
+            - '{tf_note}'
+        -   - '{b_dlk_c}'
+            - '{tf_note}'
+        -   - '{b_dlk_e}'
+            - '{tf_note}'
+      comments:
+        - '{b_cm_repro}, no company filter.'
+        - '{b_cm_fix_up} It adds a company check.'
+        - Use long random link ids.
+    - labels: [bug]
+      let:
+        what:
+          - load tenders
+          - rate confirmations
+          - appointment requests
+      title:
+        - Submit of {what} fails near the cutoff
+        - '{what|cap} vanish after a save'
+        - Duplicate {what} after a retry
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Brokers miss the tender window.
+            - '{tf_note}'
+        -   - The form times out under load.
+            - A retry creates a second tender.
+            - '{tf_note}'
+        -   - Only some browsers fail.
+            - '{tf_note}'
+        -   - '{p_priority}'
+            - '{tf_note}'
+      comments:
+        - Make the save idempotent.
+        - '{b_cm_repro} on a fresh account.'
+        - Load test before the peak.
+    - labels: [bug, performance]
+      let:
+        what:
+          - invoice lists
+          - load histories
+          - document downloads
+      title:
+        - '{what|cap} are slow for large accounts'
+        - '{what|cap} time out with {2-9} thousand rows'
+        - Search for {what} never finishes
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Large accounts wait minutes.
+            - '{tf_note}'
+        -   - The page loads every row.
+            - Each row triggers a lookup.
+            - '{tf_note}'
+        -   - A next link would do.
+            - '{tf_note}'
+        -   - '{p_priority}'
+            - '{tf_note}'
+      comments:
+        - Page the list on the server.
+        - Index the load number.
+        - '{b_cm_plan}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/detention.md
+          - docs/mileage.md
+          - docs/ifta.md
+      title:
+        - '{Handbook/Docs}: {page} lists an old rule'
+        - '{page} disagrees with the billing code'
+        - '{page|cap} misses the new contract type'
+      body:
+        -   - '{page|cap} describes last year.'
+            - New contracts are not listed.
+            - '{tf_note}'
+        -   - A joiner used the old rule.
+            - '{p_noticed|cap}.'
+            - '{tf_note}'
+        -   - Billing owns the rules.
+            - The code is the truth.
+            - '{tf_note}'
+        -   - '{p_owner_ask}'
+            - '{tf_note}'
+      comments:
+        - Billing will send the rules.
+        - Will update it {tf_when}.
+        - Link the contract template.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - an ELD provider outage
+          - a stuck invoice run
+          - a telematics gateway failure
+          - a fuel card feed loss
+      title:
+        - Runbook for {thing}
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        -   - The guide says nothing about {thing}.
+            - Last time {thing} cost {2-6} hours.
+            - '{tf_note}'
+        -   - On call asks the dispatch desk.
+            - Steps live in one person's notes.
+            - '{tf_note}'
+        -   - A short page would help.
+            - Who to call, in what order.
+            - '{tf_note}'
+        -   - '{p_priority}'
+            - '{tf_note}'
+      comments:
+        - Add the provider support numbers.
+        - Dispatch should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - rate confirmation storage
+          - who approves invoice reversals
+          - the peak change freeze
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: handbook and practice differ'
+        - Where should {topic} live?
+      body:
+        -   - New people keep asking about {topic}.
+            - The answer depends who you ask.
+            - '{tf_note}'
+        -   - Billing and dispatch disagree.
+            - Nothing is written down.
+            - '{tf_note}'
+        -   - '{b_dc_c} {b_dc_e}'
+            - '{tf_note}'
+      comments:
+        - Ask {p_finance_ask} for the rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        equip:
+          - '{tf_equip}'
+      title:
+        - Gaps in ELD logs for trucks
+        - Telematics positions missing for {2-30} hours
+        - Odometer jumps on {equip}
+        - ELD data repeats after a reconnect
+      body:
+        -   - Logs stop for some trucks.
+            - The feed repeats the last record.
+            - '{tf_note}'
+        -   - The device lost its signal.
+            - A firmware update changed fields.
+            - '{tf_note}'
+        -   - Mileage totals look off.
+            - Hours of service reports show holes.
+            - '{tf_note}'
+        -   - '{tf_note}'
+            - '{p_priority}'
+      comments:
+        - Backfilled from the device buffer.
+        - Gateway log shows a drop at {time}.
+        - Flag gaps rather than zeros.
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Telematics load finished {delay} late on {day_name}
+        - Invoice run waited on the {day_name} load
+        - Unbilled loads list empty on {day_name}
+      body:
+        -   - The load ended {delay} past the usual time.
+            - Trip tables were empty.
+            - '{tf_note}'
+        -   - The slowest step was {p_table}.
+            - '{tf_peak|cap} doubled the files.'
+            - '{tf_note}'
+        -   - '{p_noticed|cap}.'
+            - Nothing was lost, only late.
+            - '{tf_note}'
+        -   - We need the cause {tf_when}.
+            - '{tf_note}'
+      comments:
+        - The provider files came late again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - load numbers
+          - truck ids
+          - driver ids
+      title:
+        - Duplicate {what} after the system merge
+        - Same {what} on two records
+        - '{what|cap} collide between two systems'
+      body:
+        -   - Found {2-60} duplicate {what}.
+            - A count shows extra rows.
+            - '{tf_note}'
+        -   - The merge kept both records.
+            - Keys are not unique here.
+            - '{tf_note}'
+        -   - Loads are billed twice.
+            - Reports show the trip twice.
+            - '{tf_note}'
+        -   - '{p_priority}'
+            - '{tf_note}'
+      comments:
+        - Deduplicated by key, counts match.
+        - Add a uniqueness check to validate.
+        - '{b_cm_plan}'
+    - labels: [question, data-quality]
+      let:
+        report:
+          - '{p_report}'
+        gap:
+          - '{p_dollars}'
+      title:
+        - '{report|cap} does not match billing, {gap} off'
+        - Fuel purchases differ from ELD miles
+        - Miles in {report} disagree with invoices
+      body:
+        -   - The report and the ledger differ.
+            - The gap is {2-9} percent.
+            - '{tf_note}'
+        -   - Deadhead miles may explain part.
+            - Fuel cards and ELD disagree.
+            - '{tf_note}'
+        -   - '{p_owner_ask}'
+            - '{tf_note}'
+      comments:
+        - Reconcile on the trip legs.
+        - '{tf_cm}'
+        - Check the cutoff times.
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        -   - '{cert|cap} is due in {days} days.'
+            - We nearly missed the last renewal.
+            - '{tf_note}'
+        -   - Drivers cannot upload if it lapses.
+            - Shippers see a browser warning.
+            - '{tf_note}'
+        -   - '{p_noticed|cap}.'
+            - '{tf_note}'
+        -   - Needs a real alert and owner.
+            - '{p_owner_ask}'
+            - '{tf_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [bug, performance]
+      let:
+        peak:
+          - '{tf_peak}'
+      title:
+        - In cab app slows down in {peak}
+
+        - Document uploads back up at terminals
+        - In cab uploads stall for {2-9} hours
+      body:
+        -   - Uploads queue for {2-9} hours.
+            - Tablets retry too often.
+            - '{tf_note}'
+        -   - Terminal wifi saturates at shift change.
+            - The upload service has few workers.
+            - '{tf_note}'
+        -   - Billing waits for documents.
+            - '{tf_note}'
+        -   - '{p_priority}'
+            - '{tf_note}'
+      comments:
+        - Raised the worker limits.
+        - Back off retries on tablets.
+        - Load test before the season.
+    - labels: [security, bug]
+      let:
+        what:
+          - the telematics gateway
+          - the terminal network
+          - the tablet fleet
+      title:
+        - Firewall rule into {what} is too wide
+        - Review vendor access to {what}
+        - Segmentation gap around {what}
+      body:
+        -   - One rule allows more than needed.
+            - An audit flagged broad access.
+            - '{tf_note}'
+        -   - Only a few ports are used.
+            - One source host would do.
+            - '{tf_note}'
+        -   - Changes wait for a window.
+            - '{tf_note}'
+        -   - '{p_owner_ask}'
+            - '{tf_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - ELD records
+          - driver logs
+          - delivery documents
+      title:
+        - Backups of {what} keep less than policy
+        - Retention for {what} is {2-5} months
+        - Restore of {what} was never tried
+      body:
+        -   - Policy keeps {what} six months.
+            - The archive prunes after {2-5} months.
+            - '{tf_note}'
+        -   - The last restore was never tried.
+            - Failures are logged, nobody paged.
+            - '{tf_note}'
+        -   - Roadside audits ask for logs.
+            - Claims reach back months.
+            - '{tf_note}'
+        -   - '{p_priority}'
+            - '{tf_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: the yard closes early {c_soon}.'
+        - safety meeting {day} at {time}
+        - reminder, high vis in the yard
+        - '{c_hey}: the driver appreciation lunch is {c_soon}'
+        - open enrolment closes {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - will be there
+            - is it mandatory?
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - welcome {person}, joining from dispatch
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in billing systems
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        -   - welcome {person}!
+            - '{c_em}'
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - '{tf_event} {c_soon}, expect late loads'
+        - heads up, {tf_event} near {tf_stop}
+        - '{tf_peak} starts {c_soon}, change freeze'
+        - weather alert on {tf_lane}
+      replies:
+        -   - noted
+            - '{c_ack}'
+        -   - will the alerts page us?
+            - ''
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - best truck stop coffee?
+        - how was the trucking show?
+        - road trip playlists, go
+      replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+        -   - ''
+            - same
+    - root:
+        - anyone selling a pickup?
+        - fishing this weekend, who is in?
+        - the break room chili is back
+        - '{c_pet} rode in a sleeper cab'
+      replies:
+        -   - '{c_lol}'
+            - ha
+        -   - ''
+            - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the stop sequence code
+          - the accessorial rules
+      root:
+        - '{thing} is wrong for {tf_equip}'
+        - should {thing} use appointment time?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        -   - i think {person} wrote it, ask them
+            - '{c_idk}'
+            - predates the migration, check old scripts
+        -   - will look {c_when_eng}
+            - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - mileage tests fail on state lines
+        - flaky test in the ELD import
+        - '{c_ci_fail} keeps timing out on route tests'
+      replies:
+        -   - same here
+            - rerunning
+            - seen it, date fixtures
+        -   - fix is in {issue}
+            - '{c_ack}'
+    - root:
+        - does the import handle ELD retries?
+        - what happens when the provider resends?
+        - do we dedupe trip events?
+        - how late can a log arrive?
+        - are late logs billed or dropped?
+      replies:
+        -   - about a day, i think
+            - check the provider docs
+            - '{c_idk}'
+        -   - should write that down
+            - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on invoice run days
+        - freeze for {tf_peak} starts {day}
+        - deploys paused until {time} on {day}
+        - IFTA filing freeze starts {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - got it
+        -   - is a hotfix ok?
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, invoice day'
+        - skipping standup, at the terminal
+        - who is picking up {issue}?
+      replies:
+        -   - i can take it
+            - '{c_ack}'
+            - on my list
+        -   - ''
+            - thanks
+    - root:
+        - invoice run starts {c_soon}, billing freezes {day}
+        - settlements go out {day}, any blockers?
+        - '{tf_peak} starts {c_soon}, who has the checklist?'
+        - IFTA filing is {day}, who is on it?
+      replies:
+        -   - i am on call
+            - checklist is in the handbook
+            - '{c_ack}'
+        -   - ping me if the run stalls
+            - ''
+    - root:
+        - broker escalation, {c_customer} disputes the invoice
+        - a shipper says detention is wrong
+        - escalation from dispatch, mileage
+        - big broker wants a call {c_soon}
+        - '{c_hey}: {c_customer} is unhappy about tracking'
+      replies:
+        -   - which account?
+            - i will check the logs
+        -   - it is {issue}
+            - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says detention is wrong'
+        - '{who|cap} asks about the surcharge'
+        - shipper cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants proof of delivery'
+        - tracking is stuck for {who}
+      replies:
+        -   - check the check in time first
+            - surcharge follows the index, tell them
+            - try a fresh login
+            - checking the log now
+        -   - '{s_ack}, will tell them'
+            - '{s_thx}'
+            - ''
+    - root:
+        - broker disputes the miles
+        - shipper wants the invoice copy
+        - '{s_cust|cap} cannot see loads, {s_ticket}'
+        - escalating, wrong miles, filed as {issue}
+      replies:
+        -   - sending the breakdown now
+            - copy attached to the ticket
+        -   - '{s_thx}'
+            - '{c_ack}'
+    - root:
+        - queue is at {20-90} open tickets, mostly invoices
+        - 'tracking calls: {20-80} since morning'
+        - tickets doubled after invoices went out
+      replies:
+        -   - same, will help after lunch
+            - '{c_ack}'
+        -   - any macro for the detention question?
+            - ''
+  incidents:
+    - let:
+        what:
+          - the ELD feed
+          - the telematics gateway
+          - the invoice run
+      root:
+        - '{what} stopped at {time}'
+        - '{s_al} {what} silent since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - dispatch says {what} looks stale
+      replies:
+        -   - looking
+            - restarted the poller, watching it
+            - gateway is up, upstream issue
+        -   - fixed, backfilling
+            - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        -   - '{c_ack}'
+            - will join
+        -   - ''
+            - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the dispatch server is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        -   - on it
+            - '{c_ack}'
+        -   - renewing today
+            - ''
+  direct:
+    - root:
+        - '{s_hey}, check the ELD import {s_soon}?'
+        - which miles does the report use?
+        - can you look at {issue} before the run?
+        - '{s_hey}, got a minute for the surcharge?'
+        - handing over invoicing, out {s_soon}
+      replies:
+        -   - sure
+            - '{s_ack}'
+            - give me ten minutes
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived the audit, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        -   - sounds good
+            - '{c_lol}'
+        -   - ''
+            - same
+comments:
+  - Check the rate confirmation first.
+  - '{tf_cm}'
+  - Does this touch the invoice run?
+  - Ask billing before changing it.
+  - Dispatch would want to know.
