@@ -18,7 +18,7 @@ macOS on Apple Silicon, Windows 11 x64 and Linux x64, with the same design and t
 
 ## From clone to a first passing run
 
-You need git, [uv](https://docs.astral.sh/uv/), 16 GB of memory, about 15 GB of free disk (7 GB for the engine, 6.4 GB for a world), and on macOS Rosetta for Linux (`softwareupdate --install-rosetta`). You do not need Docker: the mirror runs its own Linux VM. No API key: the first run uses a scripted agent. [docs/your-company.md](docs/your-company.md) has the full setup from a bare laptop, including Linux's packages, and how to remove everything afterwards.
+You need git, [uv](https://docs.astral.sh/uv/), 16 GB of memory, about 15 GB of free disk (7 GB for the engine, 6.4 GB for a world), and on macOS Rosetta for Linux (`softwareupdate --install-rosetta`). You do not need Docker: the mirror runs its own Linux VM. No API key: the first run uses a scripted agent. [docs/your-company.md](docs/your-company.md) has the full setup from a bare laptop, including Linux's packages, and how to remove everything afterwards. To have a coding agent do the setup, paste the prompt in [docs/setup-with-an-agent.md](docs/setup-with-an-agent.md): it limits what the agent may change and makes it stop when a check fails.
 
 **1. Install.**
 

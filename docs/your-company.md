@@ -54,7 +54,7 @@ An agent written only against GitHub's or Slack's own API cannot do its work in 
 
 ## Set up your laptop
 
-Everything runs on your own computer. Nothing is installed on a server, and no account is needed.
+Everything runs on your own computer. Nothing is installed on a server, and no account is needed. To have a coding agent run these steps for you, use the prompt in [setup-with-an-agent.md](setup-with-an-agent.md).
 
 **What it needs.**
 
