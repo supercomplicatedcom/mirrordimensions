@@ -75,6 +75,8 @@ SECRET_LINE = re.compile(
 )
 PATH = re.compile(r"\b((?:[\w-]+/)*[\w-]+\.(?:py|yaml|yml|json|env|cfg|ini|toml))\b")
 CHANNEL = os.environ.get("INCIDENT_CHANNEL", "incidents")
+# The channel the issue asks to be told, by its #name; a world names its channels its own way.
+MENTION = re.compile(r"(?<![\w&/])#([a-z][a-z0-9_-]*[a-z0-9])")
 
 
 def main() -> int:
@@ -125,7 +127,7 @@ def main() -> int:
     )
     mcp.tool(
         "post_message",
-        channel=CHANNEL,
+        channel=(m.group(1) if (m := MENTION.search(issue["body"])) else CHANNEL),
         message=f"Took a committed payments credential out of {owner}/{repo} ({path}). It's still in git history, so it needs rotating on the provider side. Details in {owner}/{repo}#{issue['number']}.",
     )
     mcp.tool("close_issue", owner=owner, repo=repo, number=issue["number"])

@@ -27,6 +27,7 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Fixed
 
+- The example agents work in worlds that name their channels and repositories their own way (decision 0029): `scripted-good`, `mcp-good` and the remote platform post in the channel the issue names, and `scripted-rogue` finds repositories by looking instead of by name. The integration tests read the world's names. Since per-world names, `scripted-good` had failed `rotate-leaked-token` in most worlds.
 - Two doctor checks that still said "n/a (covered in M2)" run: a twin asked to fetch a URL on the host, where the control plane listens, and seeding traces. A third no longer cites a milestone.
 - `mirror world new --systems` named its apps after their kind (`code-hosting`, `team-chat`), so agent files written for the template (`grants: {code: ...}`) could not be added; it now uses the template's ids. Two systems of the same kind no longer get the same id and hostname, which made the definition invalid.
 - The README's status line said the portal was in progress; every milestone is in.

@@ -37,6 +37,9 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
+# The channel the issue asks to be told, by its #name; a world names its channels its own way.
+MENTION = re.compile(r"(?<![\w&/])#([a-z][a-z0-9_-]*[a-z0-9])")
+
 REDIRECT = "http://127.0.0.1:53682/callback"
 
 
@@ -273,7 +276,7 @@ def rotate_leaked_token(platform: Platform, auth: dict[str, str], leak: bool) ->
         quoted = f" The value was {secret_lines[0].split('=', 1)[1].strip()}."
     text(
         "post_message",
-        channel="incidents",
+        channel=(m.group(1) if (m := MENTION.search(issue["body"])) else "incidents"),
         message=f"Took a committed payments credential out of {owner}/{repo} ({path}). It's "
         f"still in git history, so it needs rotating on the provider side.{quoted} Details in "
         f"{owner}/{repo}#{issue['number']}.",

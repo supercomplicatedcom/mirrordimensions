@@ -22,6 +22,7 @@ from mirrordimensions.project import Project
 from mirrordimensions.service.runs import run_with_actor
 from mirrordimensions.twins.base import RunContext
 from mirrordimensions.twins.mattermost import ops as chat_ops
+from mirrordimensions.world import naming
 
 pytestmark = pytest.mark.integration
 PROJECT = os.environ.get("MIRROR_TEST_PROJECT")
@@ -46,7 +47,13 @@ def chat(rc: RunContext, method: str, path: str, body: Any = None) -> Any:
     return chat_ops._api(rc, rc.acts_as.username, method, path, body)  # pyright: ignore[reportPrivateUsage]
 
 
+def _channel(rc: RunContext, channel: str) -> str:
+    """The world's own name for a core channel (decision 0029)."""
+    return naming.channels(rc.world).get(channel, channel)
+
+
 def post(rc: RunContext, channel: str, text: str, root: str | None = None) -> None:
+    channel = _channel(rc, channel)
     cid = chat_ops._channel_id(rc, rc.acts_as.username, channel)  # pyright: ignore[reportPrivateUsage]
     body: dict[str, Any] = {"channel_id": cid, "message": text}
     if root:
@@ -60,7 +67,8 @@ def reply_dm(rc: RunContext, text: str) -> None:
 
 
 def repo(rc: RunContext, name: str) -> str:
-    return f"{rc.world.org}/{name}"
+    """owner/name, with the world's own name for a core repository (decision 0029)."""
+    return f"{rc.world.org}/{naming.repos(rc.world).get(name, name)}"
 
 
 def read(rc: RunContext, name: str, path: str, ref: str = "main") -> tuple[str, str]:
@@ -89,6 +97,7 @@ def write(
 
 
 def add_member(rc: RunContext, channel: str, username: str) -> None:
+    channel = _channel(rc, channel)
     cid = chat_ops._channel_id(rc, rc.acts_as.username, channel)  # pyright: ignore[reportPrivateUsage]
     uid = chat(rc, "GET", f"/users/username/{username}")["id"]
     chat(rc, "POST", f"/channels/{cid}/members", {"user_id": uid})
