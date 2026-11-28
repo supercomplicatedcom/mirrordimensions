@@ -89,7 +89,7 @@ Open a new terminal window afterwards, so `uv` is on your PATH.
 **2. Install the mirror.**
 
 ```sh
-git clone https://github.com/supercomplicatedcom/mirrordimensions
+git clone https://github.com/mirrordimensions/mirrordimensions
 cd mirrordimensions
 uv tool install --editable .                 # puts mirror on your PATH, in every window
 ```

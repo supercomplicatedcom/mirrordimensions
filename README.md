@@ -21,7 +21,7 @@ You need git, [uv](https://docs.astral.sh/uv/), 16 GB of memory, about 15 GB of 
 **1. Install.**
 
 ```sh
-git clone https://github.com/supercomplicatedcom/mirrordimensions
+git clone https://github.com/mirrordimensions/mirrordimensions
 cd mirrordimensions
 uv tool install --editable .    # puts mirror on your PATH, in every window
 ```
