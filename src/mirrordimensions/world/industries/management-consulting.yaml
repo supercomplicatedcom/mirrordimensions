@@ -1,0 +1,483 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Management consulting: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: management-consulting
+name: Management consulting
+group: Professional services and real estate
+aliases: [consulting firm, strategy consulting, advisory firm, business consulting, consultancy]
+description: A consulting firm that sells advisory projects to large organisations and bills by time, milestone or retainer while tracking staffing and utilisation.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Advisory, Consulting Group, Partners, Strategy Group, Associates, Consultancy]
+invoice_items: ["Advisory services, time and materials", "Fixed fee milestone"]
+organization:
+  head: Chief Technology Officer
+  it_admin: IT Manager
+  teams:
+    platform: {department: Technology, title: Platform Engineer}
+    billing: {department: Finance Systems, title: Finance Systems Developer}
+    data: {department: Analytics, title: Data Engineer}
+    support: {department: Knowledge and Support, title: Support Analyst}
+    product: {department: Firm Tools, title: Product Manager}
+    operations: {department: Practice Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [engagement-billing, time-billing, project-invoicing, fee-billing]
+    platform-docs: [tech-handbook, firm-tech-docs, runbooks, platform-docs]
+    data-pipeline: [utilisation-loads, project-warehouse, staffing-feeds, practice-analytics]
+    infra-config: [infra-config, firm-infra, environment-config, deploy-config]
+    customer-portal: [client-portal, engagement-portal, client-workspace, client-hub]
+    ops-scripts: [finance-scripts, legacy-scripts, practice-scripts, old-ops]
+  channels:
+    engineering: [tech, engineering, firm-tech]
+    incidents: [incidents, outages, prod-incidents]
+    releases: [releases, deploys, release-notes]
+    billing-team: [finance-systems, billing-systems, billing-team]
+    support: [firm-support, help-desk, support]
+    leads: [practice-leads, leads, managers]
+systems:
+  typical: [github, slack, microsoft 365, okta, jira, confluence, Salesforce, Workday, deltek]
+  common: [pagerduty, datadog, Planview, Smartsheet, Oracle NetSuite]
+symbols:
+  b_doc: ["time and materials invoice", "milestone invoice", "retainer invoice", "expense recharge", "credit note", "{monthly/quarterly} fee statement"]
+  b_customer: ["retainer client", "fixed fee client", "public sector client", "multi-year client", "new client", "large corporate client"]
+  b_who: ["the engagement manager", "finance", "a partner", "the practice lead", "the client team"]
+  b_pwho: ["a partner", "a client contact", "{person}", "finance", "the engagement manager"]
+  b_currency: ["USD", "GBP", "EUR", "CHF", "AUD", "SGD"]
+  b_taxkind: ["VAT", "sales tax", "GST", "withholding tax", "reverse-charge VAT"]
+  b_region: ["Germany", "Singapore", "the UK", "Switzerland", "Australia", "France", "Canada"]
+  b_page: ["invoices", "engagements", "time entries", "documents", "the dashboard", "expense reports"]
+  b_acct_size: ["{20-80} active engagements", "{200-900} time entries", "{15-60} named users", "{3-12} cost centres"]
+  b_browser: ["Safari", "Edge", "Firefox", "Chrome on a tablet", "an older Chrome"]
+  b_provider_event: ["payment received", "payment reversed", "approval granted", "expense approved", "client portal rejection"]
+  c_customer: ["a partner", "one of the big clients", "a public sector client", "a new engagement", "a retainer client"]
+  s_plan: ["a retainer", "a fixed fee deal", "a time and materials deal", "a multi-year framework"]
+  p_source: ["the time entry export", "the expense system feed", "the staffing plan export", "the client survey results", "the finance ledger extract"]
+  p_report: ["the utilisation report", "the realisation report", "the pipeline report", "the engagement margin report", "the backlog report"]
+  p_table: ["time_entries", "engagements", "invoices", "staffing_plans", "expenses", "rate_cards"]
+  p_finance_ask: ["the finance director", "someone in billing", "the controller", "the practice manager"]
+  c_eng_area: ["the time entry form", "the rate card lookup", "the expense approval flow", "the invoice run", "the staffing sync", "the utilisation job"]
+  s_thing: ["the invoice run", "the time entry sync", "the expense export", "the utilisation job", "the staffing sync"]
+  mc_rule: ["the blended rate", "the capped fee", "the success fee", "the volume discount", "the travel cap", "the retainer drawdown"]
+  mc_client: ["a public sector client", "a retail client", "a bank client", "a utility client", "a telecom client"]
+  mc_form: ["the engagement letter", "the statement of work", "the change order", "the rate card", "the staffing request"]
+  mc_peak: ["month end", "quarter end", "year end", "the timesheet deadline", "the partner review week"]
+  mc_deck: ["the board deck", "the final report", "the workshop pack", "the data room", "the interview notes"]
+  mc_status: ["pending approval", "rejected", "missing a code", "stuck in review", "approved twice"]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        rule: ["{mc_rule}"]
+        client: ["{mc_client}"]
+      title:
+        - "{rule|cap} is not applied for {client}"
+        - "Invoice total ignores {rule}"
+        - "{client|cap} invoice breaks with {rule}"
+        - "Fee cap and {rule} double count"
+        - "Rate card: {rule} {off/wrong/missing}"
+      body:
+        - ["{b_raised}, {b_scope}.", "Finance saw it first, {b_pscope}."]
+        - ["The cap is checked too late.", "Drawdown is not netted off.", "{b_money_path} skips the rule."]
+        - ["{b_urgent}", "The client has queried the invoice.", ""]
+      comments:
+        - "{b_cm_repro} with a capped fee."
+        - "{b_cm_check}, the rate card has two versions."
+        - "The cap should apply per period."
+    - labels: [bug]
+      let:
+        form: ["{mc_form}"]
+      title:
+        - "Invoice run bills hours after {form} ends"
+        - "Hours past the end date bill"
+        - "Work billed before {form} was signed"
+        - "Change order hours hit wrong fee"
+      body:
+        - ["{b_raised}, {b_scope}.", "Partners noticed on {day}, {b_pscope}."]
+        - ["Dates use the wrong timezone.", "The new order is not linked.", "Hours hit the first open fee."]
+        - ["Finance fixes it by hand.", ""]
+      comments:
+        - "{b_cm_stage}, the same entries bill."
+        - "Counted {2-40} hours in the last run."
+    - labels: [enhancement]
+      let:
+        item: ["a travel cap", "a success fee line", "a per diem line", "a client reference field", "a purchase order split"]
+      title:
+        - "Support {item} on invoices"
+        - "Add {item} to the {b_doc}"
+        - "Clients ask for {item}, again"
+        - "{item|cap} on invoices"
+      body:
+        - ["{b_raised} for {item}.", "Engagement managers want {item}."]
+        - ["It needs a new column.", "The template needs a new line.", "Finance wants a review first."]
+      comments:
+        - "Is {item} free text or fixed?"
+        - "{b_cm_plan}"
+    - labels: [needs-decision]
+      let:
+        case: ["a written off milestone", "an unbilled retainer balance", "disputed hours", "a rebate for a late report"]
+      title:
+        - "Policy for {case}?"
+        - "Credit note rules for {case}"
+        - "Who approves {case}?"
+        - "{case|cap}: agree the rule"
+      body:
+        - ["{b_credit_path} has no limit today.", "Partners decide case by case.", "Answers differ by practice."]
+        - ["We need an answer {b_timeframe}.", "Finance should decide."]
+      comments:
+        - "A partner must sign off above {2-9}k."
+        - "{person} has the history."
+    - labels: [bug]
+      let:
+        customer: ["{b_customer}"]
+        thing: ["the invoice run", "the expense recharge", "the retainer statement", "the milestone invoice"]
+      title:
+        - "{thing|cap} goes to the wrong contact"
+        - "{thing|cap} is sent twice"
+        - "{thing|cap} shows an old PO number"
+        - "Client never gets {thing}"
+      body:
+        - ["{b_scope}, mostly {customer} accounts.", "Reported by {b_who}."]
+        - ["Contacts are cached per engagement.", "Client changes keep old contacts."]
+      comments:
+        - "Sent log shows {2-9} messages."
+        - "{b_cm_check}, maybe the contact mapping."
+  portal:
+    - labels: [bug]
+      let:
+        status: ["{mc_status}"]
+        browser: ["{b_browser}"]
+      title:
+        - "Document stays {status} on {browser}"
+        - "Clients cannot approve invoices in {browser}"
+        - "Upload fails for large decks"
+        - "Approval shows {status} after sign off"
+      body:
+        - ["Clients mention it weekly, {b_pscope}.", "{b_who|cap} gets the calls, {b_pscope}."]
+        - ["The console shows an error in {b_js_path}.", "Only files over {20-80} MB fail.", "Approval saves, status does not."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Partner reviews wait on this."
+    - labels: [bug, security]
+      let:
+        what: ["draft findings", "another client's files", "fee rates", "staff names"]
+        deck: ["{mc_deck}"]
+      title:
+        - "Clients can see {what} in the workspace"
+        - "{deck|cap} visible to the wrong client"
+        - "Workspace shows {what} to guests"
+        - "Restrict {what} on the engagement page"
+      body:
+        - ["Noticed while helping a client, {b_pscope}.", "{b_raised}."]
+        - ["Permissions are set per folder only.", "{b_sess_path} checks login, not role."]
+        - ["Keep details out of chat.", ""]
+      comments:
+        - "Add a role check, plus tests."
+        - "Check the access log first."
+    - labels: [enhancement]
+      let:
+        ask: ["download invoices in bulk", "see budget burn", "request a change order", "invite a colleague", "set a billing contact"]
+      title:
+        - "Let clients {ask} in the portal"
+        - "Clients want to {ask}"
+        - "{ask|cap}: request from {b_who}"
+      body:
+        - ["Today clients email the team.", "{b_who|cap} does it by hand."]
+        - ["Every change must be logged.", ""]
+      comments:
+        - "Do partners approve first?"
+        - "{b_cm_plan}"
+    - labels: [bug]
+      let:
+        doc: ["{mc_form}"]
+      title:
+        - "E-signing {doc} fails on mobile"
+        - "{doc|cap} loses the signature on retry"
+        - "Clients cannot open {doc}"
+      body:
+        - ["Clients give up at this step, {b_pscope}.", "{b_raised}, {b_scope}."]
+        - ["The signing provider times out.", "Nothing saves before the last step."]
+      comments:
+        - "Partners resend it by hand."
+        - "{b_cm_repro}, {b_cm_stage}."
+  docs:
+    - labels: [docs, bug]
+      let:
+        page: ["{p_docpage}"]
+        stale: ["the old fee approval limits", "retired practice codes", "last year's rate card", "the old expense policy"]
+      title:
+        - "Handbook: {page} still lists {stale}"
+        - "{page} refers to {stale}"
+        - "Out of date: {stale} in {page}"
+      body:
+        - ["New joiners follow it, then stall.", "Support corrects it in chat."]
+        - ["Limits changed on {day}.", "Practices were reorganised."]
+      comments:
+        - "I can fix it {b_timeframe}."
+        - "Ask {person}, who ran it."
+    - labels: [docs, task]
+      let:
+        process: ["the month end invoice run", "a rate card update", "a staffing plan import", "closing an engagement", "a client write off"]
+      title:
+        - "How-to: {process}"
+        - "Write down {process} for new engineers"
+        - "Runbook for {process}"
+      body:
+        - ["Only {person} knows it.", "It spreads by word of mouth."]
+        - ["Include cutoff times and approvers.", "List failures and who to call."]
+      comments:
+        - "Link it from the finance runbook."
+        - "{person} can review it."
+    - labels: [docs, needs-decision]
+      let:
+        policy: ["client data retention", "working paper retention", "expense policy changes", "client file deletion"]
+      title:
+        - "Decide how we document {policy}"
+        - "{policy|cap}: docs disagree with practice"
+        - "What is our rule for {policy}?"
+      body:
+        - ["Risk asked for a written rule.", "Practices follow different habits."]
+        - ["Risk should decide this."]
+      comments:
+        - "Contracts differ by client."
+        - "Let's decide on {day}."
+  data:
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+        feed: ["{p_source}"]
+      title:
+        - "Duplicate rows in {table} after the reload"
+        - "{table|cap} has null rates for {2-400} rows"
+        - "{feed|cap} double counts {table}"
+        - "Utilisation is {2-9} percent off finance"
+      body:
+        - ["Noticed in {feed}.", "{b_raised}."]
+        - ["Part time staff count twice.", "Leave days count as billable.", "Timezones move entries a day."]
+      comments:
+        - "Dedupe on the entry id."
+        - "{b_cm_check} the upstream export."
+    - labels: [bug, incident]
+      let:
+        feed: ["{p_source}"]
+        change: ["a new column", "a renamed field", "a changed date format", "a split project code"]
+      title:
+        - "{feed|cap} adds {change}, the load fails"
+        - "Nightly load fails after {change}"
+        - "Upstream {change} broke the utilisation load"
+      body:
+        - ["The load stops at validation.", "Dashboards stay stale until noon."]
+        - ["The owner changed it silently.", "Partners spotted it first."]
+      comments:
+        - "Pin the schema, alert on drift."
+        - "{b_cm_later}"
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        owner: ["the practice leads", "finance", "the partners", "talent management"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Should {owner} get {source} in the warehouse?"
+        - "Margin by practice needs {source}"
+      body:
+        - ["{owner|cap} asked {b_timeframe}.", "Today it lives in a sheet."]
+        - ["It must not hold client names.", "Mask names before the load."]
+      comments:
+        - "Is the file daily or weekly?"
+        - "Check with {person} on masking."
+    - labels: [enhancement]
+      let:
+        report: ["{p_report}"]
+      title:
+        - "Alert if {report} is not ready by {6-8}am"
+        - "Refresh {report} before partners wake"
+        - "{report|cap} is late at {mc_peak}"
+      body:
+        - ["Partners read it first thing.", "At month end it is late."]
+      comments:
+        - "The load slows around {mc_peak}."
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["the portal certificate", "the sign-on certificate", "the document vault key", "the finance file transfer key"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} renewal never ran"
+        - "Warn two weeks before {cert} expires"
+      body:
+        - ["It expired on {day}, clients saw errors.", "Nobody was warned."]
+        - ["Add the date to the calendar.", "Page the on-call rota."]
+      comments:
+        - "The provider needs {2-5} days."
+        - "Done on staging."
+    - labels: [bug, performance]
+      let:
+        peak: ["{mc_peak}"]
+        target: ["the invoice workers", "the portal pods", "the time import job", "the export service"]
+      title:
+        - "Scale {target} before {peak}"
+        - "{target|cap} runs out of memory at {peak}"
+        - "Set limits for {target} ahead of {peak}"
+      body:
+        - ["Time entries arrive in a wave.", "The portal slowed last time."]
+        - ["Raise the limits and try them.", "Add autoscaling before {day}."]
+      comments:
+        - "Peak was {2-5} times normal."
+        - "{b_cm_plan}"
+    - labels: [question, needs-decision]
+      let:
+        access: ["read access to client folders", "the finance database", "the vault admin role", "the staffing plan export"]
+      title:
+        - "Access request: {access} for {b_who}"
+        - "Who should have {access}?"
+        - "Review {access} before the audit"
+      body:
+        - ["Client audits ask for the list.", "Access is granted by chat today."]
+      comments:
+        - "Quarterly review is overdue."
+    - labels: [chore, security]
+      let:
+        thing: ["client files in staging", "shared keys", "vendor API tokens", "old guest accounts"]
+      title:
+        - "Clean up {thing}"
+        - "{thing|cap} are never rotated"
+        - "Staging holds real {thing}"
+      body:
+        - ["Found during an access check.", "Clients may ask."]
+      comments:
+        - "Keep details out of chat."
+  ops:
+    - labels: [question]
+      let:
+        script: ["{p_script}"]
+      title:
+        - "Is {script} still used by finance?"
+        - "Can we delete {script}?"
+        - "{script} still emails partners on Fridays"
+      body:
+        - ["Nobody remembers who asked for it.", "It was for the old system."]
+      comments:
+        - "{person} might know."
+comments:
+  - "Which client and which engagement?"
+  - "Does it touch fees or reports?"
+  - "Partners keep asking about this."
+  - "Check the rate card first."
+  - "Can finance confirm the cap?"
+  - "The deadline is {day}, so {b_timeframe} is late."
+chat:
+  town-square:
+    - root: ["timesheets are due {day} at {time}", "reminder: time entry locks {day} at {time}", "{c_hey}: expenses close at {time} on {day}", "managers, approve open time by {time}", "quarter end, entries lock early, {day}"]
+      replies:
+        - ["{c_thanks}", "{c_ack}", "does that include travel?"]
+        - ["{c_yes}, all practices", "{c_no}, offices abroad get a day", ""]
+    - root: ["welcome {person}, joining the {strategy/finance/operations} team {c_soon}", "{c_hey}, new analysts start {day}, say hi", "{person} made partner, congratulations", "{person} won the big pitch"]
+      replies:
+        - ["{c_em}", "congrats!", "great news"]
+    - root: ["the room booking tool is down", "wifi in {c_floor} is flaky", "{c_hey}: vpn certificate changes {c_soon}", "phones on {c_floor} are being replaced {c_soon}", "badge readers are out again"]
+      replies:
+        - ["same here", "{c_yes}, since {time}", "ticket is open"]
+        - ["thanks for the heads up", "{c_ack}", ""]
+  off-topic:
+    - root: ["anyone going to the {game/match} {tonight/saturday}?", "lunch run to {c_place}, who is in?", "{c_pet} is {sick/better} today, working from home", "best airport lounge tip?", "who is bringing {c_food} on {day}?"]
+      replies:
+        - ["{c_yes}, count me in", "{c_no}, sorry", "{c_lol}"]
+        - ["order by {time}", "there is a {10-20} percent off code", ""]
+    - root: ["{c_hey}: charity run sign up is open", "happy birthday {person}!", "who has a spare charger?", "read any good business books lately?"]
+      replies:
+        - ["{c_lol}", "{c_em}", "oh no"]
+    - root: ["office plants need a rota, volunteers?", "who left a mug in {c_room}?", "the printer on {c_floor} jams again", "bake sale on {day}, bring something"]
+      replies:
+        - ["not me", "{c_lol}", "i will water them"]
+  engineering:
+    - root: ["can someone review my pr on {repo}? {c_patch}", "{c_ci_fail} is failing again on main", "is time sync slow for anyone?", "who touched the rate lookup in {repo}?", "{service} errors after the {day} deploy, ideas?"]
+      replies:
+        - ["{b_cm_check}", "looking now", "{c_ack}"]
+        - ["rolled back and it is fine", "found it, stale rate cache", ""]
+    - root: ["rate cards in {the database/config}?", "rate card versions, keep history?", "invoice run: incremental or full?", "store the currency on every line?"]
+      replies:
+        - ["database, finance edits them", "keep history, auditors ask", "{c_idk}"]
+        - ["let's document it", "agreed", ""]
+    - root: ["heads up: month end deploy freeze", "no deploys on {day} until invoices go", "freeze starts {day} at {time}", "no releases before the invoice run?"]
+      replies:
+        - ["{c_ack}", "noted", "what about hotfixes?"]
+        - ["hotfixes go through {person}", ""]
+  team:
+    - root: ["standup in {5-15} minutes, {c_status} on my side", "who covers finance support {day}?", "{c_hey}, who is on call this week?", "retro action: who approves reruns", "sprint planning at {time}, add estimates"]
+      replies:
+        - ["i can cover", "{c_pto}", "{c_ack}"]
+        - ["thanks", ""]
+    - root: ["client escalation: {c_customer} says the invoice is wrong", "{c_customer} disputes {2-40} hours", "markup differs for {c_customer}, why?", "{c_customer} wants a new rate from {day}"]
+      replies:
+        - ["pulling the time entries", "which engagement?", "i will check the rate card"]
+        - ["their contract caps it", "the partner edited the hours", ""]
+    - root: ["release prep for {repo}: who has the checklist?", "who owns the staffing sync now?", "is the board up to date?", "{person}{c_sep} review my pr when free?"]
+      replies:
+        - ["it is in the handbook", "{person} does", "i think so"]
+  support:
+    - root: ["a consultant says time shows {mc_status}. {anyone/has anyone} seen this?", "partner asks why a fee is {10-80} short", "analyst cannot find the engagement code", "client never got the invoice, {s_ticket}", "consultant asks to fix a code, {s_ticket}"]
+      replies:
+        - ["checking the entries", "which practice?", "sending a reset now"]
+        - ["it was a closed code", "the manager had rejected it", ""]
+    - root: ["queue is at {20-90} open tickets, mostly time entry", "{c_hey}: heads up, {c_customer} is upset, waiting {2-5} days", "month end calls are up, {c_status}", "handover: {5-20} open tickets, nothing on fire"]
+      replies:
+        - ["i can take a few", "{c_ack}", "{c_em}"]
+    - root: ["macro for a missing {PO/code/approval}?", "client got no workspace invite", "can we resend an invoice?", "consultant lost portal access, what now?"]
+      replies:
+        - ["use the invoice macro", "{c_yes}, from the admin console", "{c_idk}"]
+        - ["done", ""]
+  incidents:
+    - let:
+        what: ["the invoice run", "the time import", "the expense export", "the staffing sync"]
+      root: ["time import alert is flapping", "invoice run failed at {time}, retrying", "near miss: {what} almost failed, a retry saved it", "{c_hey}: portal is down, no approvals", "the invoice run backed up to {1-9},{100-900} entries"]
+      replies:
+        - ["looking", "i have the logs", "{c_ack}"]
+        - ["restarted the worker, it clears", "vendor says it is fixed", ""]
+    - let:
+        host: ["the finance database host", "the portal web host", "the file transfer host", "a worker node"]
+      root: ["certificate for the portal expires in {2-9} days", "document uploads are {10-40} minutes late", "the expense feed is empty since {time}", "{host} is at {80-95} percent disk"]
+      replies:
+        - ["on it", "{c_ack}", "who owns this?"]
+        - ["done", ""]
+    - root: ["review of the invoice failure is {day} at {time}", "on-call handover: nothing open", "rolled back the portal, all fine", "invoice export woke me at {time}"]
+      replies:
+        - ["thanks", "{c_ack}", "rough night"]
+  direct:
+    - root: ["{s_hey}, could you check the rate card {s_soon}?", "quick question: fixed fee billing for {mc_client}?", "{s_hey}, thought you would like this article", "lunch? {s_lunch} at {time}", "{s_hey}, login for the finance dashboard? {s_pw_d}"]
+      replies:
+        - ["{s_ack}", "sure, give me {5-30} min", "i will ask {person}"]
+        - ["thanks", "{c_thanks}", ""]
+    - let:
+        what: ["the invoice run", "the rate card change", "the staffing import"]
+      root: ["can we move our {1:1/sync} to {time}?", "minute for {what}?", "handing over {what}, out {s_soon}", "ugh, {mc_client} changed the contact again"]
+      replies:
+        - ["{c_yes}", "sure", "{c_ack}"]
+    - let:
+        pr: ["the rate card pr", "my time entry fix", "the invoice export change"]
+        when: ["on {day}", "next week", "tomorrow morning"]
+      root: ["can you read this runbook before {day}?", "{s_hey}, could you review {pr} when you can?", "survived the month end, finally", "i am working from home {when}"]
+      replies:
+        - ["{c_agree}", "nice", "{c_ack}"]
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title: ["Client invoice emails delayed", "Invoices arriving late to clients", "Invoice run emails slow", "Clients waiting on invoice emails"]
+    alert:
+      - "{s_inv_late}, {s_inv_late_b}"
+      - "{s_al} invoice emails delayed, {s_inv_late_b}"
+      - "client invoice emails delayed - {s_inv_late_b}"
+    fix_message:
+      - "{s_q_verb|cap} invoice emails {s_q_how}"
+      - "Queue client emails, not inline sends"
+      - "{s_q_verb|cap} invoice mail {s_q_how}"
+  - role: billing
+    fix: billing/sent_log.py
+    title: ["Duplicate client invoice emails", "Clients receiving invoices twice", "Repeated invoice emails to clients", "Contacts got the same invoice twice"]
+    alert:
+      - "contacts got invoices twice, {s_dup_b}"
+      - "{s_al} duplicate invoice emails, {s_dup_b}"
+      - "same invoice mailed repeatedly - {s_dup_b}"
+    fix_message:
+      - "{s_dup_fix|cap}"
+      - "Invoice mailer: {s_dup_fix}"
+      - "Fix duplicate invoice emails, {s_dup_fix}"

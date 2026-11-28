@@ -1,0 +1,498 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Staffing and recruiting: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: staffing-recruiting
+name: Staffing and recruiting
+group: Professional services and real estate
+aliases: [staffing agency, recruitment agency, temp staffing, talent solutions, executive search]
+description: A staffing firm that places temporary and permanent workers with client companies, pays them through payroll and bills the clients for their hours and placements.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Staffing, Talent Partners, Workforce Solutions, Personnel, Search Group, Recruiting]
+invoice_items: ["Temporary labor hours", "Permanent placement fee"]
+organization:
+  head: Director of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform: {department: Technology, title: Platform Engineer}
+    billing: {department: Billing Systems, title: Billing Systems Developer}
+    data: {department: Analytics, title: Data Analyst}
+    support: {department: Recruiter Support, title: Support Specialist}
+    product: {department: Product, title: Product Owner}
+    operations: {department: Branch Operations, title: Operations Coordinator}
+names:
+  repos:
+    billing-service: [timesheet-billing, client-billing, payroll-billing, bill-runs]
+    platform-docs: [tech-handbook, systems-handbook, branch-runbooks, platform-docs]
+    data-pipeline: [placement-loads, ats-warehouse, reporting-loads, analytics-feeds]
+    infra-config: [infra-config, branch-infra, environment-config, deploy-config]
+    customer-portal: [worker-portal, client-portal, timesheet-portal, candidate-portal]
+    ops-scripts: [branch-scripts, legacy-scripts, payroll-scripts, old-ops]
+  channels:
+    engineering: [tech, engineering, dev-team]
+    incidents: [payroll-incidents, incidents, outages]
+    releases: [releases, deploys, release-notes]
+    billing-team: [billing-systems, bill-run, billing-team]
+    support: [recruiter-support, branch-help, support]
+    leads: [branch-leads, leads, managers]
+systems:
+  typical: [github, slack, microsoft 365, okta, jira, confluence, Greenhouse, Workday, bullhorn]
+  common: [pagerduty, datadog, zendesk, Salesforce, DocuSign]
+symbols:
+  b_doc: ["timesheet invoice", "client invoice", "weekly client invoice", "placement fee invoice", "credit memo", "{monthly/weekly} billing statement"]
+  b_customer: ["light industrial client", "clinical staffing", "office temp", "managed services", "direct hire", "large account"]
+  b_who: ["the billing desk", "a branch manager", "payroll", "the account manager", "a recruiter"]
+  b_pwho: ["a recruiter", "a client contact", "{person}", "payroll", "the branch"]
+  b_currency: ["USD", "CAD", "GBP", "EUR", "AUD"]
+  b_taxkind: ["state unemployment tax", "sales tax", "VAT", "GST", "local payroll tax"]
+  b_region: ["Texas", "Ontario", "California", "Ohio", "Florida", "New York", "Illinois"]
+  b_page: ["timesheets", "pay stubs", "assignments", "the dashboard", "tax forms", "availability"]
+  b_acct_size: ["{200-900} timesheets a week", "{15-60} approvers", "{40-300} active workers", "{3-12} cost centres"]
+  b_browser: ["Safari on iPhone", "an older Android browser", "Edge", "Firefox", "Chrome on a tablet"]
+  b_provider_event: ["payroll file accepted", "payroll file rejected", "direct deposit returned", "client payment received", "client payment reversed", "vendor portal approval"]
+  c_customer: ["a large client", "a hospital client", "a warehouse client", "a vendor management portal", "a new client"]
+  s_plan: ["the standard markup", "a volume rate card", "the managed services deal", "a direct hire contract"]
+  p_source: ["the applicant tracking export", "the payroll provider's tax files", "the background check vendor feed", "the vendor management portal report", "the timeclock exports"]
+  p_report: ["the weekly gross margin report", "the fill rate report", "the time to submit report", "the open orders report", "the worker count by branch"]
+  p_table: ["timesheets", "placements", "candidates", "assignments", "pay_lines", "client_orders"]
+  p_finance_ask: ["the controller", "the payroll manager", "someone in billing", "the finance director"]
+  c_eng_area: ["the timesheet approval flow", "the pay rate lookup", "the overtime calculation", "the bill run job", "the onboarding forms", "the shift reminder texts"]
+  s_thing: ["the bill run", "the payroll export", "the timesheet import", "the shift text job", "the onboarding sync"]
+  st_rule: ["overtime after {40-44} hours", "the daily overtime rule", "double time on holidays", "prevailing wage rates", "the shift differential", "the weekly minimum"]
+  st_client: ["a hospital client", "a warehouse client", "a call centre client", "an events client", "a government contractor"]
+  st_vendor: ["the background check vendor", "the payroll provider", "the vendor management portal", "the e-verify service", "the skills assessment vendor"]
+  st_form: ["the I-9", "the W-4", "the direct deposit form", "the offer letter", "the assignment confirmation", "the drug screen consent"]
+  st_peak: ["the holiday rush", "the tax season rush", "the summer hiring wave", "the January start", "the end of quarter surge"]
+  st_status: ["pending approval", "rejected", "missing a signature", "stuck in review", "approved twice"]
+  st_report_to: ["the branch manager", "the account manager", "the client approver", "the recruiter"]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        rule: ["{st_rule}"]
+        client: ["{st_client}"]
+      title:
+        - "Overtime bill rate is wrong for {rule} at {client}"
+        - "{rule|cap} not applied on {client} timesheets"
+        - "Bill rate markup breaks with {rule}"
+        - "Markup on {rule} comes out {low/high} for {client}"
+        - "Timesheet invoice for {client} ignores {rule}"
+      body:
+        - ["{b_raised}, {b_scope}.", "Billing saw it first, {b_pscope}."]
+        - ["Markup hits the base rate only.", "Overtime is billed straight time.", "The rate card lookup in {b_money_path} skips the rule."]
+        - ["{b_urgent}", "The client disputes the {doc/bill}.", ""]
+      comments:
+        - "{b_cm_repro} with a {40-60} hour week."
+        - "{b_cm_check}, the rate card repeats a code."
+        - "Payroll is right, billing is off."
+    - labels: [bug]
+      let:
+        form: ["{st_vendor}"]
+        event: ["{b_provider_event}"]
+      title:
+        - "Payroll file from {form} rejected after the cutoff"
+        - "{event|cap} not matched to a timesheet batch"
+        - "Direct deposit file returned for {2-30} workers"
+        - "Workers paid twice after {event}"
+        - "Payroll export fails with two assignments"
+      body:
+        - ["{b_raised}, {b_scope}.", "Payroll flagged it on {day}, {b_pscope}."]
+        - ["The export in {b_cb_path} does not retry.", "Rejected rows vanish silently.", "Two assignments make one pay line."]
+        - ["Payroll fixes it by hand weekly.", "Workers call the branch on payday.", ""]
+      comments:
+        - "Counted {2-40} workers in the last file."
+        - "{b_cm_stage}, the same rows fail."
+        - "The provider says the format changed."
+    - labels: [enhancement]
+      let:
+        item: ["a conversion fee", "a placement guarantee period", "a flat markup cap", "a per diem line", "a shift premium line"]
+      title:
+        - "Support {item} on client invoices"
+        - "Add {item} to the rate card"
+        - "Clients ask for {item} on the {b_doc}"
+        - "{item|cap}, requested again"
+      body:
+        - ["{b_raised} for {item}.", "Account managers want {item} on contracts."]
+        - ["It needs a rate card column.", "The template needs a new line.", "Payroll must not see bill rates."]
+      comments:
+        - "Does {item} apply to temp-to-hire only?"
+        - "{b_cm_plan}, the template needs {person}."
+    - labels: [bug, needs-decision]
+      let:
+        case: ["a temp-to-hire conversion", "a worker who quits early", "a client that ends early", "a placement that falls through"]
+      title:
+        - "Refund or credit when {case}?"
+        - "Credit memo rules for {case}"
+        - "Placement fee after {case}: who decides?"
+        - "{case|cap} leaves a fee invoice open"
+      body:
+        - ["{b_credit_path} ignores the guarantee period.", "Credits are written by hand today.", "Billing handles each case differently."]
+        - ["The account team needs to decide.", "We need an answer {b_timeframe}."]
+      comments:
+        - "Most contracts say {30-90} days."
+        - "{person} has the contract list."
+    - labels: [bug]
+      let:
+        customer: ["{b_customer}"]
+        thing: ["the weekly client invoice", "the pay stub", "the assignment letter", "the timesheet reminder"]
+      title:
+        - "{thing|cap} goes to the wrong approver"
+        - "Approval email for {thing} sent twice"
+        - "{thing|cap} shows last week's hours"
+        - "Client approver never gets {thing}"
+      body:
+        - ["{b_scope}, mostly {customer} accounts.", "Reported by {b_who}."]
+        - ["Approvers are cached per client.", "Moved branches keep old approvers."]
+      comments:
+        - "Sent log shows {2-9} messages for one timesheet."
+        - "{b_cm_check}, maybe the branch mapping."
+  portal:
+    - labels: [bug]
+      let:
+        status: ["{st_status}"]
+        browser: ["{b_browser}"]
+      title:
+        - "Timesheet stays {status} on {browser}"
+        - "Workers cannot submit hours from {browser}"
+        - "Submit does nothing for weekend shifts"
+        - "Timesheet shows {status} after the client approved it"
+      body:
+        - ["Workers report it every payday, {b_pscope}.", "Branches get calls on {day}, {b_pscope}."]
+        - ["The console shows an error in {b_js_path}.", "Only shifts that cross midnight fail.", "Approval saves, status does not."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Night shifts split into two days."
+        - "The deadline for {day} payroll matters here."
+    - labels: [bug, security]
+      let:
+        what: ["part of a social security number", "bank account details", "a home address", "a driver licence number"]
+      title:
+        - "{what|cap} shown to client approvers"
+        - "Client portal exposes {what}"
+        - "{what|cap} visible in the worker export"
+        - "Mask {what} on the pay stub page"
+      body:
+        - ["Noticed while helping a client, {b_pscope}.", "{b_raised}."]
+        - ["Approvers get the {worker/pay stub} template.", "Nothing masks it in {b_sess_path}."]
+        - ["Keep details out of chat.", "Keep this out of open channels."]
+      comments:
+        - "It needs a role check, {b_cm_roletest}"
+        - "Check the access log for approvers."
+    - labels: [enhancement]
+      let:
+        ask: ["upload a certification", "update direct deposit", "see tax forms", "pick shifts", "set availability"]
+      title:
+        - "Let workers {ask} in the portal"
+        - "Workers want to {ask} without calling the branch"
+        - "{ask|cap}: portal request from {b_who}"
+        - "Add a way to {ask}"
+      body:
+        - ["Today workers call the branch to {ask}.", "{b_who|cap} handles it by hand."]
+        - ["Bank changes need a second check.", "Every change must be logged.", ""]
+      comments:
+        - "Check identity before bank edits."
+        - "{b_cm_plan}"
+    - labels: [bug]
+      let:
+        doc: ["{st_form}"]
+      title:
+        - "E-signing {doc} fails on mobile"
+        - "{doc|cap} loses the signature on a retry"
+        - "Onboarding stalls after {doc}"
+        - "New hires cannot finish {doc}"
+      body:
+        - ["Workers abandon onboarding at this step, {b_pscope}.", "{b_raised}, {b_scope}."]
+        - ["The signature provider returns a timeout.", "Nothing saves before the last page."]
+      comments:
+        - "Recruiters resend the link manually."
+        - "{b_cm_repro}, {b_cm_stage}."
+  docs:
+    - labels: [docs, bug]
+      let:
+        page: ["{p_docpage}"]
+        stale: ["the old payroll cutoff", "the retired branch codes", "last year's holiday calendar", "the old vendor portal login"]
+      title:
+        - "Handbook: {page} still lists {stale}"
+        - "{page} refers to {stale}"
+        - "Out of date: {stale} in {page}"
+      body:
+        - ["New joiners follow it, then stall.", "Support keeps correcting it in chat."]
+        - ["The cutoff changed on {day}.", "The branch list was reorganised."]
+      comments:
+        - "I can fix it {b_timeframe}."
+        - "Ask {person}, who ran the change."
+    - labels: [docs, task]
+      let:
+        process: ["the weekly bill run", "a payroll rerun", "a prevailing wage update", "onboarding a client portal", "closing a branch"]
+      title:
+        - "How-to: {process}"
+        - "Write down {process} for new engineers"
+        - "Runbook for {process}"
+      body:
+        - ["Only {person} knows the steps.", "It spreads by word of mouth."]
+        - ["Include cutoff times and approvers.", "List failures and who to call."]
+      comments:
+        - "Link it from the billing runbook."
+        - "{person} can review it."
+    - labels: [docs, needs-decision]
+      let:
+        policy: ["I-9 retention", "background check retention", "timesheet retention", "worker data deletion"]
+      title:
+        - "Decide how we document {policy}"
+        - "{policy|cap}: docs disagree with practice"
+        - "What is our rule for {policy}?"
+      body:
+        - ["Compliance asked for a written rule.", "Branches follow different habits."]
+        - ["Compliance should decide this."]
+      comments:
+        - "Rules differ by state."
+        - "Let's decide on {day}."
+  data:
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+        feed: ["{p_source}"]
+      title:
+        - "Duplicate rows in {table} after the reload"
+        - "{table|cap} has null bill rates for {2-400} rows"
+        - "{feed|cap} double counts {table}"
+        - "Fill rate report is {2-9} percent off the ATS"
+      body:
+        - ["Noticed in {feed}.", "{b_raised}."]
+        - ["Reopened orders count as new orders.", "Workers on two assignments appear twice.", "Timezones move shifts a day."]
+      comments:
+        - "Dedupe on the assignment id."
+        - "{b_cm_check} the upstream export."
+    - labels: [bug, incident]
+      let:
+        feed: ["{p_source}"]
+        change: ["a new column", "a renamed field", "a changed date format", "a split status code"]
+      title:
+        - "{feed|cap} adds {change}, the load fails"
+        - "Nightly load fails after {change}"
+        - "Upstream {change} broke the placement load"
+      body:
+        - ["The load stops at validation.", "Dashboards are stale until noon."]
+        - ["The vendor changed it without notice.", "We found out from the branches."]
+      comments:
+        - "Pin the schema, alert on drift."
+        - "{b_cm_later}"
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        owner: ["recruiting operations", "finance", "the branch managers", "the compliance team"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Should {owner} get {source} in the warehouse?"
+        - "Margin by branch needs {source}"
+      body:
+        - ["{owner|cap} asked for it {b_timeframe}.", "Today it lives in a sheet."]
+        - ["It must not include worker identifiers.", "Mask personal data before the load."]
+      comments:
+        - "Is the file daily or weekly?"
+        - "Check with {person} on masking."
+    - labels: [enhancement]
+      let:
+        report: ["{p_report}"]
+      title:
+        - "Alert if {report} is not ready by {6-8}am"
+        - "Make {report} refresh before the branch opens"
+        - "{report|cap} is late on Mondays"
+      body:
+        - ["Branch managers read it first thing.", "Payday week it is always late."]
+      comments:
+        - "The load slows around {st_peak}."
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["the portal certificate", "the VMS integration certificate", "the payroll file transfer key", "the SSO signing certificate"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} renewal never ran"
+        - "Warn two weeks before {cert} expires"
+      body:
+        - ["It expired on {day} and workers saw errors.", "Nobody was warned."]
+        - ["Put the date in the calendar.", "Page the on-call rota."]
+      comments:
+        - "The vendor needs {2-5} days to accept a new key."
+        - "Done on staging."
+    - labels: [bug, performance]
+      let:
+        peak: ["{st_peak}"]
+        target: ["the timesheet workers", "the portal pods", "the payroll export job", "the SMS gateway client"]
+      title:
+        - "Scale {target} before {peak}"
+        - "{target|cap} runs out of memory during {peak}"
+        - "Set limits for {target} ahead of {peak}"
+      body:
+        - ["The portal slowed last payday.", "Timesheets arrive in a wave on {day}."]
+        - ["Raise the limits and try them.", "Add autoscaling for the {day} deadline."]
+      comments:
+        - "Peak was {2-5} times a normal day."
+        - "{b_cm_plan}"
+    - labels: [question, needs-decision]
+      let:
+        access: ["read access to the payroll database", "the vendor SFTP drop", "the staging worker records", "the warehouse admin role"]
+      title:
+        - "Access request: {access} for {b_who}"
+        - "Who should have {access}?"
+        - "Review {access} before the audit"
+      body:
+        - ["The payroll audit wants the list.", "Access is granted by chat today."]
+      comments:
+        - "Quarterly review is overdue."
+    - labels: [chore, security]
+      let:
+        thing: ["worker records in staging", "SFTP keys", "the vendor API tokens", "old branch accounts"]
+      title:
+        - "Clean up {thing}"
+        - "{thing|cap} are never rotated"
+        - "Staging holds real {thing}"
+      body:
+        - ["Found during an access check.", "Auditors may ask."]
+      comments:
+        - "Keep details out of chat."
+  ops:
+    - labels: [question]
+      let:
+        script: ["{p_script}"]
+      title:
+        - "Is {script} still used by the branches?"
+        - "Can we delete {script}?"
+        - "{script} still emails payroll on Fridays"
+      body:
+        - ["Nobody remembers who asked for it.", "It was for the old timeclock."]
+      comments:
+        - "{person} might know."
+comments:
+  - "Payroll cutoff is {day} at {time}, so {b_timeframe} is too late."
+  - "Which client and which branch?"
+  - "Is pay affected or only billing?"
+  - "Recruiters keep asking about this."
+  - "Check the rate card first."
+  - "Can billing confirm the markup?"
+chat:
+  town-square:
+    - root: ["payday is {day}, timesheet deadline is {time}", "reminder: timesheets lock {day} at {time}", "{c_hey}: payroll cutoff moved to {time} on {day}", "branch managers, approve timesheets by {time}", "holiday week, payroll cutoff is early, {day}"]
+      replies:
+        - ["{c_thanks}", "{c_ack}", "does that include the night shift?"]
+        - ["{c_yes}, all branches", "{c_no}, nights get an extra day", ""]
+    - root: ["welcome {person}, joining the {branch/recruiting/billing} team {c_soon}", "{c_hey}, new recruiters start {day}, say hi", "{person} just placed {3-12} people in one day, nice", "{person} hit {5-40} placements this quarter"]
+      replies:
+        - ["{c_em}", "congrats!", "great work"]
+    - root: ["job board posting is down{c_sep} use the old form", "applicant tracking is slow, anyone else?", "{c_hey}: vpn certificate changes {c_soon}", "phones in {c_floor} are being replaced {c_soon}", "badge readers are out on {c_floor} again"]
+      replies:
+        - ["same here", "{c_yes}, since {time}", "ticket is open"]
+        - ["thanks for the heads up", "{c_ack}", ""]
+  off-topic:
+    - root: ["anyone going to the {game/match} {tonight/saturday}?", "lunch run to {c_place}, who is in?", "{c_pet} is {sick/better} today, working from home", "best commute hack anyone has?", "who is bringing {c_food} on {day}?"]
+      replies:
+        - ["{c_yes}, count me in", "{c_no}, sorry", "{c_lol}"]
+        - ["order by {time}", "there is a {10-20} percent off code", ""]
+    - root: ["a candidate sent a {resume/cv} with {3-9} fonts", "the {sports/league} fantasy draft is {day}", "{c_hey}: charity run sign up is open", "happy birthday {person}!"]
+      replies:
+        - ["{c_lol}", "{c_em}", "oh no"]
+    - root: ["office plants need a rota, volunteers?", "who left a mug in {c_room}?", "the printer on {c_floor} jams again", "bake sale on {day}, bring something"]
+      replies:
+        - ["not me", "{c_lol}", "i will water them"]
+  engineering:
+    - root: ["can someone review my pr on {repo}? {c_patch}", "{c_ci_fail} is failing again on main", "is timesheet sync slow for anyone?", "who touched the overtime rules in {repo}?", "{service} errors after the {day} deploy, any ideas?"]
+      replies:
+        - ["{b_cm_check}", "looking now", "{c_ack}"]
+        - ["rolled back and it is fine", "found it, stale rate cache", ""]
+    - root: ["rate cards in {the database/config}?", "rate card versions, keep history?", "bill run: incremental or full?", "tax state on every pay line?"]
+      replies:
+        - ["database, finance edits them", "keep history, auditors ask", "{c_idk}"]
+        - ["let's document it", "agreed", ""]
+    - root: ["heads up: payroll week deploy freeze", "no deploys on {day} until payroll closes", "freeze starts {day} at {time}, ends after the bill run", "no releases before month end?"]
+      replies:
+        - ["{c_ack}", "noted", "what about hotfixes?"]
+        - ["hotfixes go through {person}", ""]
+  team:
+    - root: ["standup in {5-15} minutes, {c_status} on my side", "who covers payroll support {day}?", "{c_hey}, who is on call this week?", "retro action: who approves bill reruns", "sprint planning at {time}, please add estimates"]
+      replies:
+        - ["i can cover", "{c_pto}", "{c_ack}"]
+        - ["thanks", ""]
+    - root: ["client escalation: {c_customer} says the invoice is wrong", "{c_customer} disputes {2-40} hours on last week's invoice", "markup differs for {c_customer}, why?", "{c_customer} wants a rate change from {day}"]
+      replies:
+        - ["pulling the timesheets", "which week?", "i will check the rate card"]
+        - ["their contract has a rounding rule", "the approver edited the hours", ""]
+    - root: ["release prep for {repo}: who has the checklist?", "who owns the vendor portal link?", "is the board up to date?", "{person}{c_sep} review my pr when free?"]
+      replies:
+        - ["it is in the handbook", "{person} does", "i think so"]
+  support:
+    - root: ["a worker says their timesheet shows {st_status}. {anyone/has anyone} seen this?", "worker asks why the pay is {10-80} dollars short this week", "recruiter cannot find the placement for {person}'s candidate", "approver never got the email, {s_ticket}", "worker asks to change direct deposit, {s_ticket}"]
+      replies:
+        - ["checking the pay lines", "which branch?", "sending a reset now"]
+        - ["it was a missing break rule", "the approver had rejected it", ""]
+    - root: ["queue is at {20-90} open tickets, mostly timesheet questions", "{c_hey}: heads up, {c_customer} is upset, waiting {2-5} days", "payday calls are up, we are {c_status}", "handover: {5-20} open tickets, nothing on fire"]
+      replies:
+        - ["i can take a few", "{c_ack}", "{c_em}"]
+    - root: ["macro for a missing {I-9/W-4/offer} signature?", "worker got no onboarding text", "can we resend a pay stub?", "worker lost portal access, what now?"]
+      replies:
+        - ["use the onboarding macro", "{c_yes}, from the admin console", "{c_idk}"]
+        - ["done", ""]
+  incidents:
+    - let:
+        what: ["the timesheet import", "the payroll export", "the nightly pay run", "the shift text job"]
+      root: ["timesheet import alert is flapping", "payroll file upload failed at {time}, retrying", "near miss: {what} almost failed, the retry saved it", "{c_hey}: vendor portal down, no approvals", "the bill run backed up to {1-9},{100-900} timesheets"]
+      replies:
+        - ["looking", "i have the logs", "{c_ack}"]
+        - ["restarted the worker, it clears", "vendor says it is fixed", ""]
+    - let:
+        host: ["the timesheet database host", "the portal web host", "the file transfer host", "a worker node"]
+      root: ["certificate for the portal expires in {2-9} days", "shift texts are {10-40} minutes late", "job board feed empty since {time}", "{host} is at {80-95} percent disk"]
+      replies:
+        - ["on it", "{c_ack}", "who owns this?"]
+        - ["done", ""]
+    - root: ["payroll file review is {day} at {time}", "on-call handover: nothing open", "rolled back the portal, all fine", "payroll export woke me at {time}"]
+      replies:
+        - ["thanks", "{c_ack}", "rough night"]
+  direct:
+    - root: ["{s_hey}, could you check the rate card {s_soon}?", "quick question: overtime billing for {st_client}?", "{s_hey}, thought you would like this article", "lunch? {s_lunch} at {time}", "{s_hey}, login for the vendor portal? {s_pw_d}"]
+      replies:
+        - ["{s_ack}", "sure, give me {5-30} min", "i will ask {person}"]
+        - ["thanks", "{c_thanks}", ""]
+    - root: ["can we move our {1:1/sync} to {time}?", "minute for the bill run?", "handing over payroll file, out {s_soon}", "ugh, {st_client} changed the approver again"]
+      replies:
+        - ["{c_yes}", "sure", "{c_ack}"]
+    - let:
+        pr: ["the rate card pr", "my timesheet fix", "the payroll export change"]
+        when: ["on {day}", "next week", "tomorrow morning"]
+      root: ["can you read this runbook before {day}?", "{s_hey}, could you review {pr} when you can?", "survived the payroll week, finally", "i am working from home {when}"]
+      replies:
+        - ["{c_agree}", "nice", "{c_ack}"]
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title: ["Client invoice emails delayed", "Timesheet invoice emails arriving late", "Invoices not reaching client approvers", "Client approver emails slow"]
+    alert:
+      - "{s_inv_late}, {s_inv_late_b}"
+      - "{s_al} timesheet approval emails delayed, {s_inv_late_b}"
+      - "client approval emails delayed - {s_inv_late_b}"
+    fix_message:
+      - "{s_q_verb|cap} approval emails {s_q_how}"
+      - "Queue client emails, not inline sends"
+      - "{s_q_verb|cap} client invoice mail {s_q_how}"
+  - role: billing
+    fix: billing/sent_log.py
+    title: ["Duplicate client invoice emails", "Clients receiving timesheet invoices twice", "Repeated approval emails to clients", "Approvers got the same timesheet twice"]
+    alert:
+      - "approvers got timesheets twice, {s_dup_b}"
+      - "{s_al} duplicate approval emails, {s_dup_b}"
+      - "same timesheet mailed repeatedly - {s_dup_b}"
+    fix_message:
+      - "{s_dup_fix|cap}"
+      - "Approval mailer: {s_dup_fix}"
+      - "Fix duplicate approval emails, {s_dup_fix}"
+  - role: portal
+    fix: portal/pagination.py
+    title: ["Portal timeouts for large clients", "Client portal slow on big lists", "Timesheet list times out", "Large clients hit portal timeouts"]
+    alert:
+      - "timesheet list times out, {s_portal_b}"
+      - "{s_al} client portal timeouts, {s_portal_b}"
+      - "big clients see 504s on timesheets - {s_portal_b}"
+    fix_message:
+      - "Paginate the timesheet list"
+      - "Portal: page the timesheet list"
+      - "Load timesheets in pages"

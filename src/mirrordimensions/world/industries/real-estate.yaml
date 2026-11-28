@@ -1,0 +1,544 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Real estate and property management: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: real-estate
+name: Real estate and property management
+group: Professional services and real estate
+aliases: [property management, property, landlord, realty, commercial real estate, housing]
+description: A property manager and landlord that leases and runs residential and commercial buildings, collects rent and pays owners.
+name_suffixes: [Properties, Realty, Property Group, Residential, Management, Estates, Real Estate Partners]
+invoice_items: ["Monthly rent", "Property management fee"]
+organization:
+  head: Director of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform: {department: Technology, title: Platform Engineer}
+    billing: {department: Property Accounting Systems, title: Software Engineer}
+    data: {department: Portfolio Analytics, title: Data Engineer}
+    support: {department: Resident and Owner Services, title: Resident Services Specialist}
+    product: {department: Product, title: Product Manager}
+    operations: {department: Property Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [rent-billing, tenant-ledger, property-accounting, charges-service]
+    platform-docs: [tech-handbook, platform-runbooks, it-handbook, systems-docs]
+    data-pipeline: [portfolio-loads, rent-roll-etl, reporting-feeds, listing-feeds, occupancy-pipeline]
+    infra-config: [infra-config, environment-config, platform-config, deploy-settings]
+    customer-portal: [resident-portal, tenant-portal, owner-portal, residents-web]
+    ops-scripts: [ops-scripts, property-ops-tools, legacy-jobs, admin-scripts]
+  channels:
+    engineering: [engineering, tech, dev-team]
+    incidents: [incidents, rent-run-alerts, prod-alerts]
+    releases: [releases, deploys, shipping]
+    billing-team: [accounting-systems, billing-team, ledger-team]
+    data-team: [portfolio-data, data-team]
+    support: [resident-services, owner-services, support]
+    leads: [leads, tech-leads]
+systems:
+  typical: [gitea, mattermost, Microsoft 365, Okta, Salesforce, Oracle NetSuite, DocuSign, yardi, appfolio]
+  common: [Procore, Zendesk, Twilio, Verkada, Tableau]
+symbols:
+  b_doc: ["rent statement", "owner statement", "tenant invoice", "late fee notice", "deposit statement", "rent receipt", "management fee invoice", "move-out statement"]
+  b_customer: ["single-family owner", "multifamily", "commercial tenant", "student housing", "condo association", "affordable housing", "corporate housing", "retail tenant"]
+  b_since: ["last month", "this week", "since the {day} rent run", "since the first of the month", "for about {2-6} weeks"]
+  b_who: ["the leasing team", "property managers", "the accounting team", "owner relations", "the regional manager"]
+  b_pwho: ["a property manager", "a tenant", "{person}", "owner relations", "the leasing office"]
+  b_ticket_noun: ["ticket", "work order", "complaint", "escalation"]
+  b_currency: ["CAD", "GBP", "AUD", "USD", "EUR"]
+  b_taxkind: ["commercial rent tax", "lodging tax", "sales tax on service charges", "GST on commercial leases", "VAT on service charges"]
+  b_region: ["Ontario", "Texas", "Florida", "California", "Scotland", "Queensland", "Georgia", "Washington state"]
+  b_provider_event: ["ACH payment settled", "ACH return", "card payment failed", "chargeback opened", "deposit refund sent", "autopay declined"]
+  b_page: ["rent ledger", "owner statements", "payment methods", "maintenance requests", "lease documents", "work orders", "the move-in checklist", "the resident dashboard"]
+  b_acct_size: ["{200-900} units", "{15-60} owner accounts", "{3-12} properties", "{40-300} work orders", "{500-2400} ledger lines"]
+  c_customer: ["a property owner", "one of the larger portfolios", "a commercial tenant", "a resident", "an association board"]
+  c_eng_area: ["the late fee job", "the rent roll export", "the ledger posting", "the listing feed", "the autopay run", "the work order sync", "the owner payout file"]
+  s_plan: ["the standard management plan", "a full-service plan", "the leasing-only plan", "the owner portal plan"]
+  s_thing: ["the rent run", "the listing feed", "the owner statement run", "the late fee job", "the autopay job", "the work order sync"]
+  s_tool: ["the property system", "the accounting console", "the leasing desk", "the ticket queue"]
+  p_source: ["the bank's ACH return files", "the listing syndication feed", "the vendor invoice export", "the screening provider reports", "the utility billing export", "the leasing CRM lead list"]
+  p_report: ["the rent roll", "the delinquency report", "the owner distribution report", "the vacancy report", "the CAM reconciliation", "the occupancy dashboard"]
+  p_table: ["leases", "units", "tenants", "ledger entries", "work orders", "owner payouts", "deposits", "charges"]
+  p_finance_ask: ["the property accountant", "someone in accounting", "the controller", "the trust accountant"]
+  p_alert_name: ["disk usage on the web hosts", "failed backups", "autopay queue depth", "the rent roll load finishing late", "listing feed errors"]
+  p_secret_thing: ["the bank file transfer key", "the screening provider API key", "the payments provider token", "the warehouse service account key"]
+  p_source_pro: ["the owner statement run", "the rent roll export", "the CAM billing run", "the deposit return queue"]
+  re_asset: ["building", "portfolio", "property", "community", "tower"]
+  re_charge: ["pest control", "parking", "pet rent", "water and sewer", "trash", "amenity", "utility reimbursement"]
+  re_leasekind: ["month-to-month", "twelve month", "short-term", "commercial triple net", "gross", "renewal"]
+  re_bank: ["the trust account", "the operating account", "the security deposit account", "the owner disbursement account"]
+  re_when: ["on the first", "on the fifth", "after the grace period", "at month end", "on move-in day"]
+  re_regn: ["Fair Housing", "state security deposit rules", "late fee caps", "trust accounting rules", "lease disclosure rules"]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        charge: ["{re_charge}", "{re_charge}", "{re_charge}"]
+        leasekind: ["{re_leasekind}"]
+      title:
+        - "Late fee charged {inside/within} the grace days, {leasekind} leases"
+        - "{charge|cap} charge posts twice on the {leasekind} ledger"
+        - "Tenants charged late fees {re_when} despite autopay"
+        - "Wrong late fee cap on {leasekind} leases"
+        - "Why did {charge} land {after/following} the rent run?"
+        - "Ledger shows {charge} twice for {leasekind} tenants"
+      body:
+        - ["{b_raised}, {b_scope}.", "Flagged by {b_who}, {b_scope}."]
+        - ["The charge posts {re_when} and ignores the grace days.", "Grace days are read, then {lost/dropped}.", "billing/late_fees.py {skips/ignores} the lease terms."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a {leasekind} lease and autopay on."
+        - "Caps differ by state, see {re_regn}."
+        - "{b_cm_check}, grace days come from the unit."
+    - labels: [bug, needs-decision]
+      let:
+        bank: ["{re_bank}"]
+        thing: ["a deposit refund", "a partial deposit return", "an owner payout", "a move-out deduction"]
+      title:
+        - "{thing|cap} paid from {bank}, should be the other account"
+        - "Trust accounting: {thing} posts to the wrong account"
+        - "Deposit and operating funds {mixed/mingled} in the {thing} run"
+        - "Which account pays {thing}?"
+        - "{thing|cap} draws on {bank} with no balance check"
+      body:
+        - ["Accounting found it while reconciling, {b_scope}.", "The reconciliation came up short, {b_scope}."]
+        - ["Trust funds {never/must not} mix with operating money.", "Deposit money {stays/must stay} in {its/an} own account.", "{re_regn} say these funds stay apart."]
+        - ["Need a ruling from {p_finance_ask}."]
+      comments:
+        - "Auditors will ask, {keep/please keep} the trail."
+        - "{b_cm_plan}, a guard on the posting code."
+        - "Can we block the payout when {bank} is short?"
+    - labels: [bug]
+      let:
+        what: ["owner statement", "disbursement file", "year end owner summary", "management fee invoice"]
+        asset: ["{re_asset}"]
+      title:
+        - "{what|cap} for a {asset} shows the wrong management fee"
+        - "Management fee double counted on the {what}"
+        - "{what|cap} totals miss the bank for one {asset}"
+        - "Owners see old fees on the {what}"
+        - "{what|cap} rounds fees per unit, not {asset}"
+      body:
+        - ["{b_raised} on a {asset} with {b_acct_size}.", "Owner relations raised it for one {asset}."]
+        - ["Fee {is/comes} {a cut of cleared rent/from cleared rent}.", "Fees are computed before reversals post.", "Returned payments {still count/count} as collected."]
+      comments:
+        - "Collected means cleared, not posted."
+        - "{b_cm_repro} {b_cm_stage}."
+    - labels: [bug, security]
+      let:
+        doc: ["{b_doc}"]
+        scope: ["another tenant's", "a different owner's", "a former resident's"]
+        item: ["the tenant ledger", "an owner statement", "a lease PDF", "a deposit receipt"]
+      title:
+        - "{item|cap} opens {by/after} editing the URL id"
+        - "Residents can see another unit's {item}"
+        - "Download link for {item} still works after move-out"
+        - "Owner portal serves {item} from a different {re_asset}"
+      body:
+        - ["{b_dlk_a} {b_dlk_b}.", "Tried it {b_cm_stage}, {b_dlk_c}"]
+        - ["These files hold {names/bank details}.", "These carry names and account digits."]
+        - ["{b_dlk_e}"]
+      comments:
+        - "{b_cm_fix_up} It adds an owner check."
+        - "Check the access log {for/on} the lease route."
+    - labels: [enhancement]
+      let:
+        feature: ["proration of the first month", "pet rent", "a parking add-on", "utility reimbursements", "rent concessions"]
+      title:
+        - "Support {feature} on the tenant ledger"
+        - "Property managers want {feature} automated"
+        - "{feature|cap} is entered by hand today"
+        - "Add {feature} to lease templates"
+      body:
+        - ["{b_raised}, {b_scope}.", "Leasing asks for this {again/most months}."]
+        - ["Accounting enters it manually {re_when}.", "{It needs/This needs/We need} a new charge code."]
+      comments:
+        - "Is an owner approval step needed?"
+        - "{b_cm_plan} for the backend, the form needs {person}."
+  portal:
+    - labels: [bug]
+      let:
+        what: ["autopay enrolment", "the rent payment page", "the ACH bank form", "the card form"]
+        browser: ["{b_browser}"]
+      title:
+        - "{what|cap} fails in {browser} on the resident portal"
+        - "Residents cannot finish {what} on a phone"
+        - "Double charge after {what} times out"
+        - "{what|cap} shows success but no payment appears"
+      body:
+        - ["Residents wrote in, {b_pscope}.", "Leasing offices report it, {b_scope}."]
+        - ["The page spins {after/once} the bank form posts.", "A retry makes a second payment."]
+      comments:
+        - "Rent is due {re_when}, so this is time sensitive."
+        - "Please attach the bank request id."
+    - labels: [enhancement, needs-decision]
+      let:
+        who: ["the leasing team", "owner relations", "property managers", "accounting"]
+        ask: ["pay rent by card, no fee", "split rent between roommates", "set a payment date after payday", "see the deposit balance", "download a rent receipt"]
+      title:
+        - "Let residents {ask}"
+        - "Residents ask to {ask}"
+        - "Request: {ask} in the resident portal"
+        - "Can the portal let tenants {ask}?"
+      body:
+        - ["{b_fr_a} {b_fr_b}", "Managers raise this {often/again}."]
+        - ["{b_fr_c}", "Accounting must agree {first/on policy}."]
+        - ["{b_fr_d}"]
+      comments:
+        - "Legal should check {re_regn}."
+        - "Does the owner agreement allow it?"
+    - labels: [bug, enhancement]
+      let:
+        issue_kind: ["unlabelled form fields", "low contrast on the balance", "missing focus order", "an inaccessible date picker"]
+        area: ["the rent payment page", "the maintenance request form", "the lease signing step"]
+      title:
+        - "Accessibility: {issue_kind} on {area}"
+        - "Residents with screen readers hit {issue_kind}"
+        - "{issue_kind|cap} on {area}, accessibility audit finding"
+        - "Fair Housing review flags {issue_kind}"
+      body:
+        - ["{b_ac_a} {b_ac_b}", "The audit flagged it on {area}."]
+        - ["{b_ac_c}", "{b_ac_d}"]
+      comments:
+        - "{b_cm_sr} {b_cm_sr2}"
+        - "{b_cm_addl} the form."
+    - labels: [bug]
+      let:
+        step: ["the lease signing link", "the maintenance request confirmation", "the password reset", "the autopay receipt"]
+      title:
+        - "{step|cap} email arrives late or never"
+        - "Residents do not get {step}"
+        - "{step|cap} is sent twice to co-tenants"
+        - "Owners miss {step}"
+      body:
+        - ["{b_ml_a}", "Several offices reported it, {b_scope}."]
+        - ["{b_ml_b} {b_ml_c}", "{b_ml_d}"]
+      comments:
+        - "{b_cm_deliv} {b_cm_spam}"
+  docs:
+    - labels: [docs, bug]
+      let:
+        page: ["docs/month-end-close.md", "docs/rent-run.md", "docs/owner-payouts.md", "docs/oncall.md"]
+        stale: ["the old bank cutoff time", "the retired trust account name", "the former property system", "last year's holiday schedule"]
+      title:
+        - "{page} still lists {stale}"
+        - "Handbook: {page} mentions {stale}"
+        - "{stale|cap} in {page}"
+        - "Update {page}, it names {stale}"
+      body:
+        - ["{New joiners/A new engineer} got {confused/lost} by it.", "It confused a new engineer."]
+        - ["Please check it against how the {re_leasekind} rent run works now."]
+      comments:
+        - "{b_cm_docs}"
+        - "I will fix it {b_timeframe}."
+    - labels: [docs, enhancement]
+      let:
+        topic: ["how late fees are calculated", "the rent run schedule", "owner distribution timing", "how deposits are tracked", "the CAM reconciliation process", "how listing feeds publish"]
+      title:
+        - "Write up {topic} for new engineers"
+        - "Document {topic}"
+        - "Where is {topic} documented?"
+        - "Runbook for {topic}"
+      body:
+        - ["{b_dc_a} {b_dc_b}", "Accounting asks about it each quarter."]
+        - ["{b_dc_c} {b_dc_d} {b_dc_e}"]
+      comments:
+        - "{b_cm_draft} the incident review."
+        - "{b_cm_up} {b_cm_read2}"
+    - labels: [docs, needs-decision]
+      let:
+        policy: ["on-call during the rent run", "who approves manual ledger edits", "access to resident data", "handling Fair Housing complaints", "weekend maintenance requests"]
+      title:
+        - "Decide how to write up {policy}"
+        - "Handbook disagrees with practice on {policy}"
+        - "Policy gap: {policy}"
+      body:
+        - ["Practice varies, {and/while} the handbook is silent.", "The page and the practice {differ/disagree}."]
+        - ["Someone must own the wording.", "Nobody owns the final wording."]
+      comments:
+        - "I can draft it, accounting reviews."
+  data:
+    - labels: [bug, incident]
+      let:
+        what: ["rent roll", "delinquency report", "occupancy dashboard", "owner distribution report"]
+        delay: ["{2-4} hours", "about {40-90} minutes", "nearly {2-3} hours"]
+      title:
+        - "{what|cap} was not ready before the {day} meeting"
+        - "Nightly load finished {delay} late, {what} stale"
+        - "{what|cap} shows last night's data at {time}"
+        - "Property managers saw an old {what}"
+      body:
+        - ["Managers noticed on {day}.", "Regional managers asked on {day} why the numbers had not moved."]
+        - ["The load ran {delay} behind, bank files {came late/were late}.", "The ACH return file landed last."]
+      comments:
+        - "Can we alert at {6-8}am if unfinished?"
+        - "{b_cm_check} the bank file arrival times."
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+        field: ["move-in date", "unit id", "lease end date", "owner id", "square footage"]
+      title:
+        - "{table|cap} has null {field} for {2-400} rows"
+        - "Units merged wrongly {after/in} a system export"
+        - "Duplicate {table} after the {day} load"
+        - "{field|cap} is a day off {in/within} the warehouse"
+      body:
+        - ["Found while building the vacancy report.", "An analyst {saw/spotted} it in the rent roll."]
+        - ["It began when the export {changed/was changed}.", "The upstream feed changed {shape/format} quietly."]
+      comments:
+        - "{b_cm_prof} {b_cm_prof2}"
+        - "Is {field} fixed upstream or patched here?"
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        owner: ["leasing", "accounting", "the regional managers", "asset management"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Should {owner} get {source} in the warehouse?"
+        - "Add {source} to the portfolio reports"
+        - "Backfill {source} for last year"
+      body:
+        - ["{owner|cap} wants it for the occupancy view.", "Asked for by {owner}, it is done by hand today."]
+        - ["{b_ex_b} {b_ex_c}"]
+      comments:
+        - "Does it hold personal data? {Ask/Check with} legal."
+        - "{b_cm_turn}."
+  infra:
+    - labels: [bug, incident]
+      let:
+        thing: ["the rent run", "autopay", "the bank file transfer", "the listing feed"]
+      title:
+        - "Alert for {thing} is not routed to the rota"
+        - "Nobody was paged when {thing} failed"
+        - "{thing|cap} failed overnight with no alert"
+        - "Pager route missing for {thing}"
+      body:
+        - ["Found {re_when} when residents wrote in.", "Property managers noticed before we did."]
+        - ["The alert fires but pages nobody.", "The route {was lost/vanished} in a config change."]
+      comments:
+        - "{b_cm_fix_up} It restores the pager route."
+        - "Add a missed-run alert {for/on} the rent run."
+    - labels: [security, enhancement]
+      let:
+        cert: ["the resident portal certificate", "the bank file transfer certificate", "the listing feed certificate", "the staging wildcard certificate"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} expires in {2-9} days"
+        - "Renew {cert}"
+      body:
+        - ["Nobody owned the renewal.", "The renewal date {is/sat} in one calendar."]
+        - ["Expiry on {day} would hit rent day."]
+      comments:
+        - "Add a {14/10} day warning to alerts."
+        - "{b_cm_plan}"
+    - labels: [chore, security]
+      let:
+        item: ["{p_secret_thing}"]
+        place: ["a log line", "the config file", "a deploy output", "a stack trace"]
+      title:
+        - "Rotate {item}"
+        - "{item|cap} appears in {place}"
+        - "Move {item} out of the repo"
+      body:
+        - ["{b_sc_a} {b_sc_b}", "{b_sc_c}"]
+        - ["{b_sc_d} {b_sc_e}"]
+      comments:
+        - "Done on staging, production planned {b_timeframe}."
+        - "Steps are {in/at} docs/rotating-credentials.md."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: all offices are closed {c_soon}, the emergency maintenance line stays on."
+        - "reminder, the rent run is {c_soon} so no deploys on {day}"
+        - "{c_hey}, the regional meeting moved to {day} at {time}"
+        - "building access badges are being replaced {c_soon}"
+        - "{c_hey|cap}: leasing office in {c_floor} is closed {c_soon}"
+      replies:
+        - ["{c_thanks}", "{c_ack}", "does that include the weekend crew?", "will the emergency line be staffed?"]
+        - ["{c_yes}, normal rota", "{c_no}, they are off too", "{c_idk}, ask {person}", ""]
+    - root:
+        - "welcome {person}, joining the technology team {c_soon}"
+        - "{c_hey}, {person} is our new property accounting analyst"
+        - "say hi to {person}, starting {c_soon} on the portfolio team"
+        - "new face on the data team: {person}"
+        - "{person} joins {c_soon}, find them in {c_room}"
+      replies:
+        - ["welcome!", "{c_em} welcome {person}", "{c_thanks} for the intro"]
+        - ["lunch at {s_lunch} to say hi?", ""]
+    - root:
+        - "quarter end close is {c_soon}, accounting needs the ledgers frozen by {time}"
+        - "heads up: month end close starts {day}, please avoid ledger changes"
+        - "{c_hey}, owner statements go out {c_soon}"
+        - "year end owner summaries are due {c_soon}"
+        - "ledger lock is {day} at {time}"
+      replies:
+        - ["{c_ack}", "{c_thanks}", "can the lock wait a day?"]
+        - ["not this time, owners expect them {c_soon}", "{c_no}, audit date is fixed", ""]
+  off-topic:
+    - root:
+        - "anyone doing anything fun this weekend?"
+        - "weekend plans? i am at {c_weekend}"
+        - "went to {c_weekend} on the weekend, highly recommend"
+        - "{c_pet} chewed my badge again"
+        - "lunch ideas? sick of {c_food}"
+      replies:
+        - ["not much, {c_weekend} probably", "{c_lol}", "{c_idk}"]
+        - ["{c_food} then?", "try {c_place}", ""]
+    - root:
+        - "open house season is wild, {everyone/half the city} is moving"
+        - "saw a listing: {price is wild/rent is wild}"
+        - "my landlord raised rent {again/once more}, {the irony/ha}"
+        - "anyone else's rent up {2-9} percent this year?"
+        - "tried finding an apartment {this weekend/lately}, never again"
+      replies:
+        - ["{c_lol}", "same", "you work here, {you know/know} the numbers"]
+        - ["negotiate at renewal", "{c_idk}", ""]
+    - root:
+        - "{c_sport} after work {c_soon}, anyone in?"
+        - "who is up for {c_sport} {c_soon}?"
+        - "{c_hey}: {c_sport} on {day} at {time}"
+        - "thinking of {c_sport} {c_soon}, join?"
+        - "a few of us do {c_sport} on {day}"
+      replies:
+        - ["count me in", "{c_no}, working late", "{c_agree}"]
+        - ["{time} works", ""]
+  engineering:
+    - root:
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "pr for the late fee job, {c_patch}, {review please/needs a look}"
+        - "small change to {c_eng_area}, {c_patch}, who has time?"
+        - "need eyes on a pr touching {c_eng_area}"
+        - "{c_hey}, review wanted on {repo}: {c_patch}"
+      replies:
+        - ["{c_ack}, looking {c_soon}", "{c_when_eng}", "on it"]
+        - ["left a few comments", "lgtm", ""]
+    - root:
+        - "{c_eng_area} is failing again on main"
+        - "{c_ci_fail} fails after the {c_dep} bump"
+        - "rent run staging failed, anyone changed {c_eng_area}?"
+        - "{c_ci_fail} is flaky again, rerun passes"
+        - "heads up, {c_eng_area} broke the build for me"
+      replies:
+        - ["same here", "rerun it", "{c_idk}, checking"]
+        - ["found it, reverting", "fixed in my branch", ""]
+    - root:
+        - "design question: should {c_eng_area} run before the bank file?"
+        - "post charges {in the run/one by one}?"
+        - "should autopay retries wait {for/until} the ACH window?"
+        - "who decides the order of {c_eng_area} and the late fee job?"
+        - "async or inline for {c_eng_area}?"
+      replies:
+        - ["after, the returns land at {time}", "i would queue it", "ask {person}, they wrote it"]
+        - ["let's write it {down/up} in the docs", "{c_agree}", ""]
+  team:
+    - root:
+        - "standup in {5-15} minutes, {c_status} on my side"
+        - "{c_hey}, standup moved to {time}"
+        - "no standup {c_soon}, post updates here"
+        - "standup notes: {c_status}, rent run prep on track"
+        - "quick standup in {5-15}, rent run prep first"
+      replies:
+        - ["{c_ack}", "{c_thanks}", "{c_status} here"]
+        - ["i am {c_pto}", ""]
+    - root:
+        - "who is covering the rent run {c_soon}?"
+        - "need a second person {for/on} the first rent run"
+        - "rent run rota is open for {day}, who can take it?"
+        - "{person} is {c_pto}, who watches autopay?"
+        - "can someone shadow owner statements {on/this} {day}?"
+      replies:
+        - ["i can take it", "{c_no}, {c_pto}", "put me down"]
+        - ["thanks, added to the rota", ""]
+    - root:
+        - "customer escalation: {c_customer} cannot see the rent ledger"
+        - "owner relations escalated {issue}, {c_customer} is waiting"
+        - "{c_customer} says the statement is wrong, {issue}"
+        - "escalation from the leasing team about {issue_title}"
+        - "regional manager wants an update on {issue}"
+      replies:
+        - ["on it", "who is picking this up?", "{c_ack}"]
+        - ["replied to them, will update", ""]
+  support:
+    - root:
+        - "tenant says {s_cust} was charged twice for rent, {s_ticket}"
+        - "resident cannot set up autopay, {s_ticket}"
+        - "owner asks why payout is smaller, {s_ticket}"
+        - "{s_ticket}: tenant never got the {move-in/welcome} email"
+        - "resident says late fee {is wrong/looks wrong}, {s_ticket}"
+      replies:
+        - ["checking the ledger", "can you share the unit number?", "{c_ack}"]
+        - ["returned ACH, {fee is correct/fee stands}", "reversed the fee, please tell them", ""]
+    - root:
+        - "queue is at {20-90} open tickets, mostly rent due questions"
+        - "heads up, {5-30} tickets about the portal since {time}"
+        - "first of the month queue is {20-90} deep, {slammed/we are buried}"
+        - "tickets about autopay up {3-9}x since {day}"
+        - "queue at {20-90}, nothing on fire"
+      replies:
+        - ["is it the portal again?", "{c_ack}", "can eng help triage?"]
+        - ["{c_yes}, same bank form", "no, just volume", ""]
+    - root:
+        - "owner wants past statements, {one file/a pdf}?"
+        - "can we send tenants {a receipt/receipts}?"
+        - "owner needs 1099 data, {who pulls/can we}?"
+        - "commercial tenant needs {the CAM/a CAM} breakdown by month"
+        - "board wants delinquency by unit, {ok/possible}?"
+      replies:
+        - ["finance can pull it", "{c_idk}, checking", "{c_yes}, a day or two"]
+        - ["i will file a ticket", ""]
+  incidents:
+    - root:
+        - "{s_al} autopay failures since {time}, bank returns spiking"
+        - "{s_al} the rent run is {1-4} hours late, still going"
+        - "{s_al} listing feed errors, syndication paused"
+        - "{s_al} ACH file upload failing, bank {rejects/refuses} the format"
+        - "{s_al} resident portal 500s {on/at} the payment page"
+      replies:
+        - ["looking now", "seeing the same", "is it the bank or us?"]
+        - ["bank side, they confirmed", "our file format, fixing", ""]
+    - root:
+        - "rent run incident review, {day} at {time}"
+        - "double charge review {is set for/is on} {day}"
+        - "{c_hey}, incident review {day} at {time}, bring timelines"
+        - "payout writeup is up, {please read/read when free}"
+        - "autopay failure review is {day}"
+      replies:
+        - ["{c_ack}", "will be there", "can i join late?"]
+        - ["notes are in the docs", ""]
+    - root:
+        - "bank status: incident, {ACH delayed/ACH slow}"
+        - "certificate for the portal expires in {2-9} days"
+        - "{p_limit_target} disk is at {70-96} percent"
+        - "the nightly load is stuck on {p_table}"
+        - "on-call handover, {all quiet/pager quiet}"
+      replies:
+        - ["{c_ack}", "thanks for the heads up", "{c_idk}"]
+        - ["i will watch it", ""]
+  direct:
+    - root:
+        - "{s_hey}, could you look at {issue} {s_soon}?"
+        - "{s_hey}, quick question {about/on} the late fee job"
+        - "got a minute to talk through {c_eng_area}?"
+        - "{s_hey}, read my design note {before/by} {day}?"
+        - "can we move our {1:1/catch-up} to {time}?"
+      replies:
+        - ["{c_ack}", "{c_yes}, now works", "{c_no}, after {time}"]
+        - ["{s_thx}", ""]
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "want to get {c_food} {c_soon}?"
+        - "{s_hey}, {s_lunch} {s_soon}?"
+        - "coffee at {time}?"
+        - "free for lunch {c_soon}?"
+      replies:
+        - ["{c_yes}", "{c_no}, slammed with the month end", "{c_ack}"]
+        - ["see you there", ""]
+    - root:
+        - "handing over rent run notes, {c_pto}"
+        - "i am {c_pto}, you have the owner statement run"
+        - "writing handover notes for {c_eng_area}, will send {c_soon}"
+        - "{s_hey}, cover my pager {c_soon}?"
+        - "leaving the autopay watch with you {c_soon}"
+      replies:
+        - ["{c_ack}", "{c_thanks}", "no problem"]
+        - ["enjoy the time off", ""]
