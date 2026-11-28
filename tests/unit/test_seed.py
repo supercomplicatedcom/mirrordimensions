@@ -303,3 +303,139 @@ def test_tickets_land_on_the_worlds_timeline_keeping_their_spacing(tmp_path: Pat
         if any(i.ago < first.ago for i in data.issues)
         else True
     )  # numbers follow time
+
+
+def _slack(root: Path) -> None:
+    export = root / "slack"
+    (export / "claims-ops").mkdir(parents=True)
+    (export / "incidents").mkdir()
+    (export / "users.json").write_text(
+        _json(
+            [
+                {"id": "U1", "name": "rosa", "profile": {"real_name": "Rosa Delgado"}},
+                {"id": "U2", "name": "tomasz", "profile": {"real_name": "Tomasz Wierzbicki"}},
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (export / "channels.json").write_text(
+        _json(
+            [
+                {"name": "claims-ops", "purpose": {"value": "Claims operations"}},
+                {"name": "incidents"},
+                {"name": "general"},
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (export / "claims-ops" / "2025-03-03.json").write_text(
+        _json(
+            [
+                {
+                    "type": "message",
+                    "user": "U1",
+                    "text": "<@U2> can you check the remit queue?",
+                    "ts": "1741000000.000100",
+                },
+                {
+                    "type": "message",
+                    "user": "U2",
+                    "text": "on it, see <https://wiki.example/q|the queue page>",
+                    "ts": "1741000300.000200",
+                    "thread_ts": "1741000000.000100",
+                },
+                {
+                    "type": "message",
+                    "subtype": "channel_join",
+                    "user": "U2",
+                    "text": "joined",
+                    "ts": "1741000400.0",
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (export / "incidents" / "2025-03-04.json").write_text(
+        _json(
+            [
+                {
+                    "type": "message",
+                    "user": "U2",
+                    "text": "eligibility calls timing out again",
+                    "ts": "1741090000.0",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_a_slack_export_and_a_mattermost_export_become_channels(tmp_path: Path) -> None:
+    root = tmp_path / "seed"
+    root.mkdir()
+    _slack(root)
+    (root / "mattermost.jsonl").write_text(
+        "\n".join(
+            _json(r)
+            for r in [
+                {
+                    "type": "user",
+                    "user": {"username": "amara", "first_name": "Amara", "last_name": "Osei"},
+                },
+                {"type": "channel", "channel": {"name": "eligibility", "purpose": "Payer checks"}},
+                {
+                    "type": "post",
+                    "post": {
+                        "channel": "eligibility",
+                        "user": "amara",
+                        "message": "payer B is back up",
+                        "create_at": 1741100000000,
+                        "replies": [
+                            {
+                                "user": "amara",
+                                "message": "confirmed on two claims",
+                                "create_at": 1741100060000,
+                            }
+                        ],
+                    },
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    content, review = read_seed(root, DOMAIN)
+    by = {c.name: c for c in content.channels}
+    assert set(by) == {"claims-ops", "incidents", "eligibility"}  # general had no messages
+    ops = by["claims-ops"].messages
+    assert [m.text for m in ops] == [
+        "Tomasz can you check the remit queue?",
+        "on it, see the queue page",
+    ]
+    assert ops[1].reply_to == 0 and ops[0].author == "Rosa Delgado"
+    assert by["eligibility"].messages[1].reply_to == 0
+    kinds = {i.kind for i in review.items}
+    assert {"Slack export", "Mattermost export"} <= kinds
+    assert not any(i.path.startswith("slack/") for i in review.items if i.kind != "Slack export")
+
+
+def test_seeded_chat_joins_its_channel_or_makes_its_own_on_the_timeline(tmp_path: Path) -> None:
+    root = init_project(tmp_path / "halden", seed=48213).root
+    project = Project(root=root)
+    folder = _folder(tmp_path)
+    _slack(folder)
+    seed_svc.seed_world(project, folder)
+    loaded = YAML(typ="safe").load(project.manifest_path.read_text("utf-8"))  # pyright: ignore[reportUnknownMemberType]
+    world = generate(Manifest.model_validate(loaded), seed_svc.load_content(project))
+    from mirrordimensions.world import naming
+
+    channels = {c.name: c for c in world.channels}
+    ops = channels["claims-ops"]  # a channel of its own, with everyone in it
+    texts = [m.text for m in ops.messages]
+    assert texts == ["Tomasz can you check the remit queue?", "on it, see the queue page"]
+    assert ops.messages[1].reply_to == 0
+    incidents = channels[naming.channels(world)["incidents"]]  # merged into the world's own
+    seeded = next(m for m in incidents.messages if m.text == "eligibility calls timing out again")
+    day = 24 * 60
+    assert day <= seeded.ago <= 2 * day  # the latest message, a day or two before the world starts
+    names = [c.name for c in world.channels]
+    assert len(names) == len(set(names))  # the world's own names never collide with seeded ones
