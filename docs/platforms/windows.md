@@ -39,7 +39,7 @@ No API key is needed: the first run uses a scripted agent.
 ## 1. Install
 
 ```powershell
-git clone https://github.com/supercomplicatedcom/mirrordimensions
+git clone https://github.com/mirrordimensions/mirrordimensions
 cd mirrordimensions
 uv tool install --editable .    # puts mirror on your PATH, in every window
 ```
