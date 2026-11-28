@@ -51,6 +51,11 @@ class WorldDraftView(BaseModel):
     imported: imports.ImportReview | None = Field(
         default=None, description="The import in this folder, when the world starts from one"
     )
+    proposal: worlddef.Proposal | None = Field(
+        default=None,
+        description="The systems the company's industry usually runs, while the world still "
+        "starts from the template (decision 0028, point 3)",
+    )
 
 
 def _state(root: Path) -> str:
@@ -146,6 +151,11 @@ def _view(root: Path, draft: worlddef.Draft) -> WorldDraftView:
         templates=worlddef.list_templates(),
         command=command_for(root, shown),
         imported=review,
+        proposal=(
+            worlddef.propose(company.industry, draft.substitute)
+            if not draft.imported and not draft.systems
+            else None
+        ),
     )
 
 

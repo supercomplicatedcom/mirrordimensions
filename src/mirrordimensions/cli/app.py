@@ -418,6 +418,19 @@ def world_new(
     systems: Annotated[
         str | None, typer.Option(help="Comma-separated system names, matched against the catalog.")
     ] = None,
+    add_systems: Annotated[
+        str | None,
+        typer.Option(
+            "--add-systems",
+            help="Systems to add to the template, the --systems list or the industry's proposal.",
+        ),
+    ] = None,
+    yes: Annotated[
+        bool,
+        typer.Option(
+            "--yes", help="With --industry: use the systems its profile proposes, without asking."
+        ),
+    ] = False,
     people: Annotated[int, typer.Option(help="Number of people.")] = 25,
     history: Annotated[int, typer.Option(help="Days of history.")] = 180,
     seed: Annotated[int | None, typer.Option(help="Seed (default: random).")] = None,
@@ -523,9 +536,17 @@ def world_new(
         )
     elif resuming:  # a world started from an import, once its disagreements are settled
         root = worlds_svc.finish_from_import(directory, decisions)
-    elif template is None and names is None and sys.stdin.isatty() and not st.out.json_mode:
+    elif (
+        template is None
+        and names is None
+        and offer is None
+        and add_systems is None
+        and sys.stdin.isatty()
+        and not st.out.json_mode
+    ):
         root = _world_new_interactive(st, directory)
     else:
+        names = _systems_for(st, template, names, add_systems, industry, yes, substitute)
         root = worlddef.new_world(
             directory,
             template,
@@ -553,6 +574,49 @@ def world_new(
     for note in shown["notes"]:
         st.out.note(note)
     st.out.next_step("Next: mirror world create")
+
+
+def _systems_for(
+    st: State,
+    template: str | None,
+    names: list[str] | None,
+    add: str | None,
+    industry: str | None,
+    yes: bool,
+    substitute: bool,
+) -> list[str] | None:
+    """The systems a world starts with: those named, else the industry's proposal once
+    confirmed (decision 0028, point 3), else the template's; then any added."""
+    from mirrordimensions.service import worlddef
+
+    added = [n.strip() for n in add.split(",") if n.strip()] if add else []
+    if names is None and template is None:
+        proposal = worlddef.propose(industry, substitute)
+        if proposal is not None:
+            if not st.out.json_mode:
+                st.out.line(f"A {proposal.profile} company usually runs:")
+                for line in proposal.lines:
+                    st.out.line(f"  {line}")
+            if yes:
+                names = proposal.systems
+            elif sys.stdin.isatty() and not st.out.json_mode:
+                answer = typer.prompt(
+                    "Use these systems? yes, no for the template, or type your own list",
+                    default="yes",
+                ).strip()
+                if answer.lower() in ("y", "yes"):
+                    names = proposal.systems
+                elif answer.lower() not in ("n", "no"):
+                    names = [n.strip() for n in answer.split(",") if n.strip()]
+            else:
+                st.out.note(
+                    "Using the template's systems. Add --yes to use these, or name your own "
+                    "with --systems."
+                )
+    if added:
+        base = names or worlddef.TEMPLATE_SYSTEMS.get(template or "software-team", [])
+        names = [*base, *(a for a in added if a not in base)]
+    return names
 
 
 def _world_new_interactive(st: State, directory: Path) -> Path:
@@ -597,6 +661,38 @@ def _world_new_interactive(st: State, directory: Path) -> Path:
             draft.history = typer.prompt("Days of history", default=180, type=int)
         worlddef.save_draft(directory, draft)
     return worlddef.finish_draft(directory, draft)
+
+
+@world_app.command("add")
+def world_add(
+    ctx: typer.Context,
+    systems: Annotated[list[str], typer.Argument(help="Systems to add, by catalog name.")],
+    substitute: Annotated[
+        bool,
+        typer.Option(
+            "--substitute/--no-substitute",
+            help="Run Gitea or Mattermost in place of a product of the same kind with no twin.",
+        ),
+    ] = True,
+) -> None:
+    """Add systems to this world's mirror.yaml, keeping the rest of the file as it is. Run
+    mirror world create afterwards to build them."""
+    from mirrordimensions.service import worlddef
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    names = [n.strip() for item in systems for n in item.split(",") if n.strip()]
+    added = worlddef.add_systems(project, names, substitute)
+    shown = worlddef.show_world(project)
+    if st.out.json_mode:
+        st.out.document({"added": added, **shown})
+        return
+    st.out.ok(f"Added {', '.join(added)} to {project.manifest_path.name}")
+    for line in shown["systems"]:
+        st.out.line(f"  {line}")
+    for note in shown["notes"]:
+        st.out.note(note)
+    st.out.next_step("Next: mirror world create, which builds what is new")
 
 
 @world_app.command("expose")

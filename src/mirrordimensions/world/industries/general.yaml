@@ -8792,3 +8792,6 @@ names:
     data-team: [data-team, team-data, data, analytics-eng]
     support: [support, customer-support, support-team, cs-team]
     leads: [leads, eng-leads, team-leads, managers]
+systems:
+  typical: [github, slack, jira, okta, google workspace, confluence]
+  common: [pagerduty, datadog, zendesk, salesforce]

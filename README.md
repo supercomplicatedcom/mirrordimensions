@@ -107,7 +107,8 @@ Tools that start runs or edit the world need `confirm=true`, and nothing destruc
 | Command | What it does |
 | --- | --- |
 | `mirror engine setup\|check\|status\|start\|stop\|update\|destroy` | The engine. On macOS a Lima VM on Apple's Virtualization.framework; on Linux a Lima VM on KVM, or, if you opt in, Docker Engine with gVisor on the host. On Windows 11 a WSL2 distribution of its own, experimental (`--experimental`; [steps](docs/platforms/windows.md)). The engine installs updates only when you run `mirror engine update` |
-| `mirror world new\|create\|show\|status\|clone\|destroy` | Define a world and create it |
+| `mirror world new\|create\|show\|status\|clone\|destroy` | Define a world and create it. `world new --industry <name>` proposes the systems such a company runs (`--yes` accepts them); `--add-systems` adds to the list |
+| `mirror world add <system>...` | Add systems to a defined world's `mirror.yaml`, keeping the rest of the file; `mirror world create` builds them |
 | `mirror world import <file>...`, then `show`, `decide <subject> <value>`, `apply`, `discard` | Describe the world from your own files, read in place on this computer: the agent's MCP configuration and exported tool lists, OpenAPI specifications, Terraform state (`terraform show -json`). Secrets and people are never kept; disagreements between files are settled before anything is written. `mirror world new <folder> --import <file>...` starts a new world from them, as the portal's wizard does with "Import a description" (decision 0025) |
 | `mirror reset`, `mirror snapshot save\|list` | Back to a snapshot, exactly, in about ten seconds |
 | `mirror up`, `mirror down`, `mirror doctor` | The sealed network, and its egress, separation, inside-out, naming, transparency and capture checks |
