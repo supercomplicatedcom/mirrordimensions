@@ -6,7 +6,7 @@ The repository stays private until every item is ticked. See decision 0007. Add 
 
 - [x] Name chosen: MirrorDimensions; package `mirrordimensions`, command `mirror`; domain `mirrordimensions.com` owned (2026-11-23)
 - [ ] Trademark search done, including against Google's "Mirror Dimension for Agents"
-- [ ] Package `mirrordimensions` claimed on PyPI with a real first release (not a placeholder); trademark registered by Supercomplicated LLC; `mirrordimensions` GitHub organization claimed; `TRADEMARKS.md` published
+- [ ] Package `mirrordimensions` claimed on PyPI with a real first release (not a placeholder); decide whether to register a trademark for the name (none is held today); `mirrordimensions` GitHub organization claimed; `TRADEMARKS.md` published
 - [ ] No cloud-service code, configuration or references anywhere in the repository or its history
 - [x] Licence confirmed: Apache-2.0 (2026-11-23)
 - [ ] `LICENSE`, `NOTICE` and SPDX headers match it, naming Supercomplicated LLC as copyright holder

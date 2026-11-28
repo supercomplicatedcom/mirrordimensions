@@ -18,6 +18,7 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ### Changed
 
+- `TRADEMARKS.md` no longer claims a trademark in the name: no one holds a registered trademark in "MirrorDimensions", and the project does not claim one. The naming guidelines stay as the project's request, and the file says the project is not affiliated with Google's Mirror Dimension for Agents.
 - `docs/your-company.md` now covers the whole way from a bare laptop: what the computer needs, installing git, uv and (on Linux) QEMU, installing the mirror, creating the engine, building the portal, and stopping, removing and uninstalling it all. It says that Docker is not needed.
 - The README installs `mirror` with `uv tool install --editable .`, so the command works in every new window. The shell alias it replaces lasted only for the window it was typed in.
 - `mirror doctor` reports each guarantee on its own: `Isolation` (the seal), `Coverage` (the record) and `Undetectability` (naming and timing), each naming the check that failed (decision 0027). A gateway slowed by a busy computer no longer reads as "Isolation: failed". `mirror world create` stops only when isolation or coverage fails. The portal's Health screen and the operator MCP server show all three.
