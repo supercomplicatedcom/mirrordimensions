@@ -1,0 +1,871 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# E-commerce and marketplaces: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: ecommerce
+name: E-commerce and marketplaces
+group: Retail and commerce
+aliases:
+  - online marketplace
+  - online retail
+  - online store
+  - webshop
+  - marketplace platform
+description: An online marketplace where independent sellers list products, buyers check out, and the platform takes payment, charges seller fees and pays sellers out.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Market
+  - Marketplace
+  - Commerce
+  - Bazaar
+  - Shop
+  - Exchange
+invoice_items:
+  - Marketplace commissions
+  - Promoted listings
+organization:
+  head: VP of Engineering
+  it_admin: IT Administrator
+  teams:
+    platform: {department: Platform Engineering, title: Platform Engineer}
+    billing: {department: Payments, title: Payments Engineer}
+    data: {department: Data Platform, title: Data Engineer}
+    support: {department: Seller Support, title: Support Specialist, lead: Support Manager}
+    product: {department: Product, title: Product Manager}
+    operations: {department: Marketplace Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [seller-billing, fees-service, billing-service, payouts]
+    platform-docs: [eng-handbook, platform-docs, payments-runbooks, team-docs]
+    data-pipeline: [orders-warehouse, marketplace-etl, data-pipeline, events-loads]
+    infra-config: [infra-config, cloud-config, env-config, deploy-config]
+    customer-portal: [seller-portal, seller-center, buyer-account, customer-portal]
+    ops-scripts: [ops-scripts, seller-scripts, legacy-scripts, admin-tools]
+  channels:
+    engineering: [engineering, eng, dev, marketplace-dev]
+    incidents: [incidents, checkout-alerts, prod-incidents, outages]
+    releases: [releases, deploys, shipping, changelog]
+    billing-team: [billing-team, payments, fees-and-payouts, billing-eng]
+    platform-team: [platform-team, platform, search-and-infra, infra]
+    data-team: [data-team, analytics, data, insights]
+    support: [seller-support, support, buyer-support, cs-team]
+    leads: [leads, eng-leads, managers, team-leads]
+systems:
+  typical: [github, slack, stripe, adyen, shopify plus, avalara, zendesk, segment]
+  common: [paypal, klaviyo, contentful, datadog, sentry, pagerduty]
+symbols:
+  b_doc: [seller invoice, credit note, commission statement, payout statement, ad invoice, fee adjustment]
+  b_customer: [new seller, enterprise seller, top seller, seasonal seller, international seller, brand store, reseller, trial seller]
+  b_who: [seller support, the marketplace team, finance, trust and safety, the partnerships team]
+  b_pwho: [seller support, a seller, "{person}", the marketplace team, finance]
+  b_ticket_noun: [ticket, case, dispute, escalation]
+  b_since: [last month, this week, since the weekly payout, since the sale event, "for about {2-6} weeks"]
+  b_page: [listings, orders, payouts, fees, returns, disputes, advertising]
+  b_acct_size: ["{2000-9000} listings", "{300-900} open orders", "{5-20} staff users", "over {1000-6000} payouts"]
+  b_provider_event: [payment captured, payment declined, refund issued, chargeback opened, payout sent, payout failed]
+  b_money_path: [billing/fees.py, billing/commission.py, billing/payouts.py, billing/rounding.py]
+  b_check_path: [the fee tests, the payout tests, the refund tests, the callback tests]
+  b_taxkind: [sales tax, VAT, GST, marketplace facilitator tax, import duty, digital services tax]
+  p_table: [orders, listings, sellers, buyers, payouts, disputes, refunds, fees, shipments]
+  p_report: [the GMV dashboard, the take rate report, the payout reconciliation, the dispute rate report, the seller activation funnel, the search conversion report]
+  p_source: [the payment processor settlement files, the carrier tracking feeds, the search click logs, the fraud scoring export, the tax provider filings, the seller catalog feeds]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the payments controller]
+  p_alert_name: [checkout error rate, payout batch delay, search latency, the nightly load finishing late, certificate expiry, error rate on the seller portal, replication lag]
+  s_plan: [a free seller plan, a pro seller plan, an enterprise plan, a trial store, a brand partner plan, an ads package]
+  c_customer: [a seller, a buyer, a top seller, a new seller, a brand partner, an international seller]
+  s_tool: [the seller admin, the support desk, the payout console, the order lookup, the ticket queue]
+  s_thing: [the payout run, the fee job, the search indexer, the export, the cron, the listing import, the checkout, the webhook handler]
+  c_eng_area: [the payout run, the fee calculator, the search indexer, the listing import, the checkout flow, the refund flow, the dispute handler, the export endpoint]
+  ec_fee: [the commission rate, the listing fee, the processing fee, the ad spend, the shipping label fee, the currency conversion fee]
+  ec_peak: [Black Friday, Cyber Monday, a big sale event, the holiday rush, a flash sale, back to school]
+  ec_fail: [a payout hold, a duplicate listing, a stuck refund, a chargeback, a missing tracking number, a wrong tax charge]
+  ec_reg: [marketplace facilitator tax rules, strong customer authentication, the Digital Services Act, PCI DSS, KYC checks, sanctions screening]
+  ec_risk: [card testing, a fraud ring, a counterfeit report, account takeover, review manipulation, a refund abuse pattern]
+  ec_cat: [electronics, fashion, home and garden, toys, beauty, sporting goods]
+  ec_fix: [reran the payout, restarted the indexer, cleared the queue, resent the webhook]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        fee: ["{ec_fee}"]
+        doc: ["{b_doc}"]
+        path: ["{b_money_path}"]
+      title:
+        - "Commission charged on shipping and tax"
+        - "{fee|cap} applied to the wrong base"
+        - "{doc|cap} total is a cent off"
+        - "Fee on gross, not item price"
+        - "Seller disputes {fee} on {2-9} orders"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "Sellers see {fee} above the rate card."
+            - "The fee base includes shipping."
+        -   - "{path|cap} reads the order total."
+            - "Tax is part of that total."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with a taxed order."
+        - "{b_cm_check}, {path} sums all lines."
+        - "Finance has {2-9} sellers to credit."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        fee: ["{ec_fee}"]
+      title:
+        - "Refund does not reverse the commission"
+        - "Seller keeps paying {fee} on refunded orders"
+        - "Partial refunds leave the full fee"
+        - "Refunded orders still count for fees"
+      body:
+        -   - "A buyer is refunded in full."
+            - "An order is partly refunded."
+        -   - "{/Also, /And /}the fee stays on the statement."
+            - "Only the payout is reduced."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "Reverse the fee in proportion."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_plan}"
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        tax: ["{b_taxkind}"]
+      title:
+        - "Currency conversion rounds payouts down"
+        - "Payout short by cents in {tax} markets"
+        - "Payout rate differs from checkout"
+        - "Cross border payouts lose a cent"
+      body:
+        -   - "Buyer pays in one currency."
+            - "The seller is paid in another."
+        -   - "{/Also, /And /}rounding happens on each line."
+            - "The rate is read twice."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Round once, at the end."
+        - "{b_cm_hand}"
+        - "Finance wants one rate source."
+    - labels: [needs-decision]
+      let:
+        who: ["{b_who}"]
+        question: [holding payouts for new sellers, releasing funds during a dispute, closing an account with a balance, reserve rules for risky sellers]
+      title:
+        - "Policy for {question}?"
+        - "Who decides {question}?"
+        - "Payout hold rules"
+        - "Decide {question}"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} handles {question} {b_nd_b}."
+        -   - "{/Also, /And /}sellers complain about long holds."
+            - "Risk wants longer holds."
+            - ""
+        -   - "{ec_reg|cap} may apply."
+            - "Rules differ by country."
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who}."
+      comments:
+        - "Shorter hold after a first sale."
+        - "{b_cm_lean} a rolling reserve."
+        - "Legal must review the terms."
+    - labels: [bug]
+      title:
+        - "Ad invoice misses the spend report"
+        - "Promoted listings billed for paused ads"
+        - "Ads keep billing past the cap"
+      body:
+        -   - "Ad spend and invoice differ."
+            - "Paused campaigns still bill."
+        -   - "{/Also, /And /}clicks arrive late."
+            - "The invoice uses the click time."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Bill on the impression date."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [onboarding a new country, a payout run, a seller account closure, a chargeback response, KYC review]
+      title:
+        - "How-to: run {thing}"
+        - "Checklist for {thing}"
+        - "Write down the steps for {thing}"
+        - "Runbook: {thing}"
+      body:
+        -   - "Nobody keeps steps for {thing}."
+            - "{person} does {thing} from memory."
+        -   - "{ec_reg|cap} must be documented."
+            - "Auditors ask for the steps."
+        -   - "{b_dc_c} would be plenty."
+            - "One page with the contacts."
+      comments:
+        - "Notes from last time exist."
+        - "Add the processor contacts."
+        - "Include who signs off."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/payout-run.md", "docs/runbooks/search-indexer.md", "docs/runbooks/checkout.md", "docs/runbooks/dispute-queue.md"]
+        step: [pausing the payout batch, checking the processor status, draining the indexer queue, switching on the waiting page, warning seller support]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "Payout runbook skips {step}"
+        - "{runbook}: {step} not listed"
+        - "Update {runbook} after the migration"
+      body:
+        -   - "Followed {runbook} in an incident."
+            - "It left out {step}."
+        -   - "{person} told us in chat only."
+            - "{step|cap} sits in one head."
+        -   - "{p_owner_ask}"
+            - "{p_reviewer_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Add the batch cutoff times."
+        - "{b_cm_docs}"
+    - labels: [docs, enhancement]
+      let:
+        flow: [a checkout from cart to payout, a refund from request to ledger, a listing from upload to search, a dispute from claim to decision]
+      title:
+        - "Explain how {flow} works"
+        - "Architecture note: {flow}"
+        - "One page on {flow}"
+        - "Describe {flow} end to end"
+      body:
+        -   - "New joiners ask how it works."
+            - "Only {person} knows the whole path."
+        -   - "{/Also, /And /}one diagram and a short page."
+            - "A simple picture would do."
+            - ""
+      comments:
+        - "I can draw it, someone check."
+        - "Include the failure cases."
+        - "{b_cm_docs}"
+  data:
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+      title:
+        - "Duplicate order events in {table}"
+        - "Orders counted twice after a retry"
+        - "GMV inflated by repeated events"
+        - "Order totals double on replays"
+      body:
+        -   - "The checkout resends an event."
+            - "A retry replays the event."
+        -   - "{/Also, /And /}the load keeps both rows."
+            - "No order id removes repeats."
+            - ""
+        -   - "{p_noticed|cap}."
+            - "Finance saw it first."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Key on order id and version."
+        - "{b_cm_check}"
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "{report|cap} does not match finance"
+        - "Payout reconciliation is {2-9} cents off"
+        - "Take rate differs from the ledger"
+        - "Dispute rate counts closed claims twice"
+      body:
+        -   - "The report is {2-9} percent off."
+            - "Finance sees another total."
+        -   - "{/Also, /And /}refunds land in another period."
+            - "Disputes reopen and recount."
+            - ""
+        -   - "{b_ex_a}."
+            - "{who|cap} needs it before the review."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Use the ledger date."
+        - "{b_cm_check}"
+        - "Keep the old number beside it."
+    - labels: [security, task]
+      title:
+        - "Delete search history with the account"
+        - "Erasure requests miss click logs"
+        - "Deleted buyers still in the warehouse"
+      body:
+        -   - "Removing an account clears the app."
+            - "The warehouse keeps old rows."
+        -   - "Privacy rules need removal in {30/45} days."
+            - "Privacy asked for a monthly purge."
+        -   - "{p_owner_ask}"
+      comments:
+        - "A nightly purge by user id."
+        - "Backups age out on their own."
+        - "{b_cm_later}"
+    - labels: [performance]
+      let:
+        peak: ["{ec_peak}"]
+      title:
+        - "Nightly load slow after {peak}"
+        - "Load runs long on sale days"
+        - "Events table makes the load crawl"
+      body:
+        -   - "Loads take {1-3} hours longer."
+            - "{peak|cap} doubles the volume."
+        -   - "{/Also, /And /}the slowest step reads all events."
+            - ""
+        -   - "{b_pf_e}"
+      comments:
+        - "Load only new partitions."
+        - "{b_cm_prof} {b_cm_prof2}"
+        - "{b_cm_plan}"
+  portal:
+    - labels: [bug]
+      let:
+        browser: ["{b_browser}"]
+      title:
+        - "Bulk upload fails on large files"
+        - "CSV import stalls at {10-90} percent"
+        - "Listing upload times out in {browser}"
+        - "Import drops rows after batch one"
+      body:
+        -   - "Sellers upload {2-9} thousand rows."
+            - "Files over {5-20} MB fail."
+        -   - "The page shows a vague error."
+            - "The import hangs in {browser}."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Chunk the upload."
+        - "{b_cm_repro} with a big file."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Payout statement export is missing fees"
+        - "Statement CSV drops refunds"
+        - "Exported totals differ from the screen"
+      body:
+        -   - "Sellers reconcile from the export."
+            - "The CSV omits some lines."
+        -   - "{/Also, /And /}it skips fee adjustments."
+            - "Refund rows are missing."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Use the page's own query."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [enhancement]
+      let:
+        ask: [respond to a dispute, pause a listing, split a payout, update tax details]
+      title:
+        - "Let sellers {ask} in the portal"
+        - "Portal: {ask}"
+        - "Sellers want to {ask}"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+      comments:
+        - "Support gets {2-9} requests daily."
+        - "Needs identity checks first."
+        - "{b_cm_srv}"
+    - labels: [bug, security]
+      title:
+        - "Seller can open another seller's order"
+        - "Order page ignores the seller id"
+        - "Order export leaks buyer addresses"
+      body:
+        -   - "One seller opened another's order."
+            - "Addresses leaked across stores."
+        -   - "{/Also, /And /}the route checks login only."
+            - "Lookup uses the order id alone."
+            - ""
+        -   - "{/Also, /And /}keep the details out of chat."
+            - "Please keep this in the issue."
+            - ""
+      comments:
+        - "Check the access log."
+        - "{b_cm_fix_up}"
+        - "Tell trust and safety."
+  infra:
+    - labels: [security, enhancement]
+      title:
+        - "Alert before payment provider keys expire"
+        - "Who rotates the processor keys?"
+        - "Webhook signing secret is old"
+      body:
+        -   - "The key expires in {20-120} days."
+            - "Nobody owns the rotation."
+        -   - "{/Also, /And /}A lapse stops all payments."
+            - "Checkout fails closed."
+            - ""
+        -   - "{p_owner_ask}"
+      comments:
+        - "I will add a {30/14} day alert."
+        - "Rotate on staging first."
+        - "{b_cm_plan}"
+    - labels: [performance]
+      let:
+        peak: ["{ec_peak}"]
+      title:
+        - "Checkout limits too tight for {peak}"
+        - "Search slows during {peak}"
+        - "Raise capacity before {peak}"
+      body:
+        -   - "Traffic jumps {2-6}x at {peak}."
+            - "Last year we saw errors."
+        -   - "{/Also, /And /}limits trip on shared addresses."
+            - "Retries add more load."
+            - ""
+        -   - "{/Also, /And /}raise limits and add nodes."
+            - ""
+      comments:
+        - "{b_cm_prof}"
+        - "Replay last year's traffic."
+        - "{b_cm_plan}"
+    - labels: [bug]
+      title:
+        - "Carrier api timeouts break label printing"
+        - "Shipping labels fail for one carrier"
+        - "Tracking updates arrive hours late"
+      body:
+        -   - "Sellers cannot print labels."
+            - "Tracking lags by hours."
+        -   - "{/Also, /And /}the carrier api times out."
+            - "Our timeout is too short."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "Retry with backoff."
+        - "{b_cm_check}"
+        - "Add a status page link."
+  ops:
+    - labels: [question]
+      let:
+        script: ["close_inactive_sellers.sh", "export_payouts.sh", "reindex_listings.sh", "{p_script}"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+        - "Does anything call {script}?"
+        - "Retire {script}?"
+        - "{script}: anyone using this?"
+      body:
+        -   - "Found {script} while tidying."
+            - "{script|cap} has no recent changes."
+        -   - "{/Also, /And /}written for the old search."
+            - "It predates the new payouts."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Will remove it next month."
+      comments:
+        - "Not used by us."
+        - "Check cron on {p_old_ref}."
+        - "Keep it until the move ends."
+comments:
+  - "Seller support has {2-9} of these open."
+  - "{b_pwho|cap} has a seller waiting."
+  - "Does it hit {ec_cat} sellers too?"
+  - "Only {ec_cat}, or all categories?"
+  - "Matters most during {ec_peak}."
+  - "Checked the ledger, same result."
+  - "Trust and safety wants to know."
+  - "Hold off until {ec_peak} ends."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: {ec_peak} planning {day} at {time}"
+        - "change freeze for {ec_peak} starts {c_soon}"
+        - "all hands {day} at {time} in {c_room}"
+        - "welcome {person} to the payments team"
+        - "reminder: {ec_reg} review is {c_soon}"
+      replies:
+        -   - "does it include on-call?"
+            - "who needs to attend?"
+            - "will it be recorded?"
+        -   - "{c_yes}, all of them"
+            - "leads only"
+            - "{c_idk}, ask {person}"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_em}"
+    - root:
+        - "{c_hey}: benefits enrolment closes {c_soon}"
+        - "office closed {c_soon}, wfh"
+        - "it patching {c_soon}, restart please"
+        - "new sellers hit {2-9}k this month"
+      replies:
+        -   - "{c_ack}"
+            - "{c_thanks}"
+        -   - ""
+            - "thanks for the heads up"
+    - root:
+        - "huge thanks to {person} for the sale weekend"
+        - "{c_hey}, record GMV yesterday"
+        - "the team won an industry award"
+      replies:
+        -   - "amazing"
+            - "{c_em}"
+            - "well deserved"
+        -   - ""
+            - "{c_thanks}"
+  off-topic:
+    - root:
+        - "found a bargain in {ec_cat} today"
+        - "who bought on our own site?"
+        - "best thing you sold online?"
+        - "lunch ideas, sick of {c_food}"
+        - "parcel from a seller came early"
+      replies:
+        -   - "nice"
+            - "dogfooding is hard"
+            - "not for me"
+        -   - "{c_lol}"
+            - "save me one"
+            - ""
+    - root:
+        - "{c_sport} {c_soon}, anyone in?"
+        - "{c_weekend} {c_soon}, anyone?"
+        - "{c_pet} just did something silly"
+        - "reading anything good lately?"
+      replies:
+        -   - "i'm in"
+            - "nice"
+            - "can't, sorry"
+        -   - "{c_em}"
+            - ""
+  engineering:
+    - root:
+        - "checkout latency up since deploy"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "{c_ci_fail} is failing on main"
+        - "who owns the fee calculator?"
+        - "should we bump {c_dep}? new major is out"
+      replies:
+        -   - "i'll look {c_when_eng}"
+            - "which region?"
+            - "{c_idk}, checking"
+        -   - "it is the new build"
+            - "rolled back, watching"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "design question for {c_eng_area}, async?"
+        - "heads up, freeze from {day} for {ec_peak}"
+        - "why does {c_eng_area} retry {2-9} times?"
+        - "who is on call this week?"
+      replies:
+        -   - "async, with a retry"
+            - "ask {person}"
+            - "it is in the handbook"
+        -   - "{c_ack}"
+            - "ok, thanks"
+            - ""
+    - root:
+        - "local env broke after {pulling main/a rebase}"
+        - "is {c_tool} down for anyone else?"
+        - "tiny pr: fix typo in {repo} readme"
+      replies:
+        -   - "restart the dev container"
+            - "same here"
+            - "merged"
+        -   - "{c_thanks}"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the fee fixes, standup in {5-15} minutes"
+        - "who picks up {issue}?"
+        - "sprint planning {day} at {time}, bring estimates"
+        - "anyone free to pair on {issue}?"
+        - "retro: who owns the payout run?"
+      replies:
+        -   - "me, after standup"
+            - "i can {c_when_eng}"
+            - "{c_pto}, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {c_customer} reports {ec_fail}"
+        - "seller support says {ec_fail}, {issue} maybe?"
+        - "{c_hey}, {ec_fail} again, {2-9}th this week"
+        - "trust and safety flagged {ec_risk}"
+      replies:
+        -   - "which seller id?"
+            - "{issue} looks like it"
+            - "send me the order id"
+        -   - "{c_ack}, taking it"
+            - "checking the logs"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers seller support?"
+      replies:
+        -   - "in the handbook"
+            - "i do"
+        -   - "{c_thanks}"
+            - ""
+  support:
+    - let:
+        who: ["{c_customer}"]
+        fail: ["{ec_fail}"]
+      root:
+        - "{who|cap} reports {fail}"
+        - "{s_hey}, {who}: {fail}, case {4100-4999}"
+        - "{who} is upset, {fail}"
+        - "{fail} again, how do we fix it?"
+        - "seller says {fail}, third time"
+      replies:
+        -   - "check the payout console"
+            - "known, see {issue}"
+            - "send me the seller id"
+            - "escalate to payments"
+        -   - "{s_ack}, will reply"
+            - "{s_thx}"
+            - "done, released"
+            - ""
+    - let:
+        fee: ["{ec_fee}"]
+        sum: ["{s_money}"]
+      root:
+        - "seller disputes {fee}, {sum} this month"
+        - "{s_hey}, why was {fee} charged on a refund?"
+        - "seller asks for a breakdown of {fee}"
+        - "{fee} looks higher, they noticed"
+      replies:
+        -   - "rates changed on the first"
+            - "refunds reverse next cycle"
+            - "{s_look} at the statement"
+        -   - "{s_thx}"
+            - "{s_ack}"
+            - ""
+    - let:
+        item: ["{item_a}", "{item_b}"]
+        sum: ["{s_money}"]
+      root:
+        - "{s_cust|cap} asks why {item} is {sum}"
+        - "seller questions the {item} line"
+        - "can someone explain {item}? seller asks"
+        - "{item} went up, they noticed"
+      replies:
+        -   - "ad spend is itemised"
+            - "rate changed on the first"
+            - "{s_look} at the invoice"
+        -   - "{s_thx}"
+            - ""
+    - root:
+        - "queue is at {20-90} open cases, mostly payouts"
+        - "{s_hey}, buyer never got a refund"
+        - "seller cannot upload listings"
+        - "seller account locked after login"
+      replies:
+        -   - "known, see {issue}"
+            - "i'll check the account"
+            - "send me the seller id"
+        -   - "{s_ack}"
+            - "{s_thx}"
+  incidents:
+    - root:
+        - "checkout errors are up"
+        - "payout batch is {20-90} minutes late"
+        - "search is {s_symptom} since {time}"
+        - "{s_hey}, payment provider shows an incident"
+      replies:
+        -   - "is it all regions?"
+            - "{s_oncall} is looking"
+            - "waiting page is on"
+        -   - "{ec_fix}, watching"
+            - "back at {time}"
+            - ""
+        -   - "{s_thx}, file an issue"
+            - ""
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed"
+        - "review of the payout incident is {day} at {time}"
+        - "on-call handover: nothing open"
+      replies:
+        -   - "threshold is tight, raising it"
+            - "worth an issue"
+            - "works for me"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "processor key expires in {2-9} days"
+        - "{s_al} indexer queue at {1-9},{100-900}"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "{s_al} carrier api timing out since {time}"
+      replies:
+        -   - "rotating now"
+            - "i'll check the queue"
+            - "looks like the new build"
+        -   - "{s_ack}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you check the fee rules {s_soon}?"
+        - "{s_hey}, can you cover seller support {s_soon}?"
+        - "quick question: where do refunds land?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this seller story"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - ""
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "ugh, staging payments are broken again"
+        - "survived {ec_peak}, finally"
+        - "{s_hey}, got a minute for audit prep?"
+      replies:
+        -   - "yes, count me in"
+            - "can't today"
+            - "same, long week"
+        -   - "tomorrow?"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Seller emails delayed
+      - Statement mail running late
+      - Payout notices not sent
+    alert:
+      - "seller emails delayed, oldest waited {20-90} min"
+      - "{s_al} statement queue age {s_age}"
+      - "payout mail not going out since {time}"
+    fix_message:
+      - "Queue seller emails, not inline sends"
+      - "{s_q_verb|cap} statements {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment provider callback errors
+      - Elevated errors on provider webhooks
+      - Payment events failing
+    alert:
+      - "payment webhooks failing, rate above {5-30} percent"
+      - "{s_al} provider events erroring since {time}"
+      - "webhook endpoint throwing 5xx errors"
+    fix_message:
+      - "Retry webhooks on timeout"
+      - "Retry callbacks that time out"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate payout notices
+      - Sellers got the statement twice
+      - Payout email sent twice
+    alert:
+      - "sellers got statements twice, {3-12} reports"
+      - "{s_al} duplicate payout notices after a retry"
+      - "same email sent twice since {day}"
+    fix_message:
+      - "Check the sent log first"
+      - "Skip emails already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly orders load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad order rows"
+      - "{s_al} warehouse load aborted, dashboards stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed order rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Orders load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "orders load ran twice, GMV doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Seller portal timeouts for big stores
+      - Order list times out
+      - Portal slow for top sellers
+    alert:
+      - "seller portal timeouts, p95 above {5-20}s"
+      - "{s_al} order list 504s, largest sellers only"
+      - "portal slow for big sellers since {time}"
+    fix_message:
+      - "Page the order list"
+      - "Add pagination to orders"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Seller login errors after deploy
+      - Sellers signed out after the release
+      - Login loop on the seller portal
+    alert:
+      - "seller logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "sellers cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - Webhook certificate expired
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}"
+      - "{s_al} tls errors on staging, no renewal"
+      - "webhook certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - Checkout alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "checkout alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "seeing the same in seller tickets"
+    - "checking the checkout dashboard now"
+    - "is it all sellers or some?"
+    - "might be the deploy from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the marketplace, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the fee rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} rounds payouts? {s_un_c}"
+    - "{s_un_a} why checkout slowed down? {s_un_c}"
