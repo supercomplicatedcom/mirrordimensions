@@ -1,0 +1,1112 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Health insurance (payers): extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: health-payers
+name: Health insurance (payers)
+group: Health and life sciences
+aliases:
+  - health insurer
+  - managed care organization
+  - insurance carrier
+  - payer
+  - managed care
+  - medicare advantage plan
+description: A health plan that enrolls members and employer groups, collects premiums, adjudicates claims and runs member and provider portals.
+name_suffixes:
+  - Health Plan
+  - Mutual
+  - Blue Cross
+  - Health Partners
+  - Care Network
+  - Assurance
+organization:
+  head: Chief Technology Officer
+  it_admin: IT Operations Manager
+  teams:
+    platform:
+      department: Platform Engineering
+      title: Integration Engineer
+      lead: Platform Manager
+    billing:
+      department: Premium Billing Systems
+      title: Billing Systems Developer
+      lead: Premium Billing Manager
+    data:
+      department: Actuarial Data Services
+      title: Data Engineer
+      lead: Data Services Manager
+    support:
+      department: Member Services
+      title: Member Services Representative
+      lead: Member Services Supervisor
+    product:
+      department: Digital Member Experience
+      title: Product Manager
+      lead: Director of Digital Experience
+    operations:
+      department: Enrollment Operations
+      title: Enrollment Analyst
+      lead: Enrollment Operations Manager
+names:
+  repos:
+    billing-service: [premium-billing, group-billing, premium-service, billing-engine]
+    platform-docs: [platform-handbook, edi-runbooks, plan-it-docs, ops-handbook]
+    data-pipeline: [claims-warehouse, actuarial-loads, enrollment-etl, edi-loads]
+    infra-config: [edi-infra, plan-infra, environment-config, sftp-config]
+    customer-portal: [member-portal, provider-portal, member-web, benefits-portal]
+    ops-scripts: [edi-scripts, batch-jobs, legacy-batch, admin-scripts]
+  channels:
+    engineering: [plan-dev, platform-dev, dev]
+    incidents: [edi-alerts, incidents, batch-alerts]
+    releases: [releases, change-calendar, go-lives]
+    billing-team: [premium-billing-team, billing-systems, billing-eng]
+    platform-team: [platform, integration-team, edi-team]
+    data-team: [actuarial-data, data-team, analytics]
+    support: [member-services, service-desk, support]
+    leads: [leads, eng-leads, managers]
+systems:
+  typical: [salesforce, servicenow, gitea, mattermost, okta, snowflake, genesys cloud, facets, availity]
+  common: [tableau, microsoft power bi, docusign, pagerduty, splunk]
+symbols:
+  b_doc:
+    - premium invoice
+    - group invoice
+    - member premium notice
+    - retro adjustment notice
+    - premium credit memo
+  b_customer:
+    - employer group
+    - individual-plan
+    - Medicare Advantage
+    - Medicaid managed care
+    - small group
+    - large group
+    - marketplace
+    - COBRA
+  b_who:
+    - the finance team
+    - member services
+    - enrollment operations
+    - the broker team
+    - compliance
+    - the account managers
+  b_pwho:
+    - member services
+    - a member
+    - '{person}'
+    - an employer group
+    - the broker team
+  b_ticket_noun:
+    - ticket
+    - case
+    - request
+    - escalation
+  b_money_path:
+    - billing/premium.py
+    - billing/subsidy.py
+    - billing/adjustments.py
+    - billing/proration.py
+  b_mail_path:
+    - billing/notices.py
+    - billing/invoice_mail.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_cb_path:
+    - billing/payment_events.py
+    - billing/lockbox.py
+    - billing/ach.py
+  b_credit_path:
+    - billing/credits.py
+    - billing/refunds.py
+    - billing/retro_adjustments.py
+  b_check_path:
+    - the premium tests
+    - the enrollment tests
+    - the refund tests
+    - the lockbox tests
+  b_provider_event:
+    - payment posted
+    - ACH return
+    - lockbox file received
+    - refund issued
+    - enrollment change
+  b_currency:
+    - premium
+    - subsidy
+    - member share
+    - employer share
+  b_taxkind:
+    - premium tax
+    - state assessment
+    - marketplace fee
+    - risk adjustment fee
+  b_region:
+    - Ohio
+    - Michigan
+    - Illinois
+    - Minnesota
+    - Georgia
+    - Colorado
+    - Oregon
+    - Virginia
+  b_acct_size:
+    - '{200-900} enrolled employees'
+    - '{15-60} sub-groups'
+    - '{3-12} billing contacts'
+    - '{40-300} past invoices'
+  b_page:
+    - invoices
+    - claims
+    - coverage
+    - ID cards
+    - payments
+    - documents
+    - the dashboard
+  c_customer:
+    - a member
+    - an employer group
+    - a broker
+    - a provider office
+  s_plan:
+    - a PPO plan
+    - an HMO plan
+    - a high deductible plan
+    - a small group plan
+    - a Medicare Advantage plan
+  s_tool:
+    - the admin console
+    - the member services tool
+    - the billing admin
+    - the work queue
+    - the call center desktop
+  p_table:
+    - members
+    - claims
+    - enrollments
+    - premiums
+    - payments
+    - authorizations
+  p_report:
+    - the claims lag triangle
+    - the weekly enrollment report
+    - the aging premiums report
+    - the monthly loss ratio report
+    - the quality measures dashboard
+  p_source:
+    - the clearinghouse claim files
+    - the pharmacy benefit manager feed
+    - the broker enrollment files
+    - the call center ticket export
+  p_finance_ask:
+    - the controller
+    - someone in actuarial
+    - the premium accounting lead
+    - the compliance officer
+  p_secret_thing:
+    - the clearinghouse SFTP key
+    - the pharmacy benefit manager API token
+    - the payments provider token
+    - the warehouse service account key
+  p_cert_host:
+    - the member portal public certificate
+    - the provider portal certificate
+    - the SFTP gateway certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - members.{domain}
+    - providers.{domain}
+    - reports.{domain}
+    - status.{domain}
+    - sftp.{domain}
+  p_alert_name:
+    - the 837 intake queue
+    - the 834 enrollment load
+    - failed backups
+    - the nightly load finishing late
+    - disk usage on the SFTP hosts
+  p_limit_target:
+    - the claims workers
+    - the reporting workers
+    - the portal pods
+    - the mail relay
+  hp_lob:
+    - the employer group book
+    - the Medicare Advantage book
+    - the marketplace book
+    - the Medicaid contract
+    - the individual book
+  hp_group:
+    - a large employer group
+    - a small group
+    - a union trust
+    - a school district group
+    - a municipal group
+  hp_edi:
+    - the 834 file
+    - the 835 file
+    - the 837 file
+    - the 271 response
+    - the 278 response
+  hp_audit:
+    - a state exam
+    - a CMS audit
+    - the NCQA review
+    - a loss ratio audit
+    - the HEDIS audit
+  hp_dept:
+    - claims
+    - enrollment
+    - utilization management
+    - provider relations
+    - appeals
+  hp_hand:
+    - by hand each morning
+    - one at a time
+    - from the work queue
+    - out of a spreadsheet
+  hp_late:
+    - arrive after midnight
+    - land {1-3} hours late
+    - miss the morning cutoff
+    - get stuck in the queue
+  hp_batch:
+    - in the nightly batch
+    - once a night
+    - at {1-4}am
+  hp_cause:
+    - a late file
+    - a retro change
+    - a stuck batch
+    - a bad control total
+  hp_old:
+    - years old
+    - from before my time
+    - older than the team
+  hp_oncall:
+    - the claims workers
+    - the EDI gateway
+    - the portals
+  hp_fullmsg:
+    - full payloads
+    - whole files
+    - every field
+  hp_them:
+    - them
+    - the index
+    - the logs
+  hp_twice:
+    - a member charged twice
+    - a duplicate payment
+    - double posted premiums
+  hp_notice:
+    - this payer bulletin
+    - this release note
+    - this notice from the regulator
+  hp_where:
+    - on the portal
+    - in the app
+    - online
+  hp_drill:
+    - in the next drill
+    - at the next drill
+    - during a drill
+  hp_wrongcount:
+    - 'the wrong headcount'
+    - 'a stale member count'
+    - 'last month''s census'
+  hp_midmonth:
+    - 'a mid-month change'
+    - 'a late add'
+    - 'a termination'
+  hp_byclose:
+    - 'by month end'
+    - 'before close'
+    - 'for the billing run'
+  hp_retro:
+    - 'retro refunds'
+    - 'how far back credits go'
+    - 'refund timing'
+  hp_latesub:
+    - 'a late subsidy payment'
+    - 'the subsidy delay'
+    - 'a payment in transit'
+  hp_inside:
+    - 'inside the grace period'
+    - 'too early'
+    - 'before the due date'
+  hp_afterlate:
+    - 'after a late payment'
+    - 'after one missed month'
+    - 'after a bank delay'
+  hp_fromdue:
+    - 'from the due date'
+    - 'from the invoice date'
+    - 'from the first of the month'
+  hp_wrongdate:
+    - 'on the wrong date'
+    - 'a day early'
+    - 'at month end'
+  hp_thepremium:
+    - 'the premium'
+    - 'the credit'
+    - 'the payment'
+  hp_afterchange:
+    - 'after a plan change'
+    - 'after renewal'
+    - 'after a dependent is added'
+  hp_onphones:
+    - 'on some phones'
+    - 'in the app'
+    - 'in older browsers'
+  hp_cached:
+    - 'from a cached copy'
+    - 'from a nightly export'
+    - 'from an old snapshot'
+  hp_norefresh:
+    - 'does not refresh it'
+    - 'never invalidates it'
+    - 'misses the cache'
+  hp_check:
+    - 'the member check'
+    - 'the owner check'
+    - 'the role check'
+  hp_monthly:
+    - 'from a monthly file'
+    - 'from a weekly file'
+    - 'from the vendor'
+  hp_inportal:
+    - 'in the provider portal'
+    - 'on the portal'
+    - 'for large offices'
+  hp_latest:
+    - 'only the latest row'
+    - 'one row per member'
+    - 'the newest record'
+  hp_double:
+    - 'double the totals'
+    - 'inflate the totals'
+    - 'count twice'
+  hp_newrow:
+    - 'as a new row'
+    - 'as a separate record'
+    - 'with a new id'
+  hp_original:
+    - 'it to the original'
+    - 'the correction to the claim'
+    - 'replaced claims'
+  hp_expires:
+    - 'for the clearinghouse expires'
+    - 'for the partner expires'
+    - 'renewal is due'
+  hp_afterkey:
+    - 'after a key change'
+    - 'after a rotation'
+    - 'on the first day'
+  hp_queue:
+    - 'the intake queue'
+    - 'the 834 queue'
+    - 'the claims inbox'
+  hp_wrongrota:
+    - 'to a retired channel'
+    - 'nowhere'
+    - 'to the wrong rota'
+  hp_module:
+    - 'the same module as last year'
+    - 'a new training'
+    - 'a longer module'
+  hp_looks:
+    - 'looks like a control total'
+    - 'maybe the new envelope'
+    - 'a bad fixture'
+  hp_envelope:
+    - 'on a new envelope'
+    - 'on a repeated segment'
+    - 'on a bad date'
+  hp_subchg:
+    - 'a subscriber change'
+    - 'a dependent move'
+    - 'a name correction'
+  hp_spec:
+    - 'who has it?'
+    - 'where is it?'
+    - 'anyone read it?'
+  hp_oncall2:
+    - 'the EDI gateway'
+    - 'the portals'
+    - 'the claims workers'
+  hp_rules:
+    - 'the claims rules'
+    - 'the edit tables'
+    - 'the auto-adjudication rules'
+  hp_card:
+    - 'an ID card'
+    - 'the digital card'
+    - 'the plan card'
+  hp_mistake:
+    - 'by mistake'
+    - 'twice'
+    - 'this morning'
+  hp_invoiceoff:
+    - 'the group invoice is off'
+    - 'the headcount is wrong'
+    - 'the total is high'
+  hp_email:
+    - 'the same email as enrollment'
+    - 'a different address'
+    - 'the broker address'
+  hp_roi:
+    - 'who handles that?'
+    - 'where does it go?'
+    - 'is that member records?'
+  hp_live:
+    - 'is that live?'
+    - 'who approves it?'
+    - 'is it allowed?'
+  hp_behind:
+    - 'enrollment is behind'
+    - 'members cannot see coverage'
+    - 'the count is stale'
+  hp_claimsrun:
+    - 'claims run started late'
+    - 'adjudication slipped'
+    - 'payments are delayed'
+  hp_ruleq:
+    - 'a claim rule'
+    - 'a benefit edit'
+    - 'an enrollment question'
+  hp_reg:
+    - 'a regulator'
+    - 'the state'
+    - 'CMS'
+  hp_screens:
+    - 'the new billing screens'
+    - 'the new enrollment module'
+    - 'the updated invoice view'
+  hp_cardfile:
+    - 'the ID card file'
+    - 'today''s card batch'
+    - 'the welcome kits'
+  hp_lead:
+    - Also,
+    - Note that
+    - As far as we can tell,
+    - It seems
+    - Apparently
+    - From what I can see,
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        grp: ['{hp_group}']
+        edi: ['{hp_edi}']
+        path: ['{b_money_path}']
+      title:
+        - Group invoice headcount disagrees with {edi}
+        - '{grp|cap} billed for {hp_wrongcount}'
+        - Invoice for {grp} does not match enrollment
+        - Premium total off after {hp_midmonth} for {grp}
+        - Why is the headcount different from {edi}?
+        - 'Billing count differs from {edi}, {grp}'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_raised} for {grp}, {b_scope}.'
+        -   - Headcount is read in {path}.
+            - The count comes from {path}.
+        -   - '{hp_lead} it uses the file from {hp_cause}.'
+            - It misses changes from {hp_cause}.
+        -   - Account managers fix invoices {hp_hand}.
+        -   - '{b_urgent}'
+            - '{b_urgent} {b_offer}'
+      comments:
+        - '{b_cm_repro} with a group of {20-400} members.'
+        - '{b_cm_check}, {path} may skip late changes.'
+        - Finance needs it {hp_byclose}.
+        - '{b_cm_later}'
+    - labels: [bug, needs-decision]
+      let:
+        thing: ['a retro termination', 'a late enrollment', 'a retro effective date']
+        path: ['{b_credit_path}']
+      title:
+        - Refund after {thing} credits the wrong month
+        - Premium credit for {thing} is not prorated
+        - Who decides refunds after {thing}?
+        - '{thing|cap} leaves a balance on the invoice'
+        - Retro adjustment for {thing} posts twice
+        - Credit memo missing after {thing}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{hp_lead} retro changes are applied in {path}.'
+        -   - '{hp_lead} only the current month is adjusted.'
+            - Earlier months stay as billed.
+        -   - '{hp_lead} finance corrects them {hp_hand}.'
+        -   - Needs a decision from {b_who}.
+      comments:
+        - '{b_cm_hand}'
+        - '{b_cm_ask_who}'
+        - Regulators limit {hp_retro}.
+    - labels: [bug]
+      let:
+        kind: ['marketplace', 'subsidized', 'grace period']
+      title:
+        - '{kind|cap} members terminated one month too early'
+        - Grace period ignores {hp_latesub}
+        - Termination date wrong for {kind} members
+        - Non-payment notice sent {hp_inside}
+        - '{kind|cap} members lose coverage {hp_afterlate}'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - The job counts days {hp_fromdue}.
+            - Grace days start {hp_wrongdate}.
+        -   - '{hp_lead} subsidy payments arrive after the cutoff.'
+        -   - '{hp_lead} members call member services upset.'
+        -   - '{b_urgent}'
+      comments:
+        - Compliance should look at this first.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_tell}'
+    - labels: [bug]
+      let:
+        path: ['{b_cb_path}']
+      title:
+        - Lockbox payments left unapplied
+        - ACH returns do not reverse {hp_thepremium}
+        - Payments from {hp_group} do not match any invoice
+        - Unapplied premium cash grows every day
+        - Lockbox file loads with {2-9} errors
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Files are read in {path}.
+        -   - '{hp_lead} remittance detail is often missing.'
+            - Members pay without the invoice number.
+        -   - '{hp_lead} accounting posts them {hp_hand}.'
+        -   - '{b_cm_map}'
+      comments:
+        - '{b_cm_check}, the matching rules first.'
+        - '{b_cm_repro} with last week''s file.'
+        - '{b_cm_later}'
+  portal:
+    - labels: [bug]
+      let:
+        thing: ['effective date', 'plan name', 'copay amounts', 'group number']
+      title:
+        - ID card shows the wrong {thing}
+        - Digital ID card out of date {hp_afterchange}
+        - Members print cards with the old {thing}
+        - ID card page is blank {hp_onphones}
+        - Card for dependents shows the subscriber {thing}
+      body:
+        -   - '{b_pscope}.'
+        -   - The card is built {hp_cached}.
+            - Cards come from a nightly export.
+        -   - '{hp_lead} a plan change {hp_norefresh}.'
+        -   - '{hp_lead} providers deny claims for old data.'
+      comments:
+        - '{b_cm_clr2} {b_cm_cb}'
+        - '{b_cm_repro} with a new dependent.'
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        doc: ['EOB', 'explanation of benefits', 'claim summary']
+        browser: ['{b_browser}']
+      title:
+        - '{doc} download fails in {browser}'
+        - Members cannot find their {doc}
+        - '{doc} shows another member''s claims'
+        - '{doc} PDF is blank for dependents'
+        - Paper {doc} still mailed to portal-only members
+      body:
+        -   - '{b_pscope}.'
+        -   - The file route skips {hp_check}.
+            - The request returns a blank page.
+        -   - '{hp_lead} it works for the subscriber only.'
+        -   - '{b_pm_e}'
+      comments:
+        - '{b_cm_rolefix} {b_cm_roletest}'
+        - Compliance has to hear about this.
+        - '{b_cm_tell}'
+    - labels: [bug, data-quality]
+      let:
+        thing: ['providers who left the network', 'wrong office addresses', 'doctors not taking patients']
+      title:
+        - Provider directory lists {thing}
+        - Directory search shows {thing}
+        - Members report {thing}
+        - Directory update takes {2-9} weeks
+        - Who owns directory accuracy?
+      body:
+        -   - '{b_pscope}.'
+        -   - Provider data comes {hp_monthly}.
+            - Updates reach the site every month.
+        -   - '{hp_lead} regulators expect faster corrections.'
+            - The directory rules set a deadline.
+        -   - '{b_nd_b}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+        - Provider relations keeps the master record.
+    - labels: [bug, performance]
+      let:
+        thing: ['prior authorization status', 'claim status', 'eligibility check']
+      title:
+        - '{thing|cap} stuck on pending {hp_inportal}'
+        - '{thing|cap} lookup times out'
+        - Provider portal slow on {thing}
+        - '{thing|cap} answers differ from the phone line'
+        - Offices call us instead of using {thing}
+      body:
+        -   - '{b_pscope}.'
+        -   - '{hp_lead} the lookup calls two systems.'
+            - It waits on the claims system.
+        -   - '{hp_lead} large offices see {b_slow}.'
+        -   - '{hp_lead} they give up and phone.'
+      comments:
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_idx} {b_cm_fine}'
+        - '{b_cm_later}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        step: ['logging the receipt date', 'checking the filing deadline', 'sending the acknowledgement', 'notifying the member']
+        page: ['the appeals runbook', 'the grievance guide', 'the escalation page']
+      title:
+        - '{page|cap} is missing a step: {step}'
+        - '{page|cap} skips {step}'
+        - Appeals process does not cover {step}
+        - Add {step} to {page}
+        - 'Docs: {page} out of date after the audit'
+      body:
+        -   - Found while preparing for {hp_audit}.
+            - Raised during a review with compliance.
+        -   - '{hp_lead} the page describes {hp_old} practice.'
+        -   - '{hp_lead} nobody knows who owns it.'
+        -   - '{hp_lead} a short ordered list would do.'
+      comments:
+        - '{b_cm_docs}'
+        - Compliance should read the draft.
+        - '{b_cm_up} {b_cm_read2}'
+    - labels: [docs, security]
+      let:
+        thing: ['minimum necessary access', 'member authorization forms', 'breach notification', 'business associate onboarding']
+      title:
+        - Write down how we handle {thing}
+        - Handbook never explains {thing}
+        - Where is {thing} documented?
+        - Document {thing} for new engineers
+        - Privacy asks for a page on {thing}
+      body:
+        -   - Compliance asked, ahead of {hp_audit}.
+            - '{hp_audit|cap} is coming, no page yet.'
+        -   - '{hp_lead} only {person} knows the steps.'
+            - The steps live in old emails.
+        -   - '{hp_lead} a page with owners would do.'
+      comments:
+        - '{b_dc_e}'
+        - Privacy should review the wording.
+        - '{b_cm_draft} {day}.'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        edi: ['{hp_edi}']
+        cause: ['{hp_cause}']
+      title:
+        - Claims lag triangle shifts after {cause}
+        - Incurred but not reported estimate jumps
+        - Completion factors off after {cause}
+        - Late claim files distort the triangle
+        - Actuarial asks why paid claims moved
+      body:
+        -   - Actuarial asked, ahead of {hp_audit}.
+        -   - Files {hp_late}.
+        -   - '{hp_lead} the load stamps today''s date.'
+            - The paid date is overwritten.
+        -   - '{hp_lead} reserves depend on this report.'
+      comments:
+        - A received date would fix it.
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_ask_who}'
+    - labels: [bug, data-quality]
+      let:
+        edi: ['{hp_edi}']
+        table: ['{p_table}']
+      title:
+        - Enrollment counts differ from {edi}
+        - Member counts in {table} do not match the 834
+        - Warehouse keeps terminated members active
+        - Duplicate members after a subscriber change
+        - Retro terminations missing from {table}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{hp_lead} retro changes arrive as full files.'
+        -   - '{hp_lead} our load keeps {hp_latest}.'
+        -   - Reports count members twice.
+        -   - '{hp_lead} needs a decision from {b_who}.'
+      comments:
+        - '{b_cm_check}, the control totals first.'
+        - A reconciliation job would help.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        measure: ['readmission rate', 'breast cancer screening rate', 'diabetes care gaps', 'star rating measure']
+      title:
+        - '{measure|cap} does not match the vendor file'
+        - Quality dashboard shows another {measure}
+        - '{measure|cap} off by {2-9} percent'
+        - Definition of {measure} differs by team
+        - Why is {measure} different in the warehouse?
+      body:
+        -   - Quality team asked, ahead of {hp_audit}.
+        -   - '{hp_lead} our load uses its own definition.'
+            - The query is {hp_old}.
+        -   - Exclusions are handled differently.
+        -   - '{hp_lead} we need one agreed definition.'
+      comments:
+        - '{b_cm_hand}'
+        - It feeds the star ratings.
+        - '{b_cm_ask_who}'
+    - labels: [bug, data-quality]
+      let:
+        table: ['claims', 'claim lines', 'payments']
+      title:
+        - Replaced claims counted twice in {table}
+        - Voided claims still appear in {table}
+        - Duplicate rows in {table}
+        - Frequency code 7 claims {hp_double}
+        - '{table|cap} total higher than the 835 files'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - A corrected claim arrives {hp_newrow}.
+        -   - Our load never links {hp_original}.
+        -   - Totals are inflated.
+      comments:
+        - '{b_cm_dup}'
+        - '{b_cm_check}, the claim frequency code.'
+        - '{b_cm_plan}'
+  infra:
+    - labels: [security, bug]
+      let:
+        item: ['{p_cert_host}']
+      title:
+        - Alert before {item} expires
+        - SFTP key {hp_expires} in {2-9} days
+        - Nobody owns renewal of {item}
+        - Partner connection fails {hp_afterkey}
+      body:
+        -   - Found it {b_sc_b}
+        -   - '{hp_lead} no alert exists for it.'
+        -   - '{hp_lead} claims intake stops when it lapses.'
+      comments:
+        - '{b_cm_plan}'
+        - Put it on the shared calendar.
+        - '{b_cm_ask_who}'
+    - labels: [bug, incident]
+      let:
+        edi: ['{hp_edi}']
+      title:
+        - Intake queue for {edi} backed up overnight
+        - EDI gateway stopped accepting files
+        - Batch window for {edi} collides with claims run
+        - Alert for {hp_queue} never fired
+        - Files for {edi} reject on a control total
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Files wait for {1-9} hours.
+        -   - '{hp_lead} one bad envelope blocks the queue.'
+        -   - '{hp_lead} the alert routes {hp_wrongrota}.'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_clr2}'
+        - Dead letter handling would stop this.
+        - '{b_cm_check}, the gateway logs first.'
+    - labels: [security, bug]
+      let:
+        thing: ['member ids', 'names and dates of birth', 'diagnosis codes']
+        target: ['the EDI gateway', 'the member portal', 'the claims workers']
+      title:
+        - 'PHI in application logs: {thing}'
+        - Logs from {target} contain {thing}
+        - Scrub {thing} from {target} logs
+        - '{thing|cap} written to debug output'
+      body:
+        -   - Found {thing} in {target} logs.
+        -   - '{hp_lead} the debug level logs {hp_fullmsg}.'
+        -   - Many people can read {hp_them}.
+        -   - '{hp_lead} privacy needs to look at this.'
+      comments:
+        - '{b_cm_clr} {b_cm_old}'
+        - Is this a reportable event?
+        - Please keep details out of chat.
+    - labels: [chore, security]
+      let:
+        item: ['the claims database backup', 'the SFTP file archive', 'the document store']
+        issue: ['restore was never tried', 'retention is short', 'offsite copy is missing']
+      title:
+        - 'Backups of {item}: {issue}'
+        - '{item|cap} has no tested restore'
+        - Restore drill for {item}
+        - Disaster recovery for {item}
+      body:
+        -   - Found while preparing for {hp_audit}.
+        -   - '{hp_lead} no restore has run recently.'
+        -   - '{hp_lead} a restore needs to be timed.'
+      comments:
+        - '{b_cm_plan}'
+        - Recovery time needs writing down.
+        - Compliance wants the result.
+comments:
+  - Compliance should look at this.
+  - Does this touch PHI?
+  - '{b_cm_ask_who}'
+  - Is this reportable to the regulator?
+  - Member services has seen it too.
+  - Can we cover this {hp_drill}?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: open enrolment season starts {c_soon}, expect volume'
+        - '{c_hey}, state exam is {day}, please keep desks tidy'
+        - all hands is {day} at {time}, in {c_room}
+        - welcome {person} to enrollment operations, starting {c_soon}
+        - the badge system is down {c_soon}, reception will let you in
+      replies:
+        -   - will member services be staffed late?
+            - do we get comp time?
+            - is the vpn affected?
+        -   - '{c_yes}, rota is in the calendar'
+            - '{c_idk}, ask the supervisor'
+            - ''
+        -   - '{c_thanks}'
+            - '{c_ack}'
+    - root:
+        - benefits enrolment for staff closes {c_soon}, pick your plan
+        - '{c_hey}: compliance training is due {c_soon}'
+        - annual HIPAA refresher is due by {c_soon}
+        - fire drill {day} at {time}, please use the stairs
+      replies:
+        -   - is it {hp_module}?
+            - how long does it take?
+            - where is the link?
+        -   - about {20-45} minutes
+            - '{c_yes}, same one'
+            - under learning in the portal
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - '{c_hey}: flu shot clinic for staff is {day} in {c_room}'
+        - member services gets new phones {c_soon}
+        - '{c_hey}, the cafeteria is closed {c_soon}, food trucks outside'
+        - parking garage is closed on {day}, use the overflow lot
+      replies:
+        -   - do the numbers change?
+            - is it just member services?
+            - where do we sign up?
+        -   - '{c_no}, same numbers'
+            - ask the supervisor
+            - ''
+        -   - '{c_thanks}'
+            - ''
+  off-topic:
+    - root:
+        - '{c_hey}, who wants {c_food} from the food truck?'
+        - anyone joining the step challenge {c_soon}?
+        - the coffee machine on {c_floor} is dead again
+        - did anyone watch the {match/game/race} {last night/yesterday}?
+        - best {c_food} near the office?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_lol}'
+            - not today
+        -   - '{c_idk}'
+            - try {c_place}
+            - ''
+    - root:
+        - anyone want to swap a shift {c_soon}?
+        - happy birthday {person}!
+        - there is {c_food} in {c_room}, help yourselves
+        - look at this view from {c_floor}
+      replies:
+        -   - '{c_lol}'
+            - '{c_thanks}'
+            - on my way
+        -   - ''
+            - '{c_agree}'
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - '{c_ci_fail} is failing on main, {hp_looks}'
+        - the 837 parser fails {hp_envelope}
+        - how do we model {hp_subchg} in {repo}?
+        - the clearinghouse changed the guide, {hp_spec}
+      replies:
+        -   - looking now
+            - '{c_ack}, will review {c_when_eng}'
+            - '{c_idk}, ask {person}'
+        -   - found it, a control total issue
+            - fixed in a branch
+            - ''
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - regulator mandate changes the card {c_soon}
+        - should the portal cache cards for {2-15} minutes?
+        - add a PHI scan to {repo} builds?
+        - '{repo} deploy is red, the migration failed'
+      replies:
+        -   - i can take it
+            - '{c_ack}, adding it to the change ticket'
+            - need the layout spec first
+        -   - '{c_agree}'
+            - ''
+    - root:
+        - proration job hotfix is up, {c_patch}
+        - should the load wait for {hp_edi}?
+        - who owns the broker commission export?
+        - merged the lockbox fix, deploying {c_when_eng}
+      replies:
+        -   - nice, reviewing now
+            - '{c_ack}'
+            - one question about the retry
+        -   - '{c_thanks}'
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - who is on call for {hp_oncall2}?
+        - open enrolment freeze starts {day}, who needs a deploy?
+        - sprint review {day} at {time}, member services is coming
+        - who is picking up {issue}?
+      replies:
+        -   - i can cover it
+            - '{person} is on call'
+            - '{c_pto}'
+        -   - '{c_ack}'
+            - '{c_thanks}'
+    - root:
+        - actuarial wants a report by {c_soon}, anyone free?
+        - premium billing close is {day}, who checks the totals?
+        - denials are up, who checks {hp_rules}?
+        - broker commission file is late again
+      replies:
+        -   - i can take it
+            - '{b_cm_plan}'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - actuarial wants news on {issue}
+        - release notes for {repo} are due {c_soon}
+        - training on {hp_screens} is {day} at {time}
+      replies:
+        -   - i can draft them
+            - '{c_ack}'
+            - '{c_pto}, ask {person}'
+        -   - '{c_thanks}'
+            - ''
+  support:
+    - root:
+        - member cannot see {hp_card}, account {5000-9999}
+        - '{b_pwho|cap} says the premium shown is wrong'
+        - provider office cannot check eligibility, {s_ticket}
+        - member got a notice {hp_mistake}, {s_ticket}
+        - broker says {hp_invoiceoff}, {s_ticket}
+        - member cannot reset the portal password
+      replies:
+        -   - sending it to {b_who}
+            - '{s_look} at {s_tool}'
+            - did they use {hp_email}?
+        -   - found it, a duplicate record, merged
+            - fixed, please confirm
+            - '{c_idk}, escalating to eng'
+        -   - '{c_thanks}'
+            - '{s_thx}'
+    - root:
+        - member wants their claims, {hp_roi}
+        - employer asks for a retro change, {hp_live}
+        - 'escalating to eng: {hp_twice}, filed as {issue}'
+        - refund request for a duplicate premium, {s_ticket}
+      replies:
+        -   - member records team handles that
+            - '{c_yes}, under documents'
+            - '{c_idk}, checking'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - provider office cannot reach the portal, {s_ticket}
+        - member sees another name {hp_where}
+        - broker cannot download the commission file, {s_ticket}
+        - appeal letter did not go out, {s_ticket}
+      replies:
+        -   - sending it to {b_who}
+            - '{s_look} at {s_tool}'
+            - '{c_idk}, escalating to eng'
+        -   - fixed, please confirm
+            - '{c_thanks}'
+  incidents:
+    - root:
+        - the 834 load is stuck, {hp_behind}
+        - claims intake queue is at {1-9},{100-900} files
+        - member portal is returning errors since {time}
+        - clearinghouse connection dropped at {time}
+        - the SFTP gateway certificate expires in {2-9} days
+        - alert for {hp_edi} intake is flapping again
+      replies:
+        -   - looking now
+            - '{c_ack}, paging {person}'
+            - same on my side
+        -   - restarted the gateway, recovering
+            - vendor says it is theirs
+            - fell back to the manual process
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - batch window ran long, {hp_claimsrun}
+        - post-incident review is {day} at {time}
+        - disk at {50-95} percent on the SFTP host
+        - call center phones are down at {time}
+      replies:
+        -   - who is the incident lead?
+            - '{person} has it'
+        -   - noted, updating the log
+            - '{c_ack}'
+    - root:
+        - member portal login is failing since {time}
+        - premium billing run is stuck at {time}
+        - printing vendor has not sent {hp_cardfile}
+      replies:
+        -   - looking now
+            - '{c_ack}, checking the service'
+            - paging {person}
+        -   - back to normal, watching
+            - restarted, files are moving
+            - '{c_thanks}'
+  direct:
+    - root:
+        - '{s_hey}, could you check the 834 file {s_soon}?'
+        - quick question about the premium proration
+        - '{s_hey}, can you cover the pager {c_soon}?'
+        - got a minute for {hp_ruleq}?
+        - '{s_hey}, thought you would like {hp_notice}'
+      replies:
+        -   - '{s_ack}'
+            - '{c_yes}, send it over'
+            - '{c_no}, i am in a call until {time}'
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - ugh, {hp_reg} wants new fields {c_soon}
+        - '{s_hey}, lunch? {c_place} at {time}'
+        - survived the open enrolment cutover, finally
+        - read my change request by {day}?
+      replies:
+        -   - '{c_lol}'
+            - '{s_ack}'
+        -   - ''
+            - '{c_thanks}'
+    - root:
+        - '{s_hey}, can you approve my access request?'
+        - '{s_hey}, cover the go-live call?'
+        - move the audit prep to {day}?
+      replies:
+        -   - '{s_ack}'
+            - '{c_yes}, done'
+        -   - '{s_thx}'
+            - ''

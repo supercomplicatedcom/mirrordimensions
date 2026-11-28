@@ -1,0 +1,1105 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Biotechnology: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: biotechnology
+name: Biotechnology
+group: Health and life sciences
+aliases:
+  - biotech
+  - life sciences
+  - genomics
+  - cell and gene therapy
+  - drug discovery
+  - preclinical research
+description: A research-driven company that discovers and develops biological therapies, running labs, instruments and data pipelines, and billing partners for collaborations and milestones.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Bio
+  - Biosciences
+  - Therapeutics
+  - Genomics
+  - Biologics
+  - Labs
+organization:
+  head: Head of Scientific Computing
+  it_admin: Lab IT Administrator
+  teams:
+    platform:
+      department: Research IT
+      title: Research Software Engineer
+      lead: Research IT Lead
+    billing:
+      department: Finance Systems
+      title: Finance Systems Developer
+      lead: Finance Systems Lead
+    data:
+      department: Bioinformatics
+      title: Bioinformatics Engineer
+      lead: Head of Bioinformatics
+    support:
+      department: Lab Support
+      title: Lab Systems Specialist
+      lead: Lab Support Lead
+    product:
+      department: Partnerships
+      title: Program Manager
+      lead: Director of Partnerships
+    operations:
+      department: Laboratory Operations
+      title: Lab Operations Coordinator
+      lead: Lab Operations Manager
+names:
+  repos:
+    billing-service: [partner-billing, milestone-billing, collab-invoicing, finance-systems]
+    platform-docs: [research-it-handbook, lab-it-docs, platform-runbooks, scientific-computing-docs]
+    data-pipeline: [assay-loads, sequencing-pipelines, lab-data-etl, results-warehouse]
+    infra-config: [cluster-config, cloud-infra, lab-network-config, environment-config]
+    customer-portal: [partner-portal, collaborator-portal, data-room, results-portal]
+    ops-scripts: [instrument-scripts, lab-scripts, legacy-jobs, admin-scripts]
+  channels:
+    engineering: [research-it-dev, sci-comp, dev]
+    incidents: [lab-alerts, it-incidents, cluster-alerts]
+    releases: [releases, change-log, go-lives]
+    billing-team: [finance-systems, partner-billing-team, billing-dev]
+    platform-team: [research-it, platform, sci-comp-team]
+    data-team: [bioinformatics, data-team, assay-data]
+    support: [lab-support, help-desk, support]
+    leads: [leads, it-leads, managers]
+systems:
+  typical: [google workspace, gitea, mattermost, github, okta, snowflake, box, amazon web services, benchling, labware lims]
+  common: [jira, confluence, docusign, pagerduty, tableau]
+symbols:
+  b_doc:
+    - milestone invoice
+    - cost-share invoice
+    - royalty statement
+    - credit note
+    - FTE invoice
+  b_customer:
+    - collaboration partner
+    - licensee
+    - academic partner
+    - grant-funded
+    - contract research client
+    - consortium
+    - pharma partner
+    - foundation
+  b_who:
+    - finance
+    - business development
+    - the alliance team
+    - legal
+    - the program office
+    - the lab managers
+  b_pwho:
+    - finance
+    - a partner
+    - '{person}'
+    - the alliance team
+    - business development
+  b_ticket_noun:
+    - ticket
+    - request
+    - case
+    - escalation
+  b_money_path:
+    - billing/milestones.py
+    - billing/fte_rates.py
+    - billing/royalties.py
+    - billing/rounding.py
+  b_mail_path:
+    - billing/notices.py
+    - billing/statement_mail.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_cb_path:
+    - billing/payment_events.py
+    - billing/bank_files.py
+    - billing/remittance.py
+  b_credit_path:
+    - billing/credit_notes.py
+    - billing/refunds.py
+    - billing/adjustments.py
+  b_check_path:
+    - the milestone tests
+    - the royalty tests
+    - the credit note tests
+    - the rate card tests
+  b_provider_event:
+    - payment received
+    - milestone achieved
+    - refund issued
+    - wire returned
+    - grant drawdown posted
+  b_currency:
+    - USD
+    - EUR
+    - GBP
+    - CHF
+  b_taxkind:
+    - VAT
+    - withholding tax
+    - sales tax
+    - R&D credit
+  b_region:
+    - Switzerland
+    - Germany
+    - the UK
+    - Japan
+    - Canada
+    - the Netherlands
+    - Denmark
+    - Ireland
+  b_acct_size:
+    - '{20-90} projects'
+    - '{15-60} datasets'
+    - '{3-12} partner contacts'
+    - '{40-300} past invoices'
+  b_page:
+    - datasets
+    - projects
+    - invoices
+    - the data room
+    - requests
+    - the dashboard
+  c_customer:
+    - a partner
+    - a collaborator
+    - a grant officer
+    - a lab head
+  s_plan:
+    - a milestone schedule
+    - an FTE plan
+    - a cost-share agreement
+    - a royalty tier
+  s_tool:
+    - the admin console
+    - the partner admin
+    - the instrument console
+    - the ticket queue
+    - the lab system
+  p_table:
+    - assays
+    - runs
+    - specimens
+    - plates
+    - projects
+    - results
+    - freezer locations
+  p_report:
+    - the weekly assay report
+    - the monthly burn report
+    - the sequencing capacity report
+    - the cloud cost report
+    - the freezer inventory report
+  p_source:
+    - the sequencer run exports
+    - the plate reader files
+    - the ticket export
+    - the instrument vendor feed
+    - the electronic notebook export
+  p_finance_ask:
+    - the controller
+    - someone in finance
+    - the grants administrator
+    - the alliance lead
+  p_secret_thing:
+    - the cloud storage keys
+    - the instrument service account password
+    - the cluster scheduler token
+    - the warehouse service account key
+  p_cert_host:
+    - the partner portal public certificate
+    - the instrument network certificate
+    - the cluster login certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - partners.{domain}
+    - data.{domain}
+    - reports.{domain}
+    - status.{domain}
+    - hpc.{domain}
+  p_alert_name:
+    - freezer temperature
+    - the sequencing upload queue
+    - failed backups
+    - the nightly load finishing late
+    - disk usage on the cluster scratch
+  p_limit_target:
+    - the pipeline workers
+    - the reporting workers
+    - the portal pods
+    - the batch compute pool
+  bt_run:
+    - a sequencing run
+    - a plate read
+    - a mass spec batch
+    - an imaging run
+    - a library prep
+  bt_instr:
+    - the sequencer
+    - the plate reader
+    - the mass spectrometer
+    - the microscope
+    - the liquid handler
+    - the flow cytometer
+  bt_dept:
+    - discovery
+    - the genomics core
+    - process development
+    - preclinical
+    - translational
+    - the screening group
+  bt_audit:
+    - a partner audit
+    - a grant review
+    - an FDA inspection
+    - a due diligence request
+    - a quality audit
+  bt_hand:
+    - by hand each week
+    - one at a time
+    - from the ticket queue
+    - out of a spreadsheet
+  bt_late:
+    - arrive after midnight
+    - land {1-3} hours late
+    - miss the morning cutoff
+    - get stuck in the queue
+  bt_old:
+    - years old
+    - from before my time
+    - older than the team
+  bt_file:
+    - FASTQ files
+    - raw images
+    - plate reader files
+    - mass spec files
+    - run folders
+  bt_fullmsg:
+    - full payloads
+    - whole files
+    - every field
+  bt_them:
+    - them
+    - the index
+    - the logs
+  bt_twice:
+    - a partner invoiced twice
+    - a duplicate payment
+    - double posted milestones
+  bt_notice:
+    - this vendor note
+    - this release note
+    - this notice from the funder
+  bt_where:
+    - in the portal
+    - in the data room
+    - online
+  bt_drill:
+    - in the next drill
+    - at the next drill
+    - during a drill
+  bt_program:
+    - the lead program
+    - the oncology program
+    - the gene therapy program
+    - the antibody program
+    - the platform program
+  bt_cloud:
+    - the cloud bucket
+    - the object store
+    - the archive tier
+    - the scratch volume
+  bt_latetitle:
+    - 'finished late'
+    - 'did not finish'
+    - 'ran past the cutoff'
+  bt_stage:
+    - 'at the very end'
+    - 'halfway through'
+    - 'after {2-9} hours'
+  bt_twicefor:
+    - 'twice for {prog}'
+    - 'again'
+    - 'two times'
+  bt_contractsys:
+    - 'from the contract'
+    - 'between systems'
+    - 'by {2-9} percent'
+  bt_yearly:
+    - 'once a year'
+    - 'every January'
+    - 'only at renewal'
+  bt_incontract:
+    - 'in the contract'
+    - 'in the schedule'
+    - 'in the agreement'
+  bt_notpicked:
+    - 'is not picked up'
+    - 'is missed'
+    - 'never applies'
+  bt_fromreport:
+    - 'from the licensee report'
+    - 'from the filing'
+    - 'from last quarter'
+  bt_dataroom:
+    - 'the data room'
+    - 'the project folder'
+    - 'the partner space'
+  bt_throughweb:
+    - 'through the web server'
+    - 'through the app'
+    - 'over one connection'
+  bt_emails:
+    - 'a thread of emails'
+    - 'a shared mailbox'
+    - 'a spreadsheet'
+  bt_wouldwork:
+    - 'would do'
+    - 'would work'
+    - 'is enough'
+  bt_typed:
+    - 'typed in by hand'
+    - 'copied from emails'
+    - 'entered late'
+  bt_onlykey:
+    - 'the only key'
+    - 'all we match on'
+    - 'not unique'
+  bt_wouldfix:
+    - 'would fix it'
+    - 'would help'
+    - 'is the plan'
+  bt_lock:
+    - 'a lock on scratch'
+    - 'the scratch volume'
+    - 'too many files'
+  bt_wrongrota:
+    - 'to a retired rota'
+    - 'nowhere'
+    - 'to the wrong channel'
+  bt_therota:
+    - 'the rota'
+    - 'the call list'
+    - 'the paging order'
+  bt_shouldlook:
+    - 'should look at this'
+    - 'must see this'
+    - 'have noticed too'
+  bt_instruments:
+    - 'the instruments'
+    - 'the readers'
+    - 'the cores'
+  bt_looks:
+    - 'looks like a header change'
+    - 'maybe a module update'
+    - 'a bad image'
+  bt_header:
+    - 'on a new header'
+    - 'on a bad row'
+    - 'on a long name'
+  bt_rerun:
+    - 'a re-run'
+    - 'a failed lane'
+    - 'a partial upload'
+  bt_notes:
+    - 'who has the notes?'
+    - 'where are the notes?'
+    - 'anyone read the notice?'
+  bt_image:
+    - 'a new image'
+    - 'a new base image'
+    - 'a rebuilt container'
+  bt_marker:
+    - 'the upload marker'
+    - 'the run complete file'
+    - 'the final checksum'
+  bt_oncall:
+    - 'the cluster'
+    - 'the pipelines'
+    - 'the portal'
+  bt_whocloud:
+    - 'who looks at the bucket?'
+    - 'who owns the archive tier?'
+    - 'who sets lifecycle rules?'
+  bt_timeline:
+    - 'the program timeline'
+    - 'the milestone dates'
+    - 'the program status'
+  bt_wrongrate:
+    - 'the wrong rate'
+    - 'an old rate'
+    - 'the wrong total'
+  bt_save:
+    - 'save results'
+    - 'export files'
+    - 'connect to the share'
+  bt_door:
+    - 'the cold room'
+    - 'the lab door'
+    - 'the freezer room'
+  bt_share:
+    - 'from the share'
+    - 'after the move'
+    - 'since {time}'
+  bt_account:
+    - 'the same account as the instrument'
+    - 'a personal login'
+    - 'a shared login'
+  bt_quota:
+    - 'a quota issue'
+    - 'raised it'
+    - 'a full volume'
+  bt_approve:
+    - 'who approves?'
+    - 'who owns it?'
+    - 'is that allowed?'
+  bt_possible:
+    - 'is that possible?'
+    - 'who approves?'
+    - 'how much?'
+  bt_stuck:
+    - 'jobs are stuck'
+    - 'the queue is full'
+    - 'nothing is running'
+  bt_waiting:
+    - 'the run is waiting'
+    - 'the core is waiting'
+    - 'uploads are queuing'
+  bt_pipeq:
+    - 'a pipeline error'
+    - 'a quota question'
+    - 'a failed job'
+  bt_partner:
+    - 'a partner'
+    - 'a collaborator'
+    - 'the funder'
+  bt_screens:
+    - 'the new invoice screens'
+    - 'the new partner module'
+    - 'the updated rate card view'
+  bt_alarm:
+    - 'is going off'
+    - 'will not stop'
+    - 'keeps tripping'
+  bt_lead:
+    - Also,
+    - Note that
+    - As far as we can tell,
+    - It seems
+    - Apparently
+    - From what I can see,
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        prog: ['{bt_program}']
+        path: ['{b_money_path}']
+        cust: ['{b_customer}']
+      title:
+        - Milestone invoice for {prog} fires on the wrong date
+        - '{prog|cap} milestone billed before it was achieved'
+        - Milestone trigger for {prog} does not match the contract
+        - Why was a milestone invoiced {bt_twicefor}?
+        - 'Milestone billing: {cust} contract dates are off'
+        - Achieved milestone for {prog} was never invoiced
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_raised} on {cust} contracts, {b_scope}.'
+        -   - Triggers are evaluated in {path}.
+            - Dates come from {path}.
+        -   - '{bt_lead} a program manager marks it done.'
+            - Achievement is set by hand.
+        -   - '{bt_lead} finance checks them {bt_hand}.'
+        -   - '{b_urgent}'
+            - '{b_urgent} {b_offer}'
+      comments:
+        - '{b_cm_repro} with a {cust} contract.'
+        - '{b_cm_check}, {path} may use the signing date.'
+        - Legal has the contract wording.
+        - '{b_cm_later}'
+    - labels: [bug, needs-decision]
+      let:
+        thing: ['FTE rates', 'rate cards', 'overhead rates']
+        path: ['{b_money_path}']
+      title:
+        - '{thing|cap} not updated after the annual change'
+        - FTE invoice uses last year's {thing}
+        - Who owns the rule for {thing}?
+        - Cost-share invoice total off by {2-9} percent
+        - '{thing|cap} differ {bt_contractsys}'
+        - Partner disputes the {thing} on an invoice
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Rates are stored in {path}.
+            - The rate table is read {bt_yearly}.
+        -   - '{bt_lead} a mid-year change is missed.'
+        -   - '{bt_lead} finance corrects invoices {bt_hand}.'
+        -   - Needs a decision from {b_who}.
+      comments:
+        - '{b_cm_hand}'
+        - '{b_cm_ask_who}'
+        - Partners see the rates {bt_incontract}.
+    - labels: [bug]
+      let:
+        cur: ['{b_currency}']
+        region: ['{b_region}']
+      title:
+        - '{cur} invoices to {region} use yesterday''s rate'
+        - Exchange rate on {cur} invoices is stale
+        - Withholding tax missing for partners in {region}
+        - '{cur} amounts rounded differently from the ledger'
+        - Credit note in {cur} does not match the invoice
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{bt_lead} rates load once a day.'
+            - The rate is cached in memory.
+        -   - '{bt_lead} a change of date {bt_notpicked}.'
+        -   - Finance fixes totals {bt_hand}.
+      comments:
+        - '{b_cm_check}, the rate table first.'
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_later}'
+    - labels: [bug, data-quality]
+      let:
+        thing: ['royalty statements', 'sales reports', 'net sales figures']
+      title:
+        - '{thing|cap} from a licensee do not reconcile'
+        - Royalty total differs {bt_fromreport}
+        - '{thing|cap} arrive in three formats'
+        - Late {thing} leave the royalty accrual wrong
+        - Who reviews {thing} before invoicing?
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Reports come as spreadsheets.
+            - Licensees email their reports.
+        -   - '{bt_lead} totals are keyed in {bt_hand}.'
+        -   - '{bt_lead} audit rights are in the contract.'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+        - Legal needs the statement for {bt_audit}.
+  portal:
+    - labels: [bug, security]
+      let:
+        thing: ['another partner''s dataset', 'a restricted program', 'an embargoed result']
+      title:
+        - Partner can open {thing}
+        - Access list for {bt_dataroom} is ignored
+        - Download link for {thing} works after revoke
+        - Guessable dataset ids in the portal
+        - '{thing|cap} visible to a former collaborator'
+      body:
+        -   - '{b_pscope}.'
+        -   - '{bt_lead} the route checks login only.'
+            - The lookup joins by id only.
+        -   - '{bt_lead} revoked users keep access.'
+        -   - '{b_pm_e}'
+      comments:
+        - '{b_cm_rolefix} {b_cm_roletest}'
+        - Legal has to hear about this.
+        - '{b_cm_tell}'
+    - labels: [bug, performance]
+      let:
+        file: ['{bt_file}']
+        browser: ['{b_browser}']
+      title:
+        - Download of {file} times out in the portal
+        - Large {file} fail to upload in {browser}
+        - Results page slow for projects with {b_acct_size}
+        - Upload of {file} stalls at {10-99} percent
+        - Partners cannot fetch {file} after the move
+      body:
+        -   - '{b_pscope}.'
+        -   - Large files go {bt_throughweb}.
+        -   - '{bt_lead} signed links would avoid it.'
+        -   - '{bt_lead} partners ask us to send them {bt_hand}.'
+      comments:
+        - '{b_cm_repro} on {bt_cloud}.'
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_later}'
+    - labels: [enhancement]
+      let:
+        thing: ['a specimen request', 'a data access request', 'a material transfer form']
+      title:
+        - Let partners file {thing} in the portal
+        - '{thing|cap} still goes by email'
+        - Track the status of {thing}
+        - Approvals for {thing} get lost
+      body:
+        -   - Scientists keep asking for it.
+        -   - '{bt_lead} today it is {bt_emails}.'
+        -   - A form with approvals {bt_wouldwork}.
+      comments:
+        - '{b_cm_ask_who}'
+        - Legal must approve the wording.
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        thing: ['instrument results', 'assay summaries', 'QC reports']
+      title:
+        - '{thing|cap} do not show up {bt_where}'
+        - '{thing|cap} appear days late'
+        - Delay before {thing} reach partners
+        - Release rules for {thing} look wrong
+      body:
+        -   - '{b_pscope}.'
+        -   - '{bt_lead} results sync from the warehouse.'
+        -   - '{bt_lead} a review step holds them back.'
+        -   - '{bt_lead} rules differ by program.'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check}, the release table first.'
+        - '{b_cm_later}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        step: ['registering the instrument', 'mounting the run folder', 'tagging the project', 'checking the quota']
+        page: ['the instrument onboarding guide', 'the cluster guide', 'the data upload page']
+      title:
+        - '{page|cap} is missing a step: {step}'
+        - '{page|cap} skips {step}'
+        - Instrument guide does not cover {step}
+        - Add {step} to {page}
+        - 'Docs: {page} out of date after the move'
+      body:
+        -   - A new scientist asked about it.
+            - Found while onboarding {person}.
+        -   - '{bt_lead} the page describes the old cluster.'
+        -   - '{bt_lead} nobody knows who owns it.'
+        -   - '{bt_lead} a short ordered list would do.'
+      comments:
+        - '{b_cm_docs}'
+        - The lab managers should read it.
+        - '{b_cm_up} {b_cm_read2}'
+    - labels: [docs, security]
+      let:
+        thing: ['data retention rules', 'electronic notebook sign-off', 'material transfer approvals', 'export control checks']
+      title:
+        - Write down how we handle {thing}
+        - Handbook never explains {thing}
+        - Where is {thing} documented?
+        - Document {thing} for new scientists
+        - Legal asks for a page on {thing}
+      body:
+        -   - Quality asked, ahead of {bt_audit}.
+            - '{bt_audit|cap} is coming, no page yet.'
+        -   - '{bt_lead} only {person} knows the steps.'
+            - The steps live in old emails.
+        -   - '{bt_lead} a page with owners would do.'
+      comments:
+        - '{b_dc_e}'
+        - Legal should review the wording.
+        - '{b_cm_draft} {day}.'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        run: ['{bt_run}']
+        instr: ['{bt_instr}']
+      title:
+        - Run metadata missing for {run}
+        - '{instr|cap} exports land without a project id'
+        - Duplicate rows from {run}
+        - Results for {run} loaded under the wrong project
+        - QC flags for {run} not in the warehouse
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Files come from {instr}.
+            - The export is written by {instr}.
+        -   - Project ids are {bt_typed}.
+            - The run name is {bt_onlykey}.
+        -   - Analysts clean them {bt_hand}.
+        -   - Needs a decision from {b_who}.
+      comments:
+        - '{b_cm_dup}'
+        - A plate barcode {bt_wouldfix}.
+        - '{b_cm_plan}'
+    - labels: [bug, incident]
+      let:
+        file: ['{bt_file}']
+        run: ['{bt_run}']
+      title:
+        - Pipeline for {run} failed halfway
+        - Nightly assay load {bt_latetitle}
+        - '{file|cap} missing after the transfer'
+        - Alignment job for {run} stalls on the cluster
+        - Upload of {file} died {bt_stage}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Files {bt_late}.
+        -   - The job holds {bt_lock}.
+        -   - '{bt_lead} scientists wait on the results.'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_prof} {b_cm_prof2}'
+        - A completion marker would help.
+        - '{b_cm_later}'
+    - labels: [bug, data-quality]
+      let:
+        thing: ['freezer inventory', 'aliquot counts', 'cell line records']
+        table: ['{p_table}']
+      title:
+        - '{thing|cap} does not match the lab'
+        - Locations in {table} are out of date
+        - Missing barcodes in {table}
+        - Counts of {table} differ between two systems
+        - Who owns {thing}?
+      body:
+        -   - Lab managers noticed it.
+            - '{b_raised}, {b_scope}.'
+        -   - '{bt_lead} moves are logged on paper.'
+        -   - '{bt_lead} the warehouse copy is not refreshed.'
+        -   - '{bt_lead} we need one source of truth.'
+      comments:
+        - '{b_cm_hand}'
+        - '{b_cm_ask_who}'
+        - Quality needs it for {bt_audit}.
+    - labels: [needs-decision, chore]
+      let:
+        thing: ['cloud storage', 'compute', 'archive storage']
+        file: ['{bt_file}']
+      title:
+        - '{thing|cap} cost up {10-60} percent'
+        - Lifecycle rules for {file}
+        - Who deletes old {file}?
+        - Archive policy for {file} is missing
+        - Cost report shows {thing} growing fast
+      body:
+        -   - Finance asked about it.
+        -   - '{bt_lead} raw {file} are kept forever.'
+            - Nobody owns the cleanup.
+        -   - '{bt_lead} a rule per project would help.'
+        -   - '{b_cm_ask_who}'
+      comments:
+        - '{b_cm_plan}'
+        - Scientists need to approve deletion.
+        - '{b_cm_later}'
+  infra:
+    - labels: [bug, incident]
+      let:
+        thing: ['freezer temperature', 'incubator alarms', 'cold room sensors']
+      title:
+        - Alert for {thing} never reached on-call
+        - '{thing|cap} alarm routes to a retired channel'
+        - Sensor feed for {thing} stopped overnight
+        - False alarms from {thing} every night
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - The alert routes {bt_wrongrota}.
+        -   - Nobody was paged overnight.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_clr2}'
+        - '{b_cm_check}, the alert route first.'
+        - Lab managers must confirm {bt_therota}.
+    - labels: [bug, performance]
+      let:
+        target: ['the cluster scheduler', 'the batch compute pool', 'the scratch volume']
+      title:
+        - Jobs queue for hours on {target}
+        - Tune the limits for {target}
+        - '{target|cap} fills up on Mondays'
+        - Set quotas for {target}
+        - Spot capacity runs out on {target}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Large runs start together.
+        -   - '{bt_lead} nobody sets a quota.'
+        -   - '{bt_lead} scientists wait on the results.'
+      comments:
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_plan}'
+        - '{b_cm_later}'
+    - labels: [security, bug]
+      let:
+        item: ['{bt_cloud}', 'a results bucket', 'an instrument share']
+      title:
+        - '{item|cap} is readable by everyone'
+        - Public access on {item}
+        - Access review for {item}
+        - Partner data sits in {item} with broad access
+      body:
+        -   - Found it {b_sc_b}
+        -   - '{bt_lead} the policy allows any staff account.'
+        -   - '{bt_lead} partner data must be separated.'
+        -   - '{b_pm_e}'
+      comments:
+        - '{b_cm_plan}'
+        - Legal needs to know.
+        - Please keep details out of chat.
+    - labels: [chore, security]
+      let:
+        item: ['the results warehouse', 'the electronic notebook export', 'the instrument archive']
+        issue: ['restore was never tried', 'retention is short', 'offsite copy is missing']
+      title:
+        - 'Backups of {item}: {issue}'
+        - '{item|cap} has no tested restore'
+        - Restore drill for {item}
+        - Disaster recovery for {item}
+      body:
+        -   - Found while preparing for {bt_audit}.
+        -   - '{bt_lead} no restore has run recently.'
+        -   - '{bt_lead} a restore needs to be timed.'
+      comments:
+        - '{b_cm_plan}'
+        - Recovery time needs writing down.
+        - Quality wants the result.
+comments:
+  - The lab managers {bt_shouldlook}.
+  - Does this touch partner data?
+  - '{b_cm_ask_who}'
+  - Is this covered by the contract?
+  - Scientists have noticed too.
+  - Can we cover this {bt_drill}?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: the building is closed {c_soon}, freezers are monitored'
+        - '{c_hey}, lab safety training is {day} at {time}'
+        - all hands is {day} at {time}, in {c_room}
+        - welcome {person} to the genomics core, starting {c_soon}
+        - the lab network is being patched {c_soon}, expect a short drop
+      replies:
+        -   - will {bt_instruments} reconnect alone?
+            - do runs in flight survive?
+            - is the vpn affected?
+        -   - '{c_yes}, they reconnect'
+            - '{c_idk}, ask the lab managers'
+            - ''
+        -   - '{c_thanks}'
+            - '{c_ack}'
+    - root:
+        - benefits enrolment closes {c_soon}, pick your plan
+        - '{c_hey}: seminar speaker is on {day} at {time}'
+        - new journal club schedule is posted
+        - the cafeteria is closed {c_soon}, food trucks outside
+      replies:
+        -   - who is the speaker?
+            - is it recorded?
+            - where is the room?
+        -   - '{c_yes}, link in the invite'
+            - '{c_idk}, check the calendar'
+            - ''
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - '{c_hey}: flu shot clinic for staff is {day} in {c_room}'
+        - the cafeteria is closed {c_soon}, food trucks outside
+        - parking at the campus is full {c_soon}
+        - '{c_hey}, biosafety refresher is {day} at {time}'
+      replies:
+        -   - is it mandatory?
+            - where do we sign up?
+            - does it include contractors?
+        -   - '{c_yes}, safety tracks it'
+            - sign up in the learning portal
+            - ''
+        -   - '{c_thanks}'
+            - ''
+  off-topic:
+    - root:
+        - '{c_hey}, who wants {c_food} from the food truck?'
+        - anyone joining the step challenge {c_soon}?
+        - the coffee machine on {c_floor} is dead again
+        - did anyone watch the {match/game/race} {last night/yesterday}?
+        - best {c_food} near the lab?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_lol}'
+            - not today
+        -   - '{c_idk}'
+            - try {c_place}
+            - ''
+    - root:
+        - anyone want to swap a slot {c_soon}?
+        - happy birthday {person}!
+        - there is {c_food} in {c_room}, help yourselves
+        - look at the view from {c_floor}
+      replies:
+        -   - '{c_lol}'
+            - '{c_thanks}'
+            - on my way
+        -   - ''
+            - '{c_agree}'
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - '{c_ci_fail} is failing on main, {bt_looks}'
+        - the run parser fails {bt_header}
+        - how do we model {bt_rerun} in {repo}?
+        - the vendor changed the export, {bt_notes}
+      replies:
+        -   - looking now
+            - '{c_ack}, will review {c_when_eng}'
+            - '{c_idk}, ask {person}'
+        -   - found it, a header format issue
+            - fixed in a branch
+            - ''
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - the workflow engine needs {bt_image}
+        - should the pipeline wait for {bt_marker}?
+        - add a secrets scan to {repo} builds?
+        - '{repo} deploy is red, the migration failed'
+      replies:
+        -   - i can take it
+            - '{c_ack}, adding it to the change log'
+            - need the run id first
+        -   - '{c_agree}'
+            - ''
+    - root:
+        - milestone job hotfix is up, {c_patch}
+        - should the load wait for {bt_file}?
+        - who owns the sequencer integration?
+        - merged the rate fix, deploying {c_when_eng}
+      replies:
+        -   - nice, reviewing now
+            - '{c_ack}'
+            - one question about the retry
+        -   - '{c_thanks}'
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - who is on call for {bt_oncall}?
+        - freezer audit is {day}, who helps the lab managers?
+        - sprint review {day} at {time}, scientists are coming
+        - who is picking up {issue}?
+      replies:
+        -   - i can cover it
+            - '{person} is on call'
+            - '{c_pto}'
+        -   - '{c_ack}'
+            - '{c_thanks}'
+    - root:
+        - finance wants a report by {c_soon}, anyone free?
+        - partner invoices go out {day}, who checks the totals?
+        - cloud costs are up, {bt_whocloud}
+        - the board wants {bt_timeline}
+      replies:
+        -   - i can take it
+            - '{b_cm_plan}'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - alliance team wants news on {issue}
+        - release notes for {repo} are due {c_soon}
+        - training on {bt_screens} is {day} at {time}
+      replies:
+        -   - i can draft them
+            - '{c_ack}'
+            - '{c_pto}, ask {person}'
+        -   - '{c_thanks}'
+            - ''
+  support:
+    - root:
+        - scientist cannot reach the cluster, {s_ticket}
+        - '{b_pwho|cap} says an invoice shows {bt_wrongrate}'
+        - partner cannot download a dataset, {s_ticket}
+        - the plate reader will not {bt_save}
+        - badge does not open {bt_door}, {s_ticket}
+        - run folder is missing {bt_share}
+      replies:
+        -   - sending it to {b_who}
+            - '{s_look} at {s_tool}'
+            - did they use {bt_account}?
+        -   - found it, {bt_quota}
+            - fixed, please confirm
+            - '{c_idk}, escalating to eng'
+        -   - '{c_thanks}'
+            - '{s_thx}'
+    - root:
+        - partner wants the dataset, {bt_approve}
+        - lab asks for more scratch, {bt_possible}
+        - 'escalating to eng: {bt_twice}, filed as {issue}'
+        - refund request for a duplicate payment, {s_ticket}
+      replies:
+        -   - the alliance team approves those
+            - '{c_yes}, under requests'
+            - '{c_idk}, checking'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - scientist sees another name {bt_where}
+        - partner cannot download a run, {s_ticket}
+        - lab printer will not print labels, {s_ticket}
+        - the notebook export is empty, {s_ticket}
+      replies:
+        -   - sending it to {b_who}
+            - '{s_look} at {s_tool}'
+            - '{c_idk}, escalating to eng'
+        -   - fixed, please confirm
+            - '{c_thanks}'
+  incidents:
+    - root:
+        - freezer alarm at {time}, on-call is checking
+        - the cluster scheduler is down, {bt_stuck}
+        - partner portal is returning errors since {time}
+        - sequencing uploads are failing, {bt_waiting}
+        - the cluster login certificate expires in {2-9} days
+        - alert for {bt_cloud} usage is flapping again
+      replies:
+        -   - looking now
+            - '{c_ack}, paging {person}'
+            - same on my side
+        -   - restarted the scheduler, recovering
+            - vendor says it is theirs
+            - specimens moved to the backup freezer
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - run recovered, reprocessing the lost data
+        - post-incident review is {day} at {time}
+        - scratch is at {50-95} percent on the cluster
+        - the instrument network is down since {time}
+      replies:
+        -   - who is the incident lead?
+            - '{person} has it'
+        -   - noted, updating the log
+            - '{c_ack}'
+    - root:
+        - partner portal login is failing since {time}
+        - milestone invoice run is stuck at {time}
+        - the freezer room door alarm {bt_alarm}
+      replies:
+        -   - looking now
+            - '{c_ack}, checking the service'
+            - paging {person}
+        -   - back to normal, watching
+            - restarted, files are moving
+            - '{c_thanks}'
+  direct:
+    - root:
+        - '{s_hey}, could you check the run export {s_soon}?'
+        - quick question about the milestone dates
+        - '{s_hey}, can you cover the pager {c_soon}?'
+        - got a minute for {bt_pipeq}?
+        - '{s_hey}, thought you would like {bt_notice}'
+      replies:
+        -   - '{s_ack}'
+            - '{c_yes}, send it over'
+            - '{c_no}, i am in the lab until {time}'
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - ugh, {bt_partner} wants new fields {c_soon}
+        - '{s_hey}, lunch? {c_place} at {time}'
+        - survived the audit, finally
+        - read my change request by {day}?
+      replies:
+        -   - '{c_lol}'
+            - '{s_ack}'
+        -   - ''
+            - '{c_thanks}'
+    - root:
+        - '{s_hey}, can you approve my access request?'
+        - '{s_hey}, cover the go-live call?'
+        - move the audit prep to {day}?
+      replies:
+        -   - '{s_ack}'
+            - '{c_yes}, done'
+        -   - '{s_thx}'
+            - ''

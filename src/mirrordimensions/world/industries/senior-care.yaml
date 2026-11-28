@@ -1,0 +1,559 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Senior living and home care: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: senior-care
+name: Senior living and home care
+group: Health and life sciences
+aliases: [assisted living, senior living, home care agencies, elder care, memory care]
+description: An operator of senior living communities and home care services that bills residents, families and payers and schedules caregivers.
+name_suffixes: [Senior Living, Senior Care, Home Care, Living, Communities, Assisted Living]
+invoice_items: [Monthly residence fee, Care services]
+organization:
+  head: Director of Technology
+  it_admin: Community Systems Administrator
+  teams:
+    platform: {department: Technology, title: Platform Engineer}
+    billing: {department: Business Office Systems, title: Software Engineer}
+    data: {department: Analytics, title: Data Engineer}
+    support: {department: Family Relations, title: Family Support Specialist}
+    product: {department: Product, title: Product Manager}
+    operations: {department: Community Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [resident-billing, billing-service, care-billing, business-office-billing]
+    platform-docs: [platform-docs, technology-handbook, community-systems-docs, runbooks]
+    data-pipeline: [care-data-pipeline, data-pipeline, occupancy-loads, warehouse-loads]
+    infra-config: [infra-config, community-network-config, platform-config, deploy-config]
+    customer-portal: [family-portal, resident-portal, family-app-web, care-connect]
+    ops-scripts: [ops-scripts, community-scripts, legacy-scripts, tool-scripts]
+  channels:
+    engineering: [engineering, eng, dev, tech-team]
+    incidents: [incidents, community-outages, prod-incidents, incident-response]
+    releases: [releases, app-releases, shipping, release-notes]
+    billing-team: [business-office, billing-team, billing-eng]
+    platform-team: [platform-team, platform, platform-eng]
+    data-team: [data-team, data, analytics-eng]
+    support: [family-support, support, community-support, help-desk]
+    leads: [leads, tech-leads, community-leads]
+systems:
+  typical: [github, slack, jira, okta, zendesk, twilio, stripe, adp workforce now, pointclickcare, hhaexchange]
+  common: [datadog, pagerduty, sentry, salesforce, hubspot, microsoft 365]
+
+symbols:
+  b_doc: [resident statement, monthly invoice, care plan invoice, credit memo, deposit receipt, refund receipt]
+  b_customer: [private pay resident, long term care insurer, Medicaid waiver client, family responsible party, home care client, respite guest]
+  b_who: [the community directors, the business office, finance, the family relations team, compliance]
+  b_pwho: [the business office, a family member, "{person}", a community director]
+  b_taxkind: [sales tax, state tax, VAT, GST, local tax]
+  b_region: [Florida, Arizona, Ohio, Texas, Ontario, Ireland]
+  b_currency: [USD, CAD, GBP, EUR]
+  b_provider_event: [payment received, payment failed, ACH returned, refund completed, claim paid, claim denied]
+  b_page: [statements, care updates, visit schedules, the dashboard, payment methods, documents, account settings, messages]
+  b_acct_size: ["{15-60} statements", "{3-12} family contacts", "{40-300} care notes", "{20-90} visits"]
+  b_money_path: [billing/rent.py, billing/care_levels.py, billing/proration.py, billing/rounding.py]
+  b_credit_path: [billing/credits.py, billing/refunds.py, billing/adjustments.py]
+  b_cb_path: [billing/ach_events.py, billing/provider_events.py, billing/webhooks.py]
+  b_check_path: [the proration tests, the care level tests, the refund tests, the callback tests]
+  p_table: [residents, visits, caregivers, care_plans, invoices, incidents, shifts, authorizations]
+  p_source: [the visit verification feed, the caregiver time clock export, the Medicaid waiver authorizations, the insurer remittance files, the family portal logs, the CRM inquiry list]
+  p_report: [the occupancy dashboard, the caregiver overtime report, the care hours billed report, the moves in and out report, the aged receivables report]
+  p_finance_ask: [the finance lead, someone in the business office, the billing manager, the controller]
+  c_customer: [a resident, a family member, a community director, a home care client, a caregiver]
+  s_plan: [the assisted living plan, a memory care plan, hourly home care, a respite stay]
+  s_tool: [the community admin, the support desk, the scheduling console, the ticket queue]
+  s_docs: [the wiki, the shared drive, the handbook, the policy site]
+  s_inv_late: [statement emails delayed, family notices running late, invoice mail not going out, care update emails lagging behind]
+  sn_level: [assisted living, memory care, independent living, respite stay, home care]
+  sn_visit: [personal care visit, companion visit, overnight visit, respite shift, live in shift]
+  sn_site: [the north community, the lakeside community, a small community, the newest community]
+  sn_payer: [a long term care insurer, a state Medicaid waiver, a veterans benefit, a private payer]
+  sn_audit: [the state survey, a licensing visit, a payer audit, the Medicaid review]
+  sn_topic: [abuse reporting, infection control, privacy basics, fall prevention, incident reports]
+  sn_role: [caregiver, nurse, aide, community director, activities lead]
+
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        path: ['{b_money_path}']
+        n: ['{2-9}']
+      title:
+        - 'Move out charges {n} extra days of rent'
+        - Proration on move out is wrong
+        - 'Final statement bills {days/weeks} after move out'
+        - 'Move in proration skips the first {n} days'
+      body:
+        - ['{b_raised}, {b_scope}.', 'The business office saw {2-12} cases {b_since}.']
+        - ['Proration in {path} counts calendar days.', 'The code {uses/assumes} a fixed month in {path}.']
+        - ['Families dispute the final bill.', 'Families call about the last statement.']
+        - ['Refunds are issued by hand.', '{b_urgent}']
+      comments:
+        - '{b_cm_repro} with a mid month move out.'
+        - 'Which date {counts as/marks} the move out?'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        level: ['{sn_level}']
+        path: ['{b_money_path}']
+      title:
+        - 'Care level change billed {from/on} the wrong date'
+        - 'Increase to {level} charged {from/on} the first of the month'
+        - 'New care level {missing/absent} on the next statement'
+        - 'Level change takes effect {a few/two/three} days late'
+      body:
+        - ['Nurses assess on one date.', 'The assessment date differs.']
+        - ['Billing reads the date of entry.', '{path|cap} uses the entry date.']
+        - ['Families see the wrong amount.', '{2-30} statements are affected.']
+        - ['{b_urgent}']
+      comments:
+        - Which date does the contract say?
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        path: ['{b_cb_path}']
+      title:
+        - Returned ACH payments are not retried
+        - Bank returns leave statements marked paid
+        - 'Rent shows paid {after/when} the bank returned it'
+      body:
+        - ['The business office found {2-12} cases.', '{b_raised}.']
+        - ['Return events arrive {days/weeks} later.', 'Returns come back after {2-5} days.']
+        - ['The handler in {path} ignores them.', 'Nothing reads returns in {path}.']
+        - ['Finance chases them by hand.']
+      comments:
+        - '{b_cm_check} the return codes.'
+        - Do families get notified?
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        gap: ['{2-9} percent', '{20-90} hours']
+        source: [the visit verification feed, the time clock, the schedule]
+      title:
+        - 'Billed visit hours differ from {source}'
+        - 'Home care invoices disagree with {source}'
+        - Visits rejected for missing clock out
+      body:
+        - ['{b_raised}, {b_scope}.', 'Finance saw a gap of {gap}.']
+        - ['Overnight visits cross midnight.', 'Edits to a visit {change/alter} the hours.']
+        - ['The payer {rejects/denies} visits without a match.', 'Mismatched visits are denied.']
+        - ['Needs a fix {before/ahead of} the next run.']
+      comments:
+        - '{b_cm_repro} with an overnight visit.'
+        - Compare by visit id.
+        - '{b_cm_fix_up}'
+    - labels: [needs-decision]
+      let:
+        question: [refunding rent after a resident dies, charging a notice period, billing during a hospital stay, applying deposits to final bills, charging for a held room]
+      title:
+        - 'Policy for {question}?'
+        - 'Decide how we handle {question}'
+        - 'Rules needed for {question}'
+      body:
+        - ['Communities {decide/handle it} {by hand/case by case}.', 'Each community does it differently.']
+        - ['Options: {always/never/ask the director}.', 'We could {allow/refuse/review} each one.']
+        - ['Families are {upset/confused} about it.']
+        - ['Needs a decision from {b_who}.']
+      comments:
+        - '{b_g_blocked}'
+        - State rules may apply.
+        - '{b_g_who}'
+  portal:
+    - labels: [bug, security]
+      let:
+        thing: [care updates, photos, visit notes, statements]
+        site: ['{sn_site}']
+      title:
+        - 'Family sees {thing} of another resident'
+        - '{thing|cap} for shared rooms {show to/reach} both families'
+        - 'Switching residents keeps {thing} on screen'
+      body:
+        - ['A family member noticed it.', 'It was found at {site}.']
+        - ['Two contacts share one login.', 'Shared rooms share one record.']
+        - ['{b_dlk_e}', '{b_pm_e}']
+        - ['Privacy needs to know how many.']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Check the access rules for rooms.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        level: ['{sn_level}']
+      title:
+        - Statement shows the wrong care level
+        - 'PDF lists {level} after the change'
+        - Statement and portal show different levels
+      body:
+        - ['{b_raised}, {b_scope}.', 'Families asked about it {b_since}.']
+        - ['The PDF reads the old record.', 'The portal reads the new one.']
+        - ['Only the PDF is wrong.']
+      comments:
+        - '{b_cm_check} the template.'
+        - '{b_cm_repro} with a recent change.'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        thing: [photos, videos, notes, forms]
+        browser: ['{b_browser}']
+      title:
+        - 'Uploading {thing} fails on phones'
+        - '{thing|cap} do not upload from {browser}'
+        - 'Care updates with {thing} never post'
+      body:
+        - ['Staff try again at the desk.', 'Staff use a computer instead.']
+        - ['Large files time out.', 'The upload stalls at {2-90} percent.']
+        - ['Families wait for updates.']
+      comments:
+        - '{b_cm_repro} on {browser}.'
+        - What is the size limit?
+        - '{b_cm_plan}'
+    - labels: [enhancement]
+      let:
+        ask: [split a payment, add a second payer, update a bank account, change the contact, download a tax statement]
+      title:
+        - 'Let families {ask} online'
+        - 'Self service to {ask}'
+        - 'Families call to {ask}'
+      body:
+        - ['The business office gets {10-80} calls a week.', 'About {10-80} calls a week are for this.']
+        - ['Add it to account settings.', 'A short form would be enough.']
+        - ['Every change needs an audit entry.']
+      comments:
+        - '{b_g_est}'
+        - Ask the business office.
+        - '{b_cm_try}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        step: [the supervisor sign off, the family call, the photo upload, the time stamp]
+      title:
+        - 'Handbook: incident report page skips {step}'
+        - 'Incident procedure lacks {step}'
+        - 'Docs omit {step} for reports'
+      body:
+        - ['{sn_audit|cap} asked about {step}.', 'A director {flagged/noticed} it.']
+        - ['The page predates the new form.', 'The steps changed last year.']
+        - ['Who signs off {on the text/on it}?']
+      comments:
+        - '{b_cm_docs}'
+        - 'The nurse manager {has/knows} the current steps.'
+        - '{b_cm_ask_who}'
+    - labels: [docs, enhancement]
+      let:
+        what: [a move in, a move out, onboarding a caregiver, setting up a new community]
+      title:
+        - 'Write up the steps for {what}'
+        - 'Document {what} for new engineers'
+        - 'Nobody can explain {what}'
+      body:
+        - ['New hires ask about {what} {often/weekly}.', 'Only {person} knows the order.']
+        - ['The notes {live in/sit in} an old thread.']
+        - ['A one page checklist would do.']
+      comments:
+        - '{b_cm_draft} next week.'
+        - Include who to call.
+        - '{b_cm_up}'
+    - labels: [docs, needs-decision]
+      let:
+        rec: [care notes, incident reports, medication records, visit logs]
+      title:
+        - 'Decide how long to keep {rec}'
+        - 'Retention for {rec} is unclear'
+        - 'Docs: {rec} retention disagrees with policy'
+      body:
+        - ['The handbook says {2-10} years.', 'One page says {2-10} years.']
+        - ['State rules ask for {different/longer} periods.']
+        - ['Needs a ruling from compliance.']
+      comments:
+        - '{b_g_blocked}'
+        - Rules differ by state.
+        - '{b_cm_ask_who}'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        n: ['{2-30}']
+      title:
+        - Occupancy in reports differs from billing
+        - 'Dashboard shows {n} more residents than billed'
+        - 'Move ins {missing from/absent from} the occupancy count'
+      body:
+        - ['{b_raised}, the gap is {n} residents.', 'The gap is {n} residents last week.']
+        - ['Move ins {land on/wait for} the next load.', 'Move outs are counted late.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_check} the status mapping.'
+        - Compare by resident id.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        n: ['{40-900}']
+      title:
+        - 'Visit feed {duplicates/doubles} visits after clock out edits'
+        - 'Edited visits appear {2-3} times in reports'
+        - '{n} duplicate visits in the warehouse'
+      body:
+        - ['A caregiver edits the clock out.', 'A supervisor fixes the time.']
+        - ['The feed sends a new row.', 'The load {has no key/lacks a key} on {the visit/each visit} id.']
+        - ['Care hours billed look {high/off}.']
+      comments:
+        - '{b_cm_repro} with last night data.'
+        - 'Backfill needed for {2-9} days.'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        what: [overnight shifts, split shifts, holiday shifts]
+      title:
+        - '{what|cap} lose hours in the overtime report'
+        - 'Overtime report misses {what}'
+        - 'Hours for {what} land on the wrong day'
+      body:
+        - ['Shifts cross midnight.', 'The report cuts at midnight.']
+        - ['Caregivers see short pay.', 'Payroll found the gap.']
+        - ['Payroll wants it fixed {before/ahead of} the cutoff.']
+      comments:
+        - '{b_cm_check} the time zone.'
+        - '{b_cm_repro} with a Friday shift.'
+        - '{b_cm_fix_up}'
+  infra:
+    - labels: [bug, incident]
+      let:
+        site: ['{sn_site}']
+        thing: [the nurse call link, care tablets, the door system, the time clock]
+      title:
+        - '{thing|cap} drops off at {site}'
+        - 'Wifi loses {thing} at {site}'
+        - '{thing|cap} offline each evening at {site}'
+      body:
+        - ['Staff use paper meanwhile.', 'Care notes wait for the tablets.']
+        - ['It happens after the router restarts.', 'It started after a lease change.']
+        - ['A fixed address would help.']
+      comments:
+        - '{b_cm_repro} at {site}.'
+        - Reserve addresses on the router.
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        n: ['{2-14}']
+        cert: [the family portal certificate, the community VPN certificate, the time clock certificate]
+      title:
+        - '{cert|cap} expires in {n} days'
+        - 'Alert before {cert} lapses'
+        - 'Renewal of {cert} has no owner'
+      body:
+        - ['Expiry is {n} days away.', 'Nobody owns the renewal.']
+        - ['Families lose access when it lapses.', 'Clocks go offline when it lapses.']
+        - ['Renewal needs a change window.']
+      comments:
+        - Add it to the rota.
+        - '{b_g_own}'
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        target: [the care records database, the photo store, the message queue]
+      title:
+        - 'Restore of {target} was never tried'
+        - 'Backups of {target} are untested'
+        - 'Nobody has restored {target} lately'
+      body:
+        - ['Backups run every night.', 'Backups look healthy.']
+        - ['The last restore was {long ago/never}.', 'A real restore is overdue.']
+        - ['Communities cannot chart without it.']
+      comments:
+        - '{b_cm_plan}'
+        - Do it outside care hours.
+        - '{b_g_own}'
+  ops:
+    - labels: [question]
+      let:
+        script: [sync_rosters.sh, purge_photos.sh, check_clocks.sh, rotate_exports.sh]
+      title:
+        - 'Is {script} still used?'
+        - 'Can we retire {script}?'
+      body:
+        - ['It {talks to/calls} the old time clock.', 'It {runs from/is run by} {an old/the old} cron host.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Not sure, ask community systems.
+
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: {sn_audit} is {c_soon}, tidy your notes'
+        - '{sn_audit|cap} starts {c_soon}, compliance will brief us'
+        - 'heads up, {sn_audit} {c_soon}'
+        - '{c_hey}, a surveyor visits {c_soon}'
+        - '{sn_audit|cap} next {day}, keep records handy'
+      replies:
+        - ['do we need to prepare?', 'which records will they ask for?', 'who is in the room?']
+        - ['{c_yes}, compliance will brief us', 'check the invite', '{c_idk}, ask {person}']
+        - ['{c_thanks}', '']
+    - root:
+        - 'mandatory training on {sn_topic} closes {c_soon}'
+        - '{c_hey}: {sn_topic} course is overdue for {3-12} people'
+        - 'reminder, finish {sn_topic} by {day}'
+      replies:
+        - ['how long does it take?', 'same as last year?', 'does it count for contractors?']
+        - ['about {20-45} minutes', '{c_no}, they updated it', '{c_yes}, everyone']
+        - ['{c_thanks}', '']
+    - root:
+        - 'new community opens {c_soon}, {sn_site}'
+        - '{c_hey}: {sn_site} goes live on the system {c_soon}'
+        - 'welcome the team at {sn_site}, starting {c_soon}'
+      replies:
+        - ['is the import ready?', 'who runs the cutover?', 'will families get invites?']
+        - ['{c_yes}, tested twice', 'weekend cutover, see the plan', '{c_idk}, ask {person}']
+        - ['{c_ack}', '']
+  off-topic:
+    - root:
+        - 'walking club {c_soon}, anyone in?'
+        - 'photo of the {community/new} garden, look at that'
+        - 'lunch ideas? i am sick of {c_food}'
+        - 'bingo night at {sn_site}, anyone going?'
+        - 'any good books {for the train/for travel}?'
+      replies:
+        - ['{c_lol}', 'lovely', 'bring snacks']
+        - ['try {c_place}', '{c_yes}, count me in', 'not me']
+        - ['']
+    - root:
+        - 'weekend plans? {c_weekend} for me'
+        - 'birthday cake in {c_room} at {time}'
+        - 'the coffee order goes out at {time}'
+      replies:
+        - ['{c_lol}', 'nice one', 'enjoy it']
+        - ['{c_em}', '']
+  engineering:
+    - root:
+        - 'need a review on {repo}, it touches proration'
+        - 'pr for {repo} changes care levels, who reviews?'
+        - '{c_patch} in {repo}, no resident data involved'
+        - '{c_hey}, anyone free to review {repo}?'
+      replies:
+        - ['is there a test {with/for} a move out?', 'what about leap years?', 'is it behind a flag?']
+        - ['{c_yes}, added one', 'not yet, adding it', 'flag is off']
+        - ['approved', 'a few comments', '']
+    - root:
+        - 'the visit feed {changed/moved} a field again'
+        - who knows the waiver authorization format?
+        - 'how do we map {visit codes/service codes} for payers?'
+        - 'the time clock export {is missing/lost} a column'
+      replies:
+        - ['which field?', 'is it every payer?', 'got a recent file?']
+        - ['the visit id', 'only the older version', 'checking logs']
+        - ['{c_ack}', '']
+    - root:
+        - app build stuck in store review
+        - '{c_ci_fail} fails on main again'
+        - care update push alerts arrive twice
+        - 'the family app {breaks on/fails on} older phones'
+      replies:
+        - ['same here', 'rerun it first', '{c_idk}']
+        - ['fixed in {repo}', 'only on {2-4} year old models', 'still red']
+    - root:
+        - 'should care updates {go through/use} a queue?'
+        - 'design question for {c_eng_area}, async or not?'
+        - how do communities sync rosters?
+        - 'why does the occupancy report take {20-90} minutes?'
+      replies:
+        - ['queue is safer', 'depends on volume', '{c_idk}, ask {person}']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - 'dependency scan flags {c_dep}'
+        - 'does anything use {c_dep} in the app?'
+        - '{c_tool} is broken for anyone else?'
+      replies:
+        - ['only dev tooling', 'it ships, yes', 'checking']
+        - ['{c_thanks}', '']
+  team:
+    - root:
+        - 'support queue has {10-80} open, who can help?'
+        - 'family calls are up, {anyone/who} free?'
+        - who is on support this week?
+      replies:
+        - ['i can take an hour', 'busy with the release', '{c_ack}']
+        - ['{c_thanks}', '']
+    - root:
+        - 'sprint planning at {time} on {day}'
+        - 'who picks up {issue}?'
+        - 'show and tell {day}, volunteers?'
+      replies:
+        - ['i can take it', 'tied up this week', '{c_ack}']
+        - ['{c_thanks}', '']
+    - root:
+        - release freeze before month end billing
+        - 'freeze starts {day}, merge before {time}'
+        - '{c_hey}: community updates paused {c_soon}'
+      replies:
+        - ['can hotfixes go in?', 'what about the portal?', 'does docs count?']
+        - ['hotfixes need approval', 'portal too', 'docs are fine']
+  support:
+    - root:
+        - 'family says the statement is {higher/bigger} than agreed'
+        - daughter cannot see her mother updates
+        - '{c_customer} wants a copy {of the statement/of last month}'
+        - 'caregiver cannot clock {out/in} on the tablet'
+        - 'family charged {after/past} the move out'
+      replies:
+        - ['is the care level right?', 'did they get an email?', 'check the statement id']
+        - ['yes, #{4100-4999}', 'it was never sent', 'fixed']
+    - root:
+        - 'payment bounced, {the family/they} say it was fine'
+        - '{c_customer} got two reminders for one payment'
+        - business office says statements stopped
+      replies:
+        - ['check the bank return', 'is it one community or all?', 'look at the log']
+        - ['it was returned', 'only one community', 'escalated to {person}']
+    - root:
+        - 'payer denied the visit, caregiver {is/was} waiting'
+        - 'plan says not authorized, {what/how} do we say it?'
+        - 'refund request, wrong {charge/amount} on a statement'
+      replies:
+        - ['check with the director', 'we cannot override that', 'call the payer']
+        - ['{c_thanks}', 'they will pay today', '']
+  incidents:
+    - root:
+        - 'caregivers cannot clock in, {s_since}'
+        - 'visit sync failing, {s_symptom}'
+        - '{sn_payer|cap} portal is not accepting visits'
+      replies:
+        - ['all communities?', 'seeing it too', 'looking now']
+        - ['one region', 'vendor is down', 'recovering']
+        - ['all clear', '{c_thanks}']
+    - root:
+        - 'family notices delayed {s_age}'
+        - 'care tablets offline at {sn_site}'
+        - 'claims submissions failing at {2-9} communities'
+      replies:
+        - ['is it the network?', 'what changed?', 'sending someone']
+        - ['restarted it', 'link issue', 'back now']
+    - root:
+        - 'community VPN certificate expires in {2-9} days'
+        - cert warning on the family portal
+        - 'roster sync is {s_age} behind'
+      replies:
+        - ['who owns it?', 'it needs a change record', 'opened one']
+        - ['{b_g_own}', '{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}, could you review {repo} when you can?'
+        - 'could you check access for me? {s_soon}'
+        - '{s_hey}, got a minute for {billing/the bug}?'
+        - can you read the policy note?
+      replies:
+        - ['{s_ack}', 'sure, send it', 'after lunch ok?']
+        - ['done', 'a few comments', 'looks good']
+    - root:
+        - 'handing over {the queue/my tickets} while out {s_soon}'
+        - '{s_hey}, can we move the sync to {time}?'
+        - 'got a minute for {imports/the roster}?'
+      replies:
+        - ['{s_ack}', 'give me ten minutes', 'sure']
+        - ['thanks', '{c_ack}']
+
+comments:
+  - Does this touch resident data?
+  - 'Keep resident names {out of chat/private}.'
+  - '{b_cm_check} with the community director.'
+  - Family support can confirm.
+  - A state rule may apply.
+  - 'Use the visit id, {not/never} the name.'

@@ -1,0 +1,1184 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Clinics and physician groups: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: clinics
+name: Clinics and physician groups
+group: Health and life sciences
+aliases:
+  - clinic
+  - physician practice
+  - medical group
+  - ambulatory care
+  - outpatient clinics
+  - urgent care
+description: A multi-site physician group that sees patients in clinics, bills payers and patients, and runs scheduling, charting and referral systems.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Medical Group
+  - Family Practice
+  - Physicians
+  - Primary Care
+  - Health Partners
+  - Clinics
+organization:
+  head: Director of IT
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Clinical Systems
+      title: Systems Engineer
+      lead: Clinical Systems Manager
+    billing:
+      department: Revenue Cycle
+      title: Billing Systems Developer
+      lead: Revenue Cycle Manager
+    data:
+      department: Practice Analytics
+      title: Data Analyst
+      lead: Analytics Manager
+    support:
+      department: Clinic IT Support
+      title: Clinic Support Specialist
+      lead: Clinic IT Support Lead
+    product:
+      department: Patient Experience
+      title: Product Owner
+      lead: Director of Patient Experience
+    operations:
+      department: Practice Operations
+      title: Practice Operations Analyst
+      lead: Practice Operations Manager
+names:
+  repos:
+    billing-service: [practice-billing, charge-entry, rcm-service, patient-billing]
+    platform-docs: [clinic-it-handbook, front-desk-runbooks, practice-docs, systems-docs]
+    data-pipeline: [practice-analytics, schedule-loads, quality-extracts, ehr-feeds]
+    infra-config: [clinic-infra, site-config, network-config, hosting-config]
+    customer-portal: [patient-portal, online-scheduling, patient-web, intake-portal]
+    ops-scripts: [clinic-scripts, fax-jobs, legacy-batch, admin-scripts]
+  channels:
+    engineering: [practice-dev, clinic-systems, dev]
+    incidents: [clinic-down, site-alerts, it-incidents]
+    releases: [go-lives, releases, change-notices]
+    billing-team: [rcm-dev, billing-systems, claims-team]
+    platform-team: [clinical-systems, site-support, systems]
+    data-team: [analytics, practice-data, quality-data]
+    support: [clinic-help, front-desk-help, help-desk]
+    leads: [it-leads, site-managers, managers]
+systems:
+  typical: [athenahealth, gitea, mattermost, microsoft 365, okta, zoom, twilio, availity, surescripts]
+  common: [docusign, servicenow, pagerduty, microsoft power bi, salesforce]
+symbols:
+  b_doc:
+    - patient statement
+    - superbill
+    - claim
+    - remittance advice
+    - payment plan notice
+    - balance reminder
+  b_customer:
+    - self-pay
+    - Medicare
+    - commercial-plan
+    - Medicaid
+    - workers' comp
+    - occupational health
+    - cash-pay
+    - telehealth
+  b_who:
+    - the front desk
+    - the billing office
+    - the practice manager
+    - the coding team
+    - the medical director
+    - the clinic manager
+  b_pwho:
+    - the front desk
+    - a patient
+    - '{person}'
+    - the billing office
+    - a physician
+  b_ticket_noun:
+    - ticket
+    - case
+    - request
+    - help desk call
+  b_money_path:
+    - billing/statement.py
+    - billing/charges.py
+    - billing/copays.py
+    - billing/adjustments.py
+  b_mail_path:
+    - billing/notices.py
+    - billing/statement_mail.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_cb_path:
+    - billing/remittance.py
+    - billing/payer_events.py
+    - billing/clearinghouse.py
+  b_credit_path:
+    - billing/adjustments.py
+    - billing/refunds.py
+    - billing/write_offs.py
+  b_check_path:
+    - the statement tests
+    - the claim tests
+    - the remittance tests
+    - the copay tests
+  b_provider_event:
+    - payment posted
+    - claim rejected
+    - eligibility response
+    - remittance received
+    - refund issued
+  b_currency:
+    - copay
+    - deductible
+    - coinsurance
+    - self-pay balance
+  b_taxkind:
+    - state surcharge
+    - fee schedule
+    - Medicaid rate
+    - facility fee
+  b_region:
+    - Ohio
+    - Texas
+    - Colorado
+    - Washington
+    - Georgia
+    - Arizona
+    - Oregon
+    - Virginia
+  b_acct_size:
+    - '{200-900} visits'
+    - '{4-12} family members'
+    - '{3-9} guarantor contacts'
+    - '{40-300} past appointments'
+  b_page:
+    - appointments
+    - statements
+    - payment plans
+    - visit history
+    - insurance
+    - forms
+    - the dashboard
+  c_customer:
+    - a patient
+    - a clinic manager
+    - a guarantor
+    - a referring office
+  s_plan:
+    - a payment plan
+    - a cash-pay plan
+    - a sliding scale plan
+    - a high deductible plan
+  s_tool:
+    - the admin console
+    - the front desk tool
+    - the billing admin
+    - the help desk
+    - the work queue
+  p_table:
+    - appointments
+    - claims
+    - patients
+    - charges
+    - payments
+    - referrals
+  p_report:
+    - the daily schedule report
+    - the weekly denials report
+    - the aging receivables report
+    - the monthly no-show report
+    - the quality measures dashboard
+  p_source:
+    - the clearinghouse remittance files
+    - the help desk ticket export
+    - the EHR nightly extract
+    - the texting provider delivery events
+  p_finance_ask:
+    - the revenue cycle manager
+    - someone in the billing office
+    - the practice administrator
+    - the compliance lead
+  p_secret_thing:
+    - the clearinghouse SFTP key
+    - the texting provider token
+    - the e-prescribing certificate password
+    - the warehouse service account key
+  p_cert_host:
+    - the patient portal public certificate
+    - the e-prescribing certificate
+    - the site VPN certificate
+    - the clearinghouse connection certificate
+  p_dns_name:
+    - portal.{domain}
+    - book.{domain}
+    - pay.{domain}
+    - status.{domain}
+  p_alert_name:
+    - VPN tunnels to the clinics
+    - failed backups
+    - the fax server queue
+    - the nightly load finishing late
+  p_limit_target:
+    - the reporting workers
+    - the portal pods
+    - the texting relay
+    - the mail relay
+  cl_site:
+    - the north clinic
+    - the downtown office
+    - the urgent care site
+    - the pediatrics office
+    - the satellite clinic
+    - the new site
+  cl_specialty:
+    - cardiology
+    - pediatrics
+    - orthopedics
+    - primary care
+    - dermatology
+    - women's health
+  cl_payer:
+    - a commercial payer
+    - Medicare
+    - a Medicaid plan
+    - a Medicare Advantage plan
+    - a workers' comp carrier
+  cl_reject:
+    - an eligibility mismatch
+    - a missing prior authorization
+    - a bad modifier
+    - a missing referral number
+    - an expired policy
+  cl_cleared:
+    - the clearinghouse
+    - the payer gateway
+    - the claims scrubber
+  cl_hand:
+    - by hand each morning
+    - one at a time
+    - from the work queue
+    - out of a spreadsheet
+  cl_where:
+    - on the portal
+    - in the portal
+    - online
+  cl_tz:
+    - the wrong time zone
+    - a time an hour early
+    - yesterday's date
+  cl_visit:
+    - new patient visits
+    - follow ups
+    - physicals
+    - telehealth visits
+    - procedures
+  cl_unit:
+    - the front desk
+    - the nurse station
+    - the lab draw room
+    - the check-in kiosk
+  cl_audit:
+    - a payer audit
+    - a HIPAA review
+    - the MIPS submission
+    - a credentialing review
+    - an accreditation visit
+  cl_feed:
+    - the schedule feed
+    - the referral feed
+    - the lab results feed
+    - the eligibility feed
+  cl_old:
+    - years old
+    - from before my time
+    - older than the team
+  cl_hold:
+    - until the nightly batch
+    - by several hours
+    - by a day
+  cl_every:
+    - each minute
+    - every {1-5} minutes
+    - once a minute
+  cl_who:
+    - the patients
+    - those patients
+    - affected patients
+  cl_tbl:
+    - a second table
+    - another feed
+    - a separate extract
+  cl_notice:
+    - this vendor note
+    - this release note
+    - this notice from the payer
+  cl_late:
+    - arrives after midnight
+    - lands {1-3} hours late
+    - misses the morning cutoff
+    - is stuck in the queue
+  cl_fullmsg:
+    - full messages
+    - whole payloads
+    - every field
+  cl_them:
+    - them
+    - the index
+    - the logs
+  cl_twice:
+    - patient charged twice
+    - a duplicate payment
+    - double posted charges
+  cl_alreadypaid:
+    - 'they already paid'
+    - 'paid at check-in'
+    - 'paid in full'
+  cl_early:
+    - 'before the visit'
+    - 'made online'
+    - 'taken at booking'
+  cl_tovisit:
+    - 'to the visit'
+    - 'to any visit'
+    - 'to the claim'
+  cl_oldbal:
+    - 'with the old balance'
+    - 'before posting'
+    - 'with a stale total'
+  cl_nofield:
+    - 'no required field'
+    - 'no hard stop'
+    - 'no validation'
+  cl_pending:
+    - 'while insurance is pending'
+    - 'before the payer responds'
+    - 'ahead of the remittance'
+  cl_remit:
+    - 'the remittance'
+    - 'the payer response'
+    - 'adjudication'
+  cl_might:
+    - 'might do it'
+    - 'could work'
+    - 'would help'
+  cl_justjoined:
+    - 'who just joined'
+    - 'starting this month'
+    - 'added last week'
+  cl_flow:
+    - 'flow here'
+    - 'reach billing'
+    - 'sync'
+  cl_stale:
+    - 'with a stale number'
+    - 'with old provider data'
+    - 'with the wrong id'
+  cl_sameday:
+    - 'same day visits'
+    - 'late bookings'
+    - 'walk ins'
+  cl_clock:
+    - 'on the server clock'
+    - 'in one time zone'
+    - 'at a fixed hour'
+  cl_zones:
+    - 'clinics in two zones'
+    - 'sites in different zones'
+    - 'every clinic'
+  cl_late2:
+    - 'late or not at all'
+    - 'at the wrong time'
+    - 'an hour early'
+  cl_onleave:
+    - 'for a provider on leave'
+    - 'during provider leave'
+    - 'for a closed clinic'
+  cl_blocked:
+    - 'times the template blocked'
+    - 'blocked time'
+    - 'slots that no longer exist'
+  cl_block:
+    - 'the lunch block'
+    - 'the template'
+    - 'the holiday closure'
+  cl_move:
+    - 'to move them'
+    - 'to reschedule'
+    - 'one by one'
+  cl_afterup:
+    - 'after an upload'
+    - 'after a photo error'
+    - 'on a slow network'
+  cl_save:
+    - 'save on mobile'
+    - 'save at all'
+    - 'save on a phone'
+  cl_beforevisit:
+    - 'before the visit'
+    - 'online'
+    - 'on a phone'
+  cl_forold:
+    - 'for the old system'
+    - 'before the move'
+    - 'for another site'
+  cl_inehr:
+    - 'in the EHR'
+    - 'at the front desk'
+    - 'by a clinic'
+  cl_fixed:
+    - 'at a fixed time'
+    - 'at {1-4}am sharp'
+    - 'on a timer'
+  cl_afterrouter:
+    - 'after the router upgrade'
+    - 'after a failover'
+    - 'every afternoon'
+  cl_wrongrota:
+    - 'to a retired channel'
+    - 'nowhere'
+    - 'to the wrong rota'
+  cl_drill:
+    - 'in the next drill'
+    - 'at the next drill'
+    - 'during a drill'
+  cl_looks:
+    - 'looks like a date format'
+    - 'maybe a timezone bug'
+    - 'a bad fixture'
+  cl_provloc:
+    - 'a provider at two sites'
+    - 'a shared provider'
+    - 'a floating physician'
+  cl_spec:
+    - 'who has the spec?'
+    - 'where is the spec?'
+    - 'anyone read the notice?'
+  cl_lunch:
+    - 'at lunch'
+    - 'tomorrow'
+    - 'on friday'
+  cl_faster:
+    - 'a faster check-in screen'
+    - 'a shorter intake form'
+    - 'a simpler schedule view'
+  cl_wrongbal:
+    - 'the wrong balance'
+    - 'a balance we cannot explain'
+    - 'an old balance'
+  cl_remtxt:
+    - 'reminder text'
+    - 'reminder email'
+    - 'appointment call'
+  cl_afterup2:
+    - 'after the update'
+    - 'since {time}'
+    - 'at {cl_site}'
+  cl_phone:
+    - 'the same phone number'
+    - 'a new number'
+    - 'a landline'
+  cl_roi:
+    - 'who handles that?'
+    - 'where does it go?'
+    - 'is that medical records?'
+  cl_backing:
+    - 'backing up'
+    - 'stuck'
+    - 'growing'
+  cl_stuck:
+    - 'front desk is stuck'
+    - 'check-in is slow'
+    - 'patients are waiting'
+  cl_incident:
+    - 'shows an incident'
+    - 'is red'
+    - 'reports delays'
+  cl_paper:
+    - 'the paper schedule'
+    - 'the walk ins'
+    - 'the manual charges'
+  cl_claimq:
+    - 'a claim rejection'
+    - 'a charge question'
+    - 'an interface mapping'
+  cl_clin:
+    - 'a physician'
+    - 'a clinic manager'
+    - 'the lab lead'
+  cl_screens:
+    - the new check-in screens
+    - the new scheduling module
+    - the updated charge entry
+  cl_labels:
+    - labels will not print
+    - wristbands are blank
+    - nothing comes out
+  cl_lead:
+    - Also,
+    - Note that
+    - As far as we can tell,
+    - It seems
+    - Apparently
+    - From what I can see,
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        spec: ['{cl_specialty}']
+        payer: ['{cl_payer}']
+        code: ['{cl_reject}']
+        path: ['{b_cb_path}']
+      title:
+        - '{spec|cap} claims rejected for {code}'
+        - '{payer|cap} bounces claims with {code}'
+        - Why do {spec} claims keep getting rejected?
+        - Rejections up for {payer}, {code}
+        - 'Clearinghouse reports {code} on {spec} claims'
+        - '{spec|cap} claims fail the scrubber over {code}'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_raised} on {spec} claims, {b_scope}.'
+        -   - Claims are built in {path}.
+            - The 837 file comes from {path}.
+        -   - The payer returns {code}.
+            - Rejection reports show {code}.
+        -   - Staff rework them {cl_hand}.
+            - The billing office fixes them {cl_hand}.
+        -   - '{b_urgent}'
+            - '{b_urgent} {b_offer}'
+      comments:
+        - '{b_cm_repro} with a {spec} claim for {payer}.'
+        - '{b_cm_check}, {path} may drop the field.'
+        - The scrubber rule for {code} needs work.
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        site: ['{cl_site}']
+        path: ['{b_money_path}']
+      title:
+        - Check-in copay missing on the {b_doc}
+        - Copays posted twice at {site}
+        - Copay at {site} does not match the {b_doc}
+        - Front desk copay shows as unapplied
+        - Patients billed for a copay {cl_alreadypaid}
+        - Check-in payments at {site} post to the wrong visit
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - The front desk at {site} reported it.
+        -   - '{cl_lead} copays post in {path}.'
+            - The copay is matched in {path}.
+        -   - A payment {cl_early} is not linked.
+            - Early payments do not link {cl_tovisit}.
+        -   - '{cl_lead} patients get a balance reminder anyway.'
+            - Statements go out {cl_oldbal}.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Matching by visit id would help.
+        - '{b_cm_later}'
+    - labels: [bug, needs-decision]
+      let:
+        spec: ['{cl_specialty}']
+        thing: ['an E/M level', 'a modifier 25', 'a procedure code']
+      title:
+        - Charge entry accepts {thing} that coding would flag
+        - '{spec|cap} superbills missing {thing}'
+        - No edit for {thing} on {spec} charges
+        - Coders fix {thing} after the claim is built
+        - Who owns the rule for {thing}?
+        - Charge capture drops {thing} for {spec}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - The charge screen has {cl_nofield}.
+            - Nothing blocks a save without it.
+        -   - '{cl_lead} the coding team corrects it {cl_hand}.'
+            - Coders catch it only after submission.
+        -   - '{cl_lead} denials follow within {2-6} weeks.'
+        -   - '{b_g_blocked}'
+      comments:
+        - '{b_cm_ask_who}'
+        - A hard stop may annoy {b_who}.
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        payer: ['{cl_payer}']
+        doc: ['{b_doc}']
+      title:
+        - '{doc|cap}s sent {cl_pending}'
+        - Patients get a bill before {payer} pays
+        - Statement timing ignores the remittance
+        - Secondary insurance not billed before the {doc}
+        - '{doc|cap} goes out {cl_pending}'
+        - Patient balance wrong after {payer} pays late
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{cl_lead} statements run on a fixed day.'
+            - The statement job runs weekly.
+        -   - '{cl_lead} it does not wait for {cl_remit}.'
+            - Pending claims are not excluded.
+        -   - '{cl_lead} patients call the front desk upset.'
+            - Front desk fields the calls.
+        -   - '{b_who|cap} decides these {b_nd_b}.'
+      comments:
+        - A hold flag per claim {cl_might}.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_later}'
+    - labels: [bug, data-quality]
+      let:
+        thing: ['credentialing dates', 'enrollment dates', 'provider numbers']
+        payer: ['{cl_payer}']
+      title:
+        - Wrong {thing} cause denials from {payer}
+        - Claims use old {thing} for new physicians
+        - Rendering provider {thing} not synced
+        - Denials for a physician {cl_justjoined}
+        - '{thing|cap} stored in two places'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{cl_lead} the provider record is copied once.'
+            - New physicians are added by hand.
+        -   - '{cl_lead} credentialing changes do not {cl_flow}.'
+            - The billing copy is never refreshed.
+        -   - '{cl_lead} claims go out {cl_stale}.'
+      comments:
+        - '{b_cm_ask_who}'
+        - Credentialing keeps its own tracker.
+        - '{b_cm_plan}'
+  portal:
+    - labels: [bug]
+      let:
+        when: ['{cl_tz}']
+        site: ['{cl_site}']
+        thing: ['reminder texts', 'reminder emails']
+      title:
+        - Appointment {thing} sent with {when}
+        - Patients get {thing} twice
+        - '{thing|cap} arrive after the visit'
+        - Reminder shows {when}
+        - No reminder sent for {cl_sameday}
+        - Reminders at {site} skip the language setting
+      body:
+        -   - '{b_pscope}.'
+        -   - The reminder job runs {cl_clock}.
+            - Times come from the server zone.
+        -   - '{cl_zones|cap} share one job.'
+        -   - '{cl_lead} patients show up {cl_late2}.'
+            - No-shows went up at {cl_site}.
+      comments:
+        - '{b_cm_repro} with a patient in {b_region}.'
+        - '{b_cm_check}, the zone is stored per site.'
+        - '{b_cm_cb}'
+    - labels: [bug]
+      let:
+        spec: ['{cl_specialty}']
+        site: ['{cl_site}']
+      title:
+        - Online scheduling shows open slots {cl_onleave}
+        - '{spec|cap} slots appear at {site} but no one is there'
+        - Booking page offers {cl_blocked}
+        - Patients book {spec} visits that get cancelled
+        - Online slots ignore {cl_block} at {site}
+        - Double booking from the patient portal
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Slots are cached for {2-15} minutes.
+            - The cache lives {2-15} minutes.
+        -   - '{cl_lead} leave and blocks are not applied.'
+            - Provider leave comes from another table.
+        -   - '{cl_lead} the front desk calls patients {cl_move}.'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_clr2} {b_cm_cb}'
+        - Needs a short TTL, or events.
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        thing: ['an insurance card photo', 'a driver license photo', 'a signed consent']
+        browser: ['{b_browser}']
+      title:
+        - Uploading {thing} fails in {browser}
+        - Intake form loses answers {cl_afterup}
+        - Pre-visit forms do not {cl_save}
+        - '{thing|cap} upload ends with a blank page'
+        - Patients cannot finish intake {cl_beforevisit}
+      body:
+        -   - '{b_pscope}.'
+        -   - Large photos time out.
+            - Phones send large files.
+        -   - '{cl_lead} answers are lost after the error.'
+        -   - '{cl_lead} the front desk collects them again.'
+      comments:
+        - '{b_cm_repro} on an older phone.'
+        - Resizing on the device would help.
+        - '{b_cm_later}'
+    - labels: [enhancement]
+      let:
+        thing: ['a telehealth visit', 'a video link']
+      title:
+        - Video links for {thing} expire too early
+        - Telehealth link opens the wrong room
+        - Patients cannot rejoin {thing}
+        - Waiting room for {thing} never fills
+      body:
+        -   - '{b_pscope}.'
+        -   - '{cl_lead} the link lifetime is short.'
+        -   - '{cl_lead} late patients get an error.'
+        -   - '{cl_lead} clinicians resend links by hand.'
+      comments:
+        - '{b_cm_tok} {b_cm_tok2}'
+        - '{b_cm_plan}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        step: ['printing the day sheet', 'switching to paper charts', 'checking eligibility by phone', 'reconciling the drawer']
+        page: ['the downtime guide', 'the front desk runbook', 'the check-in page']
+      title:
+        - '{page|cap} is missing a step: {step}'
+        - '{page|cap} skips {step}'
+        - Downtime guide does not cover {step}
+        - Add {step} to {page}
+        - 'Docs: {page} out of date after the upgrade'
+      body:
+        -   - Staff at {cl_site} asked about it.
+            - Found during a drill at {cl_site}.
+        -   - The page still describes {cl_old}.
+            - It was written {cl_forold}.
+        -   - '{cl_lead} nobody knows who owns it.'
+        -   - '{cl_lead} a short ordered list would do.'
+      comments:
+        - '{b_cm_docs}'
+        - Practice managers should read it first.
+        - '{b_cm_up} {b_cm_read2}'
+    - labels: [docs, security]
+      let:
+        thing: ['consent to text', 'release of information', 'minimum necessary access', 'break the glass reviews']
+      title:
+        - Write down how we handle {thing}
+        - Handbook never explains {thing}
+        - Where is {thing} documented?
+        - Document {thing} for new staff
+        - Privacy asks for a page on {thing}
+      body:
+        -   - Compliance asked, ahead of {cl_audit}.
+            - '{cl_audit|cap} is coming, no page yet.'
+        -   - '{cl_lead} only {person} knows the steps.'
+            - The steps live in old emails.
+        -   - '{cl_lead} a page with owners would do.'
+      comments:
+        - '{b_dc_e}'
+        - Privacy should review the wording.
+        - '{b_cm_draft} {day}.'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        measure: ['no-show rate', 'visits per provider', 'wait time', 'third next available']
+        site: ['{cl_site}']
+      title:
+        - '{measure|cap} at {site} does not match the EHR'
+        - Dashboard shows another {measure}
+        - '{measure|cap} off by {2-9} percent'
+        - Definition of {measure} differs by clinic
+        - Why is {measure} different in the warehouse?
+      body:
+        -   - Practice operations asked, ahead of {cl_audit}.
+        -   - '{cl_lead} our load uses its own definition.'
+            - The query is {cl_old}.
+        -   - Cancellations are counted differently.
+            - Walk ins are handled differently.
+        -   - '{cl_lead} we need one agreed definition.'
+      comments:
+        - '{b_cm_hand}'
+        - Operations reports it to the board.
+        - '{b_cm_ask_who}'
+    - labels: [bug, data-quality]
+      let:
+        thing: ['duplicate patients', 'merged charts', 'unlinked referrals']
+        table: ['{p_table}']
+      title:
+        - '{thing|cap} in the warehouse'
+        - Merged charts still split in {table}
+        - Counts of {table} off after a chart merge
+        - '{thing|cap} after a site was added'
+        - Referral counts double after a merge
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{cl_lead} front desk merges two charts.'
+            - A chart is merged {cl_inehr}.
+        -   - '{cl_lead} our load never learns of merges.'
+            - The old id stays in {table}.
+        -   - '{cl_lead} reports count one patient twice.'
+        -   - '{cl_lead} needs a decision from {b_who}.'
+      comments:
+        - '{b_cm_check}, merges arrive in {cl_feed}.'
+        - A merge table would fix it.
+        - '{b_cm_plan}'
+    - labels: [enhancement, data-quality]
+      let:
+        measure: ['MIPS measures', 'HEDIS gaps in care', 'quality measures']
+      title:
+        - Extract for {measure} is missing {2-9} fields
+        - '{measure|cap} submission does not match the EHR'
+        - Prepare the {measure} extract before the deadline
+        - Add a check to the {measure} export
+        - Who validates the {measure} file?
+      body:
+        -   - Quality asked ahead of {cl_audit}.
+        -   - '{cl_lead} the export skips a few fields.'
+            - Some numerators are empty.
+        -   - '{cl_lead} it is rebuilt {cl_hand}.'
+        -   - 'Needs a decision from {b_who}.'
+      comments:
+        - '{b_cm_hand}'
+        - '{b_cm_ask_who}'
+        - Deadline is end of the quarter.
+    - labels: [bug, incident]
+      let:
+        feed: ['{cl_feed}']
+      title:
+        - Nightly schedule load {cl_late}
+        - Morning huddle report is empty
+        - '{feed|cap} arrived after the load started'
+        - Schedule report missing {cl_site}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{feed|cap} arrives late.'
+        -   - '{cl_lead} the load starts {cl_fixed}.'
+        -   - '{cl_lead} managers read it before the huddle.'
+      comments:
+        - A completion marker would help.
+        - '{b_cm_prof} {b_cm_prof2}'
+  infra:
+    - labels: [security, bug]
+      let:
+        item: ['the e-prescribing certificate', 'the clearinghouse key', 'the texting provider token']
+      title:
+        - Alert before {item} expires
+        - '{item|cap} expires in {2-9} days'
+        - Nobody owns the renewal of {item}
+        - Renewal of {item} was missed last year
+      body:
+        -   - Found it {b_sc_b}
+        -   - '{cl_lead} no alert exists for it.'
+        -   - '{cl_lead} prescribing stops when it lapses.'
+            - Claims stop when it lapses.
+      comments:
+        - '{b_cm_plan}'
+        - Put it on the shared calendar.
+        - '{b_cm_ask_who}'
+    - labels: [bug, incident]
+      let:
+        site: ['{cl_site}']
+      title:
+        - VPN tunnel to {site} drops every day
+        - '{site|cap} loses the EHR for {2-9} minutes'
+        - Site tunnel flaps {cl_afterrouter}
+        - Alert for the tunnel to {site} never fired
+        - '{site|cap} cannot print labels after failover'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Staff at {site} noticed first.
+        -   - '{cl_lead} the tunnel resets about {2-9} times a day.'
+        -   - '{cl_lead} the alert routes {cl_wrongrota}.'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_check}, the router logs first.'
+        - Failover needs a drill.
+        - '{b_cm_clr2}'
+    - labels: [chore, security]
+      let:
+        item: ['the scanned documents share', 'the fax server', 'the EHR database backup']
+        issue: ['restore was never tried', 'retention is short', 'offsite copy is missing']
+      title:
+        - 'Backups of {item}: {issue}'
+        - '{item|cap} has no tested restore'
+        - Restore drill for {item}
+        - Disaster recovery for {item}
+      body:
+        -   - Found while preparing for {cl_audit}.
+        -   - '{cl_lead} no restore has run recently.'
+        -   - '{cl_lead} a restore needs to be timed.'
+      comments:
+        - '{b_cm_plan}'
+        - Recovery time needs writing down.
+        - Compliance wants the result.
+    - labels: [security, bug]
+      let:
+        thing: ['patient names', 'dates of birth', 'insurance ids']
+        target: ['the portal', 'the texting relay', 'the reporting workers']
+      title:
+        - 'PHI in application logs: {thing}'
+        - Logs from {target} contain {thing}
+        - Scrub {thing} from {target} logs
+        - '{thing|cap} written to debug output'
+      body:
+        -   - Found {thing} in {target} logs.
+        -   - '{cl_lead} the debug level logs {cl_fullmsg}.'
+        -   - Many people can read {cl_them}.
+        -   - '{cl_lead} privacy needs to look at this.'
+      comments:
+        - '{b_cm_clr} {b_cm_old}'
+        - Is this a reportable event?
+        - Please keep details out of chat.
+comments:
+  - Clinic managers should look at this.
+  - Does this touch PHI?
+  - '{b_cm_ask_who}'
+  - Is this reportable to privacy?
+  - Staff at {cl_site} have noticed too.
+  - Can we cover this {cl_drill}?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: flu shot day for staff is {day} at {cl_site}'
+        - '{c_hey}, the EHR gets patched {day} after {time}, expect a restart'
+        - clinics close early {c_soon} for the staff meeting
+        - '{c_hey}: new badge readers go in {c_soon}'
+        - welcome {person} to the front desk team, starting {c_soon}
+      replies:
+        -   - does {cl_site} close too?
+            - will charting be down?
+            - where do we park?
+        -   - '{c_no}, just the clinics'
+            - '{c_yes}, from {time}'
+            - '{c_idk}, ask the practice manager'
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - benefits enrolment closes {c_soon}, pick your plan in the portal
+        - '{c_hey}: CME reimbursement forms are due {c_soon}'
+        - physician meeting moved to {day} at {time}
+        - new parking rules at {cl_site} from {c_soon}
+      replies:
+        -   - is the deadline firm?
+            - where is the form?
+            - does that include part time staff?
+        -   - '{c_yes}, hr will chase otherwise'
+            - under staff resources
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - '{c_hey}: new phone system goes live at {cl_site} {c_soon}'
+        - front desk lunch is on {day} at {time}, everyone invited
+        - '{c_hey}, new scrubs delivery is at {c_room}'
+        - physicians lounge is closed {c_soon} for painting
+      replies:
+        -   - do the numbers change?
+            - where do we pick them up?
+            - is it just {cl_site}?
+        -   - '{c_no}, same numbers'
+            - ask the practice manager
+            - ''
+        -   - '{c_thanks}'
+            - ''
+  off-topic:
+    - root:
+        - '{c_hey}, lunch run to {c_place}, anyone?'
+        - anyone joining the clinic 5k {c_soon}?
+        - the coffee machine at {cl_site} is dead again
+        - did anyone watch the {match/game/race} {last night/yesterday}?
+        - best {c_food} near the downtown office?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_lol}'
+            - not today
+        -   - '{c_idk}'
+            - try {c_place}
+            - ''
+    - root:
+        - anyone want to swap a shift {c_soon}?
+        - happy birthday {person}!
+        - there is {c_food} in {c_room}, help yourselves
+        - look at the view from {cl_site}
+      replies:
+        -   - '{c_lol}'
+            - '{c_thanks}'
+            - on my way
+        -   - ''
+            - '{c_agree}'
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - '{c_ci_fail} is failing on main, {cl_looks}'
+        - eligibility check in {repo} times out, anyone else?
+        - how do we model {cl_provloc} in {repo}?
+        - the clearinghouse changed the 837 format, {cl_spec}
+      replies:
+        -   - looking now
+            - '{c_ack}, will review {c_when_eng}'
+            - '{c_idk}, ask {person}'
+        -   - found it, a timezone bug
+            - fixed in a branch
+            - ''
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - EHR vendor is changing the API {c_soon}, who owns the integration?
+        - should the portal cache slots for {2-15} minutes?
+        - add a PHI scan to {repo} builds?
+        - '{repo} deploy is red, migration failed'
+      replies:
+        -   - i can take it
+            - '{c_ack}, adding it to the change ticket'
+            - need the list of endpoints first
+        -   - '{c_agree}'
+            - ''
+    - root:
+        - reminder job hotfix is up, {c_patch}
+        - should the schedule load wait for {cl_feed}?
+        - who owns the texting provider integration?
+        - merged the copay fix, deploying {c_when_eng}
+      replies:
+        -   - nice, reviewing now
+            - '{c_ack}'
+            - one question about the retry
+        -   - '{c_thanks}'
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - who covers the help desk {cl_lunch}?
+        - go-live at {cl_site} is {day}, who is on site?
+        - sprint review {day} at {time}, clinic managers are coming
+        - who is picking up {issue}?
+      replies:
+        -   - i can cover it
+            - '{c_pto}, ask {person}'
+            - '{c_ack}'
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - billing wants a report by {c_soon}, anyone free?
+        - denials are up, who checks {cl_cleared}?
+        - front desk asks for {cl_faster}
+        - month end needs the copay numbers
+      replies:
+        -   - i can take it
+            - '{b_cm_plan}'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - practice managers want news on {issue}
+        - release notes for {repo} are due {c_soon}
+        - training for {cl_screens} is {day} at {time}
+      replies:
+        -   - i can draft them
+            - '{c_ack}'
+            - '{c_pto}, ask {person}'
+        -   - '{c_thanks}'
+            - ''
+  support:
+    - root:
+        - patient cannot book online, account {5000-9999}
+        - '{b_pwho|cap} says a statement shows {cl_wrongbal}'
+        - nurse cannot print labels at {cl_site}, {s_ticket}
+        - patient got no {cl_remtxt}, {s_ticket}
+        - front desk cannot see the schedule {cl_afterup2}
+        - referring office cannot send a fax, {s_ticket}
+      replies:
+        -   - sending it to {b_who}
+            - '{s_look} at {s_tool}'
+            - did they use {cl_phone}?
+        -   - found it, a duplicate chart, merged
+            - fixed, please confirm
+            - '{c_idk}, escalating to eng'
+        -   - '{c_thanks}'
+            - '{s_thx}'
+    - root:
+        - patient wants their records, {cl_roi}
+        - guarantor asks for a plan {cl_where}, is that live?
+        - 'escalating to eng: {cl_twice}, filed as {issue}'
+        - refund request for a duplicate copay, {s_ticket}
+      replies:
+        -   - release of information handles that
+            - '{c_yes}, under payment options'
+            - '{c_idk}, checking'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - provider cannot sign an order, {s_ticket}
+        - patient sees another name {cl_where}
+        - kiosk at {cl_site} is frozen
+        - referral never arrived, {s_ticket}
+      replies:
+        -   - sending it to {b_who}
+            - '{s_look} at {s_tool}'
+            - '{c_idk}, escalating to eng'
+        -   - fixed, please confirm
+            - '{c_thanks}'
+  incidents:
+    - root:
+        - EHR is slow at {cl_site}, charting is lagging
+        - the fax server queue is {cl_backing}
+        - VPN to {cl_site} is down since {time}
+        - eligibility checks are failing, {cl_stuck}
+        - texting provider status page {cl_incident}
+        - the {cl_feed} alert is flapping again
+      replies:
+        -   - looking now
+            - '{c_ack}, paging {person}'
+            - same on my side
+        -   - restarted the service, recovering
+            - vendor says it is theirs
+            - clinics are on paper, staff informed
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - back from downtime, reconciling {cl_paper}
+        - post-incident review is {day} at {time}
+        - disk at {50-95} percent on the file server
+        - the clearinghouse certificate expires in {2-9} days
+      replies:
+        -   - who is the incident lead?
+            - '{person} has it'
+        -   - noted, updating the downtime log
+            - '{c_ack}'
+    - root:
+        - scheduling is down at {cl_site} since {time}
+        - lab results are not filing since {time}
+        - printing is down at {cl_unit}, {cl_labels}
+      replies:
+        -   - looking now
+            - '{c_ack}, checking the service'
+            - paging {person}
+        -   - back to normal, watching
+            - restarted, results are filing
+            - '{c_thanks}'
+  direct:
+    - root:
+        - '{s_hey}, could you check the schedule feed {s_soon}?'
+        - quick question about the charge screen
+        - '{s_hey}, can you cover the pager {c_soon}?'
+        - got a minute for {cl_claimq}?
+        - '{s_hey}, thought you would like {cl_notice}'
+      replies:
+        -   - '{s_ack}'
+            - '{c_yes}, send it over'
+            - '{c_no}, i am on site until {time}'
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - ugh, {cl_clin} wants a change by {c_soon}
+        - '{s_hey}, lunch? {c_place} at {time}'
+        - survived the go-live, finally
+        - read my change request by {day}?
+      replies:
+        -   - '{c_lol}'
+            - '{s_ack}'
+        -   - ''
+            - '{c_thanks}'
+    - root:
+        - '{s_hey}, can you approve my access request?'
+        - '{s_hey}, cover the go-live call?'
+        - move the audit prep to {day}?
+      replies:
+        -   - '{s_ack}'
+            - '{c_yes}, done'
+        -   - '{s_thx}'
+            - ''

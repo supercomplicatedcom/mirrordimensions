@@ -1,0 +1,576 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Medical devices: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: medical-devices
+name: Medical devices
+group: Health and life sciences
+aliases: [medtech, medical equipment, device manufacturing, medical technology]
+description: A manufacturer of regulated medical devices that sells to hospitals and distributors and supports its installed base.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Medical, Medical Devices, Surgical, Biomedical, Medtech, Instruments]
+invoice_items: [Device and accessories, Annual service contract]
+organization:
+  head: Head of Software Engineering
+  it_admin: IT Systems Administrator
+  teams:
+    platform: {department: Engineering, title: Platform Engineer}
+    billing: {department: Order to Cash Systems, title: Software Engineer}
+    data: {department: Data and Analytics, title: Data Engineer}
+    support: {department: Customer Service, title: Customer Service Specialist}
+    product: {department: Product Management, title: Product Manager}
+    operations: {department: Quality and Regulatory Operations, title: Quality Systems Analyst}
+names:
+  repos:
+    billing-service: [sales-billing, billing-service, contract-billing, order-to-cash]
+    platform-docs: [platform-docs, eng-handbook, validation-handbook, platform-runbooks]
+    data-pipeline: [fleet-loads, data-pipeline, warehouse-loads, device-data-etl]
+    infra-config: [infra-config, validated-environments, platform-config, deploy-config]
+    customer-portal: [customer-portal, biomed-portal, service-portal, account-portal]
+    ops-scripts: [ops-scripts, legacy-scripts, plant-scripts, tool-scripts]
+  channels:
+    engineering: [engineering, software-eng, dev, product-engineering]
+    incidents: [incidents, prod-incidents, incident-response, outages]
+    releases: [releases, release-notes, validated-releases, shipping]
+    billing-team: [order-to-cash, billing-team, finance-systems, billing-eng]
+    platform-team: [platform-team, platform, platform-eng]
+    data-team: [data-team, data, analytics-eng]
+    support: [customer-service, support, service-desk, field-support]
+    leads: [leads, eng-leads, quality-leads]
+systems:
+  typical: [github, slack, jira, okta, veeva vault, ptc windchill, sap s/4hana cloud, salesforce, mastercontrol]
+  common: [servicenow, datadog, pagerduty, zendesk, microsoft 365]
+
+symbols:
+  b_doc: [sales invoice, credit memo, pro forma invoice, service invoice, rebate statement, consignment statement]
+  b_customer: [hospital system, surgical center, distributor, GPO member, clinic group, government account]
+  b_who: [the sales operations team, customer service, finance, the field service team, regulatory affairs]
+  b_pwho: [customer service, a hospital customer, "{person}", the field service team]
+  b_taxkind: [sales tax, use tax, VAT, GST, reverse-charge VAT]
+  b_region: [Germany, France, Ireland, Canada, Australia, Japan, Texas, Ohio]
+  b_currency: [USD, EUR, GBP, CAD, AUD, JPY]
+  b_provider_event: [payment received, payment failed, remittance posted, refund issued, chargeback opened, remittance rejected]
+  b_page: [orders, service requests, device registrations, the dashboard, documents, software downloads, account settings, order history]
+  b_acct_size: ["{200-900} orders", "{15-60} users", "{3-12} ship-to addresses", "{40-300} registered devices"]
+  b_money_path: [billing/orders.py, billing/pricing.py, billing/rebates.py, billing/rounding.py]
+  b_credit_path: [billing/credit_memos.py, billing/returns.py, billing/adjustments.py]
+  b_cb_path: [billing/remittance.py, billing/provider_events.py, billing/webhooks.py]
+  b_check_path: [the pricing tests, the email tests, the credit memo tests, the remittance tests]
+  p_table: [orders, accounts, shipments, installed_base, service_cases, complaints, contracts, price_lists]
+  p_source: [the ERP order export, the field service work orders, the complaint system weekly export, the CRM account list, the distributor sales reports, the device connectivity logs]
+  p_report: [the monthly shipments dashboard, the installed base report, the complaint trend report, the backlog report, the service renewals report]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the controller, the order desk lead]
+  c_customer: [a hospital, one of the larger systems, a surgical center, a distributor, a GPO member]
+  s_plan: [the standard contract, a service contract, the capital lease, a distributor agreement]
+  s_tool: [the order desk tool, the service console, the ERP, the complaint queue]
+  s_docs: [the quality system, the shared drive, the handbook, the document control site]
+  s_inv_late: [order confirmation emails delayed, invoice emails delayed, shipment notices delayed, service invoice mail running late]
+  md_unit: [syringe pump, patient monitor, ventilator, portable scanner, surgical console, glucose meter, mobile cart, bone drill]
+  md_audit: [the ISO 13485 audit, the MDSAP audit, the notified body visit, the FDA inspection prep, the supplier audit]
+  md_rec: [the device history record, the complaint file, the CAPA record, the training record, the service record, the design history file]
+  md_doc: [instructions for use, the service manual, the quick reference card, the release notes, the cleaning guide, the safety notice]
+  md_topic: [complaint handling, data integrity, cybersecurity basics, change control, good documentation practice, record retention]
+  md_site: [the cardiology ward, the central sterile department, the biomed shop, the operating theatre, the imaging suite]
+  md_serial: ['serial {10000-99999}', 'serial 00{1000-9999}', 'lot {100-999}', 'unit {1000-9999}']
+  md_part: [the infusion set, the sensor cable, the battery pack, the probe, the foot pedal, the blood pressure cuff]
+  md_cp: [portal/complaints.py, portal/forms/complaint.py, portal/intake.py]
+  md_ver: ["3.{2-9}.{1-9}", "4.{0-6}.{1-9}", "2.{8-9}.{1-9}"]
+  md_cr: ["change request {1000-4999}", "CR-{1000-4999}", "the change record {1000-4999}"]
+  md_slow_a: [the shipment data feed, the work order export, the connectivity gateway, the label printing service]
+
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        dist: [a distributor, one distributor, a regional dealer]
+        contract: [the GPO contract, the tier agreement, the dealer agreement]
+        path: ['{b_money_path}']
+        customer: ['{b_customer}']
+      title:
+        - 'Chargeback from {dist} does not match {contract} price'
+        - 'Chargeback claims priced at list, not {contract}'
+        - 'Rebate statement for {dist} is {2-9} percent off'
+        - 'Contract tier ignored on {customer} chargebacks'
+        - 'Why are {customer} rebates different from {contract}?'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Finance spotted it {b_since}, {b_scope}.']
+        - ['The lookup in {path} {falls back to list price/reads the wrong tier/ignores the end date}.', 'The tier in {path} is {set at ship/set at order/taken from the account}.']
+        - ['Claims arrive {days/weeks} after the shipment.', 'Contract prices change {each January/every quarter/mid year}.']
+        - ['{b_urgent}', 'Needs {a decision/an owner} on which price wins.']
+      comments:
+        - '{b_cm_repro} with a {customer} claim.'
+        - 'Does the {claim/ship/order} date pick the tier?'
+        - '{b_cm_later}'
+    - labels: [bug, data-quality]
+      let:
+        asset: [infusion pumps, patient monitors, ventilators, ultrasound systems, surgical consoles]
+        customer: ['{b_customer}']
+      title:
+        - 'Service contract invoice bills {2-30} {asset} already retired'
+        - 'Annual service invoice counts decommissioned {asset}'
+        - 'Renewals still include {asset} returned last year'
+        - 'Device count on the {service invoice/renewal notice/contract} is wrong'
+        - '{customer|cap} says the {asset} left service, still billed'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Noticed when a customer queried it, {b_pscope}.']
+        - ['Counts come from {the installed base/the contract record/the last renewal}.', 'Renewals copy {counts/numbers} from {the installed base/the contract record/last year}.']
+        - ['Retired units stay {active/covered} until {field service/support/someone} {closes/updates} the record.']
+        - ['Credit is due on {2-30} lines.', 'Some {will need/may need} a credit memo.', '{b_offer}']
+      comments:
+        - 'Checked {3-12} contracts, {2-9} have the same problem.'
+        - 'Can the installed base {sync/job} mark returns?'
+        - '{b_cm_plan}'
+    - labels: [needs-decision]
+      let:
+        event: [a hospital joins a GPO, two systems merge, a distributor changes hands, a contract lapses before renewal]
+      title:
+        - 'Which price applies when {event}?'
+        - 'Pricing rule needed: {event}'
+        - 'Decide how to bill when {event}'
+        - 'Policy question: {event}'
+      body:
+        - ['Today {b_who} {decides/handles it} {by hand/case by case}.']
+        - ['We could {keep the old tier/switch at once/wait for renewal}.', 'One option: {keep the old tier/switch at once/wait for renewal}.']
+        - ['The contracts team {says/thinks} {it depends/it varies by deal}.']
+        - ['Needs a ruling from {b_who} before anyone codes it.']
+      comments:
+        - '{b_g_blocked}'
+        - 'Past cases went {both ways/each way}, {I can list them/see the list}.'
+        - '{b_g_who}'
+    - labels: [bug]
+      let:
+        stock: [implant kits, surgical staplers, bone screws, stents, catheters]
+        path: ['{b_money_path}']
+      title:
+        - 'Consignment usage for {stock} billed {twice/late/at list price}'
+        - 'Duplicate usage report {creates/adds} a second line for {stock}'
+        - '{stock|cap} consignment usage {double counted/missing/not billed}'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Hospitals report usage by {upload/scanned form/email}.', 'Usage arrives as {an upload/a scanned form/a spreadsheet} each week.']
+        - ['Each report {adds/creates} a billing line in {path}.', 'A second upload {adds/creates} another line.']
+        - ['A key on {lot and serial/the report id} would stop it.', 'Dedupe on {lot and serial/the report id}.']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - 'Do we {credit the extra lines/reverse the batch}?'
+        - '{b_cm_fix_up}'
+  portal:
+    - labels: [bug]
+      let:
+        doc: ['{md_doc}']
+        unit: ['{md_unit}']
+      title:
+        - '{doc|cap} download is the superseded revision'
+        - 'Portal serves an old revision of {doc}'
+        - '{doc|cap} for the {unit} is not the current version'
+        - 'Customers get the wrong {doc} for the {unit}'
+      body:
+        - ['A biomed technician {reported/noticed} it on {day}.', '{b_raised}, {b_scope}.']
+        - ['The portal serves {a cached copy/the first upload/the file by name}.']
+        - ['Document control released a newer revision {2-60} days ago.']
+        - ['Regulatory affairs wants it {closed/fixed} {before the next audit/this week/before month end}.']
+      comments:
+        - 'Confirmed on {b_cm_stage}, old revision comes back.'
+        - 'Do customers who {downloaded it/saw it} need telling?'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        unit: ['{md_unit}']
+        serial: ['{md_serial}']
+      title:
+        - 'Serial lookup rejects {unit} barcodes with leading zeros'
+        - 'Device registration fails for {serial}'
+        - 'Scanning the label on a {unit} gives not found'
+        - 'Registering a {unit} {fails/errors/hangs} for older serials'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Seen first on {serial}, then more.']
+        - ['The form {trims/strips/rejects} leading zeros {before the lookup/on submit}.', 'Old labels use {a shorter/a different/the previous} serial format.']
+        - ['Support registers them by hand meanwhile.', 'Workaround: {call/phone} customer service.']
+      comments:
+        - '{b_cm_repro} with {serial}.'
+        - 'Do both label formats {exist/occur} in the field?'
+        - '{b_cm_plan}'
+    - labels: [enhancement, needs-decision]
+      let:
+        field: [the event date, whether a patient was involved, the lot number, the software version, a contact for follow up]
+        path: ['{md_cp}']
+      title:
+        - 'Complaint form does not ask for {field}'
+        - 'Add {field} to the complaint form'
+        - 'Complaints arrive without {field}'
+        - 'Make {field} required on complaint intake'
+      body:
+        - ['Quality says {3-30} complaints this quarter lacked it.', 'Support counted {3-30} cases {b_since} with no value.']
+        - ['Staff {call/email} the customer to get it.', 'Someone has to chase the {customer/hospital} for it.']
+        - ['The form handler lives in {path}.', 'Intake is handled in {path}.']
+        - ['Needs sign off from {regulatory/quality} before the form changes.']
+      comments:
+        - 'The complaint procedure {lists/marks} it as required.'
+        - '{b_cm_ask_who}'
+        - 'Can we {make it optional/soften it} first?'
+    - labels: [bug, incident]
+      let:
+        unit: ['{md_unit}']
+        cause: [the last deploy, a form change, the new routing rules, a queue restart]
+      title:
+        - 'Service request for a {unit} never reaches the field queue'
+        - 'Service requests missing after {cause}'
+        - '{unit|cap} service requests dropped since {cause}'
+      body:
+        - ['Customer service found {2-9} requests {missing/lost/not routed}.', 'Support saw {2-9} cases that never showed up.']
+        - ['The portal says {submitted/sent/received}, {but/and} the queue is empty.', 'The customer got a {confirmation/receipt}, {but/yet} nothing arrived.']
+        - ['It started around {cause}.']
+        - ['{b_ask_logs}']
+      comments:
+        - 'Found them {in the retry queue/in an error log/in the dead letters}.'
+        - '{b_cm_repro} {b_cm_stage}.'
+        - 'Customers need a call back, {who/which team} does that?'
+  docs:
+    - labels: [docs, bug]
+      let:
+        tool: [the build pipeline, the release signing job, the reporting warehouse, the document control integration]
+        step: [recording the tester and date, attaching the traceability matrix, re-running the installation checks, getting quality approval]
+      title:
+        - 'Handbook: validation of {tool} never mentions {step}'
+        - 'Validation page for {tool} is missing {step}'
+        - 'Docs: {tool} validation lacks {step}'
+      body:
+        - ['The auditors {asked/will ask} about {step}.', 'Quality {asked/flagged it} ahead of {md_audit}.']
+        - ['The page was {written for/based on} an older process.', 'The old procedure had different steps.']
+        - ['Who owns the validation records for {tool}?']
+      comments:
+        - '{b_cm_docs}'
+        - 'The quality manager {has/holds} the current procedure.'
+        - '{b_cm_ask_who}'
+    - labels: [docs, enhancement]
+      let:
+        what: [the software bill of materials, the third party component list, the vulnerability scan record, the release traceability matrix]
+      title:
+        - 'Write up how we produce {what}'
+        - 'Document the steps for {what}'
+        - 'New engineers cannot {find/tell} how to make {what}'
+      body:
+        - ['Reviewers keep asking about {what}.', 'Each release needs {what}.']
+        - ['Only {person} knows the {steps/order/tools}.']
+        - ['{b_dc_c} {b_dc_d} {b_dc_e}']
+      comments:
+        - '{b_cm_draft} the next release.'
+        - Include where the output is filed.
+        - '{b_cm_up}'
+    - labels: [docs, needs-decision]
+      let:
+        rec: ['{md_rec}']
+        period: ['the device lifetime plus {2-10} years', '{5-15} years from release', 'the contract term plus {2-7} years']
+      title:
+        - 'Decide how long to keep {rec}'
+        - 'Retention for {rec} is written two ways'
+        - 'Docs: retention of {rec} disagrees with quality'
+      body:
+        - ['The handbook says {period}.', 'One page says {period}.']
+        - ['The quality manual gives {a different/another/an older} figure.']
+        - ['Needs a ruling from {regulatory affairs/quality/legal}.', 'Nobody should {edit/touch} the page before a ruling.']
+      comments:
+        - '{b_g_blocked}'
+        - 'The regulation {sets/gives} a minimum, not a number.'
+        - '{b_cm_ask_who}'
+  data:
+    - labels: [question, data-quality]
+      let:
+        n: ['{12-480}']
+        source: [the ERP, field service, the CRM]
+      title:
+        - 'Installed base disagrees with {source} by {n} devices'
+        - 'Device counts in the {warehouse/report} differ from {source}'
+        - 'Installed base report does not match {source}'
+      body:
+        - ['{b_raised}, the gap is {n} devices.', 'The service renewals report shows {n} fewer units than {source}.']
+        - ['Some serials appear {twice/in two sites/under two owners}.', 'Returned units are {still counted/missing/counted twice}.']
+        - ['{b_urgent}']
+      comments:
+        - 'Checked, most gaps are {late returns/returns entered late}.'
+        - 'Can we list the {n} serials?'
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        feed: [the shipments feed, the service work orders, the complaint export, the connectivity logs]
+      title:
+        - 'Serial numbers lose leading zeros in {feed}'
+        - '{feed|cap} load turns serials into numbers'
+        - 'Serials from {feed} no longer join {to/with} the installed base'
+      body:
+        - ['Joins between {feed} and the installed base drop {2-400} rows.', 'About {2-400} rows from {feed} find no match.']
+        - ['Serials are read as {numbers/integers} by the loader.', 'The load casts {the serial column/serial fields} to numbers.']
+        - ['Quote the column and reload {from/starting} {day}.']
+      comments:
+        - '{b_cm_repro} on last night data.'
+        - 'Backfill needed for {2-9} weeks.'
+        - '{b_cm_fix_up}'
+    - labels: [bug, data-quality]
+      let:
+        change: [the quality system upgrade, the new complaint categories, the CRM migration]
+      title:
+        - 'Complaint counts drop after {change}'
+        - 'Complaint trend report {shows/has} a dip since {change}'
+        - 'Missing complaints in the warehouse after {change}'
+      body:
+        - ['Quality noticed the trend {line/chart} fell {2-40} percent.']
+        - ['Source counts are {higher/unchanged} than the warehouse.', 'The load {skips/drops} records with a new status.']
+        - ['The trend report {is used in/feeds} management review.', 'This feeds the quarterly management review.']
+      comments:
+        - 'New status values {are not in/are missing from} the mapping.'
+        - '{b_cm_check} the status list.'
+        - '{b_cm_later}'
+  infra:
+    - labels: [bug, needs-decision]
+      let:
+        setting: [the TLS ciphers, the log level, the session timeout, the worker count, the database version]
+        env: [production, the staging copy, the validation environment]
+      title:
+        - '{env|cap} differs from the validated configuration on {setting}'
+        - 'Drift in {setting} between {env} and the validated build'
+        - 'Why is {setting} different in {env}?'
+      body:
+        - ['Found during a review for {md_audit}.', 'A config comparison showed it {b_since}.']
+        - ['The change had no {change record/approval} that I can find.']
+        - ['Revalidation {may be/will be} needed if it stays.', 'Either revert it or file {md_cr}.']
+      comments:
+        - 'Matches {md_cr}, approved last month.'
+        - '{b_g_who}'
+        - 'Reverting needs a window, {when/what day} is the next?'
+    - labels: [security, enhancement]
+      let:
+        n: ['{14-60}']
+        cert: [the firmware signing certificate, the code signing certificate, the update server certificate]
+      title:
+        - '{cert|cap} expires in {n} days'
+        - 'Alert before {cert} expires'
+        - 'Renewal for {cert} has no owner'
+      body:
+        - ['Expiry is in {n} days.', 'Nobody has started the renewal.']
+        - ['Devices in the field {check it/look at it} at update time.', 'Customers cannot install {updates/new software} after it lapses.']
+        - ['Renewal needs {an approval/the quality team}, {and/plus} a validated step.']
+      comments:
+        - 'Calendar the date {for the team/on the rota}.'
+        - '{b_g_own}'
+        - Who holds the key ceremony procedure?
+    - labels: [bug, security]
+      let:
+        days: ['{30-180}']
+        log: [the audit trail, the access log, the signature log]
+      title:
+        - 'Retention for {log} is {days} days, rules say longer'
+        - '{log|cap} is purged after {days} days'
+        - 'Electronic records rules need a longer {log}'
+      body:
+        - ['Part 11 records {need/require} the trail kept {with it/alongside}.', 'The trail must {outlive/outlast} the record it covers.']
+        - ['Current setting purges after {days} days.']
+        - ['It was set low {to save/for} storage cost.']
+      comments:
+        - '{b_cm_check} the storage numbers.'
+        - 'Can old logs {move to archive/go cold}?'
+        - '{b_cm_ask_who}'
+  ops:
+    - labels: [question]
+      let:
+        script: [rotate_labels.sh, sync_serials.sh, purge_exports.sh, check_printers.sh]
+      title:
+        - 'Is {script} still used by the plant?'
+        - 'Can we retire {script} after the label printer change?'
+      body:
+        - ['It {runs/is called} from {the cron host/an old host}.']
+        - ['The label printers moved {last year/in spring}.']
+      comments:
+        - '{b_cm_ask_who}'
+        - 'Unsure, ask {the plant systems team/the plant}.'
+
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: {md_audit} is {day}, keep {your desk/your notes} tidy.'
+        - '{md_audit|cap} starts {c_soon}, quality will send the schedule'
+        - '{c_hey}, auditors are on site {c_soon}. answer what is asked, nothing more'
+        - 'heads up, {md_audit} {c_soon}, badge your guests in'
+        - 'quality says the {auditors/inspectors} want {the software team/us} {c_soon}'
+      replies:
+        - ['do we need to prepare anything?', 'which records will they ask for?', 'who is in the room?']
+        - ['{c_yes}, quality will brief us {c_soon}', 'check the invite, {the list/it} is there', '{c_idk}, ask {person}']
+        - ['{c_thanks}', '{c_ack}', '']
+    - root:
+        - 'mandatory training on {md_topic} closes {c_soon}'
+        - '{c_hey}: training on {md_topic} is overdue for {3-12} people'
+        - 'reminder, the {md_topic} course must be done by {day}'
+        - 'quality needs everyone to finish {md_topic} training {c_soon}'
+      replies:
+        - ['how long does it take?', 'is it the same {one/course} as last year?', 'would my old course count?']
+        - ['about {20-60} minutes', '{c_no}, it was updated', 'sorry no, it {has to/must} be ours']
+        - ['{c_thanks}', '']
+    - root:
+        - 'the plant is closed for inventory {c_soon}, no shipments'
+        - '{c_hey}: shipments paused {c_soon} for the stock count'
+        - 'stock count at the plant {c_soon}, order desk is covering questions'
+      replies:
+        - ['does that {affect/change} the portal order status?', 'will orders still show as processing?']
+        - ['they stay as is, nothing moves', 'yes, expect more calls on {day}']
+        - ['{c_ack}', '{c_thanks}']
+  off-topic:
+    - root:
+        - 'anyone going to the trade show {c_soon}?'
+        - 'who is covering the booth {c_soon}?'
+        - 'volunteers needed for the booth {c_soon}'
+        - 'trade show swag arrived, {mugs/bags} in {c_room}'
+        - 'anyone been to {the surgical conference/that conference}? worth it?'
+      replies:
+        - ['{c_yes}, i went last year', 'not me, i am on support', '{c_no}, wfh that week']
+        - ['the food was the best part', 'bring comfy shoes', 'the sessions on {md_topic} were useful']
+        - ['{c_lol}', '']
+    - root:
+        - 'does anyone else get {lift/hold} music stuck?'
+        - 'my {c_pet} ate a pen again'
+        - 'best coffee near {the plant/the office}?'
+        - '{c_hey}, know a good physio? {my back/my neck} is gone'
+      replies:
+        - ['{c_lol}', 'try {c_place}', 'the one near {md_site}... the hospital cafe is fine']
+        - ['{c_thanks}', '{c_em}', '']
+  engineering:
+    - root:
+        - 'need a quality review for {repo}, {it/the pr} touches validated code'
+        - 'pr for {repo} needs a reviewer to sign {md_cr}'
+        - '{c_hey}, who can approve validated changes? {md_cr} is waiting'
+        - 'can someone review {md_cr} for {repo}? {c_patch}'
+      replies:
+        - ['is the traceability updated?', 'did you update the requirement link?', 'what is the risk class?']
+        - ['{c_yes}, linked in the pr', 'not yet, doing it now', 'class two, no safety impact']
+        - ['approved from my side', 'looks fine to me, {add/attach} the test evidence', '']
+    - root:
+        - 'the dependency scan flagged {c_dep} again'
+        - 'scan found a new one in {c_dep}, does it matter?'
+        - 'the scanner raised {c_dep} as high, is it reachable?'
+        - 'sbom check failed on the build, {c_dep} has no licence listed'
+      replies:
+        - ['is it {shipped/in the build} or only tooling?', 'checking if the path {is used/runs}', 'who assesses exploitability?']
+        - ['tooling only, so {no change/nothing changes} on the device', 'it ships, so we {need/owe} an assessment', '{c_idk}, security should know']
+        - ['file it and link the release', '{c_ack}']
+    - root:
+        - 'how do we version the {repo} release for the validated build?'
+        - 'which version went out {last/most recently}?'
+        - 'is the build for {md_ver} frozen yet?'
+        - 'who has the {release/validated} checklist?'
+      replies:
+        - ['it is in the handbook', 'frozen since {day}', '{c_idk}, ask {person}']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - 'validation tests failed on {repo}, {data/code} issue?'
+        - 'the traceability check {fails/breaks} after my rebase'
+        - '{c_tool} is down for me, anyone else?'
+      replies:
+        - ['same here', 'it passed this morning', 'rerun it first']
+        - ['rerun fixed it', 'found it, {a missing/an old} link in the matrix', 'still red']
+    - root:
+        - 'design question for {c_eng_area}, does it change the validated scope?'
+        - 'should we move {c_eng_area} out of the validated build?'
+        - 'does the {c_eng_area} change need a new risk assessment?'
+      replies:
+        - ['ask quality before you start', 'it touches billing only, so no', '{c_idk}, depends on the change']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - 'complaints queue has {3-30} open items, who can help triage?'
+        - '{c_hey}, complaint backlog is {3-30} today, anyone free?'
+        - 'need two people to review {complaints/the queue} {c_soon}'
+      replies:
+        - ['i can take {2-5}', 'busy with release prep', '{c_ack}']
+        - ['{c_thanks}', 'split them by product line?']
+    - root:
+        - 'freeze for the validation window from {day} to {c_soon}'
+        - 'validation window opens {day}, no changes after {time}'
+        - '{c_hey}: validation run starts {day} at {time}, merge before then'
+      replies:
+        - ['can hotfixes go in?', 'what about docs changes?', 'does the portal count?']
+        - ['hotfixes need {md_cr}', 'docs are fine', '{c_no}, only the validated parts']
+        - ['{c_ack}', '']
+    - root:
+        - 'who is on the {field service/support} rota this week?'
+        - 'field service is short on {md_unit} specialists, can engineering cover?'
+        - '{c_hey}, who answers {md_unit} questions from the service team?'
+      replies:
+        - ['check the rota page', '{person} is on, i think', 'not me, i am out']
+        - ['{c_thanks}', '{c_ack}']
+  support:
+    - root:
+        - 'customer asks which software version their {md_unit} runs, can we tell?'
+        - 'biomed at {c_customer} wants the software version for {md_serial}'
+        - 'how do i find firmware for {md_serial}?'
+        - '{c_customer} needs the version history of their {md_unit}'
+        - 'they lost the label on the {md_unit}, how do we find the serial?'
+      replies:
+        - ['it is in {the installed base/the unit record}', 'check {s_tool}', 'ask field service']
+        - ['not there, {the unit/it} was never registered', 'found it, version {md_ver}']
+        - ['{c_thanks}', '']
+    - root:
+        - '{c_customer} wants {md_doc} in another language'
+        - 'request for the {md_doc} for the {md_unit}, they only have the old one'
+        - 'customer cannot find {md_doc} in the portal'
+      replies:
+        - ['which language?', 'is it the current revision?', 'send them {the portal link/the link}']
+        - ['german, they have {2-9} units', 'it is revision {b/c}, they have {a/the old}', 'yes the portal one is current']
+        - ['{c_thanks}', '']
+    - root:
+        - 'return request for {md_part}, they say it arrived damaged'
+        - 'customer wants to return {md_part}, what is the process?'
+        - 'credit for {md_part}? shipped twice by mistake'
+        - '{c_customer} reports {md_part} faulty, is that a complaint?'
+      replies:
+        - ['yes, faults are complaints, {log it/log it now}', 'start a return, {then/and} the credit', '{c_idk}, ask the order desk']
+        - ['logged it', 'done', '{c_thanks}']
+  incidents:
+    - root:
+        - 'portal serial lookup is failing, {s_symptom}'
+        - 'registering devices is {s_symptom} {s_since}'
+        - 'the portal cannot find serials, {s_since}'
+      replies:
+        - ['seeing it too', 'is it all serials or some?', 'looking now']
+        - ['older serials only', 'a deploy went out {s_since}', 'rolling back']
+        - ['fixed', '{c_thanks}']
+    - root:
+        - '{md_slow_a} is behind {s_age}, support is asking'
+        - 'alert on {md_slow_a}, queue age {s_age}'
+        - '{md_slow_a} backed up, {s_since}'
+        - 'field service says {md_slow_a} is stale'
+      replies:
+        - ['i can take a look', 'checking dashboards', 'is it customer facing?']
+        - ['restarted the worker, catching up', 'upstream feed stalled', 'cleared now']
+        - ['{c_thanks}', '']
+    - root:
+        - 'signing certificate expires soon, {who/which team} owns it?'
+        - '{c_hey}: the update server certificate expires in {2-9} days'
+        - 'cert warning on the update service, {2-9} days left'
+      replies:
+        - ['it needs {a change record/an approval} to renew', '{c_idk}', 'platform owns it']
+        - ['opened one', '{b_g_own}']
+        - ['{c_ack}', '']
+  direct:
+    - root:
+        - '{s_hey}, could you sign off {md_cr} {s_soon}?'
+        - '{s_hey}, can you approve {md_cr}? {s_soon} works'
+        - 'need your signature on {md_cr}, {s_soon}'
+        - '{s_hey}, quality is waiting on {md_cr}'
+      replies:
+        - ['{s_ack}', 'on it', 'give me ten minutes']
+        - ['done', 'signed', 'the system rejected my login']
+    - root:
+        - '{s_hey}, could you read the validation summary {s_soon}?'
+        - 'can you check test evidence for {repo} by {day}?'
+        - 'got a minute to look over {md_rec}?'
+        - 'need {a second pair of eyes/another reviewer} on the traceability matrix'
+      replies:
+        - ['{s_ack}', 'sure, send it', 'will do after lunch']
+        - ['found two gaps', 'looks good', 'a few comments, see the doc']
+
+comments:
+  - '{b_cm_check} if quality must approve it.'
+  - Does this touch the validated build?
+  - 'We need a change record {before/ahead of} fixing this.'
+  - 'Customer service can {confirm/list} the affected units.'
+  - 'The audit is {coming/close}, so tidy the evidence.'
+  - Please keep serials out of chat.

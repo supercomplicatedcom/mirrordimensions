@@ -1,0 +1,571 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Dental and veterinary practices: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: dental-veterinary
+name: Dental and veterinary practices
+group: Health and life sciences
+aliases: [dental practices, veterinary clinics, animal hospitals, dental groups, vet practices]
+description: A group of dental or veterinary practices that books appointments, treats patients, bills clients and insurers, and runs recall and wellness programs.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Dental, Dental Group, Veterinary Group, Animal Hospital, Pet Care, Smiles]
+invoice_items: [Exam and treatment, Wellness plan]
+organization:
+  head: Director of Technology
+  it_admin: Practice Systems Administrator
+  teams:
+    platform: {department: Technology, title: Platform Engineer}
+    billing: {department: Revenue Cycle, title: Software Engineer}
+    data: {department: Analytics, title: Data Engineer}
+    support: {department: Client Care, title: Client Care Specialist}
+    product: {department: Product, title: Product Manager}
+    operations: {department: Practice Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [practice-billing, billing-service, claims-and-payments, client-billing]
+    platform-docs: [platform-docs, technology-handbook, practice-systems-docs, runbooks]
+    data-pipeline: [practice-data-pipeline, data-pipeline, production-loads, warehouse-loads]
+    infra-config: [infra-config, practice-network-config, platform-config, deploy-config]
+    customer-portal: [client-portal, patient-portal, booking-portal, pet-owner-portal]
+    ops-scripts: [ops-scripts, practice-scripts, legacy-scripts, tool-scripts]
+  channels:
+    engineering: [engineering, eng, dev, tech-team]
+    incidents: [incidents, practice-outages, prod-incidents, incident-response]
+    releases: [releases, app-releases, shipping, release-notes]
+    billing-team: [revenue-cycle, billing-team, claims-eng]
+    platform-team: [platform-team, platform, platform-eng]
+    data-team: [data-team, data, analytics-eng]
+    support: [client-care, support, practice-support, help-desk]
+    leads: [leads, tech-leads, practice-leads]
+systems:
+  typical: [github, slack, jira, okta, zendesk, twilio, stripe, google workspace, dentrix, ezyvet]
+  common: [datadog, pagerduty, sentry, hubspot, quickbooks online, microsoft 365]
+
+symbols:
+  b_doc: [client invoice, treatment estimate, patient statement, credit memo, payment plan statement, refund receipt]
+  b_customer: [dental patient, pet owner, insurance patient, wellness plan member, family account, corporate client]
+  b_who: [front desk staff, the practice managers, finance, the client care team, compliance]
+  b_pwho: [client care, a practice manager, "{person}", front desk staff]
+  b_taxkind: [sales tax, state tax, VAT, GST, local tax]
+  b_region: [Texas, Colorado, Oregon, Florida, Ontario, Ireland]
+  b_currency: [USD, CAD, GBP, EUR, AUD]
+  b_provider_event: [payment succeeded, payment failed, refund completed, claim paid, claim denied, plan payment missed]
+  b_page: [appointments, invoices, payment plans, the dashboard, pet records, treatment plans, account settings, forms]
+  b_acct_size: ["{20-90} appointments", "{3-12} pets", "{15-60} family members", "{40-300} past visits"]
+  b_money_path: [billing/estimates.py, billing/fee_schedule.py, billing/insurance_split.py, billing/rounding.py]
+  b_credit_path: [billing/refunds.py, billing/credits.py, billing/adjustments.py]
+  b_check_path: [the estimate tests, the claim tests, the refund tests, the callback tests]
+  p_table: [appointments, patients, clients, treatments, claims, invoices, inventory, imaging_studies]
+  p_source: [the practice management exports, the insurer remittance files, the lab portal orders, the pet insurer claim feeds, the reminder service logs, the payment plan provider reports]
+  p_report: [the daily production report, the recall rate dashboard, the claims aging report, the no show report, the wellness plan renewals report]
+  p_finance_ask: [the finance lead, someone in finance, the revenue cycle manager, the controller]
+  c_customer: [a patient, a pet owner, a practice manager, a wellness plan member, a lab partner]
+  s_plan: [the wellness plan, a payment plan, the family plan, pay as you go]
+  s_tool: [the practice admin, the support desk, the scheduler, the ticket queue]
+  s_docs: [the wiki, the shared drive, the handbook, the policy site]
+  s_inv_late: [appointment reminder texts delayed, invoice emails delayed, recall notices running late, statement mail not going out]
+  dv_proc: [cleanings, crowns, fillings, extractions, vaccinations, wellness exams, dental scaling]
+  dv_insurer: [a dental plan, a pet insurer, a union plan, an employer plan]
+  dv_loc: [the downtown practice, the east side clinic, a rural location, the newest office]
+  dv_lab: [the dental lab, the reference lab, the imaging provider, the pharmacy partner]
+  dv_topic: [sterilization logs, controlled drug logs, privacy basics, radiation safety, cyber safety]
+  dv_audit: [the board inspection, an insurer audit, the DEA records check, a state visit]
+  dv_room: [the front desk, the sterilization room, exam room two, the imaging room]
+  dv_pet: [dog, cat, rabbit, ferret, parrot]
+
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        proc: ['{dv_proc}']
+        insurer: ['{dv_insurer}']
+        path: ['{b_money_path}']
+      title:
+        - 'Estimate for {proc} differs from the final invoice'
+        - 'Patient portion wrong for {insurer} patients'
+        - 'Final bill {higher/more} than the estimate on {proc}'
+        - 'Insurance split {ignores/skips} the fee schedule for {proc}'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Front desk saw {2-30} cases {b_since}.']
+        - ['The estimate uses the {office/standard} fee schedule.', 'Estimates use the standard fees.']
+        - ['The invoice {uses/reads} the plan fee schedule.', 'Final bills use contracted fees.']
+        - ['The split lives in {path}.', '{b_urgent}']
+      comments:
+        - '{b_cm_repro} with {insurer}.'
+        - Which schedule wins when they differ?
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        thing: [a payment plan, a financing plan, an installment plan]
+      title:
+        - 'Installment charged after {thing} was paid off'
+        - 'Clients charged once more on {thing}'
+        - 'Last payment of {thing} runs twice'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Clients called {2-9} times {b_since}.']
+        - ['The final charge {fires/runs} before the status updates.', 'The schedule {runs ahead of/leads} the balance.']
+        - ['Refunds are manual {for now/today}.', '{b_urgent}']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - 'Check the order {of the jobs/of nightly jobs}.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        miss: [the tooth number, the procedure code, the surface codes, the rendering provider, the policy number]
+      title:
+        - 'Claims rejected for missing {miss}'
+        - 'Insurer bounces claims without {miss}'
+        - '{miss|cap} is blank on {2-60} claims'
+      body:
+        - ['The clearinghouse returned {2-60} claims {b_since}.', 'Rejections started {b_since}.']
+        - ['Imported visits lack the field.', 'Older treatment notes have no value.']
+        - ['Revenue cycle needs a resubmit run.', '{b_offer}']
+      comments:
+        - '{b_cm_repro} with an imported visit.'
+        - 'The insurer list {says/states} it is required.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        plan: [the wellness plan, the family plan, the puppy plan, the kitten plan]
+      title:
+        - 'Renewals of {plan} charged at the old price'
+        - '{plan|cap} renews at last year price'
+        - 'Members on {plan} see the wrong renewal amount'
+      body:
+        - ['Prices changed on {day}.', 'The new price went live {b_since}.']
+        - ['The renewal job {reads/uses} a cached price.', 'Renewals use the price from signup.']
+        - ['Finance wants to know how many.', '{b_urgent}']
+      comments:
+        - 'Checked {2-9} members, all affected.'
+        - Do we honor the old price?
+        - '{b_cm_later}'
+    - labels: [needs-decision]
+      let:
+        question: [refunding prepaid plans for lost pets, charging for a missed appointment, applying a family discount, writing off a small balance, billing for a late cancel]
+      title:
+        - 'Policy for {question}?'
+        - 'Decide how we handle {question}'
+        - 'Rules needed for {question}'
+      body:
+        - ['Practices {decide/handle it} {by hand/case by case}.', 'Each office does it differently.']
+        - ['Options: {always/never/ask the manager}.', 'We could {allow/refuse/review} each one.']
+        - ['Clients are {upset/confused} about it.']
+        - ['Needs a decision from {b_who}.']
+      comments:
+        - '{b_g_blocked}'
+        - Local rules may apply.
+        - '{b_g_who}'
+  portal:
+    - labels: [bug]
+      let:
+        role: [the dentist, the vet, the hygienist, the groomer]
+        loc: ['{dv_loc}']
+      title:
+        - 'Booking offers slots when {role} is out'
+        - Online booking shows times after closing
+        - 'Open slots at {loc} that do not exist'
+        - Double booked appointments from the portal
+      body:
+        - ['The calendar ignores {leave/time off}.', 'Time off is {ignored/not read} by booking.']
+        - ['Clients arrive and nobody expects them.', '{2-9} clients were turned away.']
+        - ['Front desk fixes it by phone.', 'Practices block slots by hand.']
+      comments:
+        - '{b_cm_repro} with a blocked day.'
+        - Which calendar does booking read?
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        page: [the allergy page, the medication list, the consent page, the history form]
+      title:
+        - 'Intake form loses answers on {page}'
+        - 'Forms reset at {page} on phones'
+        - '{page|cap} does not save before submit'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Clients redo it {at the desk/in person}.']
+        - ['Going back clears the page.', 'A timeout wipes the answers.']
+        - ['Staff end up typing it in.']
+      comments:
+        - '{b_cm_repro} on {b_browser}.'
+        - Draft saving would help.
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        doc: [the rabies certificate, the vaccination record, the health certificate, the travel form]
+        pet: ['{dv_pet}']
+      title:
+        - '{doc|cap} shows the wrong expiry for a {pet}'
+        - 'Downloaded {doc} has an old date'
+        - '{doc|cap} lists the wrong clinic'
+      body:
+        - ['Owners need it for {boarding/travel}.', 'A groomer refused the record.']
+        - ['The PDF {uses/shows} the first visit date.', 'It reads the wrong field.']
+        - ['Staff print it by hand meanwhile.']
+      comments:
+        - '{b_cm_repro} with a {pet} record.'
+        - 'Does the vet {need to resign/have to redo} these?'
+        - '{b_cm_fix_up}'
+    - labels: [bug, security]
+      let:
+        thing: [x-ray images, treatment notes, pet records, invoices]
+      title:
+        - 'Link to {thing} opens for other clients'
+        - 'Guessable ids for {thing}'
+        - '{thing|cap} link works without signing in'
+      body:
+        - ['Found while helping a client.', 'A client noticed it.']
+        - ['Changing the id shows another record.', 'The link has no owner check.']
+        - ['{b_dlk_e}', '{b_pm_e}']
+        - ['Privacy needs to know how many.']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Check the access log first.
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        ask: [pay a balance, update a card, change an appointment, request records, add a pet]
+      title:
+        - 'Let clients {ask} online'
+        - 'Self service to {ask}'
+        - 'Clients call to {ask}'
+      body:
+        - ['Front desk gets {10-80} calls a week.', 'About {10-80} calls a week are for this.']
+        - ['A short form would be enough.', 'Add it to account settings.']
+        - ['Every change needs an audit entry.']
+      comments:
+        - '{b_g_est}'
+        - Ask the practice managers.
+        - '{b_cm_try}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        step: [the spore test, the log entry, the second check, the load number]
+      title:
+        - 'Handbook: sterilization page skips {step}'
+        - 'Cleaning log page lacks {step}'
+        - 'Docs omit {step} for instruments'
+      body:
+        - ['{dv_audit|cap} asked about {step}.', 'A practice {flagged/noticed} it.']
+        - ['The page predates the new log.', 'The steps changed last year.']
+        - ['Who signs off {on the text/on it}?']
+      comments:
+        - '{b_cm_docs}'
+        - 'The lead hygienist {has/knows} the current steps.'
+        - '{b_cm_ask_who}'
+    - labels: [docs, enhancement]
+      let:
+        what: [moving a practice onto our systems, onboarding a new office, restoring a practice database, setting up an imaging server]
+      title:
+        - 'Write up {what}'
+        - 'Document the steps for {what}'
+        - 'Nobody can explain {what}'
+      body:
+        - ['New hires ask about {what} {often/weekly}.', 'Only {person} knows the order.']
+        - ['The notes {live in/sit in} an old thread.']
+        - ['A one page checklist would do.']
+      comments:
+        - '{b_cm_draft} next week.'
+        - Include who to call.
+        - '{b_cm_up}'
+    - labels: [docs, needs-decision]
+      let:
+        rec: [x-ray images, treatment notes, controlled drug logs, vaccination records]
+      title:
+        - 'Decide how long to keep {rec}'
+        - 'Retention for {rec} is unclear'
+        - 'Docs: {rec} retention disagrees with policy'
+      body:
+        - ['The handbook says {2-10} years.', 'One page says {2-10} years.']
+        - ['State boards ask for {different/longer} periods.']
+        - ['Needs a ruling from compliance.']
+      comments:
+        - '{b_g_blocked}'
+        - Minors and animals differ.
+        - '{b_cm_ask_who}'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        n: ['{12-480}']
+      title:
+        - 'Production numbers differ from {the practice/the source} exports'
+        - 'Warehouse shows {n} fewer visits than the practice system'
+        - 'Daily production is {2-9} percent off'
+      body:
+        - ['{b_raised}, the gap is {n} visits.', 'The gap is {n} visits last week.']
+        - ['Visits closed after midnight {land/count} {the next day/a day late}.', 'Late closers {are missed by/miss} the load.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_check} the time zone.'
+        - Compare by visit id.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        n: ['{40-900}']
+      title:
+        - 'Acquired practice loads {n} duplicate patients'
+        - New office imports duplicate clients
+        - 'Patients appear twice {after/in} a practice import'
+      body:
+        - ['The import matches on {name/last name} and birth date.', 'Matching ignores the phone number.']
+        - ['Families share names and addresses.', 'Pets share owner names.']
+        - ['Reminders go out twice.', '{b_ticket_noun|cap}s started {b_since}.']
+      comments:
+        - Need a merge tool for these.
+        - '{b_cm_try}'
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        what: [recall lists, reminder lists, no show counts]
+        n: ['{12-480}']
+      title:
+        - '{what|cap} miss clients with no phone number'
+        - 'Recall list is short by {n} clients'
+        - '{what|cap} skip people with two addresses'
+      body:
+        - ['The query {joins on/uses} the first phone.', 'Rows without a phone drop out.']
+        - ['Practices notice fewer bookings.', 'Hygiene schedules look light.']
+        - ['Email could be the fallback.']
+      comments:
+        - '{b_cm_check} the join.'
+        - '{b_cm_repro} with last night data.'
+        - '{b_cm_fix_up}'
+  infra:
+    - labels: [bug]
+      let:
+        loc: ['{dv_loc}']
+      title:
+        - 'Imaging server at {loc} is low on disk'
+        - 'X-ray storage full at {loc}'
+        - 'Images stop saving at {loc}'
+      body:
+        - ['The disk fills with raw images.', 'Old studies are never archived.']
+        - ['Staff cannot save new images.', 'Exams wait for the server.']
+        - ['An archive job would help.']
+      comments:
+        - '{b_cm_plan}'
+        - How much space is left?
+        - '{b_g_own}'
+    - labels: [bug, security]
+      let:
+        n: ['{2-14}']
+        cert: [the practice VPN certificate, the booking site certificate, the imaging gateway certificate]
+      title:
+        - '{cert|cap} expires in {n} days'
+        - 'Alert before {cert} lapses'
+        - 'Renewal of {cert} has no owner'
+      body:
+        - ['Expiry is {n} days away.', 'Nobody owns the renewal.']
+        - ['Practices go offline when it lapses.', 'Booking stops when it lapses.']
+        - ['Renewal needs a change window.']
+      comments:
+        - Add it to the rota.
+        - '{b_g_own}'
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        target: [the practice database, the image archive, the message store]
+      title:
+        - 'Restore of {target} was never tried'
+        - 'Backups of {target} are untested'
+        - 'Nobody has restored {target} lately'
+      body:
+        - ['Backups run every night.', 'Backups look healthy.']
+        - ['The last restore was {long ago/never}.', 'A real restore is overdue.']
+        - ['Offices cannot work without it.']
+      comments:
+        - '{b_cm_plan}'
+        - Do it outside office hours.
+        - '{b_g_own}'
+  ops:
+    - labels: [question]
+      let:
+        script: [sync_schedules.sh, purge_images.sh, check_printers.sh, rotate_exports.sh]
+      title:
+        - 'Is {script} still used?'
+        - 'Can we retire {script}?'
+      body:
+        - ['It {talks to/calls} the old practice server.', 'It {runs from/is run by} {an old/the old} cron host.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Not sure, ask practice systems.
+
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: {dv_audit} is {c_soon}, tidy your notes'
+        - '{dv_audit|cap} starts {c_soon}, compliance will brief us'
+        - 'heads up, {dv_audit} {c_soon}'
+        - '{c_hey}, an inspector visits {c_soon}'
+        - '{dv_audit|cap} next {day}, keep records handy'
+      replies:
+        - ['do we need to prepare?', 'which records will they ask for?', 'who is in the room?']
+        - ['{c_yes}, compliance will brief us', 'check the invite', '{c_idk}, ask {person}']
+        - ['{c_thanks}', '']
+    - root:
+        - 'mandatory training on {dv_topic} closes {c_soon}'
+        - '{c_hey}: {dv_topic} course is overdue for {3-12} people'
+        - 'reminder, finish {dv_topic} by {day}'
+      replies:
+        - ['how long does it take?', 'same as last year?', 'does it count for practice staff?']
+        - ['about {20-45} minutes', '{c_no}, they updated it', '{c_yes}, everyone']
+        - ['{c_thanks}', '']
+    - root:
+        - 'new practice joins the group {c_soon}, {dv_loc}'
+        - '{c_hey}: we are adding {dv_loc} to the network {c_soon}'
+        - 'welcome the team at {dv_loc}, going live {c_soon}'
+      replies:
+        - ['is the import ready?', 'who runs the cutover?', 'will reminders move too?']
+        - ['{c_yes}, tested twice', 'weekend cutover, see the plan', '{c_idk}, ask {person}']
+        - ['{c_ack}', '']
+  off-topic:
+    - root:
+        - 'anyone want to meet the new {dv_pet}? bringing it in {c_soon}'
+        - 'photo of the office {c_pet}, look at that face'
+        - 'lunch ideas? i am sick of {c_food}'
+        - 'any good dentist {near us/nearby}?'
+        - 'anyone running a {half/full} marathon?'
+      replies:
+        - ['{c_lol}', 'adorable', 'bring treats']
+        - ['try {c_place}', '{c_yes}, count me in', 'not me']
+        - ['']
+    - root:
+        - 'weekend plans? {c_weekend} for me'
+        - 'birthday cake in {c_room} at {time}'
+        - 'the coffee order goes out at {time}'
+      replies:
+        - ['{c_lol}', 'nice one', 'enjoy it']
+        - ['{c_em}', '']
+  engineering:
+    - root:
+        - 'need a review on {repo}, it touches estimates'
+        - 'pr for {repo} changes the fee schedule, who reviews?'
+        - '{c_patch} in {repo}, no patient data involved'
+        - '{c_hey}, anyone free to review {repo}?'
+      replies:
+        - ['is there a test {with/for} a plan?', 'what about two insurers?', 'is it behind a flag?']
+        - ['{c_yes}, added one', 'not yet, adding it', 'flag is off']
+        - ['approved', 'a few comments', '']
+    - root:
+        - 'the practice export {changed/moved} a column again'
+        - who knows the dental claim format?
+        - 'how do we map {pet insurer/dental} codes?'
+        - 'the imaging viewer {will not open/cannot open} old studies'
+      replies:
+        - ['which column?', 'is it every practice?', 'got a recent file?']
+        - ['the patient id', 'only the older version', 'checking logs']
+        - ['{c_ack}', '']
+    - root:
+        - app build stuck in store review
+        - '{c_ci_fail} fails on main again'
+        - reminder texts break on international numbers
+        - 'the booking widget {breaks on/fails on} older phones'
+      replies:
+        - ['same here', 'rerun it first', '{c_idk}']
+        - ['fixed in {repo}', 'only on {2-4} year old models', 'still red']
+    - root:
+        - should reminders go through a queue?
+        - 'design question for {c_eng_area}, async or not?'
+        - how do practices sync their calendars?
+        - 'why does the recall list take {20-90} minutes?'
+      replies:
+        - ['queue is safer', 'depends on volume', '{c_idk}, ask {person}']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - 'dependency scan flags {c_dep}'
+        - 'does anything use {c_dep} in the app?'
+        - '{c_tool} is broken for anyone else?'
+      replies:
+        - ['only dev tooling', 'it ships, yes', 'checking']
+        - ['{c_thanks}', '']
+  team:
+    - root:
+        - 'support queue has {10-80} open, who can help?'
+        - 'practice calls are up, {anyone/who} free?'
+        - who is on support this week?
+      replies:
+        - ['i can take an hour', 'busy with the release', '{c_ack}']
+        - ['{c_thanks}', '']
+    - root:
+        - 'sprint planning at {time} on {day}'
+        - 'who picks up {issue}?'
+        - 'show and tell {day}, volunteers?'
+      replies:
+        - ['i can take it', 'tied up this week', '{c_ack}']
+        - ['{c_thanks}', '']
+    - root:
+        - release freeze before the recall campaign
+        - 'freeze starts {day}, merge before {time}'
+        - '{c_hey}: practice updates paused {c_soon}'
+      replies:
+        - ['can hotfixes go in?', 'what about the portal?', 'does docs count?']
+        - ['hotfixes need approval', 'portal too', 'docs are fine']
+  support:
+    - root:
+        - 'client says the estimate was {lower/smaller} than the bill'
+        - 'patient cannot book online, {form/page} keeps resetting'
+        - '{c_customer} wants copies {of x-rays/of records}'
+        - 'pet owner needs a rabies {certificate/record}'
+        - 'client charged after the plan {ended/was paid}'
+      replies:
+        - ['is the estimate attached?', 'did they get an email?', 'check the invoice id']
+        - ['yes, #{4100-4999}', 'it was never sent', 'fixed']
+    - root:
+        - 'reminder went {to/out to} the old phone number'
+        - '{c_customer} got two reminders for one visit'
+        - practice manager says reminders stopped
+      replies:
+        - ['check the phone on file', 'is it one practice or all?', 'look at the log']
+        - ['the number was updated', 'only one practice', 'escalated to {person}']
+    - root:
+        - 'insurer denied the claim, patient {is/waits} at the desk'
+        - 'plan says not covered, {what/how} do we say it?'
+        - 'refund request, wrong {charge/amount} on a visit'
+      replies:
+        - ['check with the practice manager', 'we cannot override that', 'call the insurer']
+        - ['{c_thanks}', 'they will pay today', '']
+  incidents:
+    - root:
+        - 'practices cannot open the schedule, {s_since}'
+        - 'appointment booking failing, {s_symptom}'
+        - '{dv_lab|cap} orders are not arriving'
+      replies:
+        - ['all practices?', 'seeing it too', 'looking now']
+        - ['one region', 'vendor is down', 'recovering']
+        - ['all clear', '{c_thanks}']
+    - root:
+        - 'reminder texts delayed {s_age}'
+        - 'imaging server offline at {dv_loc}'
+        - 'claims submissions failing at {2-9} offices'
+      replies:
+        - ['is it the network?', 'what changed?', 'sending someone']
+        - ['restarted it', 'link issue', 'back now']
+    - root:
+        - 'practice VPN certificate expires in {2-9} days'
+        - cert warning on the booking site
+        - 'practice sync is {s_age} behind'
+      replies:
+        - ['who owns it?', 'it needs a change record', 'opened one']
+        - ['{b_g_own}', '{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}, could you review {repo} when you can?'
+        - 'could you check access for me? {s_soon}'
+        - '{s_hey}, got a minute for {claims/billing}?'
+        - can you read the policy note?
+      replies:
+        - ['{s_ack}', 'sure, send it', 'after lunch ok?']
+        - ['done', 'a few comments', 'looks good']
+    - root:
+        - 'handing over {the queue/my tickets} while out {s_soon}'
+        - '{s_hey}, can we move the sync to {time}?'
+        - 'got a minute for {imports/the schedule}?'
+      replies:
+        - ['{s_ack}', 'give me ten minutes', 'sure']
+        - ['thanks', '{c_ack}']
+
+comments:
+  - Does this touch patient data?
+  - 'Keep client names {out of chat/private}.'
+  - '{b_cm_check} with the practice manager.'
+  - Client care can confirm.
+  - A state board rule may apply.
+  - 'Use the visit id, {not/never} the name.'
