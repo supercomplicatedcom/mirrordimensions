@@ -1,0 +1,614 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Cruise lines: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: cruise-lines
+name: Cruise lines
+group: Travel, hospitality and leisure
+aliases: [cruise line, cruise operator, ocean cruising, cruise company, expedition cruising]
+description: A cruise operator that sells sailings through agents and direct channels, collects deposits and final payments, and bills onboard spending from its ships.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Cruises, Cruise Line, Voyages, Ocean Lines, Expeditions, Sailings]
+invoice_items: [Sailing deposit, Shore excursion package]
+organization:
+  head: VP of Technology
+  it_admin: Shoreside IT Administrator
+  teams:
+    platform: {department: Shoreside Technology, title: Platform Engineer}
+    billing: {department: Revenue Systems, title: Software Engineer}
+    data: {department: Fleet and Revenue Analytics, title: Data Engineer}
+    support: {department: Guest Relations, title: Guest Relations Agent}
+    product: {department: Digital Guest Experience, title: Product Manager}
+    operations: {department: Fleet Operations, title: Fleet Operations Coordinator, lead: Director of Fleet Operations}
+names:
+  repos:
+    billing-service: [sailing-billing, guest-accounts, onboard-ledger, agency-settlements]
+    platform-docs: [shoreside-handbook, tech-runbooks, fleet-tech-docs, platform-notes]
+    data-pipeline: [sailing-loads, fleet-warehouse, booking-etl, onboard-sales-pipeline]
+    infra-config: [shoreside-infra, ship-link-config, platform-environments, cloud-config]
+    customer-portal: [guest-portal, my-cruise, pre-cruise-web, agent-portal]
+    ops-scripts: [fleet-scripts, ship-sync-tools, legacy-batch, port-utils]
+  channels:
+    engineering: [shoreside-eng, fleet-tech, cruise-engineering]
+    incidents: [fleet-incidents, ship-link-alerts, tech-incidents]
+    releases: [release-train, go-live, weekly-releases]
+    support: [guest-relations, guest-escalations, agent-desk]
+    leads: [tech-leads, shoreside-leads]
+systems:
+  typical: [github, slack, jira, okta, microsoft 365, confluence, salesforce]
+  common: [pagerduty, datadog, zendesk, snowflake, servicenow]
+symbols:
+  b_doc: [deposit invoice, final payment notice, onboard account statement, agency commission statement, "{monthly/quarterly} agency settlement"]
+  b_customer: [travel agency, past guest, group charter, corporate incentive, loyalty member, family sailing, expedition guest, world cruise guest]
+  b_who: [the reservations team, finance, guest relations, the agency desk, the onboard revenue team, the group sales team]
+  b_pwho: [guest relations, a guest, "{person}", the agency desk, the reservations team]
+  b_ticket_noun: [case, ticket, complaint, escalation]
+  b_taxkind: [port charges, government taxes and fees, fuel supplement, gratuities, VAT]
+  b_page: [bookings, sailings, payment methods, saved travellers, receipts, shore excursions, onboard account, documents]
+  b_provider_event: [deposit captured, final payment received, payment declined, refund completed, chargeback opened, card token updated]
+  b_acct_size: ["{200-900} bookings", "{15-60} guests", "{3-12} billing contacts", "{40-300} saved travellers", "over {1000-4000} onboard charges"]
+  b_check_path: [the fare tests, the onboard charge tests, the refund tests, the callback tests]
+  b_money_path: [billing/cruise_fares.py, billing/port_charges.py, billing/onboard_totals.py, billing/gratuities.py]
+  b_mail_path: [billing/confirmations.py, billing/payment_reminders.py, billing/statement_emails.py, billing/sent_log.py]
+  b_cb_path: [billing/payment_events.py, billing/psp_callbacks.py, billing/ship_events.py]
+  b_credit_path: [billing/refunds.py, billing/future_cruise_credits.py, billing/adjustments.py]
+  b_dl_path: [billing/statement_download.py, billing/documents.py]
+  b_export_path: [billing/jobs/commission_export.py, billing/export.py]
+  b_pay_path: [portal/payment_methods.py, portal/saved_cards.py]
+  s_plan: [a standard fare, a balcony cabin, a suite package, a group booking, a world cruise segment, a loyalty member rate]
+  s_cust: ["a guest on {s_plan}", "someone on {s_plan}", "a guest with {s_plan}", "an agent booking {s_plan}", "a customer on {s_plan}"]
+  c_customer: [a guest, a travel agent, a group organiser, a past guest, a corporate incentive buyer, a long standing agency]
+  p_table: [bookings, cabins, guests, payments, onboard_charges, refunds, shore_excursions, port_calls, loyalty_accounts]
+  p_source: ["the payment processor's settlement files", "the ships' onboard sales files", "the mail provider's delivery events", "the past guest programme member list", "the agencies' commission statements", "the port authority schedule feed", "the card disputes feed"]
+  p_report: [the daily bookings report, the weekly occupancy report, the onboard revenue dashboard, the deposit liability report, the agency commission report, the monthly board pack]
+  p_secret_thing: [the reservation system API key, the payments provider token, the ship link credentials, the warehouse service account key, the signing key for statement links, the mail provider API key]
+  p_limit_target: [the statement workers, the booking API pods, the portal pods, the mail relay, the warehouse loader]
+  s_thing: [the statement job, the commission export, the fare cache, the cron, the deploy script, the migration, the retry logic, the mail template, the cabin map, the check-in flow, the webhook handler]
+  c_eng_area: [the statement job, the retry logic, the fare lookup, the check-in flow, the nightly batch, the webhook handler, the cabin map, the itinerary renderer, the tax lookup, the audit log, the reports page, the queue consumer]
+  s_tool: [the admin console, the booking lookup, the agent portal, the case queue, the refund tool]
+  p_alert_name: [disk usage on the web hosts, failed backups, statement queue depth, the nightly load finishing late, certificate expiry, error rate on check-in, replication lag]
+  p_runbook: [docs/runbooks/statement-workers.md, docs/runbooks/nightly-load.md, docs/runbooks/portal-restarts.md, docs/runbooks/warehouse-restore.md, docs/runbooks/ship-link-outage.md]
+  cl_sailing: [a seven night Caribbean sailing, a Mediterranean sailing, an Alaska sailing, a world cruise segment, an expedition voyage, a transatlantic crossing]
+  cl_ship: [the flagship, a smaller ship, the newest ship, an expedition ship, a sister ship]
+  cl_extra: [a shore excursion, a beverage package, a specialty dining booking, a spa treatment, onboard internet, prepaid gratuities]
+  cl_flow: [online check-in, the booking flow, shore excursion booking, the pre-cruise portal, deposit payment, the embarkation pass]
+  cl_when: [during wave season, over the holiday sailing, before final payment day, around drydock season, at embarkation peak, after an itinerary change]
+  cl_feed: [the passenger manifest, the shipboard sales file, the port call schedule, the excursion bookings feed, the crew rota extract, the satellite usage log]
+  cl_cert: [the ship gateway certificate, the embarkation kiosk certificate, the agent portal certificate, the onboard payments certificate]
+  cl_incident: [a port skipped for weather, a late embarkation, a satellite link outage, a delayed return from drydock, a medical diversion]
+  cl_who: [the reservations team, finance, guest relations, the agency desk, the onboard revenue team, the group sales team]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        tax: ["{b_taxkind}"]
+        sailing: ["{cl_sailing}"]
+      title:
+        - "{doc|cap} total is a cent out with {tax}"
+        - "{tax|cap} rounded per guest on {sailing}"
+        - "{doc|cap} does not add up for {sailing}"
+        - "{tax|cap} on {sailing} {disagrees with/does not match} the {doc}"
+        - "{sailing|cap}: {tax} differs from the fare quote"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {sailing} bookings, {b_scope}."]
+        - ["{tax|cap} is rounded per guest in {b_money_path}.", "{b_money_path} rounds {tax} on each guest alone.", "Each cabin's {tax} is rounded before summing."]
+        - ["{doc|cap} lines sum to another figure.", "The booking quote shows another total."]
+        - ["{sailing|cap}: {finance/revenue systems} wants one rounding step.", "Round once per booking, as quoted."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a two cabin {sailing}."
+        - "The quote rounds once, so the {doc} should too."
+        - "{b_cm_check}, {tax} is rounded in {b_money_path}."
+    - labels: [bug, needs-decision]
+      let:
+        extra: ["{cl_extra}"]
+        who: ["{cl_who}"]
+      title:
+        - "Refund of {extra} when a port is skipped"
+        - "Who decides refunds for {extra} on itinerary changes?"
+        - "{extra|cap} refunds differ for agents and direct"
+        - "Policy for {extra} when a sailing is shortened"
+        - "{extra|cap} refunded twice after an itinerary change"
+      body:
+        - ["{extra|cap} comes back for some bookings only.", "Agents get {extra} refunded; direct guests do not."]
+        - ["{b_credit_path} has no rule for it.", "{b_credit_path} treats {extra} as part of the fare."]
+        - ["{who|cap} should write the rule down first.", "Needs an answer from {who}, then code."]
+        - ["{b_since|cap}, guest relations logged {2-12} complaints.", "Support has {2-9} cases open on it."]
+      comments:
+        - "Onboard credit may suit better."
+        - "I will ask the {fleet/guest relations} team."
+        - "{b_cm_ask_who}"
+    - labels: [bug]
+      let:
+        event: ["{b_provider_event}"]
+        flow: ["{cl_flow}"]
+      title:
+        - "Booking cancelled for non-payment after {event} callback"
+        - "Guest charged twice when the {event} callback repeats"
+        - "Callback for {event} lost during {flow}"
+        - "{event|cap} arrives after the final payment date"
+        - "Cabin released after {event}"
+      body:
+        - ["{b_cb_a} {b_cb_b}.", "The handler keeps no payment reference."]
+        - ["{event|cap} repeating {charges a second deposit/releases the cabin/leaves the booking half paid}.", "The booking lapses when {event} arrives late."]
+        - ["{b_db_c}", "Guests pay, then lose the cabin."]
+        - ["{b_cb_e} {b_cb_f}", "Check the due date before cancelling."]
+      comments:
+        - "Seen on {2-9} bookings {b_since}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Cancellation runs nightly at {1-4} am."
+  portal:
+    - labels: [bug]
+      let:
+        flow: ["{cl_flow}"]
+        browser: ["{b_browser}"]
+      title:
+        - "{flow|cap} fails in {browser}"
+        - "{flow|cap} shows a blank page on {browser}"
+        - "Guests cannot finish {flow} in {browser}"
+        - "{browser}: {flow} {hangs/spins forever/errors out}"
+      body:
+        - ["{b_pscope}.", "{b_raised}, {b_pscope}."]
+        - ["{browser|cap} is the only one affected.", "Other browsers are fine."]
+        - ["{b_cm_syn} {b_cm_syn2}", "A cached script breaks {flow} after releases."]
+        - ["{b_urgent}", "Volume is high near sailing day."]
+      comments:
+        - "Same in {b_browser}, so not only {browser}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "The mobile app is fine."
+    - labels: [bug, performance]
+      let:
+        when: ["{cl_when}"]
+        size: ["{b_acct_size}"]
+      title:
+        - "Cabin search is slow {when}"
+        - "Booking list takes {b_slow} for accounts with {size}"
+        - "Timeouts on the pre-cruise portal {when}"
+        - "Cabin map loads slowly {when}"
+      body:
+        - ["{b_sl_a} wait {b_slow}.", "Guests report {b_slow} to open a booking."]
+        - ["{b_sl_c}", "Each cabin triggers its own lookup."]
+        - ["{b_pf_a} availability checks.", "The slow call is {the inventory/the pricing} service."]
+        - ["{cl_who|cap} see the delay too.", "Agents see it in their portal."]
+      comments:
+        - "Profiling points at inventory."
+        - "Cache availability for {1-5} minutes?"
+        - "{b_cm_priv}, so not the browser."
+    - labels: [enhancement, needs-decision]
+      let:
+        extra: ["{cl_extra}"]
+        who: ["{cl_who}"]
+      title:
+        - "Let guests add {extra} after booking"
+        - "Self-service change of {extra}"
+        - "Feature request from {who}: {extra} in the app"
+        - "Offer {extra} during online check-in"
+      body:
+        - ["{extra|cap} needs a phone call today.", "Only agents can add {extra}."]
+        - ["{b_ss_c} {b_ss_d} {b_ss_e}", "A short form would do."]
+        - ["{who|cap} says it would cut calls.", "Revenue wants it before wave season."]
+        - ["{extra|cap} prices differ per sailing.", "Prices come from the ship systems."]
+      comments:
+        - "How many calls is that weekly?"
+        - "Check agent commission rules too."
+        - "{b_cm_try}"
+    - labels: [bug, security]
+      let:
+        flow: ["{cl_flow}"]
+      title:
+        - "Number plus surname exposes guests in {flow}"
+        - "Passport details shown in full on {flow}"
+        - "Boarding pass link outlives the sailing"
+        - "Booking lookup in {flow} has no rate limit"
+      body:
+        - ["{flow|cap}: anyone guessing a number reads bookings.", "{flow|cap} prints whole passport numbers."]
+        - ["{b_dlk_d}", "Limit lookups per address."]
+        - ["{b_cm_legal} Guest {data/records} fall under privacy law."]
+        - ["{b_dlk_e}"]
+      comments:
+        - "{b_cm_rolefix}"
+        - "{b_cm_tell}"
+        - "I can limit it {there/at the edge}."
+  data:
+    - labels: [bug, incident]
+      let:
+        feed: ["{cl_feed}"]
+        delay: ["{p_delay}"]
+      title:
+        - "Nightly load finished {delay} late after {feed} arrived late"
+        - "{feed|cap} missing, onboard revenue report empty"
+        - "Load waited for {feed} and timed out"
+        - "{feed|cap} came in twice, rows duplicated"
+      body:
+        - ["{Finance/The fleet team} saw {yesterday's/Monday's/weekend} figures late.", "The morning revenue report was stale."]
+        - ["{feed|cap} is never checked for completeness.", "The load starts at fixed hours."]
+        - ["{feed|cap}: {wait for/look for} a done marker.", "Alert when the file is missing."]
+        - ["{b_g_ships}"]
+      comments:
+        - "The ship resends after {1-3} hours."
+        - "Compare row counts with the manifest."
+        - "{b_g_oneoff}"
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+      title:
+        - "Onboard revenue in the warehouse is {2-9} percent off for {cl_ship}"
+        - "Duplicate charges in {table}"
+        - "Deposit liability misses the ledger"
+        - "{table|cap} lost rows after a cabin change"
+        - "Cancelled bookings count twice in {table}"
+      body:
+        - ["{b_g_checked} about {20-900} rows.", "Finance spotted it while reconciling."]
+        - ["{table|cap}: a cabin change adds a row.", "The old row stays open."]
+        - ["{Cancelled/Transferred} bookings still count as sold.", "Cancelled cabins stay flagged sold."]
+        - ["{Join/Match} on the booking number.", "Follow the booking's last status."]
+      comments:
+        - "This explains the occupancy report gap."
+        - "Does it hold for group bookings?"
+        - "I can backfill {1-6} weeks."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        who: ["{cl_who}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the fleet model"
+        - "Should {who} get {source} in the warehouse?"
+        - "Add {source} for occupancy reporting"
+      body:
+        - ["{who|cap} reads {source} by hand today.", "It arrives as email attachments."]
+        - ["{A nightly/An hourly} load would do.", "We need it by working day {1-4}."]
+        - ["{Times/Dates} are ship time, not UTC.", "Convert times to UTC on load."]
+      comments:
+        - "Which port code format is it?"
+        - "Check timezones across the date line."
+        - "{b_cm_plan}"
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{cl_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} runs out in {2-9} days"
+        - "Renew {cert} before wave season"
+        - "Nobody owns {cert}"
+      body:
+        - ["{cert|cap} is renewed by hand yearly.", "A leaver did the last renewal."]
+        - ["{Expiry/A lapse} would block {check-in/payments/booking}.", "Embarkation kiosks stop when it lapses."]
+        - ["{Warn/Alert} {14/21/30} days before expiry."]
+      comments:
+        - "Put the renewal in the calendar."
+        - "Which ships use that gateway?"
+        - "{b_cm_plan}"
+    - labels: [bug, incident]
+      let:
+        inc: ["{cl_incident}"]
+        flow: ["{cl_flow}"]
+      title:
+        - "Autoscaling too slow for {inc}"
+        - "Rebooking traffic overloads {flow} after {inc}"
+        - "Rate limits hit during {inc}"
+        - "Capacity for {flow} during {inc}"
+      body:
+        - ["After {inc}, traffic jumps {5-20} times.", "Guests all open the app together."]
+        - ["{p_limit_target|cap} take {2-6} minutes to start."]
+        - ["{Raise/Lift} the minimum before wave season.", "Scale on queue depth, not CPU."]
+      comments:
+        - "Guest relations spikes then too."
+        - "Let's agree a pre-scale checklist."
+        - "{b_cm_later}"
+    - labels: [chore, security]
+      let:
+        thing: ["{p_secret_thing}"]
+        item: ["{thing}"]
+        place: [the config file, a log line, a stack trace, the deploy output]
+      title:
+        - "Rotate {thing}"
+        - "{thing|cap} is overdue for rotation"
+        - "{thing|cap} is shared across environments"
+        - "Move {thing} into the secret store"
+      body:
+        - ["{b_sc_a} {b_sc_b}", "{b_sc_c}"]
+        - ["{b_sc_d} {b_sc_e}"]
+        - ["{The vendor/Our partner} wants {3-10} days notice."]
+      comments:
+        - "Ships sync only in port."
+        - "Who at the vendor switches it?"
+        - "{b_cm_docs}"
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: ["{cl_incident}"]
+      title:
+        - "Runbook for {thing}"
+        - "Write up what tech does during {thing}"
+        - "On-call guide lacks steps for {thing}"
+        - "Document the freeze rules around {thing}"
+      body:
+        - ["{thing|cap}: new engineers ask what to do.", "Nobody new knows who to call."]
+        - ["{Cover/List} who to page.", "List the flags to flip."]
+        - ["{cl_who|cap} has a plan of their own.", "Link to the fleet plan."]
+      comments:
+        - "Ask the duty officer {about it/for input}."
+        - "{b_cm_up} {b_cm_read2}"
+        - "{b_cm_docs}"
+    - labels: [docs, bug]
+      let:
+        flow: ["{cl_flow}"]
+      title:
+        - "Handbook page on {flow} is out of date"
+        - "{flow|cap} runbook names the old gateway"
+        - "Docs for {flow} disagree with production"
+        - "Broken link in the {flow} page"
+      body:
+        - ["{flow|cap}: the page lists old {escalation/rota/vendor} contacts."]
+        - ["{b_cm_disc} {b_cm_when}."]
+        - ["{Fix/Update} the page and date it."]
+      comments:
+        - "Updated the contacts."
+        - "{b_cm_merged}"
+  ops:
+    - labels: [question, chore]
+      let:
+        ship: ["{cl_ship}"]
+      title:
+        - "Is the manifest sync script for {ship} still used?"
+        - "Can we delete {ship} port sync?"
+        - "Excursion export for {ship} fails silently"
+      body:
+        - ["Last run was {1-9} months ago.", "Nobody here knows who calls it."]
+        - ["{cl_who|cap} may still use it."]
+      comments:
+        - "Ask the fleet duty officer."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        ship: ["{cl_ship}"]
+      title:
+        - "Manifest export misses names for {ship}"
+        - "Cron on the {ship} sync host exits with no output"
+      body:
+        - ["{ship|cap}: names with accents come out garbled.", "The job skips late bookings."]
+        - ["{ship|cap} sync runs from {an unmanaged/an old} host."]
+      comments:
+        - "Probably encoding. I will check."
+        - "Move it to the scheduler."
+comments:
+  - "Is this {cl_who} or us?"
+  - "Does guest relations see it?"
+  - "Check the expedition sailings too."
+  - "That matches the guest relations report."
+chat:
+  support:
+    - let:
+        amt: ["{s_money}"]
+        why: ["port was skipped", "charged twice", "cabin was not as booked", "excursion cancelled", "never sailed"]
+      root:
+        - "refund request: {s_cust}, {amt}, {why}"
+        - "{s_hey}, refund for {amt}? {why}"
+        - "{s_ticket}: {why}, {amt} back"
+        - "guest wants {amt} back, reason: {why}"
+        - "can i refund {amt}? says {why}"
+      replies:
+        - ["check the cancellation terms first", "{why} counts, full refund", "over {200-500} needs finance approval"]
+        - ["terms allow it, refunding now", "already refunded last week", "{s_ack}, they get it in {3-7} days"]
+        - ["{s_thx}", ""]
+    - let:
+        what: ["confirmation not arriving", "cabin change refused", "excursion booking lost", "statement missing taxes", "points not credited"]
+      root:
+        - "escalating to tech: {what}, filed as {issue}"
+        - "{s_hey}, can tech look at {issue}? {what}"
+        - "more cases on {what}, adding to {issue}"
+        - "third complaint about {what} today"
+        - "{what} again. {issue} has the details"
+      replies:
+        - ["looking now", "we have it, {person} is on it", "can you send {me/over} the booking numbers?"]
+        - ["numbers are in the issue", "{s_ack}, pasting them"]
+    - let:
+        who: ["a travel agent", "a group organiser", "a past guest", "an incentive buyer"]
+      root:
+        - "{who} says the statement total is wrong"
+        - "{who} wants a statement with taxes split"
+        - "{s_hey}, {who} needs statements for {1-9} bookings"
+        - "{who} cannot download statements"
+        - "agent says commission is short {s_money}"
+      replies:
+        - ["can you send the booking numbers?", "which sailing is that?"]
+        - ["the {b_page} page, they say", "the statement from last month"]
+        - ["pulling it from {s_tool}", "finance has the full list"]
+    - let:
+        shift: ["morning", "evening", "weekend", "night"]
+      root:
+        - "{shift} handover: {5-30} open cases, none urgent"
+        - "queue is {20-90} deep after the itinerary change"
+        - "handover for {shift}: final payment cases mostly"
+        - "{shift} shift: {2-9} complaints about the app"
+      replies:
+        - ["{s_ack}, taking the oldest first", "i will triage the payment ones"]
+        - ["tag the app ones for tech", ""]
+  team:
+    - let:
+        what: ["release notes", "the weekly report", "the capacity plan", "the wave season checklist"]
+      root:
+        - "who owns {what} this week?"
+        - "can someone pick up {what}?"
+        - "{what} needs an owner before {day}"
+        - "{s_hey}, who is writing {what}?"
+        - "still no owner for {what}"
+      replies:
+        - ["i can take it", "{person} did it last time"]
+        - ["{s_ack}, thanks", ""]
+    - let:
+        launch: ["wave season", "the new ship launch", "the loyalty relaunch", "the agent portal redesign"]
+      root:
+        - "heads up: {launch} goes out {day}"
+        - "{launch} goes live {c_soon}, anything blocking?"
+        - "freeze starts {day} for {launch}"
+        - "who is on call for {launch}?"
+        - "prep for {launch}: please check your tickets"
+      replies:
+        - ["itineraries are loaded here", "nothing from billing"]
+        - ["on call from {time}", "check the cabin map once more"]
+    - let:
+        x: ["guest relations", "the agency desk", "the onboard revenue team", "group sales"]
+      root:
+        - "{x} asked about the booking fix, status?"
+        - "meeting with {x} on {day}, who joins?"
+        - "{x} wants a walkthrough {c_soon}"
+        - "{x} is waiting on us for {issue}"
+      replies:
+        - ["i will join", "can someone brief me first?"]
+        - ["it ships {day}", "waiting on review"]
+  engineering:
+    - let:
+        thing: ["the fare cache", "the cabin map service", "the itinerary loader", "the statement renderer", "the loyalty accrual job"]
+      root:
+        - "{thing} is slow, anyone changed something?"
+        - "is {thing} failing for anyone else?"
+        - "design question for {thing}, async or batch?"
+        - "who knows {thing} best?"
+        - "pr up for {thing}, {c_patch}"
+      replies:
+        - ["not me, check the deploys", "{person} touched it {c_when_eng}"]
+        - ["it is the ship link again", "looks fine from here"]
+        - ["{s_thx}", ""]
+    - let:
+        fmt: ["the manifest file", "the onboard sales file", "the port call schedule", "the excursion bookings feed"]
+      root:
+        - "{fmt} format changed again, who knows why?"
+        - "ship sent {fmt} with a new column"
+        - "parser breaks on {fmt} from the {1-9}th"
+        - "{fmt} has ship time, no zone"
+      replies:
+        - ["pin the parser to old format", "ask ship team for a spec"]
+        - ["added a test with their file", "will fix it {c_when_eng}"]
+    - let:
+        dep: ["the pdf library", "the date library", "the http client", "the payment sdk"]
+      root:
+        - "should we upgrade {dep}? new major is out"
+        - "upgrading {dep} after wave season?"
+        - "{dep} needs the security patch"
+        - "who is upgrading {dep}?"
+      replies:
+        - ["not before wave season ends", "after the freeze"]
+        - ["doing it in staging first", "{s_ack}"]
+    - let:
+        thing: ["a flaky test", "the build cache", "the staging data", "the build agent"]
+      root:
+        - "{thing} is blocking main again"
+        - "main is red because of {thing}"
+        - "help with {thing}? {c_patch}"
+        - "{thing} again, anyone?"
+      replies:
+        - ["rerun it", "known issue, being fixed"]
+        - ["{s_ack}", "will look {c_when_eng}"]
+  incidents:
+    - let:
+        what: ["online check-in", "the booking flow", "the payment page", "shore excursion booking", "the agent portal"]
+      root:
+        - "{what} is {s_symptom} {s_since}"
+        - "is {what} down for anyone?"
+        - "alert: {what} error rate above {3-20} percent"
+        - "reservations says {what} is failing"
+        - "{what} {s_symptom}, agents are calling"
+      replies:
+        - ["checking now", "looking at dashboards", "i see it too"]
+        - ["rolled back the last release, watching", "vendor side issue, they confirmed"]
+        - ["recovering", "all clear at {time}"]
+    - let:
+        inc: ["{cl_incident}"]
+      root:
+        - "{inc}: guest relations queue is {2-9},{100-900} deep"
+        - "heads up, {inc}, expect traffic"
+        - "fleet ops flagged {inc}, scale up?"
+        - "{inc} right now, we need capacity"
+      replies:
+        - ["scaling now", "raised the minimum pods"]
+        - ["the app is holding", "watch the payment callbacks"]
+        - ["{s_ack}", ""]
+    - let:
+        thing: ["the ship link", "the payment gateway", "the reservation system", "the loyalty system"]
+      root:
+        - "{thing} sync lag is {5-40} minutes"
+        - "{thing} has been quiet since {time}"
+        - "{thing} status page shows an incident"
+        - "vendor says {thing} is degraded"
+      replies:
+        - ["opened a case with them", "failing over to the backup"]
+        - ["ships are affected at sea", "none seen yet"]
+    - let:
+        what: ["the statement job", "the manifest export", "the commission export", "the payment reminder queue"]
+      root:
+        - "near miss: {what} almost failed, a retry saved it"
+        - "post-incident review for {what} is {day} at {time}"
+        - "{what} woke me up at {time}"
+        - "{what} backed up to {1-9},{100-900}"
+      replies:
+        - ["noted, adding to the review", "{c_agree}"]
+        - ["can you write it up?", ""]
+  town-square:
+    - let:
+        what: ["the ship visit", "the crew appreciation day", "the christening ceremony", "the new terminal opening"]
+      root:
+        - "{what} is {c_soon}, sign up in the portal"
+        - "reminder: {what} {c_soon}"
+        - "{c_hey}: {what} is {c_soon} at {time}"
+        - "who is going to {what}?"
+        - "{what}, details in the newsletter"
+      replies:
+        - ["i am in", "count me in"]
+        - ["{c_thanks}", ""]
+    - let:
+        what: ["the new ship", "the new itinerary", "the loyalty relaunch", "the wave season launch"]
+      root:
+        - "{what} has been announced, congrats all"
+        - "{c_hey}, {what} is public from {day}"
+        - "thanks to everyone on {what}"
+        - "{what}: all hands {day} at {time}"
+      replies:
+        - ["great news", "{c_em}"]
+        - ["{c_thanks}", ""]
+  direct:
+    - let:
+        q: ["the deposit rules", "the final payment logic", "the cabin change flow", "the refund tax split"]
+      root:
+        - "quick question about {q}"
+        - "{s_hey}, do you know how {q} works?"
+        - "got a minute for {q}?"
+        - "can you explain {q}?"
+        - "who wrote {q}?"
+      replies:
+        - ["sure, call in {s_soon}", "ask {person}, they know it"]
+        - ["{s_thx}", "{s_ack}"]
+    - let:
+        when: ["on friday", "next week", "tomorrow", "{day}"]
+      root:
+        - "i am off {when}, can you cover the pager?"
+        - "swap on-call {when}?"
+        - "can we move our 1:1 {when}?"
+        - "{s_hey}, can you cover {when}?"
+      replies:
+        - ["yes, no problem", "{day} is hard, {day} works"]
+        - ["{s_thx}", ""]
+  off-topic:
+    - let:
+        what: ["buffet etiquette", "that rough crossing", "sea sickness tips", "the best port we visited"]
+      root:
+        - "anyone want to talk about {what}?"
+        - "did you see {what}?"
+        - "best story about {what}?"
+        - "thoughts on {what}?"
+      replies:
+        - ["haha yes", "{c_agree}"]
+        - ["send photos", ""]
+    - let:
+        food: ["the canteen", "the new ramen place", "the cafe downstairs", "the food truck"]
+      root:
+        - "lunch at {food}?"
+        - "is {food} open today?"
+        - "{food} menu looks good today"
+        - "{s_lunch} or {food}?"
+      replies:
+        - ["i am in", "give me ten minutes"]
+        - ["see you there", ""]

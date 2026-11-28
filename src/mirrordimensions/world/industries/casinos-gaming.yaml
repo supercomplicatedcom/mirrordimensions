@@ -1,0 +1,616 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Casinos and gaming: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: casinos-gaming
+name: Casinos and gaming
+group: Travel, hospitality and leisure
+aliases: [casino, casino resort, gaming operator, gambling, sportsbook and casino]
+description: A casino resort and gaming operator that runs a gaming floor, hotel and online accounts under a licence, tracks players and reports to regulators.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Casino, Casino Resort, Gaming, Entertainment, Resorts, Gaming Group]
+invoice_items: [Group room and event package, Marker credit statement]
+organization:
+  head: VP of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform: {department: Technology Services, title: Platform Engineer}
+    billing: {department: Casino Finance Systems, title: Software Engineer}
+    data: {department: Player Analytics, title: Data Engineer}
+    support: {department: Guest and Player Services, title: Player Services Agent}
+    product: {department: Digital Gaming, title: Product Manager}
+    operations: {department: Gaming Operations, title: Gaming Operations Supervisor, lead: Director of Gaming Operations}
+names:
+  repos:
+    billing-service: [player-billing, casino-ledger, cage-billing, folio-service]
+    platform-docs: [tech-handbook, property-tech-docs, gaming-runbooks, platform-notes]
+    data-pipeline: [floor-loads, player-warehouse, slot-meter-etl, win-pipeline]
+    infra-config: [gaming-infra, env-config-floor, platform-environments, cloud-config]
+    customer-portal: [player-portal, online-account, club-web, sportsbook-web]
+    ops-scripts: [floor-scripts, cage-tools, legacy-batch, surveillance-utils]
+  channels:
+    engineering: [gaming-eng, floor-tech, casino-engineering]
+    incidents: [floor-incidents, gaming-alerts, tech-incidents]
+    releases: [release-train, go-live, weekly-releases]
+    support: [player-services, player-escalations, host-desk]
+    leads: [tech-leads, gaming-tech-leads]
+systems:
+  typical: [github, slack, jira, okta, microsoft 365, confluence, salesforce, igt advantage]
+  common: [pagerduty, datadog, zendesk, snowflake, servicenow]
+symbols:
+  b_doc: [player statement, marker statement, group invoice, comp redemption receipt, "{monthly/quarterly} tax summary"]
+  b_customer: [high limit player, loyalty club member, tour group, convention group, online account holder, local player, hotel guest, event buyer]
+  b_who: [the cage, finance, player services, the compliance team, the casino hosts, gaming operations]
+  b_pwho: [player services, a player, "{person}", the compliance team, the casino hosts]
+  b_ticket_noun: [case, ticket, complaint, escalation]
+  b_taxkind: [gaming tax, W-2G withholding, sales tax, resort fee, entertainment tax]
+  b_page: [account, transactions, payment methods, club points, statements, limits, bonuses, verification]
+  b_provider_event: [deposit settled, withdrawal approved, payment declined, bonus credited, chargeback opened, card token updated]
+  b_acct_size: ["{200-900} transactions", "{15-60} linked cards", "{3-12} billing contacts", "{40-300} saved offers", "over {1000-4000} wallet entries"]
+  b_check_path: [the statement tests, the offer email tests, the withdrawal tests, the callback tests]
+  b_money_path: [billing/statements.py, billing/gaming_tax.py, billing/comps.py, billing/markers.py]
+  b_mail_path: [billing/offers.py, billing/offer_queue.py, billing/statement_emails.py, billing/sent_log.py]
+  b_cb_path: [billing/payment_events.py, billing/psp_callbacks.py, billing/wallet_events.py]
+  b_credit_path: [billing/withdrawals.py, billing/comp_reversals.py, billing/adjustments.py]
+  b_dl_path: [billing/statement_download.py, billing/documents.py]
+  b_export_path: [billing/jobs/tax_export.py, billing/export.py]
+  b_pay_path: [portal/payment_methods.py, portal/saved_cards.py]
+  s_plan: [a club tier, a free play offer, a room comp, a tournament entry, a group package, a bonus offer]
+  s_cust: ["a player with {s_plan}", "someone with {s_plan}", "a member on {s_plan}", "a guest with {s_plan}", "a customer with {s_plan}"]
+  c_customer: [a player, a casino host, a tour operator, a convention organiser, an online account holder, a long standing club member]
+  p_table: [transactions, players, accounts, wallet_entries, comps, withdrawals, bonuses, sessions, tickets]
+  p_source: ["the payment processor's settlement files", "the slot system's meter files", "the mail provider's delivery events", "the club member list", "the table game drop counts", "the identity verification results", "the card disputes feed"]
+  p_report: [the daily win report, the weekly hold report, the player value dashboard, the marker ageing report, the regulatory filings summary, the monthly board pack]
+  p_secret_thing: [the slot system API key, the payments provider token, the identity verification credentials, the warehouse service account key, the signing key for statement links, the mail provider API key]
+  p_limit_target: [the statement workers, the wallet API pods, the portal pods, the mail relay, the warehouse loader]
+  s_thing: [the statement job, the tax export, the offer cache, the cron, the deploy script, the migration, the retry logic, the mail template, the wallet sync, the verification flow, the webhook handler]
+  c_eng_area: [the statement job, the retry logic, the offer lookup, the verification flow, the nightly batch, the webhook handler, the wallet sync, the statement renderer, the tax lookup, the audit log, the reports page, the queue consumer]
+  s_tool: [the admin console, the player lookup, the host desk, the case queue, the cage system]
+  p_alert_name: [disk usage on the web hosts, failed backups, statement queue depth, the nightly load finishing late, certificate expiry, error rate on the wallet, replication lag]
+  p_runbook: [docs/runbooks/statement-workers.md, docs/runbooks/nightly-load.md, docs/runbooks/portal-restarts.md, docs/runbooks/warehouse-restore.md, docs/runbooks/floor-network-outage.md]
+  cg_game: [a slot bank, the table games, the sportsbook, the poker room, an online casino game, the keno lounge]
+  cg_property: [the main casino floor, the sportsbook lounge, a regional casino, the resort tower, the riverboat property]
+  cg_extra: [a comp dinner, a free play offer, a room upgrade, a show ticket, a parking pass, a cash back bonus]
+  cg_flow: [account verification, deposit limits, withdrawal requests, self-exclusion, the bonus claim flow, the cashless wallet]
+  cg_when: [during a major fight night, over the holiday weekend, during football opening weekend, at quarter end, after a jackpot hit, during a tournament series]
+  cg_feed: [the slot meter feed, the player tracking export, the table drop count file, the sportsbook bet feed, the jackpot events log, the cage transactions file]
+  cg_cert: [the slot floor gateway certificate, the sportsbook feed certificate, the player portal certificate, the cashless wallet certificate]
+  cg_incident: [a jackpot display fault, a sportsbook odds feed delay, a floor network outage, a payment processor timeout, a fight night traffic surge]
+  cg_report: [the currency transaction report, the W-2G report, the suspicious activity review, the win and loss statement, the daily gaming report]
+  cg_who: [the cage, finance, player services, the compliance team, the casino hosts, gaming operations]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        tax: ["{b_taxkind}"]
+        game: ["{cg_game}"]
+      title:
+        - "{doc|cap} total is a cent out with {tax}"
+        - "{tax|cap} rounded per session on {game}"
+        - "{doc|cap} does not add up for {game}"
+        - "{tax|cap} on large wins {disagrees with/does not match} the {doc}"
+        - "{game|cap}: {tax} differs from the cage record"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {game} accounts, {b_scope}."]
+        - ["{tax|cap} is rounded per session in {b_money_path}.", "{b_money_path} rounds {tax} on each session alone.", "Each session's {tax} is rounded before summing."]
+        - ["{doc|cap} lines sum to another figure.", "The cage record shows another total."]
+        - ["{game|cap}: {finance/the cage} wants one rounding step.", "Round once per gaming day."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a two session {game} day."
+        - "The cage rounds once, so the {doc} should too."
+        - "{b_cm_check}, {tax} is rounded in {b_money_path}."
+    - labels: [bug, needs-decision]
+      let:
+        extra: ["{cg_extra}"]
+        who: ["{cg_who}"]
+      title:
+        - "Reversal of {extra} after a promotion is withdrawn"
+        - "Who approves reversing {extra} on disputed play?"
+        - "{extra|cap} reversal rules differ between hosts"
+        - "Policy for {extra} after a jackpot dispute"
+        - "{extra|cap} credited twice after a correction"
+      body:
+        - ["{extra|cap} stays on the account after reversal.", "Hosts remove {extra}; the system does not."]
+        - ["{b_credit_path} has no rule for it.", "{b_credit_path} treats {extra} as player funds."]
+        - ["{who|cap} should write the rule down first.", "Needs an answer from {who}, then code."]
+        - ["{b_since|cap}, player services logged {2-12} complaints.", "Hosts have {2-9} cases open on it."]
+      comments:
+        - "Compliance may need to sign off."
+        - "I will ask the {cage/hosts}."
+        - "{b_cm_ask_who}"
+    - labels: [bug]
+      let:
+        event: ["{b_provider_event}"]
+        flow: ["{cg_flow}"]
+      title:
+        - "Wallet credited twice after {event} callback"
+        - "Player charged twice when the {event} callback repeats"
+        - "Callback for {event} lost during {flow}"
+        - "{event|cap} arrives after the account is locked"
+        - "Withdrawal stuck after {event}"
+      body:
+        - ["{b_cb_a} {b_cb_b}.", "The handler keeps no processor reference."]
+        - ["{event|cap} repeating {credits the wallet twice/releases the hold/leaves the withdrawal half done}.", "The request lapses when {event} arrives late."]
+        - ["{b_db_c}", "Players deposit, then see two credits."]
+        - ["{b_cb_e} {b_cb_f}", "Check the account state before posting."]
+      comments:
+        - "Seen on {2-9} accounts {b_since}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Finance reconciles wallets every night."
+  portal:
+    - labels: [bug]
+      let:
+        flow: ["{cg_flow}"]
+        browser: ["{b_browser}"]
+      title:
+        - "{flow|cap} fails in {browser}"
+        - "{flow|cap} shows a blank page on {browser}"
+        - "Players cannot finish {flow} in {browser}"
+        - "{browser}: {flow} {hangs/spins forever/errors out}"
+      body:
+        - ["{b_pscope}.", "{b_raised}, {b_pscope}."]
+        - ["{browser|cap} is the only one affected.", "Other browsers are fine."]
+        - ["{b_cm_syn} {b_cm_syn2}", "A cached script breaks {flow} after releases."]
+        - ["{b_urgent}", "Volume is high on event nights."]
+      comments:
+        - "Same in {b_browser}, so not only {browser}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "The mobile app is fine."
+    - labels: [bug, performance]
+      let:
+        when: ["{cg_when}"]
+        size: ["{b_acct_size}"]
+      title:
+        - "Account page is slow {when}"
+        - "Transaction history takes {b_slow} for accounts with {size}"
+        - "Timeouts on the cashless wallet {when}"
+        - "Odds board loads slowly {when}"
+      body:
+        - ["{b_sl_a} wait {b_slow}.", "Players report {b_slow} to see balances."]
+        - ["{b_sl_c}", "Each wallet entry triggers a lookup."]
+        - ["{b_pf_a} balance checks.", "The slow call is {the wallet/the limits} service."]
+        - ["{cg_who|cap} see the delay too.", "Host desks see it as well."]
+      comments:
+        - "Profiling points at the wallet service."
+        - "Cache balances for {1-5} seconds?"
+        - "{b_cm_priv}, so not the browser."
+    - labels: [enhancement, needs-decision]
+      let:
+        extra: ["{cg_extra}"]
+        who: ["{cg_who}"]
+      title:
+        - "Let players redeem {extra} online"
+        - "Self-service change of {extra}"
+        - "Feature request from {who}: {extra} in the app"
+        - "Offer {extra} on the club page"
+      body:
+        - ["{extra|cap} needs a host call today.", "Only host desks can issue {extra}."]
+        - ["{b_ss_c} {b_ss_d} {b_ss_e}", "A short form would do."]
+        - ["{who|cap} says it would cut calls.", "Marketing wants it before the season."]
+        - ["{extra|cap} rules differ per property.", "Limits come from the licence terms."]
+      comments:
+        - "How many calls is that weekly?"
+        - "Check jurisdiction rules too."
+        - "{b_cm_try}"
+    - labels: [bug, security]
+      let:
+        flow: ["{cg_flow}"]
+      title:
+        - "Self-exclusion not applied in {flow}"
+        - "Deposit limits bypassed through {flow}"
+        - "Identity documents visible in {flow}"
+        - "Account lookup in {flow} has no rate limit"
+      body:
+        - ["{flow|cap}: excluded players can still reach funds.", "{flow|cap} shows whole document images."]
+        - ["{b_dlk_d}", "Limit lookups per address."]
+        - ["{b_cm_legal} Regulators expect this fixed fast."]
+        - ["{b_dlk_e}"]
+      comments:
+        - "{b_cm_rolefix}"
+        - "{b_cm_tell}"
+        - "Compliance wants a written timeline."
+  data:
+    - labels: [bug, incident]
+      let:
+        feed: ["{cg_feed}"]
+        delay: ["{p_delay}"]
+      title:
+        - "Nightly load finished {delay} late after {feed} arrived late"
+        - "{feed|cap} missing, daily win report empty"
+        - "Load waited for {feed} and timed out"
+        - "{feed|cap} came in twice, rows duplicated"
+      body:
+        - ["{Finance/The compliance team} saw {yesterday's/Monday's/weekend} figures late.", "The morning win report was stale."]
+        - ["{feed|cap} is never checked for completeness.", "The load starts at fixed hours."]
+        - ["{feed|cap}: {wait for/look for} a done marker.", "Alert when the file is missing."]
+        - ["{b_g_ships}"]
+      comments:
+        - "The floor system resends after {1-3} hours."
+        - "Compare row counts with the cage."
+        - "{b_g_oneoff}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{cg_report}"]
+        table: ["{p_table}"]
+      title:
+        - "{report|cap} misses entries at the day cutoff"
+        - "Duplicate rows in {table}"
+        - "{report|cap} differs from the cage count"
+        - "{table|cap} lost rows after a ticket redemption"
+        - "Gaming day boundary wrong for {cg_property}"
+      body:
+        - ["{b_g_checked} about {20-900} rows.", "Compliance spotted it during review."]
+        - ["{report|cap}: the cutoff uses calendar days.", "The gaming day starts at {4/5/6} am."]
+        - ["{Voided/Redeemed} tickets still count twice.", "Late postings land on another day."]
+        - ["{Join/Match} on the transaction id.", "Follow the entry's last status."]
+      comments:
+        - "Regulators audit this report."
+        - "Does it hold for table games?"
+        - "I can backfill {1-6} weeks."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        who: ["{cg_who}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the player model"
+        - "Should {who} get {source} in the warehouse?"
+        - "Add {source} for hold reporting"
+      body:
+        - ["{who|cap} reads {source} by hand today.", "It arrives as email attachments."]
+        - ["{A nightly/An hourly} load would do.", "We need it by working day {1-4}."]
+        - ["{Times/Dates} are floor local time.", "Convert times to UTC on load."]
+      comments:
+        - "Which machine code format is it?"
+        - "Check clock changes on the floor."
+        - "{b_cm_plan}"
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{cg_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} runs out in {2-9} days"
+        - "Renew {cert} before the big weekend"
+        - "Nobody owns {cert}"
+      body:
+        - ["{cert|cap} is renewed by hand yearly.", "A leaver did the last renewal."]
+        - ["{Expiry/A lapse} would block {cashless play/payments/odds}.", "Floor kiosks stop when it lapses."]
+        - ["{Warn/Alert} {14/21/30} days before expiry."]
+      comments:
+        - "Put the renewal in the calendar."
+        - "Which floors use that gateway?"
+        - "{b_cm_plan}"
+    - labels: [bug, incident]
+      let:
+        inc: ["{cg_incident}"]
+        flow: ["{cg_flow}"]
+      title:
+        - "Autoscaling too slow for {inc}"
+        - "Retry storms on {flow} after {inc}"
+        - "Rate limits hit during {inc}"
+        - "Capacity for {flow} during {inc}"
+      body:
+        - ["After {inc}, traffic jumps {5-20} times.", "Players all refresh at once."]
+        - ["{p_limit_target|cap} take {2-6} minutes to start."]
+        - ["{Raise/Lift} the minimum before big events.", "Scale on queue depth, not CPU."]
+      comments:
+        - "Player services spike then too."
+        - "Let's agree a pre-scale checklist."
+        - "{b_cm_later}"
+    - labels: [chore, security]
+      let:
+        thing: ["{p_secret_thing}"]
+        item: ["{thing}"]
+        place: [the config file, a log line, a stack trace, the deploy output]
+      title:
+        - "Rotate {thing}"
+        - "{thing|cap} is overdue for rotation"
+        - "{thing|cap} is shared across environments"
+        - "Move {thing} into the secret store"
+      body:
+        - ["{b_sc_a} {b_sc_b}", "{b_sc_c}"]
+        - ["{b_sc_d} {b_sc_e}"]
+        - ["{The vendor/Our partner} wants {3-10} days notice."]
+      comments:
+        - "Schedule it away from event nights."
+        - "Who at the vendor switches it?"
+        - "{b_cm_docs}"
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: ["{cg_incident}"]
+      title:
+        - "Runbook for {thing}"
+        - "Write up what tech does during {thing}"
+        - "On-call guide lacks steps for {thing}"
+        - "Document the freeze rules around {thing}"
+      body:
+        - ["{thing|cap}: new engineers ask what to do.", "Nobody new knows who to call."]
+        - ["{Cover/List} who to page.", "List the flags to flip."]
+        - ["{cg_who|cap} has a plan of their own.", "Link to the floor plan."]
+      comments:
+        - "Ask gaming operations {about it/for input}."
+        - "{b_cm_up} {b_cm_read2}"
+        - "{b_cm_docs}"
+    - labels: [docs, bug]
+      let:
+        flow: ["{cg_flow}"]
+      title:
+        - "Handbook page on {flow} is out of date"
+        - "{flow|cap} runbook names the old gateway"
+        - "Docs for {flow} disagree with production"
+        - "Broken link in the {flow} page"
+      body:
+        - ["{flow|cap}: the page lists old {escalation/rota/vendor} contacts."]
+        - ["{b_cm_disc} {b_cm_when}."]
+        - ["{Fix/Update} the page and date it."]
+      comments:
+        - "Updated the contacts."
+        - "{b_cm_merged}"
+  ops:
+    - labels: [question, chore]
+      let:
+        prop: ["{cg_property}"]
+      title:
+        - "Is the meter sync for {prop} still used?"
+        - "Can we delete the {prop} drop export?"
+        - "Jackpot report for {prop} fails silently"
+      body:
+        - ["Last run was {1-9} months ago.", "Nobody here knows who calls it."]
+        - ["{cg_who|cap} may still use it."]
+      comments:
+        - "Ask the gaming operations lead."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        prop: ["{cg_property}"]
+      title:
+        - "Cage export misses entries at {prop}"
+        - "Cron on the {prop} server exits with no output"
+      body:
+        - ["{prop|cap}: names with accents come out garbled.", "The job skips late postings."]
+        - ["{prop|cap} server is {unmanaged/an old host}."]
+      comments:
+        - "Probably encoding. I will check."
+        - "Move it to the scheduler."
+comments:
+  - "Is this {cg_who} or us?"
+  - "Does the cage see it?"
+  - "Check the online accounts too."
+  - "That matches the player services report."
+chat:
+  support:
+    - let:
+        amt: ["{s_money}"]
+        why: ["charged twice", "offer not applied", "machine error", "deposit never arrived", "wrong tier shown"]
+      root:
+        - "adjustment request: {s_cust}, {amt}, {why}"
+        - "{s_hey}, credit for {amt}? {why}"
+        - "{s_ticket}: {why}, {amt} back"
+        - "player wants {amt} back, reason: {why}"
+        - "can i credit {amt}? says {why}"
+      replies:
+        - ["check the account history first", "{why} counts, host decides", "over {200-500} needs finance approval"]
+        - ["history shows it, crediting now", "already credited last week", "{s_ack}, it posts in {1-3} days"]
+        - ["{s_thx}", ""]
+    - let:
+        what: ["statement not arriving", "withdrawal pending", "club points missing", "verification stuck", "offer code rejected"]
+      root:
+        - "escalating to tech: {what}, filed as {issue}"
+        - "{s_hey}, can tech look at {issue}? {what}"
+        - "more cases on {what}, adding to {issue}"
+        - "third complaint about {what} today"
+        - "{what} again. {issue} has the details"
+      replies:
+        - ["looking now", "we have it, {person} is on it", "can you send {me/over} the account ids?"]
+        - ["ids are in the issue", "{s_ack}, pasting them"]
+    - let:
+        who: ["a high limit player", "a tour operator", "a convention organiser", "a club member"]
+      root:
+        - "{who} says the statement total is wrong"
+        - "{who} wants a statement with taxes split"
+        - "{s_hey}, {who} needs statements for {1-9} stays"
+        - "{who} cannot download statements"
+        - "host says comp balance is short {s_money}"
+      replies:
+        - ["can you send the account number?", "which month is that?"]
+        - ["the {b_page} page, they say", "the statement from last month"]
+        - ["pulling it from {s_tool}", "finance has the full list"]
+    - let:
+        shift: ["morning", "evening", "weekend", "night"]
+      root:
+        - "{shift} handover: {5-30} open cases, none urgent"
+        - "queue is {20-90} deep after the floor outage"
+        - "handover for {shift}: withdrawal cases mostly"
+        - "{shift} shift: {2-9} complaints about the app"
+      replies:
+        - ["{s_ack}, taking the oldest first", "i will triage the withdrawal ones"]
+        - ["tag the app ones for tech", ""]
+  team:
+    - let:
+        what: ["release notes", "the weekly report", "the capacity plan", "the audit readiness checklist"]
+      root:
+        - "who owns {what} this week?"
+        - "can someone pick up {what}?"
+        - "{what} needs an owner before {day}"
+        - "{s_hey}, who is writing {what}?"
+        - "still no owner for {what}"
+      replies:
+        - ["i can take it", "{person} did it last time"]
+        - ["{s_ack}, thanks", ""]
+    - let:
+        launch: ["the sportsbook launch", "the new floor layout", "the loyalty relaunch", "the cashless rollout"]
+      root:
+        - "heads up: {launch} goes out {day}"
+        - "{launch} goes live {c_soon}, anything blocking?"
+        - "freeze starts {day} for {launch}"
+        - "who is on call for {launch}?"
+        - "prep for {launch}: please check your tickets"
+      replies:
+        - ["limits are configured here", "nothing from billing"]
+        - ["on call from {time}", "check the wallet sync once more"]
+    - let:
+        x: ["player services", "the compliance team", "gaming operations", "the casino hosts"]
+      root:
+        - "{x} asked about the billing fix, status?"
+        - "meeting with {x} on {day}, who joins?"
+        - "{x} wants a walkthrough {c_soon}"
+        - "{x} is waiting on us for {issue}"
+      replies:
+        - ["i will join", "can someone brief me first?"]
+        - ["it ships {day}", "waiting on review"]
+  engineering:
+    - let:
+        thing: ["the offer cache", "the wallet service", "the floor connector", "the statement renderer", "the club points job"]
+      root:
+        - "{thing} is slow, anyone changed something?"
+        - "is {thing} failing for anyone else?"
+        - "design question for {thing}, async or batch?"
+        - "who knows {thing} best?"
+        - "pr up for {thing}, {c_patch}"
+      replies:
+        - ["not me, check the deploys", "{person} touched it {c_when_eng}"]
+        - ["it is the floor system again", "looks fine from here"]
+        - ["{s_thx}", ""]
+    - let:
+        fmt: ["the slot meter file", "the table drop file", "the bet feed", "the jackpot events log"]
+      root:
+        - "{fmt} format changed again, who knows why?"
+        - "floor system sent {fmt} with a new column"
+        - "parser breaks on {fmt} from the {1-9}th"
+        - "{fmt} has local times, no zone"
+      replies:
+        - ["pin the parser to old format", "ask the vendor for a spec"]
+        - ["added a test with their file", "will fix it {c_when_eng}"]
+    - let:
+        dep: ["the pdf library", "the date library", "the http client", "the payment sdk"]
+      root:
+        - "should we upgrade {dep}? new major is out"
+        - "upgrading {dep} after the big weekend?"
+        - "{dep} needs the security patch"
+        - "who is upgrading {dep}?"
+      replies:
+        - ["not before the fight night", "after the freeze"]
+        - ["doing it in staging first", "{s_ack}"]
+    - let:
+        thing: ["a flaky test", "the build cache", "the staging data", "the build agent"]
+      root:
+        - "{thing} is blocking main again"
+        - "main is red because of {thing}"
+        - "help with {thing}? {c_patch}"
+        - "{thing} again, anyone?"
+      replies:
+        - ["rerun it", "known issue, being fixed"]
+        - ["{s_ack}", "will look {c_when_eng}"]
+  incidents:
+    - let:
+        what: ["the cashless wallet", "the player portal", "the sportsbook", "withdrawals", "account verification"]
+      root:
+        - "{what} is {s_symptom} {s_since}"
+        - "is {what} down for anyone?"
+        - "alert: {what} error rate above {3-20} percent"
+        - "the cage says {what} is failing"
+        - "{what} {s_symptom}, the floor is calling"
+      replies:
+        - ["checking now", "looking at dashboards", "i see it too"]
+        - ["rolled back the last release, watching", "vendor side issue, they confirmed"]
+        - ["recovering", "all clear at {time}"]
+    - let:
+        inc: ["{cg_incident}"]
+      root:
+        - "{inc}: player services queue is {2-9},{100-900} deep"
+        - "heads up, {inc}, expect traffic"
+        - "gaming operations flagged {inc}, scale up?"
+        - "{inc} right now, we need capacity"
+      replies:
+        - ["scaling now", "raised the minimum pods"]
+        - ["the app is holding", "watch the payment callbacks"]
+        - ["{s_ack}", ""]
+    - let:
+        thing: ["the slot floor network", "the payment gateway", "the odds provider", "the identity verification vendor"]
+      root:
+        - "{thing} latency is {5-40} seconds"
+        - "{thing} has been quiet since {time}"
+        - "{thing} status page shows an incident"
+        - "vendor says {thing} is degraded"
+      replies:
+        - ["opened a case with them", "failing over to the backup"]
+        - ["players are affected", "none seen yet"]
+    - let:
+        what: ["the statement job", "the tax export", "the win report", "the withdrawal queue"]
+      root:
+        - "near miss: {what} almost failed, a retry saved it"
+        - "post-incident review for {what} is {day} at {time}"
+        - "{what} woke me up at {time}"
+        - "{what} backed up to {1-9},{100-900}"
+      replies:
+        - ["noted, adding to the review", "{c_agree}"]
+        - ["can you write it up?", ""]
+  town-square:
+    - let:
+        what: ["the staff appreciation night", "the property tour", "the quarterly town hall", "the new tower opening party"]
+      root:
+        - "{what} is {c_soon}, sign up in the portal"
+        - "reminder: {what} {c_soon}"
+        - "{c_hey}: {what} is {c_soon} at {time}"
+        - "who is going to {what}?"
+        - "{what}, details in the newsletter"
+      replies:
+        - ["i am in", "count me in"]
+        - ["{c_thanks}", ""]
+    - let:
+        what: ["the new sportsbook", "the tower renovation", "the loyalty relaunch", "the licence renewal"]
+      root:
+        - "{what} has been announced, congrats all"
+        - "{c_hey}, {what} is public from {day}"
+        - "thanks to everyone on {what}"
+        - "{what}: all hands {day} at {time}"
+      replies:
+        - ["great news", "{c_em}"]
+        - ["{c_thanks}", ""]
+  direct:
+    - let:
+        q: ["the gaming day cutoff", "the wallet hold time", "the comp reversal logic", "the tax split"]
+      root:
+        - "quick question about {q}"
+        - "{s_hey}, do you know how {q} works?"
+        - "got a minute for {q}?"
+        - "can you explain {q}?"
+        - "who wrote {q}?"
+      replies:
+        - ["sure, call in {s_soon}", "ask {person}, they know it"]
+        - ["{s_thx}", "{s_ack}"]
+    - let:
+        when: ["on friday", "next week", "tomorrow", "{day}"]
+      root:
+        - "i am off {when}, can you cover the pager?"
+        - "swap on-call {when}?"
+        - "can we move our 1:1 {when}?"
+        - "{s_hey}, can you cover {when}?"
+      replies:
+        - ["yes, no problem", "{day} is hard, {day} works"]
+        - ["{s_thx}", ""]
+  off-topic:
+    - let:
+        what: ["the buffet at the resort", "the fight last night", "that lucky streak story", "the new show in the theatre"]
+      root:
+        - "anyone want to talk about {what}?"
+        - "did you see {what}?"
+        - "best story about {what}?"
+        - "thoughts on {what}?"
+      replies:
+        - ["haha yes", "{c_agree}"]
+        - ["send photos", ""]
+    - let:
+        food: ["the canteen", "the new ramen place", "the cafe downstairs", "the food truck"]
+      root:
+        - "lunch at {food}?"
+        - "is {food} open today?"
+        - "{food} menu looks good today"
+        - "{s_lunch} or {food}?"
+      replies:
+        - ["i am in", "give me ten minutes"]
+        - ["see you there", ""]
