@@ -260,6 +260,29 @@ export function WorldWizard() {
               {step === 3 && (
                 <>
                   <h2 id="step-title">The systems attached to it</h2>
+                  {view.proposal && (
+                    <section className="panel" aria-label="Systems for this industry">
+                      <p>
+                        A {view.proposal.profile} company usually runs these. Systems without a twin are recorded in mirror.yaml and left
+                        out until one exists.
+                      </p>
+                      <ul>
+                        {view.proposal.lines.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStart("systems");
+                          setSystemsText(view.proposal ? view.proposal.systems.join(", ") : systemsText);
+                          save({ systems: view.proposal?.systems ?? [] }, 3);
+                        }}
+                      >
+                        Use these systems
+                      </button>
+                    </section>
+                  )}
                   <table>
                     <thead>
                       <tr>

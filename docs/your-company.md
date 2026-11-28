@@ -127,6 +127,25 @@ mirror world new halden --systems github,slack --company "Halden Freight" \
 cd halden
 ```
 
+**Start from your industry.** With `--industry` and no `--systems`, the mirror proposes the systems a company in that industry usually runs, and says which ones it can run:
+
+```sh
+mirror world new halden --industry software --company "Halden Software" --domain halden-software.com
+```
+
+```
+A Software and SaaS company usually runs:
+  GitHub: Gitea runs in its place
+  Slack: Mattermost runs in its place
+  Jira: no twin yet, recorded and left out
+  ...
+Use these systems? yes, no for the template, or type your own list [yes]:
+```
+
+`--yes` accepts the proposal without asking. `--add-systems jira,okta` adds to whichever list you start from. Today the general software profile is available; the other industry profiles are being written (decision 0028), and an industry without one gets the general company and the template's systems.
+
+**Add a system later.** `mirror world add confluence` adds a system to the world's `mirror.yaml` and leaves the rest of the file as it is. Run `mirror world create` afterwards to build it.
+
 `--tidiness messy` gives more stale tickets, duplicates and typos. `mirror world new` with no options asks each question in turn. The portal's world wizard (`mirror portal`) asks the same questions and writes the same `mirror.yaml`.
 
 **2. Or describe it from your own files.** If you have your agent's MCP configuration, an exported tool list, OpenAPI specifications or Terraform state (`terraform show -json`), the mirror can read the systems from them. The files are read in place on your computer; secrets and people are dropped.

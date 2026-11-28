@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 
-from mirrordimensions.catalog.index import match_systems
+from mirrordimensions.catalog.index import Match, match_systems
 from mirrordimensions.config.loader import load_model
 from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.errors import MirrorError
@@ -38,6 +38,19 @@ HOSTNAME_PREFIX = {
     "hr": "hr",
     "helpdesk": "help",
     "identity": "sso",
+    "collaboration": "workspace",
+    "observability": "monitor",
+    "itsm": "servicedesk",
+    "erp": "erp",
+    "analytics": "analytics",
+    "security": "security",
+    "marketing": "marketing",
+    "operations": "ops",
+    "developer-tool": "dev",
+    "cloud": "cloud",
+    "legal": "legal",
+    "automation": "automation",
+    "devices": "devices",
 }
 # The ids the template gives these kinds, which agent files grant by (`grants: {code: ...}`)
 # and refer to (`${code.url}`): the same whichever way the world was defined.
@@ -283,43 +296,9 @@ def render_world(root: Path, draft: Draft, status: Literal["draft", "defined"]) 
         head = text[: text.index("apps:\n")]
         text = head + "apps: []\nlinks: []\n" + _after_links(text)
     elif draft.systems and not draft.template:
-        apps: list[str] = []
         matches = match_systems(draft.systems)
-        running = {m.entry.slug for m in matches if m.entry and m.buildable}
-        ids: set[str] = set()
-        hosts: set[str] = set()
-        for i, match in enumerate(matches):
-            if match.entry is None:
-                apps.append(f"  # {match.query}: not in the catalog; left out\n")
-                continue
-            e = match.entry
-            host = f"{HOSTNAME_PREFIX.get(e.kind, slug(e.name)[:12])}.{company.domain}"
-            if host in hosts:  # a second system of the same kind goes by its own name
-                host = f"{slug(e.name)[:20]}.{company.domain}"
-            hosts.add(host)
-            product, instead_of = e.slug, ""
-            usable = match.buildable
-            if (
-                not usable
-                and draft.substitute
-                and match.instead
-                and match.instead.slug not in running
-            ):
-                product, instead_of, usable = match.instead.slug, e.slug, True
-                running.add(product)
-            app_id = APP_ID.get(e.kind) or slug(e.kind)[:20] or f"app{i}"
-            n = 2
-            while app_id in ids:  # a second system of the same kind
-                app_id, n = f"{(APP_ID.get(e.kind) or slug(e.kind))[:18]}-{n}", n + 1
-            ids.add(app_id)
-            line = f"  - id: {app_id}\n    kind: {e.kind}\n    product: {product}\n"
-            if instead_of:
-                line += f"    in_place_of: {instead_of}    # {e.name} has no twin yet; {match.instead.name if match.instead else product} runs here instead\n"
-            line += f"    hostname: {host}\n    visibility: granted\n"
-            if not usable:
-                line += "    build: unavailable    # no twin yet: recorded, not created\n"
-            apps.append(line)
-        if not running:
+        built = app_entries(matches, company.domain, draft.substitute)
+        if not built.running:
             asked = ", ".join(m.entry.name if m.entry else m.query for m in matches)
             raise MirrorError(
                 "None of these systems can be built yet.",
@@ -328,6 +307,7 @@ def render_world(root: Path, draft: Draft, status: Literal["draft", "defined"]) 
                 "Name one of those (--systems gitea,mattermost), or start from the template: "
                 "mirror world new --template software-team",
             )
+        apps = built.lines
         start = text.index("apps:\n") + len("apps:\n")
         end = text.index("links:")
         text = text[:start] + "".join(apps) + text[end:]
@@ -338,6 +318,56 @@ def render_world(root: Path, draft: Draft, status: Literal["draft", "defined"]) 
             "Run: mirror world new --template software-team",
         )
     return text
+
+
+class AppEntries(BaseModel):
+    lines: list[str]
+    running: set[str]
+    ids: set[str]
+    hosts: set[str]
+
+
+def app_entries(
+    matches: list[Match],
+    domain: str,
+    substitute: bool,
+    running: set[str] | None = None,
+    ids: set[str] | None = None,
+    hosts: set[str] | None = None,
+) -> AppEntries:
+    """mirror.yaml entries for matched systems, after any a world already has (`running`,
+    `ids`, `hosts`): a stand-in of the same kind for a system with no twin, if allowed."""
+    running = set(running or ()) | {m.entry.slug for m in matches if m.entry and m.buildable}
+    ids = set(ids or ())
+    hosts = set(hosts or ())
+    lines: list[str] = []
+    for i, match in enumerate(matches):
+        if match.entry is None:
+            lines.append(f"  # {match.query}: not in the catalog; left out\n")
+            continue
+        e = match.entry
+        host = f"{HOSTNAME_PREFIX.get(e.kind, slug(e.name)[:30])}.{domain}"
+        if host in hosts:  # a second system of the same kind goes by its own name
+            host = f"{slug(e.name)[:30]}.{domain}"
+        hosts.add(host)
+        product, instead_of = e.slug, ""
+        usable = match.buildable
+        if not usable and substitute and match.instead and match.instead.slug not in running:
+            product, instead_of, usable = match.instead.slug, e.slug, True
+            running.add(product)
+        app_id = APP_ID.get(e.kind) or slug(e.kind)[:20] or f"app{i}"
+        n = 2
+        while app_id in ids:  # a second system of the same kind
+            app_id, n = f"{(APP_ID.get(e.kind) or slug(e.kind))[:18]}-{n}", n + 1
+        ids.add(app_id)
+        line = f"  - id: {app_id}\n    kind: {e.kind}\n    product: {product}\n"
+        if instead_of:
+            line += f"    in_place_of: {instead_of}    # {e.name} has no twin yet; {match.instead.name if match.instead else product} runs here instead\n"
+        line += f"    hostname: {host}\n    visibility: granted\n"
+        if not usable:
+            line += "    build: unavailable    # no twin yet: recorded, not created\n"
+        lines.append(line)
+    return AppEntries(lines=lines, running=running, ids=ids, hosts=hosts)
 
 
 def _after_links(text: str) -> str:
@@ -597,3 +627,108 @@ def show_world(project: Project) -> dict[str, Any]:
         "links": [f"{k}: {v}" for link in manifest.links for k, v in link.items()],
         "data": manifest.data.model_dump(exclude_none=True) if manifest.data else {},
     }
+
+
+# The systems the software-team template runs, for adding to it.
+TEMPLATE_SYSTEMS = {"software-team": ["gitea", "mattermost"]}
+
+
+class Proposal(BaseModel):
+    """The systems an industry's profile proposes, each with what the world would run."""
+
+    profile: str
+    industry: str
+    systems: list[str]
+    lines: list[str]
+
+
+def propose(industry: str | None, substitute: bool = True) -> Proposal | None:
+    """What a company in this industry usually runs (decision 0028, point 3), or None when
+    the industry matches no profile or the profile names no systems."""
+    from mirrordimensions.world import profile as profiles
+
+    if not industry:
+        return None
+    found = profiles.match(industry)
+    if found is None or not found.systems.typical:
+        return None
+    lines: list[str] = []
+    running: set[str] = set()
+    for m in match_systems(found.systems.typical):
+        if m.entry is None:
+            continue
+        if m.buildable:
+            lines.append(f"{m.entry.name}: runs as itself")
+            running.add(m.entry.slug)
+        elif substitute and m.instead and m.instead.slug not in running:
+            lines.append(f"{m.entry.name}: {m.instead.name} runs in its place")
+            running.add(m.instead.slug)
+        else:
+            lines.append(f"{m.entry.name}: no twin yet, recorded and left out")
+    return Proposal(
+        profile=found.name, industry=industry, systems=list(found.systems.typical), lines=lines
+    )
+
+
+def add_systems(project: Project, systems: list[str], substitute: bool = True) -> list[str]:
+    """Add systems to a defined world's mirror.yaml, in place, keeping everything else in the
+    file as it is. Returns the systems added, as they will run."""
+    manifest, problems = load_model(project.manifest_path, Manifest)
+    if manifest is None:
+        raise MirrorError(
+            "mirror.yaml is not valid, so nothing was added.",
+            "; ".join(p.message for p in problems[:3]),
+            "Fix it first: mirror validate",
+        )
+    have = {a.product for a in manifest.apps} | {
+        a.in_place_of for a in manifest.apps if a.in_place_of
+    }
+    matches = [m for m in match_systems(systems) if not (m.entry and m.entry.slug in have)]
+    if not matches:
+        raise MirrorError(
+            "The world already has those systems.",
+            f"Asked for: {', '.join(systems)}.",
+            "See what it has: mirror world show",
+        )
+    built = app_entries(
+        matches,
+        manifest.company.domain,
+        substitute,
+        running={a.product for a in manifest.apps if a.product and a.build != "unavailable"},
+        ids={a.id for a in manifest.apps},
+        hosts={a.hostname for a in manifest.apps},
+    )
+    text = project.manifest_path.read_text(encoding="utf-8")
+    lines = text.split("\n")
+    try:
+        at = lines.index("apps:")
+    except ValueError:
+        raise MirrorError(
+            "mirror.yaml has no top-level apps list to add to.",
+            "The file was changed by hand in a way this command cannot follow.",
+            "Add the system under apps: yourself; mirror schema world shows the format.",
+        ) from None
+    end = at + 1
+    while end < len(lines) and (lines[end].startswith((" ", "#")) or not lines[end].strip()):
+        end += 1
+    while end > at + 1 and not lines[end - 1].strip():
+        end -= 1
+    added = "".join(built.lines).rstrip("\n").split("\n")
+    updated = "\n".join(lines[:end] + added + lines[end:])
+    candidate, problems = _validate_text(updated)
+    if candidate is None:
+        raise MirrorError(
+            "Adding these systems would make mirror.yaml invalid, so nothing was changed.",
+            "; ".join(problems[:3]),
+            "Add them by hand, or report this.",
+        )
+    write_text(project.manifest_path, updated)
+    return sorted(built.ids - {a.id for a in manifest.apps})
+
+
+def _validate_text(text: str) -> tuple[Manifest | None, list[str]]:
+    loaded: Any = YAML(typ="safe").load(text)  # pyright: ignore[reportUnknownMemberType]
+    try:
+        return Manifest.model_validate(loaded), []
+    except Exception as exc:  # noqa: BLE001  # pydantic's errors, reported to the user
+        return None, [str(exc)[:300]]

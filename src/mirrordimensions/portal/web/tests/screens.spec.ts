@@ -3,12 +3,28 @@
 // One test per screen: it shows the project's data, it can be used by keyboard, and an
 // automated accessibility check finds no serious or critical issues.
 
+import fs from "node:fs";
 import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 const TOKEN = "test-token";
 const FINISHED = "r_fixture0001";
+
+// The fixture world names its repositories and channels its own way (decision 0029).
+function names(): Record<string, string> {
+  const file = path.join(
+    "test-results",
+    "fixture",
+    "northfield-ops",
+    ".mirror",
+    "world.json",
+  );
+  return JSON.parse(fs.readFileSync(file, "utf-8")).names ?? {};
+}
+const repo = (usual: string) => names()[`repo:${usual}`] ?? usual;
+const channel = (usual: string) => names()[`channel:${usual}`] ?? usual;
+const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 async function signIn(page: Page) {
   await page.goto(`/?token=${TOKEN}`);
@@ -83,7 +99,7 @@ test("Permissions: grants set against the last run", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByText(`set against its last run`)).toBeVisible();
   await expect(
-    page.getByRole("row", { name: /billing-service/ }),
+    page.getByRole("row", { name: new RegExp(escape(repo("billing-service"))) }),
   ).toContainText("Matches the job");
   await page.getByLabel("Agent").selectOption("scripted-good");
   await expect(page.getByText("grants only")).toBeVisible();
@@ -212,11 +228,13 @@ test("Live view: a finished run replays step by step, a live one follows", async
   await expect(now).toContainText("Code hosting");
   // Jump: the step that broke a rule says so in words, not color alone.
   await page.getByRole("slider", { name: "Jump to a step" }).fill("3");
-  await expect(now).toContainText("Posts in #incidents");
+  await expect(now).toContainText(`Posts in #${channel("incidents")}`);
   await expect(now).toContainText("rule broken");
   await expect(
     page.getByRole("img", {
-      name: /scripted-rogue is at Team chat, #incidents/,
+      name: new RegExp(
+        `scripted-rogue is at Team chat, #${escape(channel("incidents"))}`,
+      ),
     }),
   ).toBeVisible();
   await expect(page.getByText("1 rules broken")).toBeVisible();
@@ -226,7 +244,7 @@ test("Live view: a finished run replays step by step, a live one follows", async
   await expect(now).toContainText("Thinks", { timeout: 4000 });
   await page.getByRole("button", { name: "Pause" }).click();
   await page.getByRole("button", { name: "Back" }).click();
-  await expect(now).toContainText("Posts in #incidents");
+  await expect(now).toContainText(`Posts in #${channel("incidents")}`);
   // The raw events stay one click away.
   await page
     .getByRole("link", { name: "Its 2 events in the timeline" })
@@ -288,17 +306,17 @@ test("Permissions: a grant is edited and saved to the agent file", async ({
   page,
 }) => {
   await page.goto("/permissions/scripted-good");
-  const grant = page.getByLabel("Grant on infra-config");
+  const grant = page.getByLabel(`Grant on ${repo("infra-config")}`);
   await expect(grant).toHaveValue("none");
   await grant.selectOption("read");
   await expect(
     page.getByRole("status").filter({ hasText: "Saved to the agent file" }),
-  ).toContainText("code/infra-config none to read");
-  await expect(page.getByLabel("Grant on infra-config")).toHaveValue("read");
-  await expect(page.getByLabel("Grant on #incidents")).toHaveValue("member");
+  ).toContainText(`code/${repo("infra-config")} none to read`);
+  await expect(page.getByLabel(`Grant on ${repo("infra-config")}`)).toHaveValue("read");
+  await expect(page.getByLabel(`Grant on #${channel("incidents")}`)).toHaveValue("member");
   await accessible(page);
-  await page.getByLabel("Grant on infra-config").selectOption("none");
-  await expect(page.getByLabel("Grant on infra-config")).toHaveValue("none");
+  await page.getByLabel(`Grant on ${repo("infra-config")}`).selectOption("none");
+  await expect(page.getByLabel(`Grant on ${repo("infra-config")}`)).toHaveValue("none");
 });
 
 test("System: every endpoint with its input and output, and a rule saved from the form", async ({
@@ -549,7 +567,7 @@ test("Onboarding: an agent in six steps, from the role's usual access", async ({
     all.map((el) => (el as HTMLSelectElement).value),
   );
   expect(levels.some((v) => v !== "none")).toBe(true);
-  await page.getByLabel("Grant on #incidents").selectOption("member");
+  await page.getByLabel(`Grant on #${channel("incidents")}`).selectOption("member");
   await accessible(page);
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByLabel("Command to run").fill("python /opt/helper/run.py");

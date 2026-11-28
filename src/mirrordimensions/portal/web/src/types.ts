@@ -368,6 +368,7 @@ export interface WorldDraftView {
   templates: { name: string; description: string }[];
   command: string;
   imported: ImportReview | null;
+  proposal: { profile: string; industry: string; systems: string[]; lines: string[] } | null;
 }
 
 // World import (decision 0025): the review of what files on this machine described.

@@ -109,6 +109,14 @@ class Names(StrictModel):
     channels: dict[str, list[str]] = Field(default_factory=dict[str, list[str]])
 
 
+class Systems(StrictModel):
+    """The systems this kind of company usually runs, as names the catalog knows. `typical`
+    is proposed when a world is defined for the industry; `common` is suggested beside it."""
+
+    typical: list[str] = Field(default_factory=list[str])
+    common: list[str] = Field(default_factory=list[str])
+
+
 class Profile(StrictModel):
     slug: str
     name: str
@@ -122,6 +130,7 @@ class Profile(StrictModel):
     incidents: list[IncidentTheme] = Field(min_length=1)
     lines: dict[str, list[str]]
     names: Names = Field(default_factory=Names)
+    systems: Systems = Field(default_factory=Systems)
 
 
 def _load(slug: str) -> dict[str, Any]:
@@ -193,14 +202,16 @@ def _key(text: str) -> str:
     return "-".join(text.lower().replace("&", " and ").split()).strip("-")
 
 
-def for_industry(industry: str) -> Profile:
-    """The profile for an industry named in `mirror.yaml`, by slug or alias; the general
-    profile when none matches (decision 0028, point 5)."""
+def match(industry: str) -> Profile | None:
+    """The profile an industry names, by slug or alias, or None."""
     wanted = _key(industry)
     names = available()
     if wanted in names:
         return load(wanted)
-    for slug in names:
-        if wanted in {_key(a) for a in load(slug).aliases}:
-            return load(slug)
-    return load(GENERAL)
+    return next((load(s) for s in names if wanted in {_key(a) for a in load(s).aliases}), None)
+
+
+def for_industry(industry: str) -> Profile:
+    """The profile for an industry named in `mirror.yaml`, by slug or alias; the general
+    profile when none matches (decision 0028, point 5)."""
+    return match(industry) or load(GENERAL)

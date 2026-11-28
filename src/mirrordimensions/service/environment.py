@@ -320,6 +320,7 @@ def set_grant(project: Project, agent_name: str, resource: str, grant: str) -> C
             )
         _known(project, manifest, app_id, key, name)
         held: Any = (current or {}).get(key)
+        name = _as_in_file(project, key, name, held)
         if len(levels) > 1:
             before = cast(dict[str, Any], held).get(name) if isinstance(held, dict) else None
             after = None if grant == NONE else grant
@@ -364,6 +365,21 @@ def set_grant(project: Project, agent_name: str, resource: str, grant: str) -> C
         Agent.model_validate(YAML(typ="safe").load(text))  # pyright: ignore[reportUnknownMemberType]  # refuse to write an invalid file
         path.write_bytes(text.encode("utf-8"))
     return changes_svc.grant_change(agent_name, resource, before, after)
+
+
+def _as_in_file(project: Project, key: str, name: str, held: Any) -> str:
+    """The name to edit in the agent file: the usual name the file already grants, when the
+    world calls that repository or channel `name`, so one thing is never granted twice."""
+    try:
+        world = agents_svc._world(project)  # pyright: ignore[reportPrivateUsage]
+    except MirrorError:
+        return name
+    usual = naming.repos(world) if key == "repos" else naming.channels(world)
+    present = set(cast(dict[str, Any], held)) if isinstance(held, dict) else set(held or [])
+    for written, actual in usual.items():
+        if actual == name and written != name and written in present:
+            return written
+    return name
 
 
 def _known(project: Project, manifest: Manifest, app_id: str, key: str, name: str) -> None:
@@ -494,6 +510,8 @@ def grant_options(project: Project, agent_name: str) -> list[GrantSystem]:
             continue
         key, levels = grant_vocabulary(manifest, app.id)
         system = agent.grants.get(app.id)
+        if system is not None and world is not None:  # the file may use the usual names
+            system = naming.Translator(world).grants(system)
         held: Any = (system or {}).get(key) if key else None
         names: list[str] = []
         if key == "repos" and world is not None:

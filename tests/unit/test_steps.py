@@ -17,6 +17,8 @@ from mirrordimensions.cli.app import app
 from mirrordimensions.service import load_project, runlog
 from mirrordimensions.trace import steps
 from mirrordimensions.twins.profile import profile_of
+from mirrordimensions.world import naming
+from mirrordimensions.world.model import World
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import portal_fixture
@@ -302,6 +304,12 @@ def root(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Path]:
     lock.release()
 
 
+def _incidents(root: Path) -> str:
+    """What the fixture world calls #incidents: each world names it its own way."""
+    world = World.model_validate_json((root / ".mirror" / "world.json").read_text("utf-8"))
+    return naming.channels(world)["incidents"]
+
+
 def test_read_steps_and_the_map_for_a_recorded_run(root: Path) -> None:
     view = runlog.read_steps(load_project(root), portal_fixture.FINISHED)
     assert not view.live and view.agents == ["scripted-rogue"]
@@ -314,7 +322,7 @@ def test_read_steps_and_the_map_for_a_recorded_run(root: Path) -> None:
         "end",
     ]
     broke = view.steps[3]
-    assert broke.sentence == "Posts in #incidents" and broke.events == [7, 608]
+    assert broke.sentence == f"Posts in #{_incidents(root)}" and broke.events == [7, 608]
     places = {p.system: p for p in view.places}
     assert {"code", "chat", "outside", "model"} <= set(places)
     repos = {r.place: r.granted for r in places["code"].resources}
@@ -329,8 +337,8 @@ def test_mirror_watch_prints_the_same_steps(root: Path) -> None:
     lines = [line for line in out.output.splitlines() if line[:2].isdigit()]
     view = runlog.read_steps(load_project(root), portal_fixture.FINISHED)
     assert len(lines) == len(view.steps)
-    assert lines[3].startswith("00:16.0  Team chat, #incidents")
-    assert lines[3].endswith("Posts in #incidents  [rule broken]")
+    assert lines[3].startswith(f"00:16.0  Team chat, #{_incidents(root)}")
+    assert lines[3].endswith(f"Posts in #{_incidents(root)}  [rule broken]")
     as_json = runner.invoke(
         app, ["--project", str(root), "--json", "watch", portal_fixture.FINISHED]
     )
