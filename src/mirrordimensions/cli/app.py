@@ -431,6 +431,17 @@ def world_new(
             "--yes", help="With --industry: use the systems its profile proposes, without asking."
         ),
     ] = False,
+    seed_folder: Annotated[
+        Path | None,
+        typer.Option(
+            "--seed-folder",
+            help="Build the world from a folder you choose (tickets, documents, people...).",
+        ),
+    ] = None,
+    accept_personal_data: Annotated[
+        bool,
+        typer.Option("--accept-personal-data", help="With --seed-folder: accept personal data."),
+    ] = False,
     people: Annotated[int, typer.Option(help="Number of people.")] = 25,
     history: Annotated[int, typer.Option(help="Days of history.")] = 180,
     seed: Annotated[int | None, typer.Option(help="Seed (default: random).")] = None,
@@ -568,6 +579,18 @@ def world_new(
             links={"announce": announce, "incidents": incidents},
             substitute=substitute,
         )
+    if seed_folder is not None:
+        from mirrordimensions.service import seed as seed_svc
+
+        review = seed_svc.seed_world(
+            Project(root=root), seed_folder, accept_personal_data, strict=False
+        )
+        _print_seed_review(st, review)
+        if not review.personal_accepted:
+            st.out.note(
+                "Nothing from the seed folder is used until its personal data is removed or "
+                f"accepted: mirror world seed {Path(review.folder)} --accept-personal-data"
+            )
     shown = worlddef.show_world(Project(root=root))
     st.out.ok(f"World defined in {root}")
     st.out.line(f"{'Company':<10}{shown['company']}")
@@ -669,6 +692,70 @@ def _world_new_interactive(st: State, directory: Path) -> Path:
             draft.history = typer.prompt("Days of history", default=180, type=int)
         worlddef.save_draft(directory, draft)
     return worlddef.finish_draft(directory, draft)
+
+
+def _print_seed_review(st: State, review: object) -> None:
+    from mirrordimensions.seed.content import SeedReview
+
+    assert isinstance(review, SeedReview)  # noqa: S101
+    st.out.line(f"Seed folder {review.folder}")
+    for item in review.items:
+        st.out.line(f"  {item.path:<40} {item.kind}: {item.becomes}")
+    for item in review.later:
+        st.out.line(f"  {item.path:<40} {item.kind}: not read yet, in a later version")
+    for d in review.secrets_dropped:
+        st.out.note(f"{d.path}: {d.lines} line(s) holding a secret were left out")
+    if review.personal:
+        st.out.line(f"Personal data, {len(review.personal)} item(s):")
+        for p in review.personal[:25]:
+            st.out.line(f"  {p.path}:{p.line}  {p.kind} {p.shown}")
+        if len(review.personal) > 25:
+            st.out.line(f"  and {len(review.personal) - 25} more")
+        state = "accepted" if review.personal_accepted else "not accepted"
+        st.out.line(f"  ({state}: whatever goes into the world reaches the agent and its model)")
+    if review.not_read:
+        st.out.line(f"Not read: {len(review.not_read)} file(s)")
+        for path, why in review.not_read[:10]:
+            st.out.line(f"  {path}: {why}")
+
+
+@world_app.command("seed")
+def world_seed(
+    ctx: typer.Context,
+    folder: Annotated[
+        str, typer.Argument(help="The seed folder to read, or `show` for the last review.")
+    ],
+    accept_personal_data: Annotated[
+        bool,
+        typer.Option(
+            "--accept-personal-data",
+            help="Build with personal data the folder holds, if it is test data.",
+        ),
+    ] = False,
+) -> None:
+    """Build this world from a folder you choose: tickets, documents, people and more, ideally
+    test data. Only that folder is read; secrets are always left out (decision 0030)."""
+    from mirrordimensions.service import seed as seed_svc
+
+    st = _state(ctx)
+    project = service.load_project(st.start())
+    if folder == "show":
+        review = seed_svc.load_review(project)
+        if review is None:
+            raise MirrorError(
+                "This world has no seed folder.",
+                "",
+                "Read one with: mirror world seed <folder>",
+            )
+    else:
+        review = seed_svc.seed_world(project, Path(folder), accept_personal_data)
+    if st.out.json_mode:
+        st.out.document(review)
+        return
+    _print_seed_review(st, review)
+    if folder != "show":
+        st.out.ok("The world will be built from the seed folder, and the rest generated")
+        st.out.next_step("Next: mirror world create")
 
 
 @world_app.command("industries")
