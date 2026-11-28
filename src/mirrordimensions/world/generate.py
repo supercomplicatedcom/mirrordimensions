@@ -1403,8 +1403,10 @@ def _renamed(world: World, profile: profiles.Profile, rng: Rng) -> World:
     } | {r.name.lower() for r in world.repositories if r.name not in profile.names.repos}
 
     def choose(default: str, options: list[str]) -> str:
+        # Each name has its own stream, so what else the world holds (a seed folder's
+        # repositories and channels) never changes the names chosen for the core ones.
         free = [o for o in options if o.lower() not in taken] or [default]
-        name = rng.choice(free)
+        name = rng.child(f"name:{default}").choice(free)
         taken.add(name.lower())
         return name
 

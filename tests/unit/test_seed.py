@@ -542,3 +542,18 @@ def test_seeded_repositories_join_the_world_on_its_timeline(tmp_path: Path) -> N
     assert people[first.author] == "Rosa Delgado" and people[second.author] == "Tomasz Wierzbicki"
     assert any("claims-service" in p.repositories for p in world.projects)
     assert len({r.name for r in world.repositories}) == len(world.repositories)
+
+
+def test_seeded_repositories_and_channels_never_rename_the_core_ones(tmp_path: Path) -> None:
+    root = init_project(tmp_path / "halden", seed=48213).root
+    project = Project(root=root)
+    loaded = YAML(typ="safe").load(project.manifest_path.read_text("utf-8"))  # pyright: ignore[reportUnknownMemberType]
+    manifest = Manifest.model_validate(loaded)
+    plain = generate(manifest).names
+    folder = _folder(tmp_path)
+    _repo(folder, "claims-service")
+    _slack(folder)
+    seed_svc.seed_world(project, folder, accept_personal=True)
+    seeded = generate(manifest, seed_svc.load_content(project)).names
+    assert {k: seeded[k] for k in plain} == plain  # the core names are the same
+    assert seeded["repo:claims-service"] == "claims-service"  # and the seeded ones are recorded
