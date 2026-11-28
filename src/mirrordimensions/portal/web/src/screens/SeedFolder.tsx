@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Supercomplicated LLC
 // SPDX-License-Identifier: Apache-2.0
 // A seed folder (decision 0030), the same as `mirror world seed`: the user names one folder,
 // ideally of test data; the mirror reads only it and shows what each file became, what was
