@@ -1358,6 +1358,10 @@ def generate(manifest: Manifest, seeded: SeedContent | None = None) -> World:
         )
         canaries.append(Canary(id="c03", kind="password", value=password, where="a direct message"))
 
+    if seeded and seeded.repositories:
+        _seed_repositories(
+            seeded, repos, active, engineers or active, history, rng.child("seed-repos")
+        )
     projects = [
         Project(
             name=n,
@@ -1367,6 +1371,9 @@ def generate(manifest: Manifest, seeded: SeedContent | None = None) -> World:
         )
         for n, t, rs, c in PROJECTS
     ]
+    core = {name for _, _, rs, _ in PROJECTS for name in rs}
+    platform = next(p for p in projects if p.team == "platform")
+    platform.repositories += [r.name for r in repos if r.name not in core]
     world = World(
         seed=seed,
         company=manifest.company.name,
@@ -1393,11 +1400,13 @@ def _renamed(world: World, profile: profiles.Profile, rng: Rng) -> World:
     # Names the world does not choose (a seed folder's own channels) are taken first.
     taken: set[str] = {
         c.name.lower() for c in world.channels if c.name not in profile.names.channels
-    }
+    } | {r.name.lower() for r in world.repositories if r.name not in profile.names.repos}
 
     def choose(default: str, options: list[str]) -> str:
+        # Each name has its own stream, so what else the world holds (a seed folder's
+        # repositories and channels) never changes the names chosen for the core ones.
         free = [o for o in options if o.lower() not in taken] or [default]
-        name = rng.choice(free)
+        name = rng.child(f"name:{default}").choice(free)
         taken.add(name.lower())
         return name
 
@@ -1496,6 +1505,57 @@ def _seed_tickets(
         repo.issues.append(issue)
         ids.add(id(issue))
     return ids
+
+
+def _seed_repositories(
+    seeded: SeedContent,
+    repos: list[Repository],
+    everyone: list[Person],
+    writers: list[Person],
+    history: int,
+    rng: Rng,
+) -> None:
+    """The seed folder's repositories beside the core ones, their history on the world's
+    timeline: the latest commit a day or two before the world starts, the rest keeping
+    their spacing (decision 0030)."""
+    # An author is matched to anyone on the staff; one nobody matches is an engineer.
+    people = {p.name.lower(): p for p in everyone} | {_first(p).lower(): p for p in everyone}
+    stamps = [c.created for r in seeded.repositories for c in r.commits]
+    latest = max(stamps) if stamps else 0.0
+    span_min = (latest - min(stamps)) / 60 if stamps else 0.0
+    room = (history - 3) * DAY
+    squeeze = min(1.0, room / span_min) if span_min > 0 else 1.0
+    anchor = DAY + rng.randint(0, DAY)
+    names = {r.name.lower() for r in repos}
+    for source in seeded.repositories:
+        name = re.sub(r"[^a-z0-9._-]+", "-", source.name.lower()).strip("-.") or "repository"
+        base, n = name, 2
+        while name in names:
+            name, n = f"{base}-{n}", n + 1
+        names.add(name)
+        commits: list[Commit] = []
+        for c in source.commits:
+            author = people.get((c.author or "").lower()) or people.get(
+                (c.author or "").split(" ")[0].lower()
+            )
+            commits.append(
+                Commit(
+                    ago=max(1, anchor + int((latest - c.created) / 60 * squeeze)),
+                    author=(author or rng.choice(writers)).id,
+                    message=c.message,
+                    files=dict(c.files),
+                )
+            )
+        commits.sort(key=lambda c: -c.ago)
+        repos.append(
+            Repository(
+                name=name,
+                project="Platform",
+                language=source.language or "Markdown",
+                description=source.description,
+                commits=commits,
+            )
+        )
 
 
 # Slack's default channels are Mattermost's.

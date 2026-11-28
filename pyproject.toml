@@ -24,6 +24,7 @@ dependencies = [
   "anyio>=4.9",
   "cryptography>=44",   # root CA and leaf certificates
   "docker>=7.1",        # the engine's Docker API: unix sockets, TLS, exec streams, archives
+  "dulwich>=0.24",
   "fastapi>=0.120",    # the portal's local HTTP API (build spec, "Portal")
   "mcp>=1.20",
   "platformdirs>=4",    # per-user config and data folders on macOS, Windows and Linux

@@ -165,9 +165,9 @@ jobs:
       - name: mirror init, build, up, doctor (the sealed network)
         run: |
           set -euo pipefail
-          uv run mirror init "$RUNNER_TEMP/world" --seed 48213
+          uv run mirror init "$RUNNER_TEMP/world" --seed 48214
           cd "$RUNNER_TEMP/world"
-          # Built, so the scenario below has a world to run in (decision 0029: this seed's
+          # Built, so the scenario below has a world to run in (decision 0029: seed 48214's
           # world names its channels and repositories its own way).
           uv run --project "$GITHUB_WORKSPACE" mirror build
           uv run --project "$GITHUB_WORKSPACE" mirror up

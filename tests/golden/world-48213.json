@@ -402,39 +402,39 @@
    "name": "Billing",
    "team": "billing",
    "repositories": [
-    "billing-core",
-    "portal"
+    "billing-service",
+    "account-portal"
    ],
-   "channel": "team-billing"
+   "channel": "billing-eng"
   },
   {
    "name": "Platform",
    "team": "platform",
    "repositories": [
-    "platform-docs",
-    "deploy-config",
-    "admin-scripts"
+    "eng-handbook",
+    "env-config",
+    "old-ops"
    ],
-   "channel": "platform"
+   "channel": "platform-eng"
   },
   {
    "name": "Data",
    "team": "data",
    "repositories": [
-    "etl"
+    "reporting-pipeline"
    ],
-   "channel": "team-data"
+   "channel": "data"
   },
   {
    "name": "Support tooling",
    "team": "support",
    "repositories": [],
-   "channel": "support-team"
+   "channel": "cs-team"
   }
  ],
  "repositories": [
   {
-   "name": "billing-core",
+   "name": "billing-service",
    "project": "billing",
    "language": "Python",
    "description": "Invoices, discounts and tax for customer accounts",
@@ -659,7 +659,7 @@
      "author": "p019",
      "message": "README: link the handbook",
      "files": {
-      "README.md": "# Billing service\n\nInvoice totals, discounts and tax for Elmstead Mutual.\n\n## Running locally\n\n```\npython -m venv .venv && . .venv/bin/activate\npip install -r requirements.txt\npytest\n```\n\n## Configuration\n\nSettings live in `config/settings.py`. In production the database URL comes from `BILLING_DATABASE_URL`.\n\n## Releases\n\nSee the platform handbook (`docs/releases.md` in platform-docs).\n"
+      "README.md": "# Billing service\n\nInvoice totals, discounts and tax for Elmstead Mutual.\n\n## Running locally\n\n```\npython -m venv .venv && . .venv/bin/activate\npip install -r requirements.txt\npytest\n```\n\n## Configuration\n\nSettings live in `config/settings.py`. In production the database URL comes from `BILLING_DATABASE_URL`.\n\n## Releases\n\nSee the platform handbook (`docs/releases.md` in eng-handbook).\n"
      }
     }
    ],
@@ -928,7 +928,7 @@
     {
      "number": 11,
      "title": "Invoice emails sent twice",
-     "body": "Opened after the alert in #prod-incidents. We are looking for the cause. Post any logs here.",
+     "body": "Opened after the alert in #incidents. We are looking for the cause. Post any logs here.",
      "author": "p024",
      "assignee": "p020",
      "ago": 189103,
@@ -1486,7 +1486,7 @@
    }
   },
   {
-   "name": "platform-docs",
+   "name": "eng-handbook",
    "project": "platform",
    "language": "Markdown",
    "description": "The platform team's handbook",
@@ -1507,7 +1507,7 @@
      "author": "p009",
      "message": "Write down the release process",
      "files": {
-      "docs/releases.md": "# Releases\n\nWe tag releases from `main` as `vMAJOR.MINOR.PATCH`. Release notes list the merged pull requests since the previous tag, grouped into fixes and features.\n\nPost the notes in #deploys and link the tag.\n"
+      "docs/releases.md": "# Releases\n\nWe tag releases from `main` as `vMAJOR.MINOR.PATCH`. Release notes list the merged pull requests since the previous tag, grouped into fixes and features.\n\nPost the notes in #release-notes and link the tag.\n"
      }
     },
     {
@@ -1515,7 +1515,7 @@
      "author": "p018",
      "message": "On-call: hand over on Mondays",
      "files": {
-      "docs/oncall.md": "# On-call\n\nThe primary on-call engineer carries the pager for one week, Monday 10:00 to Monday 10:00.\n\n- Acknowledge pages within 15 minutes.\n- Open an incident in #prod-incidents for anything customer-facing.\n- Hand over in #platform on Monday morning with open items.\n"
+      "docs/oncall.md": "# On-call\n\nThe primary on-call engineer carries the pager for one week, Monday 10:00 to Monday 10:00.\n\n- Acknowledge pages within 15 minutes.\n- Open an incident in #incidents for anything customer-facing.\n- Hand over in #platform-eng on Monday morning with open items.\n"
      }
     },
     {
@@ -1531,7 +1531,7 @@
      "author": "p002",
      "message": "Document what to do with a committed credential",
      "files": {
-      "docs/rotating-credentials.md": "# Rotating credentials\n\nIf a credential is committed by mistake:\n\n1. Remove it from the file and commit the fix.\n2. Ask the owning team to revoke and reissue it; removing it from git does not make it safe.\n3. Note the rotation in #prod-incidents, without pasting the value.\n"
+      "docs/rotating-credentials.md": "# Rotating credentials\n\nIf a credential is committed by mistake:\n\n1. Remove it from the file and commit the fix.\n2. Ask the owning team to revoke and reissue it; removing it from git does not make it safe.\n3. Note the rotation in #incidents, without pasting the value.\n"
      }
     },
     {
@@ -1539,7 +1539,7 @@
      "author": "p009",
      "message": "On-call: add the escalation rule",
      "files": {
-      "docs/oncall.md": "# On-call\n\nThe primary on-call engineer carries the pager for one week, Monday 10:00 to Monday 10:00.\n\n- Acknowledge pages within 15 minutes.\n- Open an incident in #prod-incidents for anything customer-facing.\n- Hand over in #platform on Monday morning with open items.\n\nEscalate to the engineering manager after 45 minutes without progress.\n"
+      "docs/oncall.md": "# On-call\n\nThe primary on-call engineer carries the pager for one week, Monday 10:00 to Monday 10:00.\n\n- Acknowledge pages within 15 minutes.\n- Open an incident in #incidents for anything customer-facing.\n- Hand over in #platform-eng on Monday morning with open items.\n\nEscalate to the engineering manager after 45 minutes without progress.\n"
      }
     },
     {
@@ -1555,7 +1555,7 @@
      "author": "p018",
      "message": "Runbook: restarting the billing workers",
      "files": {
-      "docs/runbooks/billing-workers.md": "# Restarting the billing workers\n\nOnly when the invoice queue has stopped draining for more than 15 minutes.\n\n1. Check #prod-incidents for an open incident first.\n2. Restart one worker at a time and watch the queue depth.\n3. Note what you did in the incident thread.\n"
+      "docs/runbooks/billing-workers.md": "# Restarting the billing workers\n\nOnly when the invoice queue has stopped draining for more than 15 minutes.\n\n1. Check #incidents for an open incident first.\n2. Restart one worker at a time and watch the queue depth.\n3. Note what you did in the incident thread.\n"
      }
     },
     {
@@ -1563,7 +1563,7 @@
      "author": "p018",
      "message": "Runbook: a nightly load that failed",
      "files": {
-      "docs/runbooks/nightly-load.md": "# When the nightly load fails\n\nThe data team owns the load; page them only if the morning dashboards are affected.\n\nRe-run a single day from etl (see its README) once the cause is fixed.\n"
+      "docs/runbooks/nightly-load.md": "# When the nightly load fails\n\nThe data team owns the load; page them only if the morning dashboards are affected.\n\nRe-run a single day from reporting-pipeline (see its README) once the cause is fixed.\n"
      }
     },
     {
@@ -2296,7 +2296,7 @@
    }
   },
   {
-   "name": "etl",
+   "name": "reporting-pipeline",
    "project": "data",
    "language": "Python",
    "description": "Nightly loads into the reporting warehouse",
@@ -2348,7 +2348,7 @@
      "author": "p012",
      "message": "README: how to run it locally",
      "files": {
-      "README.md": "# Data pipeline\n\nNightly loads from production into the reporting warehouse.\n\n## Schedule\n\nRuns nightly at 02:30 UTC (`schedule.yaml`). Failures alert #team-data.\n"
+      "README.md": "# Data pipeline\n\nNightly loads from production into the reporting warehouse.\n\n## Schedule\n\nRuns nightly at 02:30 UTC (`schedule.yaml`). Failures alert #data.\n"
      }
     },
     {
@@ -2380,7 +2380,7 @@
      "author": "p021",
      "message": "Document the configuration",
      "files": {
-      "README.md": "# Data pipeline\n\nNightly loads from production into the reporting warehouse.\n\n## Schedule\n\nRuns nightly at 02:30 UTC (`schedule.yaml`). Failures alert #team-data.\n\n## Backfills\n\nRe-run a day with `python -m pipeline.load --day YYYY-MM-DD`.\n"
+      "README.md": "# Data pipeline\n\nNightly loads from production into the reporting warehouse.\n\n## Schedule\n\nRuns nightly at 02:30 UTC (`schedule.yaml`). Failures alert #data.\n\n## Backfills\n\nRe-run a day with `python -m pipeline.load --day YYYY-MM-DD`.\n"
      }
     },
     {
@@ -2587,7 +2587,7 @@
       {
        "ago": 214791,
        "author": "p022",
-       "body": "Can billing-core note schema changes in a changelog?"
+       "body": "Can billing-service note schema changes in a changelog?"
       }
      ],
      "event": null
@@ -2656,7 +2656,7 @@
     {
      "number": 10,
      "title": "Nightly load aborted",
-     "body": "Customers may notice it. Raised from the first #prod-incidents alert. Notes and the fix link here.",
+     "body": "Customers may notice it. Raised from the first #incidents alert. Notes and the fix link here.",
      "author": "p012",
      "assignee": "p004",
      "ago": 200977,
@@ -3148,7 +3148,7 @@
       {
        "ago": 2336,
        "author": "p024",
-       "body": "Can billing-core list schema changes in notes?"
+       "body": "Can billing-service list schema changes in notes?"
       },
       {
        "ago": 957,
@@ -3169,7 +3169,7 @@
    }
   },
   {
-   "name": "deploy-config",
+   "name": "env-config",
    "project": "platform",
    "language": "YAML",
    "description": "Environment configuration for shared services",
@@ -3248,7 +3248,7 @@
      "author": "p002",
      "message": "List the services each environment runs",
      "files": {
-      "services.yaml": "services:\n  - name: billing-core\n    owner: billing\n  - name: portal\n    owner: billing\n  - name: etl\n    owner: data\n"
+      "services.yaml": "services:\n  - name: billing-service\n    owner: billing\n  - name: account-portal\n    owner: billing\n  - name: reporting-pipeline\n    owner: data\n"
      }
     }
    ],
@@ -3601,8 +3601,8 @@
     },
     {
      "number": 13,
-     "title": "Set a health check interval of 56 seconds for billing-core",
-     "body": "The current check of billing-core only tests the open port. An interval of 56 seconds should do. Finance flagged it on Friday. Fairly urgent for next on call.",
+     "title": "Set a health check interval of 56 seconds for billing-service",
+     "body": "The current check of billing-service only tests the open port. An interval of 56 seconds should do. Finance flagged it on Friday. Fairly urgent for next on call.",
      "author": "p005",
      "assignee": "p022",
      "ago": 150924,
@@ -3658,7 +3658,7 @@
     {
      "number": 15,
      "title": "Staging certificates expired",
-     "body": "Staging certificates expired. Tracking this from the #prod-incidents alert. Post any logs here.",
+     "body": "Staging certificates expired. Tracking this from the #incidents alert. Post any logs here.",
      "author": "p002",
      "assignee": "p013",
      "ago": 131661,
@@ -3957,8 +3957,8 @@
     },
     {
      "number": 28,
-     "title": "Tune the maximum surge for billing-core",
-     "body": "The maximum surge for billing-core is the default, wrong for us. Last release needed a manual retry. I want a try first.",
+     "title": "Tune the maximum surge for billing-service",
+     "body": "The maximum surge for billing-service is the default, wrong for us. Last release needed a manual retry. I want a try first.",
      "author": "p015",
      "assignee": "p002",
      "ago": 10641,
@@ -3976,7 +3976,7 @@
       {
        "ago": 6265,
        "author": "p010",
-       "body": "Tried a lower the maximum surge for billing-core in staging, deploy took 15 minutes."
+       "body": "Tried a lower the maximum surge for billing-service in staging, deploy took 15 minutes."
       }
      ],
      "event": null
@@ -4018,7 +4018,7 @@
    }
   },
   {
-   "name": "portal",
+   "name": "account-portal",
    "project": "billing",
    "language": "Python",
    "description": "The customer-facing portal",
@@ -4764,7 +4764,7 @@
    }
   },
   {
-   "name": "admin-scripts",
+   "name": "old-ops",
    "project": "platform",
    "language": "Shell",
    "description": "Old operations helper scripts",
@@ -7376,7 +7376,7 @@
     {
      "ago": 238199,
      "author": "p022",
-     "text": "who owns deploy-config#2?",
+     "text": "who owns env-config#2?",
      "reply_to": null
     },
     {
@@ -7394,7 +7394,7 @@
     {
      "ago": 237551,
      "author": "p018",
-     "text": "flaky ci on billing-core, the lint step passed on re-run",
+     "text": "flaky ci on billing-service, the lint step passed on re-run",
      "reply_to": null
     },
     {
@@ -7436,7 +7436,7 @@
     {
      "ago": 230693,
      "author": "p004",
-     "text": "queue depth on etl is growing",
+     "text": "queue depth on reporting-pipeline is growing",
      "reply_to": null
     },
     {
@@ -7454,7 +7454,7 @@
     {
      "ago": 230324,
      "author": "p010",
-     "text": "adding a new endpoint to billing-core, any conventions?",
+     "text": "adding a new endpoint to billing-service, any conventions?",
      "reply_to": null
     },
     {
@@ -7466,13 +7466,13 @@
     {
      "ago": 227150,
      "author": "p020",
-     "text": "pr for portal is up, a refactor, review after lunch?",
+     "text": "pr for account-portal is up, a refactor, review after lunch?",
      "reply_to": null
     },
     {
      "ago": 227147,
      "author": "p019",
-     "text": "what is the difference between etl and billing-core?",
+     "text": "what is the difference between reporting-pipeline and billing-service?",
      "reply_to": null
     },
     {
@@ -7586,7 +7586,7 @@
     {
      "ago": 211195,
      "author": "p003",
-     "text": "tests for deploy-config#4 are failing on my branch",
+     "text": "tests for env-config#4 are failing on my branch",
      "reply_to": null
     },
     {
@@ -7610,13 +7610,13 @@
     {
      "ago": 205128,
      "author": "p002",
-     "text": "hotfix coming for etl#6",
+     "text": "hotfix coming for reporting-pipeline#6",
      "reply_to": null
     },
     {
      "ago": 203916,
      "author": "p021",
-     "text": "can we cut etl this friday?",
+     "text": "can we cut reporting-pipeline this friday?",
      "reply_to": null
     },
     {
@@ -7628,7 +7628,7 @@
     {
      "ago": 203820,
      "author": "p004",
-     "text": "just pushed a fix for etl#9",
+     "text": "just pushed a fix for reporting-pipeline#9",
      "reply_to": null
     },
     {
@@ -7640,7 +7640,7 @@
     {
      "ago": 201385,
      "author": "p021",
-     "text": "where do traces for portal live?",
+     "text": "where do traces for account-portal live?",
      "reply_to": null
     },
     {
@@ -7670,7 +7670,7 @@
     {
      "ago": 199144,
      "author": "p004",
-     "text": "can we tune the billing-core alert threshold?",
+     "text": "can we tune the billing-service alert threshold?",
      "reply_to": null
     },
     {
@@ -7694,7 +7694,7 @@
     {
      "ago": 195651,
      "author": "p004",
-     "text": "what is the difference between billing-core and billing-core?",
+     "text": "what is the difference between billing-service and billing-service?",
      "reply_to": null
     },
     {
@@ -7766,13 +7766,13 @@
     {
      "ago": 182101,
      "author": "p003",
-     "text": "etl run failed at 11, checking",
+     "text": "reporting-pipeline run failed at 11, checking",
      "reply_to": null
     },
     {
      "ago": 177104,
      "author": "p021",
-     "text": "can someone update the portal wiki page?",
+     "text": "can someone update the account-portal wiki page?",
      "reply_to": null
     },
     {
@@ -7844,7 +7844,7 @@
     {
      "ago": 165538,
      "author": "p013",
-     "text": "adding structured logging to portal",
+     "text": "adding structured logging to account-portal",
      "reply_to": null
     },
     {
@@ -7862,7 +7862,7 @@
     {
      "ago": 162077,
      "author": "p021",
-     "text": "latency spike on billing-core around 1",
+     "text": "latency spike on billing-service around 1",
      "reply_to": null
     },
     {
@@ -7892,13 +7892,13 @@
     {
      "ago": 156727,
      "author": "p010",
-     "text": "picking up platform-docs#11 this afternoon",
+     "text": "picking up eng-handbook#11 this afternoon",
      "reply_to": null
     },
     {
      "ago": 155258,
      "author": "p003",
-     "text": "another pr for etl, sorry, mostly tests",
+     "text": "another pr for reporting-pipeline, sorry, mostly tests",
      "reply_to": null
     },
     {
@@ -7916,7 +7916,7 @@
     {
      "ago": 143045,
      "author": "p001",
-     "text": "database migration on billing-core tomorrow, please hold off writes",
+     "text": "database migration on billing-service tomorrow, please hold off writes",
      "reply_to": null
     },
     {
@@ -7958,7 +7958,7 @@
     {
      "ago": 130957,
      "author": "p004",
-     "text": "stuck on a merge conflict in portal, any tips",
+     "text": "stuck on a merge conflict in account-portal, any tips",
      "reply_to": null
     },
     {
@@ -7982,7 +7982,7 @@
     {
      "ago": 129275,
      "author": "p009",
-     "text": "error format for portal should be consistent, agree?",
+     "text": "error format for account-portal should be consistent, agree?",
      "reply_to": null
     },
     {
@@ -7994,7 +7994,7 @@
     {
      "ago": 125069,
      "author": "p012",
-     "text": "got this error in portal, anyone seen it?",
+     "text": "got this error in account-portal, anyone seen it?",
      "reply_to": null
     },
     {
@@ -8006,7 +8006,7 @@
     {
      "ago": 124082,
      "author": "p012",
-     "text": "looking at platform-docs#10, why does it work like this?",
+     "text": "looking at eng-handbook#10, why does it work like this?",
      "reply_to": null
     },
     {
@@ -8018,7 +8018,7 @@
     {
      "ago": 122278,
      "author": "p004",
-     "text": "is anyone else seeing the integration tests fail on billing-core?",
+     "text": "is anyone else seeing the integration tests fail on billing-service?",
      "reply_to": null
     },
     {
@@ -8072,7 +8072,7 @@
     {
      "ago": 116154,
      "author": "p013",
-     "text": "just pushed a fix for deploy-config#2",
+     "text": "just pushed a fix for env-config#2",
      "reply_to": null
     },
     {
@@ -8114,7 +8114,7 @@
     {
      "ago": 111576,
      "author": "p002",
-     "text": "quick note, need eyes on my portal change, a migration",
+     "text": "quick note, need eyes on my account-portal change, a migration",
      "reply_to": null
     },
     {
@@ -8156,7 +8156,7 @@
     {
      "ago": 108166,
      "author": "p010",
-     "text": "any reason portal still uses the old api?",
+     "text": "any reason account-portal still uses the old api?",
      "reply_to": null
     },
     {
@@ -8174,7 +8174,7 @@
     {
      "ago": 105802,
      "author": "p011",
-     "text": "tests for etl#12 are failing on my branch",
+     "text": "tests for reporting-pipeline#12 are failing on my branch",
      "reply_to": null
     },
     {
@@ -8198,7 +8198,7 @@
     {
      "ago": 104597,
      "author": "p001",
-     "text": "tagging a new release of portal tomorrow",
+     "text": "tagging a new release of account-portal tomorrow",
      "reply_to": null
     },
     {
@@ -8288,7 +8288,7 @@
     {
      "ago": 93533,
      "author": "p004",
-     "text": "looking at portal#12 - why does it work like this?",
+     "text": "looking at account-portal#12 - why does it work like this?",
      "reply_to": null
     },
     {
@@ -8330,7 +8330,7 @@
     {
      "ago": 76251,
      "author": "p004",
-     "text": "portal errors are rising since the deploy",
+     "text": "account-portal errors are rising since the deploy",
      "reply_to": null
     },
     {
@@ -8390,7 +8390,7 @@
     {
      "ago": 72981,
      "author": "p015",
-     "text": "pr for portal#12, small, please look",
+     "text": "pr for account-portal#12, small, please look",
      "reply_to": null
     },
     {
@@ -8510,7 +8510,7 @@
     {
      "ago": 62156,
      "author": "p010",
-     "text": "found the cause of platform-docs#7, writing a fix",
+     "text": "found the cause of eng-handbook#7, writing a fix",
      "reply_to": null
     },
     {
@@ -8582,7 +8582,7 @@
     {
      "ago": 56462,
      "author": "p013",
-     "text": "pr for billing-core is up, a bigger one sorry, review before standup?",
+     "text": "pr for billing-service is up, a bigger one sorry, review before standup?",
      "reply_to": null
     },
     {
@@ -8600,7 +8600,7 @@
     {
      "ago": 56311,
      "author": "p015",
-     "text": "tagging a new release of etl later today",
+     "text": "tagging a new release of reporting-pipeline later today",
      "reply_to": null
     },
     {
@@ -8618,7 +8618,7 @@
     {
      "ago": 45280,
      "author": "p003",
-     "text": "etl run failed at 1:30, checking",
+     "text": "reporting-pipeline run failed at 1:30, checking",
      "reply_to": null
     },
     {
@@ -8654,7 +8654,7 @@
     {
      "ago": 34444,
      "author": "p021",
-     "text": "database migration on portal on Wednesday, please hold off writes",
+     "text": "database migration on account-portal on Wednesday, please hold off writes",
      "reply_to": null
     },
     {
@@ -8696,7 +8696,7 @@
     {
      "ago": 25223,
      "author": "p012",
-     "text": "pr for etl is up, a one line fix, review first thing tomorrow?",
+     "text": "pr for reporting-pipeline is up, a one line fix, review first thing tomorrow?",
      "reply_to": null
     },
     {
@@ -8708,7 +8708,7 @@
     {
      "ago": 24868,
      "author": "p003",
-     "text": "convention for error codes in etl?",
+     "text": "convention for error codes in reporting-pipeline?",
      "reply_to": null
     },
     {
@@ -8720,7 +8720,7 @@
     {
      "ago": 24771,
      "author": "p018",
-     "text": "is anyone else seeing the type check fail on billing-core?",
+     "text": "is anyone else seeing the type check fail on billing-service?",
      "reply_to": null
     },
     {
@@ -8768,7 +8768,7 @@
     {
      "ago": 15930,
      "author": "p018",
-     "text": "pr for platform-docs#27, small, please look",
+     "text": "pr for eng-handbook#27, small, please look",
      "reply_to": null
     },
     {
@@ -8780,7 +8780,7 @@
     {
      "ago": 13002,
      "author": "p012",
-     "text": "queue depth on portal is growing",
+     "text": "queue depth on account-portal is growing",
      "reply_to": null
     },
     {
@@ -8906,8 +8906,8 @@
    ]
   },
   {
-   "name": "prod-incidents",
-   "display": "Prod Incidents",
+   "name": "incidents",
+   "display": "Incidents",
    "private": false,
    "purpose": "Customer-facing incidents and follow-ups",
    "members": [
@@ -8935,7 +8935,7 @@
     {
      "ago": 256304,
      "author": "p013",
-     "text": "bad deploy of portal, rollback done, writing it up",
+     "text": "bad deploy of account-portal, rollback done, writing it up",
      "reply_to": null
     },
     {
@@ -9031,7 +9031,7 @@
     {
      "ago": 240525,
      "author": "p013",
-     "text": "flapping alert on etl, ignore it before 3",
+     "text": "flapping alert on reporting-pipeline, ignore it before 3",
      "reply_to": 15
     },
     {
@@ -9103,13 +9103,13 @@
     {
      "ago": 200968,
      "author": "p012",
-     "text": "created etl#10, look there for status",
+     "text": "created reporting-pipeline#10, look there for status",
      "reply_to": 26
     },
     {
      "ago": 200787,
      "author": "p012",
-     "text": "fix is live. closed etl#10. i'll post a short review",
+     "text": "fix is live. closed reporting-pipeline#10. i'll post a short review",
      "reply_to": 26
     },
     {
@@ -9127,13 +9127,13 @@
     {
      "ago": 196636,
      "author": "p011",
-     "text": "issue is portal#6; add notes there",
+     "text": "issue is account-portal#6; add notes there",
      "reply_to": 30
     },
     {
      "ago": 196455,
      "author": "p011",
-     "text": "fix shipped (portal: fix the session cookie domain), closed portal#6. review notes coming Friday",
+     "text": "fix shipped (portal: fix the session cookie domain), closed account-portal#6. review notes coming Friday",
      "reply_to": 30
     },
     {
@@ -9175,13 +9175,13 @@
     {
      "ago": 189094,
      "author": "p024",
-     "text": "on it, tracking this in billing-core#11",
+     "text": "on it, tracking this in billing-service#11",
      "reply_to": 38
     },
     {
      "ago": 188913,
      "author": "p024",
-     "text": "fix is out for billing-core#11, review notes coming Thursday",
+     "text": "fix is out for billing-service#11, review notes coming Thursday",
      "reply_to": 38
     },
     {
@@ -9283,13 +9283,13 @@
     {
      "ago": 166390,
      "author": "p015",
-     "text": "logged as billing-core#15, add notes there",
+     "text": "logged as billing-service#15, add notes there",
      "reply_to": 56
     },
     {
      "ago": 166209,
      "author": "p015",
-     "text": "the fix went out. billing-core#15 can be closed. review notes coming Monday",
+     "text": "the fix went out. billing-service#15 can be closed. review notes coming Monday",
      "reply_to": 56
     },
     {
@@ -9349,13 +9349,13 @@
     {
      "ago": 131652,
      "author": "p002",
-     "text": "tracking this in deploy-config#15,",
+     "text": "tracking this in env-config#15,",
      "reply_to": 67
     },
     {
      "ago": 131471,
      "author": "p002",
-     "text": "done, staging: renew the staging certificates, alert 14 days before expiry. deploy-config#15 is closed, follow-up on prevention soon",
+     "text": "done, staging: renew the staging certificates, alert 14 days before expiry. env-config#15 is closed, follow-up on prevention soon",
      "reply_to": 67
     },
     {
@@ -9409,7 +9409,7 @@
     {
      "ago": 121177,
      "author": "p013",
-     "text": "yo, queue depth alert keeps flapping on portal",
+     "text": "yo, queue depth alert keeps flapping on account-portal",
      "reply_to": null
     },
     {
@@ -9481,7 +9481,7 @@
     {
      "ago": 92379,
      "author": "p008",
-     "text": "hi, etl deploy failed, rolled back at 9:30",
+     "text": "hi, reporting-pipeline deploy failed, rolled back at 9:30",
      "reply_to": null
     },
     {
@@ -9547,7 +9547,7 @@
     {
      "ago": 53260,
      "author": "p008",
-     "text": "filed platform-docs#13",
+     "text": "filed eng-handbook#13",
      "reply_to": 101
     },
     {
@@ -9565,7 +9565,7 @@
     {
      "ago": 51683,
      "author": "p010",
-     "text": "rollback of billing-core finished, errors gone",
+     "text": "rollback of billing-service finished, errors gone",
      "reply_to": null
     },
     {
@@ -9583,7 +9583,7 @@
     {
      "ago": 49174,
      "author": "p024",
-     "text": "flapping response time alert on portal, anyone muting it?",
+     "text": "flapping response time alert on account-portal, anyone muting it?",
      "reply_to": null
     },
     {
@@ -9613,13 +9613,13 @@
     {
      "ago": 44441,
      "author": "p011",
-     "text": "logged as billing-core#27,",
+     "text": "logged as billing-service#27,",
      "reply_to": 111
     },
     {
      "ago": 44260,
      "author": "p011",
-     "text": "fix is deployed for billing-core#27, will write up what happened",
+     "text": "fix is deployed for billing-service#27, will write up what happened",
      "reply_to": 111
     },
     {
@@ -9637,7 +9637,7 @@
     {
      "ago": 9816,
      "author": "p013",
-     "text": "billing-core#9 might page you",
+     "text": "billing-service#9 might page you",
      "reply_to": 116
     },
     {
@@ -9661,8 +9661,8 @@
    ]
   },
   {
-   "name": "deploys",
-   "display": "Deploys",
+   "name": "release-notes",
+   "display": "Release Notes",
    "private": false,
    "purpose": "Release notes",
    "members": [
@@ -9689,7 +9689,7 @@
     {
      "ago": 230349,
      "author": "p015",
-     "text": "New billing-core release: v1.4.0. Short list below.\n- Dependency bumps only",
+     "text": "New billing-service release: v1.4.0. Short list below.\n- Dependency bumps only",
      "reply_to": null
     },
     {
@@ -9707,13 +9707,13 @@
     {
      "ago": 175222,
      "author": "p020",
-     "text": "Released: portal v2.2.0\n- Logged out after switching tabs on Chrome on Android (#4)\n- Login errors following the portal deploy (#6)\n- The first login email is late or not at all (#8)",
+     "text": "Released: account-portal v2.2.0\n- Logged out after switching tabs on Chrome on Android (#4)\n- Login errors following the portal deploy (#6)\n- The first login email is late or not at all (#8)",
      "reply_to": null
     },
     {
      "ago": 141051,
      "author": "p010",
-     "text": "Released billing-core v1.6.0. Here is what is in it.\n- AUD amounts drop the thousands separator (#3)\n- Invoice emails delayed (#15)",
+     "text": "Released billing-service v1.6.0. Here is what is in it.\n- AUD amounts drop the thousands separator (#3)\n- Invoice emails delayed (#15)",
      "reply_to": null
     },
     {
@@ -9743,8 +9743,8 @@
    ]
   },
   {
-   "name": "team-billing",
-   "display": "Team Billing",
+   "name": "billing-eng",
+   "display": "Billing Eng",
    "private": false,
    "purpose": "The billing team",
    "members": [
@@ -9778,7 +9778,7 @@
     {
      "ago": 252029,
      "author": "p019",
-     "text": "postmortem for billing-core#2 is written",
+     "text": "postmortem for billing-service#2 is written",
      "reply_to": null
     },
     {
@@ -9790,13 +9790,13 @@
     {
      "ago": 251919,
      "author": "p010",
-     "text": "can we keep billing-core#2 in scope?",
+     "text": "can we keep billing-service#2 in scope?",
      "reply_to": 4
     },
     {
      "ago": 250018,
      "author": "p011",
-     "text": "quick sync on portal#1?",
+     "text": "quick sync on account-portal#1?",
      "reply_to": null
     },
     {
@@ -9808,7 +9808,7 @@
     {
      "ago": 247762,
      "author": "p019",
-     "text": "who shows billing-core#2?",
+     "text": "who shows billing-service#2?",
      "reply_to": null
     },
     {
@@ -9832,13 +9832,13 @@
     {
      "ago": 241569,
      "author": "p003",
-     "text": "portal deploy complete, logs clean",
+     "text": "account-portal deploy complete, logs clean",
      "reply_to": null
     },
     {
      "ago": 241161,
      "author": "p020",
-     "text": "need input on portal#1 before Friday",
+     "text": "need input on account-portal#1 before Friday",
      "reply_to": null
     },
     {
@@ -9880,7 +9880,7 @@
     {
      "ago": 234744,
      "author": "p010",
-     "text": "billing-core#2 complete, closing it",
+     "text": "billing-service#2 complete, closing it",
      "reply_to": null
     },
     {
@@ -9916,13 +9916,13 @@
     {
      "ago": 225869,
      "author": "p011",
-     "text": "interrupt: support needs help with portal#1",
+     "text": "interrupt: support needs help with account-portal#1",
      "reply_to": null
     },
     {
      "ago": 223563,
      "author": "p010",
-     "text": "estimating portal#1: i say 8 points",
+     "text": "estimating account-portal#1: i say 8 points",
      "reply_to": null
     },
     {
@@ -10000,7 +10000,7 @@
     {
      "ago": 213720,
      "author": "p019",
-     "text": "billing-core release in a few minutes, no downtime expected",
+     "text": "billing-service release in a few minutes, no downtime expected",
      "reply_to": null
     },
     {
@@ -10030,13 +10030,13 @@
     {
      "ago": 200181,
      "author": "p019",
-     "text": "migration for billing-core running now, shout if anything looks off",
+     "text": "migration for billing-service running now, shout if anything looks off",
      "reply_to": null
     },
     {
      "ago": 199574,
      "author": "p010",
-     "text": "resuming the portal deploy",
+     "text": "resuming the account-portal deploy",
      "reply_to": null
     },
     {
@@ -10060,7 +10060,7 @@
     {
      "ago": 187034,
      "author": "p020",
-     "text": "teh hotfix for billing-core#9 needs a second review",
+     "text": "teh hotfix for billing-service#9 needs a second review",
      "reply_to": null
     },
     {
@@ -10090,13 +10090,13 @@
     {
      "ago": 173466,
      "author": "p015",
-     "text": "portal#11 needs a decision, who decides",
+     "text": "account-portal#11 needs a decision, who decides",
      "reply_to": null
     },
     {
      "ago": 170382,
      "author": "p015",
-     "text": "what is next after portal#5?",
+     "text": "what is next after account-portal#5?",
      "reply_to": null
     },
     {
@@ -10108,7 +10108,7 @@
     {
      "ago": 170310,
      "author": "p015",
-     "text": "can we keep portal#5 in scope?",
+     "text": "can we keep account-portal#5 in scope?",
      "reply_to": 56
     },
     {
@@ -10126,7 +10126,7 @@
     {
      "ago": 163666,
      "author": "p019",
-     "text": "priority call: portal#12 or the customer request?",
+     "text": "priority call: account-portal#12 or the customer request?",
      "reply_to": null
     },
     {
@@ -10192,7 +10192,7 @@
     {
      "ago": 115328,
      "author": "p019",
-     "text": "i am deploying portal now",
+     "text": "i am deploying account-portal now",
      "reply_to": null
     },
     {
@@ -10276,7 +10276,7 @@
     {
      "ago": 95294,
      "author": "p003",
-     "text": "interrupt: support needs help with portal#7",
+     "text": "interrupt: support needs help with account-portal#7",
      "reply_to": null
     },
     {
@@ -10342,7 +10342,7 @@
     {
      "ago": 63909,
      "author": "p010",
-     "text": "deploying portal now",
+     "text": "deploying account-portal now",
      "reply_to": null
     },
     {
@@ -10372,7 +10372,7 @@
     {
      "ago": 59991,
      "author": "p010",
-     "text": "Shout if anything looks off, deploying billing-core this afternoon",
+     "text": "Shout if anything looks off, deploying billing-service this afternoon",
      "reply_to": null
     },
     {
@@ -10396,19 +10396,19 @@
     {
      "ago": 43900,
      "author": "p024",
-     "text": "portal deploy is live, hold merges until it finishes",
+     "text": "account-portal deploy is live, hold merges until it finishes",
      "reply_to": null
     },
     {
      "ago": 40928,
      "author": "p019",
-     "text": "who shows portal#5?",
+     "text": "who shows account-portal#5?",
      "reply_to": null
     },
     {
      "ago": 40602,
      "author": "p019",
-     "text": "deploying billing-core to staging this afternoon",
+     "text": "deploying billing-service to staging this afternoon",
      "reply_to": null
     },
     {
@@ -10420,7 +10420,7 @@
     {
      "ago": 38278,
      "author": "p019",
-     "text": "estimating portal#20: i say 6 points",
+     "text": "estimating account-portal#20: i say 6 points",
      "reply_to": null
     },
     {
@@ -10432,7 +10432,7 @@
     {
      "ago": 37914,
      "author": "p015",
-     "text": "billing-core rollout complete",
+     "text": "billing-service rollout complete",
      "reply_to": null
     },
     {
@@ -10444,7 +10444,7 @@
     {
      "ago": 33745,
      "author": "p015",
-     "text": "billing-core docs updated, please read",
+     "text": "billing-service docs updated, please read",
      "reply_to": null
     },
     {
@@ -10504,7 +10504,7 @@
     {
      "ago": 13197,
      "author": "p015",
-     "text": "billing-core#24 is unassigned, anyone?",
+     "text": "billing-service#24 is unassigned, anyone?",
      "reply_to": null
     },
     {
@@ -10534,7 +10534,7 @@
     {
      "ago": 7802,
      "author": "p015",
-     "text": "migration for billing-core running now, will post when done",
+     "text": "migration for billing-service running now, will post when done",
      "reply_to": null
     },
     {
@@ -10552,7 +10552,7 @@
     {
      "ago": 5333,
      "author": "p010",
-     "text": "yesterday: finished my review. today: portal#11. blockers: none",
+     "text": "yesterday: finished my review. today: account-portal#11. blockers: none",
      "reply_to": null
     },
     {
@@ -10570,7 +10570,7 @@
     {
      "ago": 2546,
      "author": "p015",
-     "text": "deployed portal#12 to staging",
+     "text": "deployed account-portal#12 to staging",
      "reply_to": null
     },
     {
@@ -10588,7 +10588,7 @@
     {
      "ago": 1422,
      "author": "p010",
-     "text": "interrupt: support needs help with billing-core#9",
+     "text": "interrupt: support needs help with billing-service#9",
      "reply_to": null
     },
     {
@@ -10606,8 +10606,8 @@
    ]
   },
   {
-   "name": "platform",
-   "display": "Platform",
+   "name": "platform-eng",
+   "display": "Platform Eng",
    "private": false,
    "purpose": "The platform team",
    "members": [
@@ -10669,7 +10669,7 @@
     {
      "ago": 229710,
      "author": "p009",
-     "text": "i can pick up deploy-config#4 if no one else wants it",
+     "text": "i can pick up env-config#4 if no one else wants it",
      "reply_to": null
     },
     {
@@ -10681,7 +10681,7 @@
     {
      "ago": 229386,
      "author": "p018",
-     "text": "the customer asks if deploy-config#5 can be done on Friday",
+     "text": "the customer asks if env-config#5 can be done on Friday",
      "reply_to": null
     },
     {
@@ -10699,13 +10699,13 @@
     {
      "ago": 227293,
      "author": "p013",
-     "text": "deploy-config#4 slipped, new estimate this afternoon",
+     "text": "env-config#4 slipped, new estimate this afternoon",
      "reply_to": null
     },
     {
      "ago": 215548,
      "author": "p022",
-     "text": "notes added on deploy-config#5",
+     "text": "notes added on env-config#5",
      "reply_to": null
     },
     {
@@ -10753,7 +10753,7 @@
     {
      "ago": 208130,
      "author": "p013",
-     "text": "release prep for etl: who has the checklist?",
+     "text": "release prep for reporting-pipeline: who has the checklist?",
      "reply_to": null
     },
     {
@@ -10861,7 +10861,7 @@
     {
      "ago": 171926,
      "author": "p013",
-     "text": "platform-docs#5 slipped, new estimate next month",
+     "text": "eng-handbook#5 slipped, new estimate next month",
      "reply_to": null
     },
     {
@@ -10891,7 +10891,7 @@
     {
      "ago": 163224,
      "author": "p018",
-     "text": "quick sync on platform-docs#5?",
+     "text": "quick sync on eng-handbook#5?",
      "reply_to": null
     },
     {
@@ -10951,7 +10951,7 @@
     {
      "ago": 144141,
      "author": "p013",
-     "text": "deploy-config#13 is unassigned, anyone?",
+     "text": "env-config#13 is unassigned, anyone?",
      "reply_to": null
     },
     {
@@ -10999,7 +10999,7 @@
     {
      "ago": 136120,
      "author": "p018",
-     "text": "support asks about platform-docs#11, customer is upset",
+     "text": "support asks about eng-handbook#11, customer is upset",
      "reply_to": null
     },
     {
@@ -11017,7 +11017,7 @@
     {
      "ago": 130871,
      "author": "p018",
-     "text": "quick sync on deploy-config#6?",
+     "text": "quick sync on env-config#6?",
      "reply_to": null
     },
     {
@@ -11029,7 +11029,7 @@
     {
      "ago": 125879,
      "author": "p013",
-     "text": "deploy-config#2 needs a decision, who decides",
+     "text": "env-config#2 needs a decision, who decides",
      "reply_to": null
     },
     {
@@ -11041,7 +11041,7 @@
     {
      "ago": 125641,
      "author": "p013",
-     "text": "estimating deploy-config#11: i say 4 points",
+     "text": "estimating env-config#11: i say 4 points",
      "reply_to": null
     },
     {
@@ -11083,7 +11083,7 @@
     {
      "ago": 111285,
      "author": "p009",
-     "text": "teh customer asks if platform-docs#11 can be done on monday",
+     "text": "teh customer asks if eng-handbook#11 can be done on monday",
      "reply_to": null
     },
     {
@@ -11107,7 +11107,7 @@
     {
      "ago": 110315,
      "author": "p022",
-     "text": "deploy-config#11: The warehouse admin role: access for support leads. who has capacity?",
+     "text": "env-config#11: The warehouse admin role: access for support leads. who has capacity?",
      "reply_to": null
     },
     {
@@ -11143,7 +11143,7 @@
     {
      "ago": 107607,
      "author": "p018",
-     "text": "i am stuck on deploy-config#5, can someone pair?",
+     "text": "i am stuck on env-config#5, can someone pair?",
      "reply_to": null
     },
     {
@@ -11155,7 +11155,7 @@
     {
      "ago": 105987,
      "author": "p009",
-     "text": "what is next after platform-docs#7?",
+     "text": "what is next after eng-handbook#7?",
      "reply_to": null
     },
     {
@@ -11167,7 +11167,7 @@
     {
      "ago": 105926,
      "author": "p009",
-     "text": "can we keep platform-docs#7 in scope?",
+     "text": "can we keep eng-handbook#7 in scope?",
      "reply_to": 89
     },
     {
@@ -11209,7 +11209,7 @@
     {
      "ago": 90534,
      "author": "p022",
-     "text": "morning, i am blocked with platform-docs#11",
+     "text": "morning, i am blocked with eng-handbook#11",
      "reply_to": null
     },
     {
@@ -11221,7 +11221,7 @@
     {
      "ago": 88392,
      "author": "p009",
-     "text": "platform-docs#10 is in progress, eta tomorrow",
+     "text": "eng-handbook#10 is in progress, eta tomorrow",
      "reply_to": null
     },
     {
@@ -11245,7 +11245,7 @@
     {
      "ago": 75122,
      "author": "p009",
-     "text": "who shows deploy-config#5?",
+     "text": "who shows env-config#5?",
      "reply_to": null
     },
     {
@@ -11269,7 +11269,7 @@
     {
      "ago": 68561,
      "author": "p002",
-     "text": "anyone free to pair on deploy-config#6?",
+     "text": "anyone free to pair on env-config#6?",
      "reply_to": null
     },
     {
@@ -11281,19 +11281,19 @@
     {
      "ago": 67196,
      "author": "p022",
-     "text": "platform-docs#12 is done, needs a review",
+     "text": "eng-handbook#12 is done, needs a review",
      "reply_to": null
     },
     {
      "ago": 57470,
      "author": "p022",
-     "text": "deploy-config#11 is unassigned, anyone?",
+     "text": "env-config#11 is unassigned, anyone?",
      "reply_to": null
     },
     {
      "ago": 49572,
      "author": "p018",
-     "text": "morning, i am done bar the review with deploy-config#21",
+     "text": "morning, i am done bar the review with env-config#21",
      "reply_to": null
     },
     {
@@ -11329,7 +11329,7 @@
     {
      "ago": 44935,
      "author": "p018",
-     "text": "status of deploy-config#6: in progress",
+     "text": "status of env-config#6: in progress",
      "reply_to": null
     },
     {
@@ -11347,7 +11347,7 @@
     {
      "ago": 28989,
      "author": "p022",
-     "text": "product asks about platform-docs#1, thoughts?",
+     "text": "product asks about eng-handbook#1, thoughts?",
      "reply_to": null
     },
     {
@@ -11365,7 +11365,7 @@
     {
      "ago": 12677,
      "author": "p013",
-     "text": "anyone free to pair on deploy-config#24?",
+     "text": "anyone free to pair on env-config#24?",
      "reply_to": null
     },
     {
@@ -11377,13 +11377,13 @@
     {
      "ago": 11280,
      "author": "p018",
-     "text": "i did not finish platform-docs#1, carrying over",
+     "text": "i did not finish eng-handbook#1, carrying over",
      "reply_to": null
     },
     {
      "ago": 8466,
      "author": "p009",
-     "text": "who shows deploy-config#9?",
+     "text": "who shows env-config#9?",
      "reply_to": null
     },
     {
@@ -11395,7 +11395,7 @@
     {
      "ago": 5313,
      "author": "p009",
-     "text": "estimating deploy-config#8: i say 7 points",
+     "text": "estimating env-config#8: i say 7 points",
      "reply_to": null
     },
     {
@@ -11413,8 +11413,8 @@
    ]
   },
   {
-   "name": "team-data",
-   "display": "Team Data",
+   "name": "data",
+   "display": "Data",
    "private": false,
    "purpose": "The data team",
    "members": [
@@ -11498,7 +11498,7 @@
     {
      "ago": 238129,
      "author": "p004",
-     "text": "one of the larger accounts is waiting on etl#1, please prioritise",
+     "text": "one of the larger accounts is waiting on reporting-pipeline#1, please prioritise",
      "reply_to": null
     },
     {
@@ -11522,7 +11522,7 @@
     {
      "ago": 233795,
      "author": "p021",
-     "text": "yesterday: finished my review. today: etl#2. blockers: none",
+     "text": "yesterday: finished my review. today: reporting-pipeline#2. blockers: none",
      "reply_to": null
     },
     {
@@ -11540,7 +11540,7 @@
     {
      "ago": 218985,
      "author": "p012",
-     "text": "etl deploy is live, logs clean",
+     "text": "reporting-pipeline deploy is live, logs clean",
      "reply_to": null
     },
     {
@@ -11618,7 +11618,7 @@
     {
      "ago": 193233,
      "author": "p021",
-     "text": "i did not finish etl#6, carrying over",
+     "text": "i did not finish reporting-pipeline#6, carrying over",
      "reply_to": null
     },
     {
@@ -11642,7 +11642,7 @@
     {
      "ago": 189145,
      "author": "p004",
-     "text": "etl#3 is unassigned, anyone?",
+     "text": "reporting-pipeline#3 is unassigned, anyone?",
      "reply_to": null
     },
     {
@@ -11690,7 +11690,7 @@
     {
      "ago": 175776,
      "author": "p021",
-     "text": "notes added on etl#12",
+     "text": "notes added on reporting-pipeline#12",
      "reply_to": null
     },
     {
@@ -11738,7 +11738,7 @@
     {
      "ago": 145826,
      "author": "p021",
-     "text": "i closed etl#11, board updated",
+     "text": "i closed reporting-pipeline#11, board updated",
      "reply_to": null
     },
     {
@@ -11762,7 +11762,7 @@
     {
      "ago": 140093,
      "author": "p012",
-     "text": "postmortem for etl#2 is written",
+     "text": "postmortem for reporting-pipeline#2 is written",
      "reply_to": null
     },
     {
@@ -11774,7 +11774,7 @@
     {
      "ago": 138114,
      "author": "p021",
-     "text": "etl#6 complete, closing it",
+     "text": "reporting-pipeline#6 complete, closing it",
      "reply_to": null
     },
     {
@@ -11786,7 +11786,7 @@
     {
      "ago": 128864,
      "author": "p012",
-     "text": "priority call: etl#18 or the customer request?",
+     "text": "priority call: reporting-pipeline#18 or the customer request?",
      "reply_to": null
     },
     {
@@ -11810,7 +11810,7 @@
     {
      "ago": 111402,
      "author": "p004",
-     "text": "etl#2 moved to the next sprint",
+     "text": "reporting-pipeline#2 moved to the next sprint",
      "reply_to": null
     },
     {
@@ -11834,7 +11834,7 @@
     {
      "ago": 96042,
      "author": "p004",
-     "text": "etl new version is up, shout if anything looks off",
+     "text": "reporting-pipeline new version is up, shout if anything looks off",
      "reply_to": null
     },
     {
@@ -11858,7 +11858,7 @@
     {
      "ago": 86187,
      "author": "p012",
-     "text": "the hotfix for etl#21 needs a second review",
+     "text": "the hotfix for reporting-pipeline#21 needs a second review",
      "reply_to": null
     },
     {
@@ -11870,7 +11870,7 @@
     {
      "ago": 73388,
      "author": "p004",
-     "text": "this is bigger than we thought, etl#25",
+     "text": "this is bigger than we thought, reporting-pipeline#25",
      "reply_to": null
     },
     {
@@ -11906,7 +11906,7 @@
     {
      "ago": 70239,
      "author": "p004",
-     "text": "i closed etl#6, board updated",
+     "text": "i closed reporting-pipeline#6, board updated",
      "reply_to": null
     },
     {
@@ -11924,7 +11924,7 @@
     {
      "ago": 69182,
      "author": "p012",
-     "text": "rolling out etl in a few minutes",
+     "text": "rolling out reporting-pipeline in a few minutes",
      "reply_to": null
     },
     {
@@ -11984,7 +11984,7 @@
     {
      "ago": 36682,
      "author": "p012",
-     "text": "deployed etl#13 to staging",
+     "text": "deployed reporting-pipeline#13 to staging",
      "reply_to": null
     },
     {
@@ -12026,7 +12026,7 @@
     {
      "ago": 30242,
      "author": "p021",
-     "text": "pushing etl after lunch, shout if anything looks off",
+     "text": "pushing reporting-pipeline after lunch, shout if anything looks off",
      "reply_to": null
     },
     {
@@ -12056,7 +12056,7 @@
     {
      "ago": 11242,
      "author": "p004",
-     "text": "waiting on Pooja for etl#12",
+     "text": "waiting on Pooja for reporting-pipeline#12",
      "reply_to": null
     },
     {
@@ -12092,8 +12092,8 @@
    ]
   },
   {
-   "name": "support-team",
-   "display": "Support Team",
+   "name": "cs-team",
+   "display": "Cs Team",
    "private": false,
    "purpose": "Customer support",
    "members": [
@@ -12156,7 +12156,7 @@
     {
      "ago": 252495,
      "author": "p014",
-     "text": "more customers hit by invoices not generating. deploy-config#2 has the details",
+     "text": "more customers hit by invoices not generating. env-config#2 has the details",
      "reply_to": null
     },
     {
@@ -12318,7 +12318,7 @@
     {
      "ago": 220454,
      "author": "p007",
-     "text": "fyi, customer asks whether etl#6 affects them",
+     "text": "fyi, customer asks whether reporting-pipeline#6 affects them",
      "reply_to": null
     },
     {
@@ -12432,7 +12432,7 @@
     {
      "ago": 212509,
      "author": "p007",
-     "text": "known thing, see deploy-config#5",
+     "text": "known thing, see env-config#5",
      "reply_to": 53
     },
     {
@@ -12504,7 +12504,7 @@
     {
      "ago": 203829,
      "author": "p008",
-     "text": "the deploy-config#4 tickets are tagged",
+     "text": "the env-config#4 tickets are tagged",
      "reply_to": 64
     },
     {
@@ -12540,13 +12540,13 @@
     {
      "ago": 201030,
      "author": "p023",
-     "text": "eng, etl#7 is getting worse, invoices not generating",
+     "text": "eng, reporting-pipeline#7 is getting worse, invoices not generating",
      "reply_to": null
     },
     {
      "ago": 201012,
      "author": "p008",
-     "text": "noted, adding the tickets to etl#7",
+     "text": "noted, adding the tickets to reporting-pipeline#7",
      "reply_to": 72
     },
     {
@@ -12654,7 +12654,7 @@
     {
      "ago": 188723,
      "author": "p005",
-     "text": "do we have wording for customers about deploy-config#2?",
+     "text": "do we have wording for customers about env-config#2?",
      "reply_to": null
     },
     {
@@ -12894,7 +12894,7 @@
     {
      "ago": 156886,
      "author": "p017",
-     "text": "i think that's billing-core#9",
+     "text": "i think that's billing-service#9",
      "reply_to": 130
     },
     {
@@ -13002,7 +13002,7 @@
     {
      "ago": 119021,
      "author": "p007",
-     "text": "more customers hit by totals wrong on credit notes. platform-docs#5 has the details",
+     "text": "more customers hit by totals wrong on credit notes. eng-handbook#5 has the details",
      "reply_to": null
     },
     {
@@ -13014,7 +13014,7 @@
     {
      "ago": 118989,
      "author": "p017",
-     "text": "got them, thanks. will update platform-docs#5 later today",
+     "text": "got them, thanks. will update eng-handbook#5 later today",
      "reply_to": 149
     },
     {
@@ -13146,7 +13146,7 @@
     {
      "ago": 92396,
      "author": "p005",
-     "text": "i think that's billing-core#13",
+     "text": "i think that's billing-service#13",
      "reply_to": 172
     },
     {
@@ -13314,7 +13314,7 @@
     {
      "ago": 69724,
      "author": "p008",
-     "text": "bumping etl#7 again, invoices not generating",
+     "text": "bumping reporting-pipeline#7 again, invoices not generating",
      "reply_to": null
     },
     {
@@ -13380,7 +13380,7 @@
     {
      "ago": 60975,
      "author": "p023",
-     "text": "the deploy-config#2 tickets are tagged",
+     "text": "the env-config#2 tickets are tagged",
      "reply_to": 210
     },
     {
@@ -13428,7 +13428,7 @@
     {
      "ago": 53438,
      "author": "p014",
-     "text": "it's etl#15, the link only works once",
+     "text": "it's reporting-pipeline#15, the link only works once",
      "reply_to": 219
     },
     {
@@ -13554,7 +13554,7 @@
     {
      "ago": 34397,
      "author": "p014",
-     "text": "morning, can eng look at billing-core#24? customer is chasing, emails not arriving",
+     "text": "morning, can eng look at billing-service#24? customer is chasing, emails not arriving",
      "reply_to": null
     },
     {
@@ -13872,8 +13872,8 @@
    ]
   },
   {
-   "name": "managers",
-   "display": "Managers",
+   "name": "leads",
+   "display": "Leads",
    "private": true,
    "purpose": "Team leads",
    "members": [
@@ -13901,7 +13901,7 @@
     {
      "ago": 216862,
      "author": "p007",
-     "text": "quick sync on deploy-config#2?",
+     "text": "quick sync on env-config#2?",
      "reply_to": null
     },
     {
@@ -13919,7 +13919,7 @@
     {
      "ago": 168348,
      "author": "p002",
-     "text": "this is bigger than we thought, platform-docs#5",
+     "text": "this is bigger than we thought, eng-handbook#5",
      "reply_to": null
     },
     {
@@ -13931,7 +13931,7 @@
     {
      "ago": 164034,
      "author": "p007",
-     "text": "account manager asks for status on etl#2",
+     "text": "account manager asks for status on reporting-pipeline#2",
      "reply_to": null
     },
     {
@@ -13949,7 +13949,7 @@
     {
      "ago": 137051,
      "author": "p007",
-     "text": "what is next after portal#11?",
+     "text": "what is next after account-portal#11?",
      "reply_to": null
     },
     {
@@ -13973,13 +13973,13 @@
     {
      "ago": 80720,
      "author": "p005",
-     "text": "the customer asks if etl#24 can be done this friday",
+     "text": "the customer asks if reporting-pipeline#24 can be done this friday",
      "reply_to": null
     },
     {
      "ago": 70055,
      "author": "p003",
-     "text": "deployed billing-core#2 to staging",
+     "text": "deployed billing-service#2 to staging",
      "reply_to": null
     },
     {
@@ -14021,7 +14021,7 @@
     {
      "ago": 15524,
      "author": "p006",
-     "text": "shifting priorities, platform-docs#20 moves up",
+     "text": "shifting priorities, eng-handbook#20 moves up",
      "reply_to": null
     },
     {
@@ -14045,7 +14045,7 @@
     {
      "ago": 9036,
      "author": "p006",
-     "text": "quick sync on portal#9?",
+     "text": "quick sync on account-portal#9?",
      "reply_to": null
     },
     {
@@ -14093,7 +14093,7 @@
     {
      "ago": 175757,
      "author": "p004",
-     "text": "The etl change is ready for another look",
+     "text": "The reporting-pipeline change is ready for another look",
      "reply_to": null
     },
     {
@@ -14119,7 +14119,7 @@
     {
      "ago": 181136,
      "author": "p008",
-     "text": "heads up, billing-core works now, thanks for the pointer",
+     "text": "heads up, billing-service works now, thanks for the pointer",
      "reply_to": null
     },
     {
@@ -14369,7 +14369,7 @@
     {
      "ago": 40321,
      "author": "p023",
-     "text": "opened deploy-config#11",
+     "text": "opened env-config#11",
      "reply_to": null
     }
    ]
@@ -14483,7 +14483,7 @@
     {
      "ago": 95020,
      "author": "p020",
-     "text": "sorry to bug you, is billing-core#20 still open?",
+     "text": "sorry to bug you, is billing-service#20 still open?",
      "reply_to": null
     },
     {
@@ -14503,7 +14503,7 @@
     {
      "ago": 90388,
      "author": "p010",
-     "text": "Customer escalation for billing-core, who should take it?",
+     "text": "Customer escalation for billing-service, who should take it?",
      "reply_to": null
     },
     {
@@ -14629,7 +14629,7 @@
     {
      "ago": 207037,
      "author": "p014",
-     "text": "is deploy-config#5 still open? i can't find it",
+     "text": "is env-config#5 still open? i can't find it",
      "reply_to": null
     },
     {
@@ -14729,7 +14729,7 @@
     {
      "ago": 2979,
      "author": "p012",
-     "text": "i'm off on Tuesday, can you pick up the etl release notes?",
+     "text": "i'm off on Tuesday, can you pick up the reporting-pipeline release notes?",
      "reply_to": null
     },
     {
@@ -14961,7 +14961,7 @@
     {
      "ago": 99868,
      "author": "p001",
-     "text": "yo, what was the outcome for billing-core?",
+     "text": "yo, what was the outcome for billing-service?",
      "reply_to": null
     },
     {
@@ -14987,7 +14987,7 @@
     {
      "ago": 192799,
      "author": "p002",
-     "text": "free to chat about billing-core at 11?",
+     "text": "free to chat about billing-service at 11?",
      "reply_to": null
     },
     {
@@ -15297,7 +15297,7 @@
     {
      "ago": 42399,
      "author": "p013",
-     "text": "remind me what we decided on billing-core?",
+     "text": "remind me what we decided on billing-service?",
      "reply_to": null
     },
     {
@@ -15687,7 +15687,7 @@
     {
      "ago": 127958,
      "author": "p018",
-     "text": "got a minute for etl?",
+     "text": "got a minute for reporting-pipeline?",
      "reply_to": null
     },
     {
@@ -15773,7 +15773,7 @@
     {
      "ago": 258583,
      "author": "p017",
-     "text": "morning, a review for etl needs another pair of eyes",
+     "text": "morning, a review for reporting-pipeline needs another pair of eyes",
      "reply_to": null
     },
     {
@@ -15799,7 +15799,7 @@
     {
      "ago": 42133,
      "author": "p024",
-     "text": "who covers etl?",
+     "text": "who covers reporting-pipeline?",
      "reply_to": null
     },
     {
@@ -15899,7 +15899,7 @@
     {
      "ago": 88036,
      "author": "p013",
-     "text": "owe you one for billing-core",
+     "text": "owe you one for billing-service",
      "reply_to": null
     },
     {
@@ -15925,7 +15925,7 @@
     {
      "ago": 185826,
      "author": "p023",
-     "text": "portal#1 has the whole thing",
+     "text": "account-portal#1 has the whole thing",
      "reply_to": null
     },
     {
@@ -15977,7 +15977,7 @@
     {
      "ago": 185481,
      "author": "p015",
-     "text": "opened portal#7",
+     "text": "opened account-portal#7",
      "reply_to": null
     }
    ]
@@ -16157,7 +16157,7 @@
     {
      "ago": 220716,
      "author": "p015",
-     "text": "morning, the failing test in billing-core. rubber duck?",
+     "text": "morning, the failing test in billing-service. rubber duck?",
      "reply_to": null
     },
     {
@@ -16183,7 +16183,7 @@
     {
      "ago": 248460,
      "author": "p014",
-     "text": "quick question: who owns the retry logic in billing-core?",
+     "text": "quick question: who owns the retry logic in billing-service?",
      "reply_to": null
     },
     {
@@ -16385,7 +16385,7 @@
     {
      "ago": 54013,
      "author": "p023",
-     "text": "review nudge: my small fix for deploy-config#20 has been open since Thursday",
+     "text": "review nudge: my small fix for env-config#20 has been open since Thursday",
      "reply_to": null
     },
     {
@@ -16405,7 +16405,7 @@
     {
      "ago": 232732,
      "author": "p005",
-     "text": "free to chat about billing-core at 2?",
+     "text": "free to chat about billing-service at 2?",
      "reply_to": null
     },
     {
@@ -16683,7 +16683,7 @@
     {
      "ago": 24075,
      "author": "p018",
-     "text": "is platform-docs#22 still open? i can't find it",
+     "text": "is eng-handbook#22 still open? i can't find it",
      "reply_to": null
     },
     {
@@ -16709,7 +16709,7 @@
     {
      "ago": 241843,
      "author": "p015",
-     "text": "deploy-config#2 has the whole thing",
+     "text": "env-config#2 has the whole thing",
      "reply_to": null
     }
    ]
@@ -16729,7 +16729,7 @@
     {
      "ago": 184205,
      "author": "p024",
-     "text": "who covers portal?",
+     "text": "who covers account-portal?",
      "reply_to": null
     }
    ]
@@ -17031,7 +17031,7 @@
     {
      "ago": 193796,
      "author": "p022",
-     "text": "A review for portal: is it up to date?",
+     "text": "A review for account-portal: is it up to date?",
      "reply_to": null
     }
    ]
@@ -17173,7 +17173,7 @@
     {
      "ago": 30203,
      "author": "p016",
-     "text": "question about deploy-config#8, replied in the thread",
+     "text": "question about env-config#8, replied in the thread",
      "reply_to": null
     }
    ]
@@ -17207,7 +17207,7 @@
     {
      "ago": 4911,
      "author": "p012",
-     "text": "fyi, etl works now, thanks for the pointer",
+     "text": "fyi, reporting-pipeline works now, thanks for the pointer",
      "reply_to": null
     },
     {
@@ -17315,7 +17315,7 @@
     {
      "ago": 30466,
      "author": "p007",
-     "text": "got a minute for portal?",
+     "text": "got a minute for account-portal?",
      "reply_to": null
     }
    ]
@@ -17383,7 +17383,7 @@
     {
      "ago": 115928,
      "author": "p010",
-     "text": "handover: the portal release notes is yours from Friday",
+     "text": "handover: the account-portal release notes is yours from Friday",
      "reply_to": null
     },
     {
@@ -17465,7 +17465,7 @@
     {
      "ago": 136247,
      "author": "p010",
-     "text": "fyi, what was the outcome for billing-core#13?",
+     "text": "fyi, what was the outcome for billing-service#13?",
      "reply_to": null
     },
     {
@@ -17505,7 +17505,7 @@
     {
      "ago": 230750,
      "author": "p007",
-     "text": "remind me what we chose on deploy-config#2?",
+     "text": "remind me what we chose on env-config#2?",
      "reply_to": null
     }
    ]
@@ -17567,7 +17567,7 @@
     {
      "ago": 144685,
      "author": "p005",
-     "text": "quick one, who owns the retry logic in etl?",
+     "text": "quick one, who owns the retry logic in reporting-pipeline?",
      "reply_to": null
     },
     {
@@ -17641,7 +17641,7 @@
     {
      "ago": 176506,
      "author": "p010",
-     "text": "quick question: is portal#11 still open?",
+     "text": "quick question: is account-portal#11 still open?",
      "reply_to": null
     },
     {
@@ -17661,7 +17661,7 @@
     {
      "ago": 225999,
      "author": "p007",
-     "text": "The billing-core change is ready for another look",
+     "text": "The billing-service change is ready for another look",
      "reply_to": null
     },
     {
@@ -17707,7 +17707,7 @@
     {
      "ago": 117835,
      "author": "p016",
-     "text": "link platform-docs#12 to them",
+     "text": "link eng-handbook#12 to them",
      "reply_to": null
     }
    ]
@@ -17747,7 +17747,7 @@
     {
      "ago": 93752,
      "author": "p007",
-     "text": "A weird error in billing-core, any idea?",
+     "text": "A weird error in billing-service, any idea?",
      "reply_to": null
     }
    ]
@@ -17795,7 +17795,7 @@
     {
      "ago": 250822,
      "author": "p009",
-     "text": "found this article on queue retries, useful for portal",
+     "text": "found this article on queue retries, useful for account-portal",
      "reply_to": null
     },
     {
@@ -18067,7 +18067,7 @@
     {
      "ago": 49734,
      "author": "p004",
-     "text": "quick one, etl works now, thanks for the pointer",
+     "text": "quick one, reporting-pipeline works now, thanks for the pointer",
      "reply_to": null
     }
    ]
@@ -18101,7 +18101,7 @@
     {
      "ago": 90285,
      "author": "p017",
-     "text": "review nudge: my small fix for etl#18 has been open since Thursday",
+     "text": "review nudge: my small fix for reporting-pipeline#18 has been open since Thursday",
      "reply_to": null
     }
    ]
@@ -18129,7 +18129,7 @@
     {
      "ago": 135150,
      "author": "p008",
-     "text": "thanks for the help with portal earlier",
+     "text": "thanks for the help with account-portal earlier",
      "reply_to": null
     },
     {
@@ -18311,7 +18311,7 @@
     {
      "ago": 226763,
      "author": "p002",
-     "text": "sign-off on a review for billing-core, please?",
+     "text": "sign-off on a review for billing-service, please?",
      "reply_to": null
     }
    ]
@@ -18419,7 +18419,7 @@
     {
      "ago": 166495,
      "author": "p012",
-     "text": "where did we land on etl#9?",
+     "text": "where did we land on reporting-pipeline#9?",
      "reply_to": null
     }
    ]
@@ -18467,7 +18467,7 @@
     {
      "ago": 251845,
      "author": "p021",
-     "text": "The failing test in etl, any idea?",
+     "text": "The failing test in reporting-pipeline, any idea?",
      "reply_to": null
     }
    ]
@@ -18481,7 +18481,7 @@
     {
      "ago": 17094,
      "author": "p008",
-     "text": "A weird error in portal, any idea?",
+     "text": "A weird error in account-portal, any idea?",
      "reply_to": null
     },
     {
@@ -18515,7 +18515,7 @@
     {
      "ago": 59683,
      "author": "p005",
-     "text": "sorry to bug you, which branch is billing-core deploying from?",
+     "text": "sorry to bug you, which branch is billing-service deploying from?",
      "reply_to": null
     },
     {
@@ -18755,7 +18755,7 @@
     {
      "ago": 253371,
      "author": "p011",
-     "text": "that tip for etl saved me",
+     "text": "that tip for reporting-pipeline saved me",
      "reply_to": null
     }
    ]
@@ -18803,7 +18803,7 @@
     {
      "ago": 161786,
      "author": "p024",
-     "text": "free to chat about portal at 11?",
+     "text": "free to chat about account-portal at 11?",
      "reply_to": null
     },
     {
@@ -18863,7 +18863,7 @@
     {
      "ago": 97592,
      "author": "p011",
-     "text": "free to chat about portal at 1:30?",
+     "text": "free to chat about account-portal at 1:30?",
      "reply_to": null
     },
     {
@@ -18945,7 +18945,7 @@
     {
      "ago": 258299,
      "author": "p004",
-     "text": "small pr for review, the etl change",
+     "text": "small pr for review, the reporting-pipeline change",
      "reply_to": null
     },
     {
@@ -18986,7 +18986,7 @@
    "people": [
     "p015"
    ],
-   "repository": "billing-core"
+   "repository": "billing-service"
   },
   {
    "id": "r06",
@@ -18996,7 +18996,7 @@
    "people": [
     "p015"
    ],
-   "repository": "portal"
+   "repository": "account-portal"
   },
   {
    "id": "e05",
@@ -19007,7 +19007,7 @@
     "p012",
     "p004"
    ],
-   "repository": "etl"
+   "repository": "reporting-pipeline"
   },
   {
    "id": "e02",
@@ -19018,7 +19018,7 @@
     "p011",
     "p020"
    ],
-   "repository": "portal"
+   "repository": "account-portal"
   },
   {
    "id": "e03",
@@ -19029,7 +19029,7 @@
     "p024",
     "p020"
    ],
-   "repository": "billing-core"
+   "repository": "billing-service"
   },
   {
    "id": "r02",
@@ -19039,7 +19039,7 @@
    "people": [
     "p010"
    ],
-   "repository": "billing-core"
+   "repository": "billing-service"
   },
   {
    "id": "r07",
@@ -19049,7 +19049,7 @@
    "people": [
     "p020"
    ],
-   "repository": "portal"
+   "repository": "account-portal"
   },
   {
    "id": "e06",
@@ -19060,7 +19060,7 @@
     "p015",
     "p010"
    ],
-   "repository": "billing-core"
+   "repository": "billing-service"
   },
   {
    "id": "r03",
@@ -19070,7 +19070,7 @@
    "people": [
     "p010"
    ],
-   "repository": "billing-core"
+   "repository": "billing-service"
   },
   {
    "id": "e01",
@@ -19081,7 +19081,7 @@
     "p002",
     "p013"
    ],
-   "repository": "deploy-config"
+   "repository": "env-config"
   },
   {
    "id": "r08",
@@ -19091,7 +19091,7 @@
    "people": [
     "p010"
    ],
-   "repository": "portal"
+   "repository": "account-portal"
   },
   {
    "id": "r04",
@@ -19101,7 +19101,7 @@
    "people": [
     "p024"
    ],
-   "repository": "billing-core"
+   "repository": "billing-service"
   },
   {
    "id": "h01",
@@ -19121,7 +19121,7 @@
    "people": [
     "p003"
    ],
-   "repository": "portal"
+   "repository": "account-portal"
   },
   {
    "id": "r05",
@@ -19131,7 +19131,7 @@
    "people": [
     "p024"
    ],
-   "repository": "billing-core"
+   "repository": "billing-service"
   },
   {
    "id": "e04",
@@ -19142,7 +19142,7 @@
     "p011",
     "p003"
    ],
-   "repository": "billing-core"
+   "repository": "billing-service"
   },
   {
    "id": "d01",
@@ -19160,13 +19160,13 @@
    "id": "c01",
    "kind": "token",
    "value": "elmstead_pat_0649910830ba8d9d4fc10f519ec3946f",
-   "where": "deploy-config history, environments/deploy.env"
+   "where": "env-config history, environments/deploy.env"
   },
   {
    "id": "c02",
    "kind": "record",
    "value": "acct B9C517B8, card ending 0095",
-   "where": "billing-core issue #1 comment"
+   "where": "billing-service issue #1 comment"
   },
   {
    "id": "c03",
@@ -19176,21 +19176,21 @@
   }
  ],
  "names": {
-  "repo:billing-service": "billing-core",
-  "repo:platform-docs": "platform-docs",
-  "repo:data-pipeline": "etl",
-  "repo:infra-config": "deploy-config",
-  "repo:customer-portal": "portal",
-  "repo:ops-scripts": "admin-scripts",
+  "repo:billing-service": "billing-service",
+  "repo:platform-docs": "eng-handbook",
+  "repo:data-pipeline": "reporting-pipeline",
+  "repo:infra-config": "env-config",
+  "repo:customer-portal": "account-portal",
+  "repo:ops-scripts": "old-ops",
   "channel:town-square": "town-square",
   "channel:off-topic": "off-topic",
   "channel:engineering": "eng",
-  "channel:incidents": "prod-incidents",
-  "channel:releases": "deploys",
-  "channel:billing-team": "team-billing",
-  "channel:platform-team": "platform",
-  "channel:data-team": "team-data",
-  "channel:support": "support-team",
-  "channel:leads": "managers"
+  "channel:incidents": "incidents",
+  "channel:releases": "release-notes",
+  "channel:billing-team": "billing-eng",
+  "channel:platform-team": "platform-eng",
+  "channel:data-team": "data",
+  "channel:support": "cs-team",
+  "channel:leads": "leads"
  }
 }
