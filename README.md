@@ -147,4 +147,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Every commit needs a DCO sign-off (`git 
 
 ## Licence
 
-Apache-2.0. Copyright Supercomplicated LLC. See [LICENSE](LICENSE) and [NOTICE](NOTICE). "MirrorDimensions" is a trademark of Supercomplicated LLC; see [TRADEMARKS.md](TRADEMARKS.md).
+Apache-2.0. See [LICENSE](LICENSE), [NOTICE](NOTICE) and [TRADEMARKS.md](TRADEMARKS.md).
