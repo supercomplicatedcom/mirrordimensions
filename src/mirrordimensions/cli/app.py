@@ -438,7 +438,9 @@ def world_new(
         str | None, typer.Option(help="The company's name (default: suggested from the seed).")
     ] = None,
     domain: Annotated[str | None, typer.Option(help="Its domain, for hostnames and email.")] = None,
-    industry: Annotated[str | None, typer.Option(help="Its industry.")] = None,
+    industry: Annotated[
+        str | None, typer.Option(help="Its industry (see: mirror world industries).")
+    ] = None,
     tidiness: Annotated[
         str, typer.Option(help="How tidy its data is: tidy, realistic or messy.")
     ] = "realistic",
@@ -667,6 +669,24 @@ def _world_new_interactive(st: State, directory: Path) -> Path:
             draft.history = typer.prompt("Days of history", default=180, type=int)
         worlddef.save_draft(directory, draft)
     return worlddef.finish_draft(directory, draft)
+
+
+@world_app.command("industries")
+def world_industries(ctx: typer.Context) -> None:
+    """The industry profiles a world can start from, by group (decision 0028)."""
+    from mirrordimensions.world import profile as profiles
+
+    st = _state(ctx)
+    found = [profiles.load(s) for s in profiles.available()]
+    rows = [{"slug": p.slug, "name": p.name, "group": p.group, "aliases": p.aliases} for p in found]
+    if st.out.json_mode:
+        st.out.document(rows)
+        return
+    for group in sorted({p.group for p in found}):
+        st.out.line(group)
+        for p in sorted((p for p in found if p.group == group), key=lambda p: p.name):
+            st.out.line(f"  {p.slug:<34}{p.name}")
+    st.out.next_step("Use one: mirror world new <folder> --industry <slug>")
 
 
 @world_app.command("add")

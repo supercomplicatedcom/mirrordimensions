@@ -7,10 +7,16 @@ from __future__ import annotations
 from mirrordimensions.catalog import index
 
 
-def test_loads_500_plus_the_buildable_twins() -> None:
+def test_loads_500_plus_the_buildable_twins_and_the_industry_systems() -> None:
     stats = index.stats()
-    assert stats["entries"] == 502
-    assert stats["by_status"] == {"candidate": 500, "buildable": 2}
+    # 500 from apps.csv, the two twins, and the industry systems the profiles name.
+    assert stats["entries"] == 574
+    assert stats["by_status"] == {"candidate": 572, "buildable": 2}
+
+
+def test_industry_systems_have_their_own_kind() -> None:
+    epic = index.resolve("epic")
+    assert epic is not None and epic.kind == "ehr" and epic.twin_status == "candidate"
 
 
 def test_names_and_aliases_resolve_ignoring_case_and_punctuation() -> None:

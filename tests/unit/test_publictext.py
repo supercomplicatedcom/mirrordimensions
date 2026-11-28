@@ -105,3 +105,22 @@ def test_repository_files_are_still_reported() -> None:
 def test_the_package_root_is_the_installed_package() -> None:
     assert (publictext.package_root() / "world" / "publictext.py").is_file()
     assert isinstance(publictext.package_root(), Path)
+
+
+def test_a_yaml_comment_does_not_hide_a_run(tmp_path: Path) -> None:
+    folder = tmp_path / "pkg"
+    folder.mkdir()
+    (folder / "p.yaml").write_text(
+        "- the nightly freight manifest export\n# a comment between\n- skipped every second depot today\n",
+        encoding="utf-8",
+    )
+    publictext.package_grams.cache_clear()
+    grams = publictext.package_grams(folder)
+    issue = Issue(
+        number=1,
+        title="Export",
+        body="The nightly freight manifest export skipped every second depot today.",
+        author="p001",
+        ago=1,
+    )
+    assert publictext.check(_world([issue]), grams).public == 1

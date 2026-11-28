@@ -92,9 +92,16 @@ def gram_set(texts: Iterable[str], n: int = RUN) -> frozenset[int]:
 @cache
 def package_grams(root: Path | None = None, n: int = RUN) -> frozenset[int]:
     folder = root or package_root()
-    return gram_set(
-        (p.read_text(encoding="utf-8", errors="ignore") for p in corpus_files(folder)), n
-    )
+    return gram_set((_readable(p) for p in corpus_files(folder)), n)
+
+
+def _readable(path: Path) -> str:
+    """A file as its words run: in YAML, comment-only lines are dropped, so a comment placed
+    between two lines cannot hide that they run on in the file (decision 0029)."""
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    if path.suffix in (".yaml", ".yml"):
+        text = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
+    return text
 
 
 def agent_texts(world: World) -> Iterator[tuple[str, str]]:

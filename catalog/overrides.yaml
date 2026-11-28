@@ -33,3 +33,93 @@ salesforce: {aliases: [salesforce sales cloud, sfdc], kind: crm}
 hubspot: {aliases: [hubspot crm], kind: crm}
 workday: {aliases: [workday hcm], kind: hr}
 okta: {aliases: [okta workforce identity], kind: identity}
+
+# Aliases for names people use for systems the catalog already lists.
+oracle-netsuite: {aliases: [netsuite]}
+adobe-marketo-engage: {aliases: [marketo]}
+adobe-workfront: {aliases: [workfront]}
+crowdstrike-falcon: {aliases: [crowdstrike]}
+grafana-cloud: {aliases: [grafana]}
+quickbooks-online: {aliases: [quickbooks]}
+wordpress-vip: {aliases: [wordpress]}
+microsoft-power-bi: {aliases: [power bi]}
+microsoft-intune: {aliases: [intune]}
+esri-arcgis-online: {aliases: [esri, arcgis]}
+guidewire-cloud: {aliases: [guidewire]}
+sap-s-4hana-cloud: {aliases: [sap, sap s/4hana]}
+
+# Industry systems the industry profiles name (decision 0028). No twin yet: each is recorded
+# in a world's mirror.yaml and left out until one exists.
+epic: {name: Epic, aliases: [epic ehr, epic systems], category: Industry and operations, kind: ehr, tier: 1}
+meditech: {name: MEDITECH Expanse, aliases: [meditech], category: Industry and operations, kind: ehr, tier: 2}
+pointclickcare: {name: PointClickCare, aliases: [pcc], category: Industry and operations, kind: ehr, tier: 2}
+nextgen-healthcare: {name: NextGen Healthcare, aliases: [nextgen], category: Industry and operations, kind: ehr, tier: 2}
+dentrix: {name: Dentrix, category: Industry and operations, kind: practice-management, tier: 3}
+ezyvet: {name: ezyVet, category: Industry and operations, kind: practice-management, tier: 3}
+rhapsody: {name: Rhapsody Integration Engine, aliases: [rhapsody], category: Industry and operations, kind: integration, tier: 3}
+availity: {name: Availity, category: Industry and operations, kind: clearinghouse, tier: 2}
+surescripts: {name: Surescripts, category: Industry and operations, kind: e-prescribing, tier: 2}
+pioneerrx: {name: PioneerRx, category: Industry and operations, kind: pharmacy-management, tier: 3}
+argus-safety: {name: Oracle Argus Safety, aliases: [argus safety, argus], category: Industry and operations, kind: pharmacovigilance, tier: 2}
+mastercontrol: {name: MasterControl, category: Industry and operations, kind: qms, tier: 2}
+benchling: {name: Benchling, category: Industry and operations, kind: eln, tier: 2}
+labware-lims: {name: LabWare LIMS, aliases: [labware], category: Industry and operations, kind: lims, tier: 2}
+facets: {name: TriZetto Facets, aliases: [facets], category: Industry and operations, kind: claims, tier: 2}
+hhaexchange: {name: HHAeXchange, category: Industry and operations, kind: evv, tier: 3}
+powerschool: {name: PowerSchool SIS, aliases: [powerschool], category: Industry and operations, kind: sis, tier: 1}
+infinite-campus: {name: Infinite Campus, category: Industry and operations, kind: sis, tier: 2}
+clever: {name: Clever, category: Industry and operations, kind: rostering, tier: 2}
+moodle: {name: Moodle, category: Industry and operations, kind: lms, tier: 2}
+blackboard-learn: {name: Blackboard Learn, aliases: [blackboard], category: Industry and operations, kind: lms, tier: 2}
+ellucian-banner: {name: Ellucian Banner, aliases: [banner], category: Industry and operations, kind: sis, tier: 2}
+slate: {name: Technolutions Slate, aliases: [slate crm], category: Industry and operations, kind: admissions-crm, tier: 3}
+bloomerang: {name: Bloomerang, category: Industry and operations, kind: donor-management, tier: 3}
+fluxx: {name: Fluxx, category: Industry and operations, kind: grants-management, tier: 3}
+accela: {name: Accela, category: Industry and operations, kind: permitting, tier: 2}
+granicus: {name: Granicus, category: Industry and operations, kind: agenda-management, tier: 2}
+laserfiche: {name: Laserfiche, category: Legal, contracts and records, kind: ecm, tier: 2}
+hyland-onbase: {name: Hyland OnBase, aliases: [onbase], category: Legal, contracts and records, kind: ecm, tier: 2}
+cityworks: {name: Cityworks, category: Industry and operations, kind: asset-management, tier: 3}
+tyler-odyssey: {name: Tyler Odyssey, aliases: [odyssey case manager], category: Industry and operations, kind: case-management, tier: 2}
+mark43: {name: Mark43, category: Industry and operations, kind: rms, tier: 3}
+hexagon-cad: {name: HxGN OnCall Dispatch, aliases: [hexagon cad], category: Industry and operations, kind: cad, tier: 3}
+axon-evidence: {name: Axon Evidence, category: Industry and operations, kind: evidence-management, tier: 2}
+curam: {name: Cúram, aliases: [curam, ibm curam], category: Industry and operations, kind: case-management, tier: 3}
+login-gov: {name: Login.gov, aliases: [login gov], category: Identity and access, kind: identity-proofing, tier: 3}
+amdocs: {name: Amdocs, aliases: [amdocs billing], category: Industry and operations, kind: bss, tier: 2}
+netcracker: {name: Netcracker, category: Industry and operations, kind: oss, tier: 3}
+perforce-helix: {name: Perforce Helix Core, aliases: [perforce, helix core], category: Software development, kind: version-control, tier: 2}
+unity: {name: Unity, aliases: [unity engine], category: Software development, kind: game-engine, tier: 2}
+google-ad-manager: {name: Google Ad Manager, aliases: [ad manager, dfp], category: Marketing, kind: ad-server, tier: 2}
+piano: {name: Piano, aliases: [piano subscriptions], category: Marketing, kind: subscription, tier: 3}
+microsoft-sentinel: {name: Microsoft Sentinel, aliases: [sentinel siem], category: Security, kind: siem, tier: 2}
+symitar: {name: Jack Henry Symitar, aliases: [symitar], category: Industry and operations, kind: core-banking, tier: 2}
+verafin: {name: Verafin, category: Security, kind: aml, tier: 3}
+fireblocks: {name: Fireblocks, category: Industry and operations, kind: custody, tier: 3}
+chainalysis: {name: Chainalysis, category: Security, kind: blockchain-analytics, tier: 3}
+charles-river: {name: Charles River IMS, aliases: [charles river], category: Industry and operations, kind: trading-oms, tier: 3}
+applied-epic: {name: Applied Epic, category: Industry and operations, kind: agency-management, tier: 2}
+cch-axcess: {name: CCH Axcess, category: Finance, ERP and procurement, kind: tax-software, tier: 3}
+opera-pms: {name: Oracle OPERA Cloud, aliases: [opera, opera pms], category: Industry and operations, kind: pms, tier: 1}
+sabre: {name: Sabre, aliases: [sabre gds], category: Industry and operations, kind: gds, tier: 1}
+amadeus-altea: {name: Amadeus Altea, aliases: [amadeus, altea], category: Industry and operations, kind: passenger-service, tier: 1}
+mindbody: {name: Mindbody, category: Industry and operations, kind: gym-management, tier: 2}
+ticketing-platform: {name: Ticketing platform, aliases: [box office system], category: Industry and operations, kind: ticketing-platform, tier: 3}
+igt-advantage: {name: IGT ADVANTAGE, aliases: [slot accounting system], category: Industry and operations, kind: gaming-ops, tier: 3}
+plex-mes: {name: Plex Smart Manufacturing, aliases: [plex, plex mes], category: Industry and operations, kind: mes, tier: 2}
+aveva-pi: {name: AVEVA PI System, aliases: [pi system, osisoft pi], category: Industry and operations, kind: historian, tier: 2}
+primavera-p6: {name: Oracle Primavera P6, aliases: [primavera, p6], category: Industry and operations, kind: scheduling, tier: 2}
+bluebeam: {name: Bluebeam Revu, aliases: [bluebeam], category: Industry and operations, kind: document-markup, tier: 3}
+autodesk-revit: {name: Autodesk Revit, aliases: [revit], category: Industry and operations, kind: cad-bim, tier: 2}
+deltek-vantagepoint: {name: Deltek Vantagepoint, aliases: [vantagepoint, deltek], category: Finance, ERP and procurement, kind: erp, tier: 3}
+yardi-voyager: {name: Yardi Voyager, aliases: [yardi], category: Industry and operations, kind: property-management, tier: 2}
+appfolio: {name: AppFolio, category: Industry and operations, kind: property-management, tier: 2}
+bullhorn: {name: Bullhorn, category: HR and people, kind: ats, tier: 2}
+clio: {aliases: [clio manage]}
+oracle-cis: {name: Oracle Customer Cloud Service, aliases: [oracle cc&b, customer information system], category: Industry and operations, kind: cis, tier: 2}
+navis-n4: {name: Navis N4, aliases: [navis], category: Industry and operations, kind: terminal-operations, tier: 2}
+mcleod: {name: McLeod LoadMaster, aliases: [mcleod], category: Industry and operations, kind: tms, tier: 3}
+oracle-tms: {name: Oracle Transportation Management, aliases: [otm], category: Industry and operations, kind: tms, tier: 2}
+manhattan-wms: {name: Manhattan WMS, aliases: [warehouse management system], category: Industry and operations, kind: wms, tier: 3}
+square-pos: {name: Square for Retail, aliases: [square pos], category: Industry and operations, kind: pos, tier: 2}
+olo: {name: Olo, category: Industry and operations, kind: ordering, tier: 3}

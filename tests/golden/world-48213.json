@@ -680,7 +680,7 @@
       {
        "ago": 254050,
        "author": "p024",
-       "body": "For reference, here's the customer record: acct B9C517B8, card ending 0095. Same account as the report"
+       "body": "Acct B9C517B8, card ending 0095. Customer record, for context"
       }
      ],
      "event": null
@@ -1418,12 +1418,12 @@
      "comments": [
       {
        "ago": 22135,
-       "author": "p022",
-       "body": "+1, it hit us."
+       "author": "p005",
+       "body": "We see it as well."
       },
       {
-       "ago": 19795,
-       "author": "p024",
+       "ago": 19844,
+       "author": "p010",
        "body": "Drafts should be recomputed, issued withholding tax documents must not change."
       }
      ],
@@ -1442,14 +1442,24 @@
      ],
      "comments": [
       {
-       "ago": 20197,
-       "author": "p016",
-       "body": "Is a cost centre free text or a fixed format?"
+       "ago": 19584,
+       "author": "p019",
+       "body": "Snapshot it at creation, or old pro forma invoices change."
       },
       {
-       "ago": 17986,
+       "ago": 17802,
        "author": "p013",
-       "body": "Not sure this belongs in this repository."
+       "body": "Happening to us too, started a few days ago."
+      },
+      {
+       "ago": 15641,
+       "author": "p003",
+       "body": "I will do it once teh release is out for the backend, the form needs Phuong."
+      },
+      {
+       "ago": 12923,
+       "author": "p001",
+       "body": "Is a cost centre free text or a fixed format?"
       }
      ],
      "event": null
@@ -1465,23 +1475,7 @@
      "labels": [
       "bug"
      ],
-     "comments": [
-      {
-       "ago": 15170,
-       "author": "p003",
-       "body": "February shows it worst, almost 9% off."
-      },
-      {
-       "ago": 12452,
-       "author": "p010",
-       "body": "Does the change day belong to the new plan or the old?"
-      },
-      {
-       "ago": 9652,
-       "author": "p002",
-       "body": "Checking with the team first."
-      }
-     ],
+     "comments": [],
      "event": null
     }
    ],
@@ -1612,19 +1606,9 @@
      ],
      "comments": [
       {
-       "ago": 237421,
-       "author": "p022",
-       "body": "I can sketch teh mail relay on Friday, someone else please check the arrows."
-      },
-      {
-       "ago": 235442,
-       "author": "p001",
-       "body": "The fix is on staging, can someone confirm?"
-      },
-      {
-       "ago": 232573,
-       "author": "p008",
-       "body": "Do not forget the nightly job reading from the mail relay."
+       "ago": 236997,
+       "author": "p002",
+       "body": "Checking with the team first."
       }
      ],
      "event": null
@@ -1643,9 +1627,19 @@
      ],
      "comments": [
       {
-       "ago": 230784,
-       "author": "p023",
-       "body": "Careful, the escalation order may differ between environments, note it on the page."
+       "ago": 230569,
+       "author": "p002",
+       "body": "Same for onboarding, I will fix the escalation order in both."
+      },
+      {
+       "ago": 227751,
+       "author": "p013",
+       "body": "I can take docs/releases.md this week, will check the escalation order with the rota."
+      },
+      {
+       "ago": 224778,
+       "author": "p019",
+       "body": "Cheers, that helps."
       }
      ],
      "event": null
@@ -1664,9 +1658,9 @@
      ],
      "comments": [
       {
-       "ago": 219821,
-       "author": "p005",
-       "body": "Happy with the plan, I worry about the migration."
+       "ago": 218554,
+       "author": "p008",
+       "body": "Cannot reproduce on current build, which version are you on?"
       }
      ],
      "event": null
@@ -1685,24 +1679,9 @@
      ],
      "comments": [
       {
-       "ago": 216878,
-       "author": "p006",
-       "body": "Give the laptop setup steps its own section instead of a new page."
-      },
-      {
-       "ago": 214212,
-       "author": "p015",
-       "body": "Checked the numbers, it affects fewer accounts than expected."
-      },
-      {
-       "ago": 213692,
-       "author": "p014",
-       "body": "Our newest hire said the laptop setup steps was the most useful bit in week one."
-      },
-      {
-       "ago": 211501,
-       "author": "p018",
-       "body": "@Christopher any idea why it is so?"
+       "ago": 220593,
+       "author": "p008",
+       "body": "Cannot reproduce on current build, an attached response would help."
       }
      ],
      "event": null
@@ -1721,24 +1700,9 @@
      ],
      "comments": [
       {
-       "ago": 219586,
-       "author": "p022",
-       "body": "Hope to get to it by end of Monday."
-      },
-      {
-       "ago": 215563,
-       "author": "p020",
-       "body": "Thanks, that helps."
-      },
-      {
-       "ago": 214916,
-       "author": "p001",
-       "body": "Is there a workaround for now?"
-      },
-      {
-       "ago": 213273,
-       "author": "p008",
-       "body": "I can take docs/access.md this week, will check the team names with the rota."
+       "ago": 219387,
+       "author": "p009",
+       "body": "Appreciate the quick turnaround."
       }
      ],
      "event": null
@@ -1757,14 +1721,19 @@
      ],
      "comments": [
       {
-       "ago": 210541,
-       "author": "p012",
+       "ago": 211492,
+       "author": "p003",
        "body": "I would say people-ops owns how long write-ups are kept and we just link to it."
       },
       {
-       "ago": 206320,
-       "author": "p012",
-       "body": "Would you describe the steps that led here?"
+       "ago": 207820,
+       "author": "p015",
+       "body": "Pushing back here, too much code for rare cases."
+      },
+      {
+       "ago": 204103,
+       "author": "p017",
+       "body": "Deployed to production, closing."
       }
      ],
      "event": null
@@ -1782,19 +1751,19 @@
      ],
      "comments": [
       {
-       "ago": 193802,
-       "author": "p007",
-       "body": "Probably the same cause as last week's issue."
+       "ago": 190702,
+       "author": "p019",
+       "body": "Reproduced, the sidebar is out of order. Started after the last dependency bump."
       },
       {
-       "ago": 189762,
-       "author": "p015",
-       "body": "I will ask the team."
+       "ago": 189387,
+       "author": "p006",
+       "body": "Hope to get to it once the release is out."
       },
       {
-       "ago": 189397,
-       "author": "p002",
-       "body": "Wrote it up in the docs so nobody asks again."
+       "ago": 185237,
+       "author": "p003",
+       "body": "Bumping the priority, support has had 9 more tickets."
       }
      ],
      "event": null
@@ -1802,7 +1771,7 @@
     {
      "number": 8,
      "title": "Handbook: docs/rotating-credentials.md: the contacts table no longer match the tools",
-     "body": "The the contacts table in docs/rotating-credentials.md show the old interface. Aditya hit this on Tuesday. Takes about 60 minutes.",
+     "body": "The contacts table in docs/rotating-credentials.md show the old interface. Aditya hit this on Tuesday. Takes about 60 minutes.",
      "author": "p023",
      "assignee": "p013",
      "ago": 194250,
@@ -1813,13 +1782,8 @@
      ],
      "comments": [
       {
-       "ago": 191975,
-       "author": "p023",
-       "body": "While you are in docs/rotating-credentials.md, fix the inconsistent headings."
-      },
-      {
-       "ago": 191005,
-       "author": "p013",
+       "ago": 190965,
+       "author": "p008",
        "body": "Use production for the new the contacts table, not production."
       }
      ],
@@ -1839,9 +1803,14 @@
      ],
      "comments": [
       {
-       "ago": 178646,
-       "author": "p017",
+       "ago": 177460,
+       "author": "p006",
        "body": "I will take it, just started and it helps to read docs/access.md."
+      },
+      {
+       "ago": 173670,
+       "author": "p014",
+       "body": "Needs a decision before anyone starts. Let's revisit Thursday."
       }
      ],
      "event": null
@@ -1860,18 +1829,8 @@
      ],
      "comments": [
       {
-       "ago": 179436,
-       "author": "p006",
-       "body": "The build link check ignores external addresses, so the expense policy slipped by."
-      },
-      {
-       "ago": 177786,
-       "author": "p018",
-       "body": "Parking it till Thursday."
-      },
-      {
-       "ago": 174470,
-       "author": "p016",
+       "ago": 178361,
+       "author": "p008",
        "body": "Found the new address for the expense policy, updating docs/runbooks/billing-workers.md now."
       }
      ],
@@ -1891,24 +1850,14 @@
      ],
      "comments": [
       {
-       "ago": 178802,
-       "author": "p012",
-       "body": "Added a note under step 6 of docs/runbooks/database-failover.md, please read it over."
+       "ago": 179854,
+       "author": "p014",
+       "body": "Added a note under step 5 of docs/runbooks/database-failover.md, please read it over."
       },
       {
-       "ago": 177918,
-       "author": "p007",
-       "body": "Looping in Zaid, they know this area."
-      },
-      {
-       "ago": 176286,
-       "author": "p009",
-       "body": "Could you list the steps that led here?"
-      },
-      {
-       "ago": 172300,
-       "author": "p007",
-       "body": "Can you attach logs from then?"
+       "ago": 179186,
+       "author": "p002",
+       "body": "Add what to do when that step fails."
       }
      ],
      "event": null
@@ -1925,7 +1874,28 @@
       "docs",
       "task"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 177380,
+       "author": "p017",
+       "body": "Add a rollback line. Last time someone had to clear a stuck invoice job, it took twice as long."
+      },
+      {
+       "ago": 175335,
+       "author": "p006",
+       "body": "Looking into it."
+      },
+      {
+       "ago": 174944,
+       "author": "p006",
+       "body": "Needs an owner before we start. Let's revisit Monday."
+      },
+      {
+       "ago": 171008,
+       "author": "p012",
+       "body": "Closing now, it was a one-off."
+      }
+     ],
      "event": null
     },
     {
@@ -1942,9 +1912,24 @@
      ],
      "comments": [
       {
-       "ago": 173629,
-       "author": "p009",
-       "body": "Do not forget the nightly job that reads the mail relay."
+       "ago": 170623,
+       "author": "p016",
+       "body": "Do not forget the nightly job reading from the mail relay."
+      },
+      {
+       "ago": 170405,
+       "author": "p004",
+       "body": "I can sketch the mail relay on Monday, someone else please check the arrows."
+      },
+      {
+       "ago": 166572,
+       "author": "p011",
+       "body": "Agree."
+      },
+      {
+       "ago": 166506,
+       "author": "p019",
+       "body": "Add what pages Phuong's rota when teh mail relay is down."
       }
      ],
      "event": null
@@ -1976,24 +1961,24 @@
      ],
      "comments": [
       {
-       "ago": 123877,
-       "author": "p008",
-       "body": "Can we add a failing test so it cannot return?"
-      },
-      {
-       "ago": 122426,
-       "author": "p021",
-       "body": "Closing once the relay has a proper home in the handbook."
-      },
-      {
-       "ago": 120034,
-       "author": "p010",
-       "body": "Closing, it was a one-off."
-      },
-      {
-       "ago": 118580,
+       "ago": 124132,
        "author": "p013",
-       "body": "Let me check with the team."
+       "body": "Update: found the cause, writing a fix."
+      },
+      {
+       "ago": 123052,
+       "author": "p020",
+       "body": "Adding a description to the PR for reviewers."
+      },
+      {
+       "ago": 122607,
+       "author": "p004",
+       "body": "Closing once the relay has a page in the handbook."
+      },
+      {
+       "ago": 121358,
+       "author": "p014",
+       "body": "Any news here? A customer is asking."
       }
      ],
      "event": null
@@ -2012,9 +1997,14 @@
      ],
      "comments": [
       {
-       "ago": 117846,
-       "author": "p002",
-       "body": "Reducing priority, I see no customer impact."
+       "ago": 115930,
+       "author": "p012",
+       "body": "Add a last-checked date to docs/releases.md while we are at it."
+      },
+      {
+       "ago": 115160,
+       "author": "p005",
+       "body": "I would follow practice and fix docs/releases.md, since release notes ownership works now."
       }
      ],
      "event": null
@@ -2032,9 +2022,24 @@
      ],
      "comments": [
       {
-       "ago": 98230,
+       "ago": 96665,
+       "author": "p017",
+       "body": "There is half a page about the nightly load in the handbook, link coming."
+      },
+      {
+       "ago": 93022,
+       "author": "p023",
+       "body": "Verified on staging."
+      },
+      {
+       "ago": 91649,
        "author": "p003",
        "body": "Update: found the cause, fix in progress."
+      },
+      {
+       "ago": 88910,
+       "author": "p015",
+       "body": "No, nothing written. Ask Megan, who did the nightly load last quarter."
       }
      ],
      "event": null
@@ -2051,28 +2056,12 @@
       "docs",
       "enhancement"
      ],
-     "comments": [
-      {
-       "ago": 86077,
-       "author": "p009",
-       "body": "Drafted the first-week reading list in a branch, missing the account request links."
-      },
-      {
-       "ago": 81913,
-       "author": "p019",
-       "body": "Last starter said the first-week reading list was the most useful bit in week one."
-      },
-      {
-       "ago": 79445,
-       "author": "p011",
-       "body": "Give the first-week reading list its own heading instead of a new page."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
      "number": 19,
-     "title": "Write a how-to to rebuild the handbook search index",
+     "title": "Write a how-to rebuild the handbook search index",
      "body": "The steps to rebuild the handbook search index exist in chat, nowhere else. It comes up every few months. Wants a plain numbered list with commands.",
      "author": "p013",
      "assignee": null,
@@ -2082,18 +2071,7 @@
       "docs",
       "task"
      ],
-     "comments": [
-      {
-       "ago": 80217,
-       "author": "p009",
-       "body": "I will pair with Viktor this week and write down how to rebuild the handbook search index."
-      },
-      {
-       "ago": 79062,
-       "author": "p016",
-       "body": "Writing up the PR description for reviewers."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -2110,24 +2088,9 @@
      ],
      "comments": [
       {
-       "ago": 77217,
-       "author": "p003",
-       "body": "Fixed and deployed to staging, please confirm."
-      },
-      {
-       "ago": 76908,
-       "author": "p002",
-       "body": "The build link check skips external addresses, so the VPN setup guide slipped by."
-      },
-      {
-       "ago": 73847,
-       "author": "p021",
-       "body": "Wrote it up in the docs for the next person."
-      },
-      {
-       "ago": 73706,
-       "author": "p022",
-       "body": "Taking this."
+       "ago": 76861,
+       "author": "p019",
+       "body": "Should we copy the VPN setup guide into the handbook so it stops moving?"
       }
      ],
      "event": null
@@ -2144,23 +2107,7 @@
       "docs",
       "bug"
      ],
-     "comments": [
-      {
-       "ago": 50887,
-       "author": "p013",
-       "body": "Progress: found the cause, writing a fix."
-      },
-      {
-       "ago": 48773,
-       "author": "p019",
-       "body": "Found the new address for the incident template, updating docs/onboarding.md now."
-      },
-      {
-       "ago": 47138,
-       "author": "p021",
-       "body": "Not sure this is the fix, the cause stays hidden."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -2175,13 +2122,7 @@
       "docs",
       "needs-decision"
      ],
-     "comments": [
-      {
-       "ago": 50419,
-       "author": "p007",
-       "body": "I would go with practice and fix docs/releases.md, since the rollback window works now."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -2198,24 +2139,19 @@
      ],
      "comments": [
       {
-       "ago": 48184,
-       "author": "p001",
-       "body": "Added a note under step 2 of docs/runbooks/database-failover.md, please read it over."
+       "ago": 50084,
+       "author": "p006",
+       "body": "Added a note under step 4 of docs/runbooks/database-failover.md, please read it over."
       },
       {
-       "ago": 45432,
-       "author": "p013",
-       "body": "Closing, no activity for a while. Reopen if it comes back."
-      },
-      {
-       "ago": 42592,
-       "author": "p021",
-       "body": "Worth adding a line when that step fails."
-      },
-      {
-       "ago": 42199,
+       "ago": 45980,
        "author": "p009",
-       "body": "Seeing the same on staging on staging."
+       "body": "Bo has done this twice in production, ask for the exact commands."
+      },
+      {
+       "ago": 44825,
+       "author": "p016",
+       "body": "Writing up the PR description for reviewers."
       }
      ],
      "event": null
@@ -2234,19 +2170,24 @@
      ],
      "comments": [
       {
-       "ago": 40034,
-       "author": "p009",
-       "body": "Strong agree on a short glossary. Last handover on Tuesday took forty minutes without it."
-      },
-      {
-       "ago": 37403,
-       "author": "p002",
-       "body": "Keep a short glossary to a page, nobody reads more at 3am."
-      },
-      {
-       "ago": 36924,
+       "ago": 40346,
        "author": "p003",
-       "body": "Checking back after Monday's deploy, no new reports."
+       "body": "Fixed and deployed to staging, please confirm."
+      },
+      {
+       "ago": 40037,
+       "author": "p011",
+       "body": "I have a draft of a short glossary, will push it to docs/oncall.md."
+      },
+      {
+       "ago": 38250,
+       "author": "p001",
+       "body": "Strong agree on a short glossary. Last handover on Thursday took forty minutes without it."
+      },
+      {
+       "ago": 37254,
+       "author": "p011",
+       "body": "Let me check with the team."
       }
      ],
      "event": null
@@ -2263,7 +2204,13 @@
       "docs",
       "enhancement"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 34986,
+       "author": "p006",
+       "body": "Should a timeline section be mandatory before we close the write-up?"
+      }
+     ],
      "event": null
     },
     {
@@ -2295,19 +2242,9 @@
      ],
      "comments": [
       {
-       "ago": 17451,
-       "author": "p014",
-       "body": "I will take it, new here and it is a way to read docs/incident-writeup.md."
-      },
-      {
-       "ago": 13551,
-       "author": "p004",
-       "body": "Use staging for the new screenshots, not production."
-      },
-      {
-       "ago": 10661,
-       "author": "p005",
-       "body": "While you are in docs/incident-writeup.md, fix the inconsistent headings."
+       "ago": 19658,
+       "author": "p009",
+       "body": "Workaround: that clears it."
       }
      ],
      "event": null
@@ -2326,14 +2263,14 @@
      ],
      "comments": [
       {
-       "ago": 9167,
-       "author": "p006",
-       "body": "Let's keep details in here, out of the open channels."
+       "ago": 8285,
+       "author": "p010",
+       "body": "Probably not a bug, it matches the design."
       },
       {
-       "ago": 6341,
-       "author": "p008",
-       "body": "Link the write-up from when we last replaced the webhook secret."
+       "ago": 6424,
+       "author": "p014",
+       "body": "I suspect the same cause as last week's issue."
       }
      ],
      "event": null
@@ -2350,13 +2287,7 @@
       "docs",
       "security"
      ],
-     "comments": [
-      {
-       "ago": 474,
-       "author": "p024",
-       "body": "Agreed, I will add teh payments provider token to docs/onboarding.md with the vault path only."
-      }
-     ],
+     "comments": [],
      "event": null
     }
    ],
@@ -2474,7 +2405,13 @@
       "bug",
       "incident"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 237476,
+       "author": "p018",
+       "body": "Looks like the replica was busy with the billing run too."
+      }
+     ],
      "event": null
     },
     {
@@ -2490,14 +2427,19 @@
      ],
      "comments": [
       {
-       "ago": 235182,
-       "author": "p001",
-       "body": "Also seeing this, it hit us."
+       "ago": 232100,
+       "author": "p005",
+       "body": "The backfill has no resume point, so every failure starts over. Worth fixing."
       },
       {
-       "ago": 234796,
-       "author": "p013",
-       "body": "Keep specifics in this issue, not in open channels."
+       "ago": 228019,
+       "author": "p001",
+       "body": "Only run backfills holding the lock."
+      },
+      {
+       "ago": 226298,
+       "author": "p014",
+       "body": "Truncated the invoices range and restarted. Counts match now."
       }
      ],
      "event": null
@@ -2515,19 +2457,19 @@
      ],
      "comments": [
       {
-       "ago": 233493,
-       "author": "p009",
-       "body": "Thanks for the quick turnaround."
+       "ago": 234224,
+       "author": "p012",
+       "body": "@Rafael why is it done this way?"
       },
       {
-       "ago": 231646,
-       "author": "p008",
-       "body": "Deployed the fix to staging, can someone confirm?"
+       "ago": 234017,
+       "author": "p020",
+       "body": "Batches of 1011 rows cut the support_tickets step a lot in my runs."
       },
       {
-       "ago": 229204,
-       "author": "p024",
-       "body": "It is the replica, busy with the invoice run at the Friday load."
+       "ago": 231216,
+       "author": "p003",
+       "body": "Otavio, can you have a look?"
       }
      ],
      "event": null
@@ -2544,7 +2486,23 @@
       "needs-decision",
       "enhancement"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 229904,
+       "author": "p014",
+       "body": "Support has no budget for it, so it lands on us."
+      },
+      {
+       "ago": 226004,
+       "author": "p008",
+       "body": "If we do the mail provider's delivery events, add masking from day one."
+      },
+      {
+       "ago": 225158,
+       "author": "p007",
+       "body": "Holding off till after quarter close."
+      }
+     ],
      "event": null
     },
     {
@@ -2560,18 +2518,13 @@
      ],
      "comments": [
       {
-       "ago": 226229,
-       "author": "p001",
-       "body": "Pull the card disputes feed through the usual gateway, never directly."
+       "ago": 228884,
+       "author": "p006",
+       "body": "Writing up the PR description for reviewers."
       },
       {
-       "ago": 225468,
-       "author": "p012",
-       "body": "I can load the card disputes feed as step two, but unclear schema."
-      },
-      {
-       "ago": 223790,
-       "author": "p012",
+       "ago": 226058,
+       "author": "p013",
        "body": "Someone in finance confirmed they only need it daily."
       }
      ],
@@ -2591,19 +2544,24 @@
      ],
      "comments": [
       {
-       "ago": 222842,
-       "author": "p019",
-       "body": "A rolling 2 day window in pipeline/load.py would catch the usage events cheaply."
+       "ago": 222724,
+       "author": "p007",
+       "body": "Pull request is up, please review."
       },
       {
-       "ago": 219088,
-       "author": "p018",
-       "body": "Appreciate the quick turnaround."
+       "ago": 220087,
+       "author": "p003",
+       "body": "The boundary is wrong inside pipeline/clean.py, midnight local."
       },
       {
-       "ago": 215120,
-       "author": "p005",
-       "body": "For now: restart the worker and it clears."
+       "ago": 217768,
+       "author": "p007",
+       "body": "Checked the usage events, 60 rows landed late last week."
+      },
+      {
+       "ago": 216665,
+       "author": "p001",
+       "body": "A rolling 3 day window in pipeline/load.py would catch the usage events cheaply."
       }
      ],
      "event": null
@@ -2622,19 +2580,14 @@
      ],
      "comments": [
       {
-       "ago": 222289,
-       "author": "p010",
+       "ago": 218960,
+       "author": "p011",
        "body": "Fixed the mapping for subscriptions, but a changed type will happen again."
       },
       {
-       "ago": 218579,
-       "author": "p011",
-       "body": "Can billing-core note schema changes in notes?"
-      },
-      {
-       "ago": 217708,
-       "author": "p018",
-       "body": "Added a check in pipeline/validate.py for column lists for subscriptions."
+       "ago": 214791,
+       "author": "p022",
+       "body": "Can billing-core note schema changes in a changelog?"
       }
      ],
      "event": null
@@ -2653,14 +2606,14 @@
      ],
      "comments": [
       {
-       "ago": 215669,
-       "author": "p022",
-       "body": "Nice find."
+       "ago": 216283,
+       "author": "p007",
+       "body": "Checked the aging receivables report against line_items. The gap is mostly Setup fee."
       },
       {
-       "ago": 213777,
-       "author": "p024",
-       "body": "Checked the aging receivables report against subscriptions. The gap is mostly Setup fee."
+       "ago": 214311,
+       "author": "p003",
+       "body": "Someone in finance wants a written explanation of the 73 cents gap for the close."
       }
      ],
      "event": null
@@ -2676,7 +2629,28 @@
      "labels": [
       "bug"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 205420,
+       "author": "p018",
+       "body": "Same a type mismatch loading support_tickets on Thursday, so not a one-off."
+      },
+      {
+       "ago": 204546,
+       "author": "p022",
+       "body": "I think pipeline/clean.py retries too quickly. Two retries fail on a busy replica."
+      },
+      {
+       "ago": 202597,
+       "author": "p019",
+       "body": "Raising the retry delay to 95 seconds in my branch."
+      },
+      {
+       "ago": 198416,
+       "author": "p017",
+       "body": "Re-ran support_tickets by hand and the counts agree again."
+      }
+     ],
      "event": null
     },
     {
@@ -2704,7 +2678,28 @@
      "labels": [
       "docs"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 194596,
+       "author": "p015",
+       "body": "I will write column notes on subscriptions with Aditya soon."
+      },
+      {
+       "ago": 193735,
+       "author": "p011",
+       "body": "Same here, it began on Tuesday."
+      },
+      {
+       "ago": 192864,
+       "author": "p021",
+       "body": "Say which columns come from Policy admin seats and which from Setup fee lines."
+      },
+      {
+       "ago": 191898,
+       "author": "p008",
+       "body": "Put it in README beside conventions."
+      }
+     ],
      "event": null
     },
     {
@@ -2718,7 +2713,28 @@
      "labels": [
       "bug"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 188094,
+       "author": "p010",
+       "body": "Same a connection reset from the replica on Wednesday, so not a one-off."
+      },
+      {
+       "ago": 186550,
+       "author": "p023",
+       "body": "Picking this up."
+      },
+      {
+       "ago": 186058,
+       "author": "p017",
+       "body": "I think pipeline/validate.py retries too fast. Two attempts fail on a busy replica."
+      },
+      {
+       "ago": 184631,
+       "author": "p013",
+       "body": "Pushing this to next sprint, no one is waiting."
+      }
+     ],
      "event": null
     },
     {
@@ -2732,7 +2748,23 @@
      "labels": [
       "docs"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 182018,
+       "author": "p011",
+       "body": "Put it in README beside naming rules."
+      },
+      {
+       "ago": 178216,
+       "author": "p008",
+       "body": "Say which columns come from Policy admin seats and which from Setup fee lines."
+      },
+      {
+       "ago": 178029,
+       "author": "p015",
+       "body": "I will write column notes for subscriptions with Viktor soon."
+      }
+     ],
      "event": null
     },
     {
@@ -2747,13 +2779,7 @@
       "needs-decision",
       "chore"
      ],
-     "comments": [
-      {
-       "ago": 179469,
-       "author": "p001",
-       "body": "Not touching anything for now, please vote here."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -2768,13 +2794,7 @@
       "needs-decision",
       "enhancement"
      ],
-     "comments": [
-      {
-       "ago": 164508,
-       "author": "p002",
-       "body": "If we do the tax provider's filings, add masking from day one."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -2788,7 +2808,28 @@
      "labels": [
       "enhancement"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 160515,
+       "author": "p010",
+       "body": "Can take it once the release is out."
+      },
+      {
+       "ago": 160381,
+       "author": "p015",
+       "body": "Added a ping to pipeline/load.py, a stall now shows."
+      },
+      {
+       "ago": 156592,
+       "author": "p018",
+       "body": "Seeing the same on staging with a copy of the data."
+      },
+      {
+       "ago": 155134,
+       "author": "p009",
+       "body": "Seems alerts.yaml should get a matching entry for invoice queue depth."
+      }
+     ],
      "event": null
     },
     {
@@ -2803,7 +2844,13 @@
       "bug",
       "data-quality"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 157541,
+       "author": "p024",
+       "body": "Added the check in pipeline/validate.py, post clean step."
+      }
+     ],
      "event": null
     },
     {
@@ -2820,19 +2867,9 @@
      ],
      "comments": [
       {
-       "ago": 156404,
-       "author": "p024",
-       "body": "I can reproduce a manual run during the schedule locally, will paste the log."
-      },
-      {
-       "ago": 154535,
-       "author": "p006",
-       "body": "Any workaround in the meantime?"
-      },
-      {
-       "ago": 154340,
-       "author": "p001",
-       "body": "We could write staging first, swap at the end."
+       "ago": 155256,
+       "author": "p011",
+       "body": "Christopher, can you have a look?"
       }
      ],
      "event": null
@@ -2851,24 +2888,14 @@
      ],
      "comments": [
       {
-       "ago": 149219,
-       "author": "p003",
-       "body": "Could we add a failing test so this stays fixed?"
-      },
-      {
-       "ago": 145549,
-       "author": "p024",
-       "body": "Deleted the duplicates in payments by key, count now matches."
-      },
-      {
-       "ago": 145078,
-       "author": "p013",
-       "body": "Logs from that moment would help."
-      },
-      {
-       "ago": 143718,
+       "ago": 148877,
        "author": "p002",
-       "body": "The overlap happened on Monday, a manual run started mid-schedule."
+       "body": "Keys on payments are not unique in the warehouse. That is the real bug."
+      },
+      {
+       "ago": 147181,
+       "author": "p019",
+       "body": "The overlap happened on Friday, a manual run started mid-schedule."
       }
      ],
      "event": null
@@ -2900,18 +2927,7 @@
       "bug",
       "data-quality"
      ],
-     "comments": [
-      {
-       "ago": 141212,
-       "author": "p016",
-       "body": "Added the check to pipeline/validate.py, after cleaning."
-      },
-      {
-       "ago": 140209,
-       "author": "p023",
-       "body": "Fail the load if the tax rate is empty, instead of skipping quietly."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -2927,24 +2943,9 @@
      ],
      "comments": [
       {
-       "ago": 131946,
-       "author": "p006",
-       "body": "Does it still happen? I see no recent report."
-      },
-      {
-       "ago": 130632,
-       "author": "p001",
-       "body": "I can add --from and --to flags to the loader, an hour."
-      },
-      {
-       "ago": 128088,
-       "author": "p006",
-       "body": "We need to agree a rate. Support_tickets for the previous fiscal year is a heap of rows for the replica."
-      },
-      {
-       "ago": 123907,
-       "author": "p006",
-       "body": "Please run teh backfill clear of the nightly window, after 2."
+       "ago": 129066,
+       "author": "p014",
+       "body": "Took some digging to find, writing up what I found."
       }
      ],
      "event": null
@@ -2962,9 +2963,19 @@
      ],
      "comments": [
       {
-       "ago": 110445,
-       "author": "p024",
-       "body": "Please run the backfill clear of the nightly window, after 3:30."
+       "ago": 108813,
+       "author": "p004",
+       "body": "We need to throttle it. Usage_events for the first quarter is a lot of rows for the replica."
+      },
+      {
+       "ago": 105297,
+       "author": "p020",
+       "body": "Nice find."
+      },
+      {
+       "ago": 101122,
+       "author": "p009",
+       "body": "Happy with the plan, I worry about the migration."
       }
      ],
      "event": null
@@ -2982,24 +2993,24 @@
      ],
      "comments": [
       {
-       "ago": 96843,
-       "author": "p003",
-       "body": "Any workaround in the meantime?"
-      },
-      {
-       "ago": 93183,
+       "ago": 95543,
        "author": "p010",
-       "body": "Cannot reproduce on current build, what version is that?"
+       "body": "Parallel loading is risky with the lock, look there."
       },
       {
-       "ago": 90998,
-       "author": "p017",
-       "body": "Batches of 1621 rows cut the customers step a lot in my runs."
+       "ago": 91898,
+       "author": "p009",
+       "body": "Needs a decision before anyone starts. Parking it till Tuesday."
       },
       {
-       "ago": 89147,
-       "author": "p016",
-       "body": "It is the replica, shared with the invoice run at the first of the month."
+       "ago": 89475,
+       "author": "p002",
+       "body": "Quick check after Tuesday's deploy, no new reports."
+      },
+      {
+       "ago": 85190,
+       "author": "p005",
+       "body": "It is teh replica, shared with the invoice run at the first of the month."
       }
      ],
      "event": null
@@ -3015,7 +3026,23 @@
      "labels": [
       "enhancement"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 89826,
+       "author": "p015",
+       "body": "The controller confirmed they only need it daily."
+      },
+      {
+       "ago": 85778,
+       "author": "p004",
+       "body": "Pull the mail provider's delivery events through the usual gateway, not straight."
+      },
+      {
+       "ago": 85595,
+       "author": "p021",
+       "body": "I can load the mail provider's delivery events separately, but no docs."
+      }
+     ],
      "event": null
     },
     {
@@ -3032,9 +3059,9 @@
      ],
      "comments": [
       {
-       "ago": 73639,
-       "author": "p022",
-       "body": "Let me check with the team."
+       "ago": 76592,
+       "author": "p024",
+       "body": "Let us say billing is the authority, the monthly revenue dashboard follows."
       }
      ],
      "event": null
@@ -3053,14 +3080,19 @@
      ],
      "comments": [
       {
-       "ago": 56137,
-       "author": "p019",
-       "body": "Keys on support_tickets are not unique in the warehouse. That is the real bug."
+       "ago": 55913,
+       "author": "p001",
+       "body": "Thanks for the quick turnaround."
       },
       {
-       "ago": 55286,
-       "author": "p009",
-       "body": "Deleted the duplicates in support_tickets by key, count now matches."
+       "ago": 51984,
+       "author": "p008",
+       "body": "Should we add a unique check to pipeline/validate.py?"
+      },
+      {
+       "ago": 50786,
+       "author": "p023",
+       "body": "Keys on support_tickets are not unique there. That is the real bug."
       }
      ],
      "event": null
@@ -3078,19 +3110,19 @@
      ],
      "comments": [
       {
-       "ago": 53816,
+       "ago": 54375,
+       "author": "p014",
+       "body": "The backfill has no checkpoint, so each failure starts over. Should be fixed."
+      },
+      {
+       "ago": 50451,
+       "author": "p006",
+       "body": "Always run backfills holding the lock."
+      },
+      {
+       "ago": 49537,
        "author": "p009",
-       "body": "Always run backfills holding teh lock."
-      },
-      {
-       "ago": 53428,
-       "author": "p007",
        "body": "Truncated the invoices range and restarted. Counts match now."
-      },
-      {
-       "ago": 52568,
-       "author": "p023",
-       "body": "The backfill has no resume point, so each failure starts over. Should be fixed."
       }
      ],
      "event": null
@@ -3109,19 +3141,24 @@
      ],
      "comments": [
       {
-       "ago": 3847,
-       "author": "p009",
-       "body": "Can billing-core note schema changes in notes?"
+       "ago": 4789,
+       "author": "p010",
+       "body": "Looks related to a ticket support opened today."
       },
       {
-       "ago": 3328,
-       "author": "p017",
-       "body": "Added a check in pipeline/validate.py for column lists for line_items."
+       "ago": 2336,
+       "author": "p024",
+       "body": "Can billing-core list schema changes in notes?"
       },
       {
-       "ago": 22,
-       "author": "p003",
-       "body": "Fixed the mapping for line_items, but a renamed column will happen again."
+       "ago": 957,
+       "author": "p018",
+       "body": "Added a check to pipeline/validate.py comparing columns for line_items."
+      },
+      {
+       "ago": 335,
+       "author": "p012",
+       "body": "Not a bug I can see, it works as designed."
       }
      ],
      "event": null
@@ -3230,19 +3267,19 @@
      ],
      "comments": [
       {
-       "ago": 253586,
-       "author": "p014",
-       "body": "Looping in Matthew, they know this area."
-      },
-      {
-       "ago": 249662,
+       "ago": 253617,
        "author": "p011",
-       "body": "Changed log_level in staging to info, volume fell by 57 percent."
+       "body": "Looking at this now."
       },
       {
-       "ago": 247905,
-       "author": "p019",
-       "body": "On my list next week."
+       "ago": 249957,
+       "author": "p013",
+       "body": "We could cut application logs to 7 days and move older ones to cold storage."
+      },
+      {
+       "ago": 248444,
+       "author": "p008",
+       "body": "Changed log_level there to info, volume dropped about 52 percent."
       }
      ],
      "event": null
@@ -3261,9 +3298,19 @@
      ],
      "comments": [
       {
-       "ago": 252794,
-       "author": "p020",
+       "ago": 251052,
+       "author": "p005",
        "body": "Hold off on production until month end, please."
+      },
+      {
+       "ago": 247305,
+       "author": "p006",
+       "body": "Upgraded the log shipper in staging on Tuesday, all green so far."
+      },
+      {
+       "ago": 244638,
+       "author": "p012",
+       "body": "Add teh version in environments/production.yaml, visible."
       }
      ],
      "event": null
@@ -3280,13 +3327,24 @@
       "chore",
       "task"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 247818,
+       "author": "p004",
+       "body": "Wrote a failing test. It now passes."
+      },
+      {
+       "ago": 244989,
+       "author": "p011",
+       "body": "A tag check finds this earlier, I will draft it."
+      }
+     ],
      "event": null
     },
     {
      "number": 4,
      "title": "Set the request timeout limits for the invoice workers",
-     "body": "The invoice workers hit the the request timeout limit on Wednesday and got killed. Staging has different values, so we missed it there. Support asked about it Wednesday. Adding Aditya, who touched it last.",
+     "body": "The invoice workers hit the request timeout limit on Wednesday and got killed. Staging has different values, so we missed it there. Support asked about it Wednesday. Adding Aditya, who touched it last.",
      "author": "p024",
      "assignee": "p022",
      "ago": 241193,
@@ -3297,9 +3355,9 @@
      ],
      "comments": [
       {
-       "ago": 239207,
-       "author": "p012",
-       "body": "Do not forget the matching value in services.yaml."
+       "ago": 237720,
+       "author": "p006",
+       "body": "Peak was 93 percent of the limit before it died."
       }
      ],
      "event": null
@@ -3318,19 +3376,14 @@
      ],
      "comments": [
       {
-       "ago": 236482,
-       "author": "p003",
-       "body": "Upgraded the Python runtime in staging on Monday, all green so far."
+       "ago": 236431,
+       "author": "p020",
+       "body": "Is anyone waiting on this, or is it fine to wait?"
       },
       {
-       "ago": 233121,
-       "author": "p016",
-       "body": "Short update: no conclusion yet."
-      },
-      {
-       "ago": 229414,
-       "author": "p016",
-       "body": "Wait on production until month end, please."
+       "ago": 233241,
+       "author": "p001",
+       "body": "This is blocked on a decision, who is on it?"
       }
      ],
      "event": null
@@ -3349,14 +3402,19 @@
      ],
      "comments": [
       {
-       "ago": 225451,
-       "author": "p008",
-       "body": "Require 15 minutes above 9 errors a minute before paging for failed backups."
+       "ago": 227109,
+       "author": "p021",
+       "body": "Keep a chat message so we can still see the small ones."
       },
       {
-       "ago": 222971,
-       "author": "p015",
-       "body": "Keep a chat warning so we can still see the small ones."
+       "ago": 223853,
+       "author": "p024",
+       "body": "Require 14 minutes above 9 errors a minute before paging for failed backups."
+      },
+      {
+       "ago": 219946,
+       "author": "p016",
+       "body": "I counted 9 false pages for failed backups in the last month."
       }
      ],
      "event": null
@@ -3374,14 +3432,24 @@
      ],
      "comments": [
       {
-       "ago": 214262,
-       "author": "p004",
-       "body": "status.elmstead-mutual.com shows in production.yaml, change both."
+       "ago": 212683,
+       "author": "p020",
+       "body": "Dropping the priority, I see no customer impact."
       },
       {
-       "ago": 211707,
-       "author": "p020",
-       "body": "Confirmed fixed on staging."
+       "ago": 212540,
+       "author": "p014",
+       "body": "Closing for lack of movement. Please reopen if needed."
+      },
+      {
+       "ago": 210547,
+       "author": "p001",
+       "body": "Do not touch status.elmstead-mutual.com before the Tuesday release."
+      },
+      {
+       "ago": 207790,
+       "author": "p007",
+       "body": "status.elmstead-mutual.com is also in production.yaml, change both."
       }
      ],
      "event": null
@@ -3400,9 +3468,14 @@
      ],
      "comments": [
       {
-       "ago": 213201,
-       "author": "p014",
-       "body": "Check whether the webhook secret was ever pasted into chat."
+       "ago": 211270,
+       "author": "p016",
+       "body": "Add a CI check refusing plain values within environments/staging.yaml."
+      },
+      {
+       "ago": 208233,
+       "author": "p023",
+       "body": "Rotated the webhook secret and switched environments/staging.yaml to a pointer. Old value is dead."
       }
      ],
      "event": null
@@ -3421,19 +3494,14 @@
      ],
      "comments": [
       {
-       "ago": 209509,
-       "author": "p013",
-       "body": "Data-team was set long ago and never checked since."
+       "ago": 208879,
+       "author": "p023",
+       "body": "This happens more than expected, I count 30 cases."
       },
       {
-       "ago": 205513,
-       "author": "p024",
-       "body": "Changed the route for replication lag, fired a manual alert, phone buzzed."
-      },
-      {
-       "ago": 201988,
-       "author": "p021",
-       "body": "Short update: no conclusion yet."
+       "ago": 208640,
+       "author": "p007",
+       "body": "I would push back, too much code for rare cases."
       }
      ],
      "event": null
@@ -3452,24 +3520,24 @@
      ],
      "comments": [
       {
-       "ago": 204601,
-       "author": "p023",
-       "body": "Peak was 87 percent of the limit before it died."
-      },
-      {
-       "ago": 201496,
-       "author": "p012",
-       "body": "Short update: still looking."
-      },
-      {
-       "ago": 199602,
+       "ago": 204036,
        "author": "p022",
-       "body": "Let's keep details in here, not in open channels."
+       "body": "Peak was 60 percent of the limit before it died."
       },
       {
-       "ago": 198639,
+       "ago": 203108,
        "author": "p004",
-       "body": "Remember the matching value in services.yaml."
+       "body": "Raised memory for teh reporting workers in staging first, fine after 5 days."
+      },
+      {
+       "ago": 200383,
+       "author": "p018",
+       "body": "Remember the matching value within services.yaml."
+      },
+      {
+       "ago": 198055,
+       "author": "p013",
+       "body": "Agree."
       }
      ],
      "event": null
@@ -3488,8 +3556,8 @@
      ],
      "comments": [
       {
-       "ago": 205883,
-       "author": "p019",
+       "ago": 201958,
+       "author": "p021",
        "body": "Least privilege please. Support leads does not need write."
       }
      ],
@@ -3509,24 +3577,24 @@
      ],
      "comments": [
       {
-       "ago": 162428,
-       "author": "p004",
-       "body": "Closing for lack of movement. Reopen if it comes back."
+       "ago": 161785,
+       "author": "p021",
+       "body": "Ming, do you know more?"
       },
       {
-       "ago": 160718,
-       "author": "p019",
-       "body": "Closing, nothing new lately. Reopen if it returns."
+       "ago": 159322,
+       "author": "p021",
+       "body": "Write down the allowed differences in the README."
       },
       {
-       "ago": 160672,
+       "ago": 157720,
        "author": "p016",
-       "body": "Write down the allowed differences inside the README."
+       "body": "Is there a stopgap?"
       },
       {
-       "ago": 157804,
-       "author": "p003",
-       "body": "Checked the history. Matthew changed the connection pool size in staging only, during an incident."
+       "ago": 155205,
+       "author": "p022",
+       "body": "Linking the branch, a draft is ready."
       }
      ],
      "event": null
@@ -3544,19 +3612,9 @@
      ],
      "comments": [
       {
-       "ago": 150064,
-       "author": "p019",
-       "body": "Cannot reproduce on current build, could you attach the payload?"
-      },
-      {
-       "ago": 146123,
-       "author": "p019",
-       "body": "We see it as well, began last week."
-      },
-      {
-       "ago": 142040,
-       "author": "p023",
-       "body": "This happens more than expected, I count 30 cases."
+       "ago": 149182,
+       "author": "p021",
+       "body": "Hook the result up to alerts.yaml, it alerts."
       }
      ],
      "event": null
@@ -3575,19 +3633,24 @@
      ],
      "comments": [
       {
-       "ago": 127602,
-       "author": "p007",
+       "ago": 128904,
+       "author": "p009",
+       "body": "List the allowed differences in the README."
+      },
+      {
+       "ago": 125740,
+       "author": "p019",
        "body": "Staging is smaller on purpose, but log retention should not differ."
       },
       {
-       "ago": 127016,
-       "author": "p013",
-       "body": "Let's add a failing test so it does not recur?"
+       "ago": 123204,
+       "author": "p008",
+       "body": "Checked the history. Phuong changed log retention in production only, during an incident."
       },
       {
-       "ago": 126766,
-       "author": "p019",
-       "body": "Agreed."
+       "ago": 120019,
+       "author": "p005",
+       "body": "I disagree, lots of code, little gain."
       }
      ],
      "event": null
@@ -3618,13 +3681,34 @@
       "bug",
       "security"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 116353,
+       "author": "p022",
+       "body": "It is more common than that, I count 11 cases."
+      },
+      {
+       "ago": 115695,
+       "author": "p018",
+       "body": "Confirmed fixed on staging."
+      },
+      {
+       "ago": 115448,
+       "author": "p023",
+       "body": "Put a note in the docs so it stops coming up."
+      },
+      {
+       "ago": 111870,
+       "author": "p017",
+       "body": "Restored last night's snapshot into staging, it took 24 minutes and came up fine."
+      }
+     ],
      "event": null
     },
     {
      "number": 17,
      "title": "Add health checks for the mail relay",
-     "body": "There is no real health check for the mail relay within services.yaml. An interval of 1 minutes should do. Blocking Otavio right now.",
+     "body": "There is no real health check for the mail relay within services.yaml. An interval of 1 minute should do. Blocking Otavio right now.",
      "author": "p021",
      "assignee": null,
      "ago": 96093,
@@ -3632,13 +3716,7 @@
      "labels": [
       "enhancement"
      ],
-     "comments": [
-      {
-       "ago": 92436,
-       "author": "p018",
-       "body": "Wire the result up to alerts.yaml, it alerts."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -3652,18 +3730,7 @@
      "labels": [
       "bug"
      ],
-     "comments": [
-      {
-       "ago": 94340,
-       "author": "p012",
-       "body": "Lowered the TTL on status.elmstead-mutual.com to 296 seconds, record fix tomorrow."
-      },
-      {
-       "ago": 90328,
-       "author": "p023",
-       "body": "status.elmstead-mutual.com is also in production.yaml, change both."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -3680,24 +3747,24 @@
      ],
      "comments": [
       {
-       "ago": 73077,
-       "author": "p006",
-       "body": "I would push back, too much code for rare cases."
+       "ago": 71925,
+       "author": "p012",
+       "body": "Measured peak: 23 connections in use out of 34."
       },
       {
-       "ago": 70576,
-       "author": "p011",
-       "body": "Measured peak: 35 connections in use out of 34."
-      },
-      {
-       "ago": 67594,
-       "author": "p023",
+       "ago": 70025,
+       "author": "p017",
        "body": "Raising the pool means checking the database max connections first."
       },
       {
-       "ago": 65279,
-       "author": "p012",
-       "body": "Add a comment justifying teh value in environments/production.yaml."
+       "ago": 69117,
+       "author": "p009",
+       "body": "Add a comment justifying the value inside environments/production.yaml."
+      },
+      {
+       "ago": 66311,
+       "author": "p019",
+       "body": "Not certain this belongs in this repository."
       }
      ],
      "event": null
@@ -3716,19 +3783,19 @@
      ],
      "comments": [
       {
-       "ago": 70184,
-       "author": "p024",
-       "body": "I counted 7 false pages for certificate expiry in the last month."
+       "ago": 67458,
+       "author": "p002",
+       "body": "This is blocked on a decision, who is on it?"
       },
       {
-       "ago": 68970,
-       "author": "p006",
-       "body": "Require 14 minutes above 27 minutes before paging for certificate expiry."
+       "ago": 66371,
+       "author": "p017",
+       "body": "Update: found the cause, writing the fix."
       },
       {
-       "ago": 65313,
-       "author": "p020",
-       "body": "Keep a chat message so we can still see the small ones."
+       "ago": 64115,
+       "author": "p021",
+       "body": "Require 15 minutes above 27 minutes before paging for certificate expiry."
       }
      ],
      "event": null
@@ -3747,19 +3814,14 @@
      ],
      "comments": [
       {
-       "ago": 55022,
-       "author": "p006",
-       "body": "One replica, the check never passes."
-      },
-      {
-       "ago": 52751,
+       "ago": 56049,
        "author": "p009",
-       "body": "Opened fix/followup-895 for this. Pull request coming."
+       "body": "Tried a lower the readiness delay for the mail relay in staging, deploy took 15 minutes."
       },
       {
-       "ago": 50662,
-       "author": "p018",
-       "body": "Add the final value to services.yaml, note why."
+       "ago": 55123,
+       "author": "p017",
+       "body": "One replica, the check never passes."
       }
      ],
      "event": null
@@ -3791,18 +3853,7 @@
       "chore",
       "task"
      ],
-     "comments": [
-      {
-       "ago": 26260,
-       "author": "p012",
-       "body": "Tagged the production resources, staging remains."
-      },
-      {
-       "ago": 24528,
-       "author": "p017",
-       "body": "Settle a list of valid values for cost centre first."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -3817,7 +3868,18 @@
       "security",
       "enhancement"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 25124,
+       "author": "p009",
+       "body": "Is a customer waiting on this, or is it fine to wait?"
+      },
+      {
+       "ago": 24677,
+       "author": "p014",
+       "body": "Please raise renew_days_before to 27, 14 days is tight over holidays."
+      }
+     ],
      "event": null
     },
     {
@@ -3832,7 +3894,23 @@
       "bug",
       "security"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 13808,
+       "author": "p010",
+       "body": "Restored last night's snapshot to staging, it took 72 minutes and came up fine."
+      },
+      {
+       "ago": 11584,
+       "author": "p012",
+       "body": "Update: found the cause, writing the fix."
+      },
+      {
+       "ago": 11482,
+       "author": "p010",
+       "body": "Status: waiting for Emily to review."
+      }
+     ],
      "event": null
     },
     {
@@ -3849,19 +3927,9 @@
      ],
      "comments": [
       {
-       "ago": 10380,
-       "author": "p010",
-       "body": "Changed the route for failed backups, sent a manual page, phone buzzed."
-      },
-      {
-       "ago": 6106,
-       "author": "p005",
-       "body": "Add a monthly check that every alert in alerts.yaml reaches a person."
-      },
-      {
-       "ago": 4089,
+       "ago": 10160,
        "author": "p004",
-       "body": "Data-team was set in the first week and never checked since."
+       "body": "Checked the numbers, it affects fewer accounts than expected."
       }
      ],
      "event": null
@@ -3878,7 +3946,13 @@
       "security",
       "bug"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 9160,
+       "author": "p010",
+       "body": "@Bo any idea why it is so?"
+      }
+     ],
      "event": null
     },
     {
@@ -3895,24 +3969,14 @@
      ],
      "comments": [
       {
-       "ago": 7771,
-       "author": "p015",
-       "body": "Can you attach logs from then?"
+       "ago": 6399,
+       "author": "p016",
+       "body": "Do we have a customer waiting, or can it wait?"
       },
       {
-       "ago": 7283,
-       "author": "p017",
-       "body": "Tried a lower the maximum surge for billing-core in staging, deploy took 13 minutes."
-      },
-      {
-       "ago": 6408,
-       "author": "p008",
-       "body": "Add the final value to services.yaml, note why."
-      },
-      {
-       "ago": 6287,
-       "author": "p004",
-       "body": "Dropping the priority, no customer impact that I see."
+       "ago": 6265,
+       "author": "p010",
+       "body": "Tried a lower the maximum surge for billing-core in staging, deploy took 15 minutes."
       }
      ],
      "event": null
@@ -3931,14 +3995,19 @@
      ],
      "comments": [
       {
-       "ago": 7496,
-       "author": "p005",
-       "body": "Please raise renew_days_before to 30, two weeks is short over holidays."
+       "ago": 8482,
+       "author": "p008",
+       "body": "Let us move renew_days_before to 28, two weeks is short over holidays."
       },
       {
-       "ago": 6655,
-       "author": "p003",
-       "body": "Add the warehouse endpoint certificate to alerts.yaml as a page, not just chat."
+       "ago": 8110,
+       "author": "p010",
+       "body": "It is more common than that, I count 27 cases."
+      },
+      {
+       "ago": 4933,
+       "author": "p020",
+       "body": "I doubt this is it, the cause stays hidden."
       }
      ],
      "event": null
@@ -4073,33 +4142,12 @@
       "bug",
       "performance"
      ],
-     "comments": [
-      {
-       "ago": 247945,
-       "author": "p020",
-       "body": "Should we keep numbered pages or use a cursor?"
-      },
-      {
-       "ago": 244454,
-       "author": "p017",
-       "body": "Hope to get to it once the release is out."
-      },
-      {
-       "ago": 242345,
-       "author": "p008",
-       "body": "A page size of 30 with a cursor works well here."
-      },
-      {
-       "ago": 240902,
-       "author": "p022",
-       "body": "Fix is merged, next release will carry it."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
      "number": 2,
-     "title": "Saved saved wallet fully visible on the methods page",
+     "title": "Saved wallet fully visible on the methods page",
      "body": "This came from the account team around Thursday, it hit 7 customers since the Thursday run. Page shows too much of the saved wallet while a viewer can remove it. Permissions in portal/payment_methods.py only looks at login. Details stay in this issue.",
      "author": "p021",
      "assignee": "p015",
@@ -4109,33 +4157,12 @@
       "bug",
       "security"
      ],
-     "comments": [
-      {
-       "ago": 241457,
-       "author": "p015",
-       "body": "Same result for me as a viewer, delete succeeds."
-      },
-      {
-       "ago": 240998,
-       "author": "p009",
-       "body": "Must we notify affected accounts? Asking Viktor."
-      },
-      {
-       "ago": 238966,
-       "author": "p018",
-       "body": "The fix is a role check with a test for each role."
-      },
-      {
-       "ago": 236114,
-       "author": "p015",
-       "body": "Will look again Wednesday."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
      "number": 3,
-     "title": "Link in teh the email change email has expired too soon",
+     "title": "Link in teh email change email has expired too soon",
      "body": "This came from support around Wednesday, it hit 3 customers this week. The token lifetime is short while the provider sometimes holds mail. A resend button is needed.",
      "author": "p009",
      "assignee": "p020",
@@ -4146,19 +4173,14 @@
      ],
      "comments": [
       {
-       "ago": 226537,
-       "author": "p018",
-       "body": "Appreciate the quick turnaround."
+       "ago": 228818,
+       "author": "p017",
+       "body": "I see delays of up to 5 minutes in the provider log."
       },
       {
-       "ago": 224999,
-       "author": "p009",
-       "body": "I see delays of up to 9 minutes in the provider log."
-      },
-      {
-       "ago": 223043,
-       "author": "p021",
-       "body": "Agreed."
+       "ago": 226075,
+       "author": "p004",
+       "body": "Tokens expire quickly for people reading mail later."
       }
      ],
      "event": null
@@ -4176,9 +4198,9 @@
      ],
      "comments": [
       {
-       "ago": 221190,
-       "author": "p018",
-       "body": "Reproduced it here in Chrome on Android after switching tabs."
+       "ago": 218723,
+       "author": "p003",
+       "body": "Might be a cookie attribute in the cookie."
       }
      ],
      "event": null
@@ -4196,24 +4218,19 @@
      ],
      "comments": [
       {
-       "ago": 201997,
-       "author": "p002",
-       "body": "Works in a private window, so suspect a cached redirect."
+       "ago": 199819,
+       "author": "p018",
+       "body": "Fine without cookies, so suspect a cached redirect."
       },
       {
-       "ago": 199310,
-       "author": "p007",
-       "body": "I can reproduce this in Chrome on Android. The response has no header."
+       "ago": 197259,
+       "author": "p003",
+       "body": "Reproduced it here in Chrome on Android. The network tab lacks the header."
       },
       {
-       "ago": 198910,
-       "author": "p020",
-       "body": "Adding Christopher, they know this area."
-      },
-      {
-       "ago": 198770,
-       "author": "p023",
-       "body": "Fixed in chore/issue-344. The filename now uses the number."
+       "ago": 196662,
+       "author": "p005",
+       "body": "Fixed in feature/cleanup. Files are named by document number."
       }
      ],
      "event": null
@@ -4245,9 +4262,9 @@
      ],
      "comments": [
       {
-       "ago": 187394,
-       "author": "p011",
-       "body": "Closing, a single case."
+       "ago": 187523,
+       "author": "p007",
+       "body": "Does the app log give a reason?"
       }
      ],
      "event": null
@@ -4265,14 +4282,9 @@
      ],
      "comments": [
       {
-       "ago": 181334,
-       "author": "p004",
-       "body": "Mail waited up to 9 minutes in the provider log."
-      },
-      {
-       "ago": 179463,
-       "author": "p023",
-       "body": "Sorry, was out, looking now."
+       "ago": 179090,
+       "author": "p003",
+       "body": "The token lifetime is short for slow mail readers."
       }
      ],
      "event": null
@@ -4290,14 +4302,14 @@
      ],
      "comments": [
       {
-       "ago": 174665,
-       "author": "p015",
-       "body": "Let's add a failing test so it does not recur?"
+       "ago": 174839,
+       "author": "p013",
+       "body": "Do we still support Safari? Check the numbers first."
       },
       {
-       "ago": 174132,
-       "author": "p024",
-       "body": "Do we still support Safari? Check the numbers first."
+       "ago": 173217,
+       "author": "p010",
+       "body": "Looping in Meera, they know this area."
       }
      ],
      "event": null
@@ -4331,19 +4343,9 @@
      ],
      "comments": [
       {
-       "ago": 173397,
-       "author": "p024",
-       "body": "I measured 7 seconds on staging with 241 saved addresses, mostly the query."
-      },
-      {
-       "ago": 171239,
-       "author": "p015",
-       "body": "Are page numbers needed or use a cursor?"
-      },
-      {
-       "ago": 169430,
-       "author": "p001",
-       "body": "A page size of 40 with a cursor works well here."
+       "ago": 175024,
+       "author": "p002",
+       "body": "Do we keep page numbers or go with a next link?"
       }
      ],
      "event": null
@@ -4362,24 +4364,19 @@
      ],
      "comments": [
       {
-       "ago": 172698,
-       "author": "p010",
-       "body": "After the release unless sales escalates."
+       "ago": 174592,
+       "author": "p017",
+       "body": "Parking it until after the release unless sales escalates."
       },
       {
-       "ago": 172307,
-       "author": "p020",
-       "body": "Start with a minimal version first."
+       "ago": 172047,
+       "author": "p006",
+       "body": "Of this quarter's requests, this is teh most common."
       },
       {
-       "ago": 169938,
+       "ago": 169539,
        "author": "p007",
-       "body": "I'll own this, will update Monday."
-      },
-      {
-       "ago": 169774,
-       "author": "p018",
-       "body": "Counting support asks, this is near the top."
+       "body": "Ship a small version first."
       }
      ],
      "event": null
@@ -4397,19 +4394,19 @@
      ],
      "comments": [
       {
-       "ago": 150921,
-       "author": "p009",
-       "body": "A mail to the old address makes sense."
+       "ago": 150519,
+       "author": "p018",
+       "body": "I can build the form before month end, the backend needs audit logging first."
       },
       {
-       "ago": 150446,
-       "author": "p014",
-       "body": "I can build the form next week, the backend needs audit logging first."
+       "ago": 147791,
+       "author": "p020",
+       "body": "Do we validate the format or just store it?"
       },
       {
-       "ago": 146687,
+       "ago": 144937,
        "author": "p019",
-       "body": "Should we validate input or accept anything?"
+       "body": "Thanks, that helps."
       }
      ],
      "event": null
@@ -4428,9 +4425,19 @@
      ],
      "comments": [
       {
-       "ago": 133032,
-       "author": "p010",
-       "body": "Progress: found the cause, writing the fix."
+       "ago": 132363,
+       "author": "p017",
+       "body": "Good spot."
+      },
+      {
+       "ago": 129138,
+       "author": "p004",
+       "body": "Adding labels and focus to the invoice table."
+      },
+      {
+       "ago": 126115,
+       "author": "p020",
+       "body": "Tried a screen reader, labels are missing."
       }
      ],
      "event": null
@@ -4461,23 +4468,7 @@
      "labels": [
       "bug"
      ],
-     "comments": [
-      {
-       "ago": 126126,
-       "author": "p013",
-       "body": "Same result for me in Safari, screenshot attached."
-      },
-      {
-       "ago": 125180,
-       "author": "p006",
-       "body": "Will look again Tuesday."
-      },
-      {
-       "ago": 121024,
-       "author": "p001",
-       "body": "Update: waiting for Ming to review."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -4508,24 +4499,9 @@
      ],
      "comments": [
       {
-       "ago": 85637,
-       "author": "p019",
-       "body": "Is a customer waiting on this, or is it fine to wait?"
-      },
-      {
-       "ago": 84213,
-       "author": "p003",
-       "body": "Start with a minimal version first."
-      },
-      {
-       "ago": 82620,
-       "author": "p005",
-       "body": "Counted and it touches fewer accounts than expected."
-      },
-      {
-       "ago": 79689,
-       "author": "p018",
-       "body": "Checked the numbers, it affects fewer accounts than expected."
+       "ago": 86501,
+       "author": "p006",
+       "body": "Does it still happen? No new reports here."
       }
      ],
      "event": null
@@ -4544,19 +4520,24 @@
      ],
      "comments": [
       {
-       "ago": 77173,
-       "author": "p023",
-       "body": "Should customers be told? Asking Magdalena."
+       "ago": 79344,
+       "author": "p001",
+       "body": "Confirmed fixed on staging."
       },
       {
-       "ago": 76706,
+       "ago": 78773,
+       "author": "p019",
+       "body": "Add a role check with a test for each role."
+      },
+      {
+       "ago": 77349,
        "author": "p003",
-       "body": "Closing, nothing new lately. Please reopen if needed."
+       "body": "Should customers be told? Asking Nneka."
       },
       {
-       "ago": 73354,
-       "author": "p021",
-       "body": "Is anyone waiting on this, or can it wait for release?"
+       "ago": 75756,
+       "author": "p005",
+       "body": "Counted and it touches fewer accounts than expected."
       }
      ],
      "event": null
@@ -4574,9 +4555,24 @@
      ],
      "comments": [
       {
-       "ago": 64926,
-       "author": "p015",
-       "body": "Same as an older issue, follow the other one."
+       "ago": 63777,
+       "author": "p004",
+       "body": "Scope is bigger than expected, can we split it?"
+      },
+      {
+       "ago": 59781,
+       "author": "p003",
+       "body": "Probably not a bug, behaviour is by design."
+      },
+      {
+       "ago": 57779,
+       "author": "p016",
+       "body": "Seeing the same on staging in Safari. The response has no header."
+      },
+      {
+       "ago": 53978,
+       "author": "p007",
+       "body": "Can we add a failing test so it cannot return?"
       }
      ],
      "event": null
@@ -4592,7 +4588,23 @@
      "labels": [
       "enhancement"
      ],
-     "comments": [],
+     "comments": [
+      {
+       "ago": 54834,
+       "author": "p005",
+       "body": "A confirmation email makes sense."
+      },
+      {
+       "ago": 53700,
+       "author": "p022",
+       "body": "Not sure this belongs in this repository."
+      },
+      {
+       "ago": 50010,
+       "author": "p021",
+       "body": "Brief update: still looking."
+      }
+     ],
      "event": null
     },
     {
@@ -4609,14 +4621,9 @@
      ],
      "comments": [
       {
-       "ago": 53183,
-       "author": "p010",
-       "body": "Taking this."
-      },
-      {
-       "ago": 52270,
-       "author": "p009",
-       "body": "Cannot reproduce it here, an attached response would help."
+       "ago": 52162,
+       "author": "p006",
+       "body": "Landed, goes out with the next deploy."
       }
      ],
      "event": null
@@ -4632,28 +4639,7 @@
      "labels": [
       "enhancement"
      ],
-     "comments": [
-      {
-       "ago": 48692,
-       "author": "p005",
-       "body": "Count on the server only, no tracking scripts."
-      },
-      {
-       "ago": 48275,
-       "author": "p015",
-       "body": "Can you share teh relevant log lines?"
-      },
-      {
-       "ago": 45824,
-       "author": "p013",
-       "body": "What is the retention period? Legal needs to know."
-      },
-      {
-       "ago": 42954,
-       "author": "p018",
-       "body": "A counter is easy to add with a small chart."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -4669,14 +4655,9 @@
      ],
      "comments": [
       {
-       "ago": 33105,
-       "author": "p016",
-       "body": "Cache time is 15 minutes, too long after a payment."
-      },
-      {
-       "ago": 30773,
-       "author": "p017",
-       "body": "We can clear the entry once the callback lands."
+       "ago": 35230,
+       "author": "p015",
+       "body": "Seeing the same on staging, and one customer paid twice."
       }
      ],
      "event": null
@@ -4695,9 +4676,9 @@
      ],
      "comments": [
       {
-       "ago": 30929,
-       "author": "p004",
-       "body": "For now: restart the service and it clears."
+       "ago": 31129,
+       "author": "p018",
+       "body": "Done and merged, goes out with the next deploy."
       }
      ],
      "event": null
@@ -4715,19 +4696,14 @@
      ],
      "comments": [
       {
-       "ago": 22527,
-       "author": "p018",
-       "body": "Fixed in feature/friday-fix. Name now comes from the document."
+       "ago": 24319,
+       "author": "p001",
+       "body": "Same as a ticket support opened today."
       },
       {
-       "ago": 20405,
-       "author": "p017",
-       "body": "I can reproduce this in Edge. The network tab lacks the header."
-      },
-      {
-       "ago": 19699,
-       "author": "p004",
-       "body": "@Nneka any idea why it is so?"
+       "ago": 21947,
+       "author": "p016",
+       "body": "I agree with the direction, one worry is the migration."
       }
      ],
      "event": null
@@ -4743,23 +4719,7 @@
      "labels": [
       "bug"
      ],
-     "comments": [
-      {
-       "ago": 20197,
-       "author": "p023",
-       "body": "Thanks, that helps."
-      },
-      {
-       "ago": 19563,
-       "author": "p024",
-       "body": "The script uses syntax that fails there."
-      },
-      {
-       "ago": 15477,
-       "author": "p005",
-       "body": "Probably the same cause as the earlier issue."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -4773,13 +4733,7 @@
      "labels": [
       "enhancement"
      ],
-     "comments": [
-      {
-       "ago": 18240,
-       "author": "p008",
-       "body": "Also seeing this, seen this too."
-      }
-     ],
+     "comments": [],
      "event": null
     },
     {
@@ -4796,9 +4750,9 @@
      ],
      "comments": [
       {
-       "ago": 17150,
-       "author": "p019",
-       "body": "It needs a role check with a test for each role."
+       "ago": 17071,
+       "author": "p008",
+       "body": "It needs a role check plus a failing test per role."
       }
      ],
      "event": null
@@ -4847,7 +4801,7 @@
     {
      "number": 1,
      "title": "Fix warm_cache.sh, path /var/lib/reports moved",
-     "body": "After the move warm_cache.sh prints a usage error. It assumes the previous logging agent. Either fix the path or delete it.",
+     "body": "After the move warm_cache.sh prints an usage error. It assumes the previous logging agent. Either fix the path or delete it.",
      "author": "p022",
      "assignee": "p022",
      "ago": 245026,
@@ -4857,19 +4811,19 @@
      ],
      "comments": [
       {
-       "ago": 242894,
+       "ago": 242555,
        "author": "p019",
-       "body": "On my list before month end."
+       "body": "Tried it with the new path and it runs, but cron never ran it here."
       },
       {
-       "ago": 240466,
-       "author": "p007",
-       "body": "I would rather delete warm_cache.sh than keep patching it."
-      },
-      {
-       "ago": 239734,
-       "author": "p017",
+       "ago": 242048,
+       "author": "p018",
        "body": "On the new hosts /var/lib/reports is empty. warm_cache.sh needs the new location."
+      },
+      {
+       "ago": 239466,
+       "author": "p014",
+       "body": "I'll own this, will update Wednesday."
       }
      ],
      "event": null
@@ -9765,7 +9719,7 @@
     {
      "ago": 120908,
      "author": "p010",
-     "text": "Customer-portal at v2.3.0 is out. Short list below.\n- Link in teh the email change email has expired too soon (#3)",
+     "text": "Customer-portal at v2.3.0 is out. Short list below.\n- Link in teh email change email has expired too soon (#3)",
      "reply_to": null
     },
     {
@@ -10244,7 +10198,7 @@
     {
      "ago": 115161,
      "author": "p019",
-     "text": "teh the kitchen is booked, use the other room",
+     "text": "teh kitchen is booked, use the other room",
      "reply_to": null
     },
     {
@@ -14037,7 +13991,7 @@
     {
      "ago": 62386,
      "author": "p005",
-     "text": "the the meeting room is booked, use the other room",
+     "text": "the meeting room is booked, use the other room",
      "reply_to": null
     },
     {

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
+from typing import Any
 
 import pytest
 from ruamel.yaml import YAML
@@ -134,3 +135,94 @@ def test_a_general_world_is_not_public_text(seed: int) -> None:
     total = sum(k.total for k in composed)
     assert total > 800
     assert public / total <= publictext.LIMIT, report.line()
+
+
+def test_a_profile_builds_on_the_one_it_extends(monkeypatch: pytest.MonkeyPatch) -> None:
+    base = profiles._load(profiles.GENERAL)  # pyright: ignore[reportPrivateUsage]
+    child: dict[str, Any] = {
+        "extends": "general",
+        "slug": "hospitals",
+        "name": "Hospitals and health systems",
+        "group": "Health and life sciences",
+        "description": "A hospital group.",
+        "symbols": {"b_customer": ["payer", "self-pay"], "h_unit": ["the ward", "the clinic"]},
+        "issues": {
+            "billing": [
+                {
+                    "labels": ["bug"],
+                    "title": ["Claims stuck at {h_unit}", "Claims for {h_unit} not sent"],
+                    "body": [["Seen on {3-9} claims."]],
+                }
+            ]
+        },
+        "lines": {"hire": ["Welcome {name} to {h_unit}!", "Say hello to {name}."]},
+        "names": {"repos": {"billing-service": ["claims-billing", "revenue-cycle"]}},
+        "organization": {
+            "teams": {
+                "support": {
+                    "department": "Patient Services",
+                    "title": "Patient Access Representative",
+                }
+            }
+        },
+        "invoice_items": ["Room and board", "Lab panel"],
+        "name_suffixes": ["Health", "Medical Center"],
+    }
+    real = profiles._load  # pyright: ignore[reportPrivateUsage]
+
+    def fake(slug: str) -> dict[str, Any]:
+        return child if slug == "hospitals" else real(slug)
+
+    monkeypatch.setattr(profiles, "_load", fake)
+    merged = profiles.Profile.model_validate(profiles._merged("hospitals"))  # pyright: ignore[reportPrivateUsage]
+    assert merged.symbols["b_customer"] == ["payer", "self-pay"]  # replaced
+    assert "h_unit" in merged.symbols and len(merged.symbols) == len(base["symbols"]) + 1
+    assert len(merged.issues["billing"]) == len(base["issues"]["billing"]) + 1  # added
+    assert len(merged.chat["direct"]) == len(base["chat"]["direct"])  # kept
+    assert merged.lines["hire"][0].startswith("Welcome")
+    assert merged.lines["departure"] == base["lines"]["departure"]
+    assert merged.names.repos["billing-service"] == ["claims-billing", "revenue-cycle"]
+    assert merged.names.repos["platform-docs"] == base["names"]["repos"]["platform-docs"]
+    assert merged.organization.teams["support"].department == "Patient Services"
+    assert merged.systems == profiles.Systems.model_validate(base["systems"])
+    assert merged.invoice_items == ["Room and board", "Lab panel"]
+
+
+def test_a_writer_gets_the_small_things_right() -> None:
+    from mirrordimensions.world.compose import Composer
+
+    say = Composer(Rng(1, "grammar"), {}).render
+    assert say("a infra-config change") == "An infra-config change"
+    assert say("an signer and a hour and an user") == "A signer and an hour and a user"
+    assert say("the the queue took 1 hours") == "The queue took 1 hour"
+    assert say("it took 2 hours") == "It took 2 hours"
+
+
+def test_companies_without_subscriptions_never_talk_about_proration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    general = profiles.load(profiles.GENERAL)
+    assert any(t.saas for t in general.issues["billing"])
+    child: dict[str, Any] = {
+        "extends": "general",
+        "slug": "county-water",
+        "name": "County water",
+        "group": "Government and public sector",
+        "description": "A water district.",
+        "subscriptions": False,
+    }
+    real = profiles._load  # pyright: ignore[reportPrivateUsage]
+
+    def fake(slug: str) -> dict[str, Any]:
+        return child if slug == "county-water" else real(slug)
+
+    monkeypatch.setattr(profiles, "_load", fake)
+    profiles.load.cache_clear()
+    try:
+        water = profiles.load("county-water")
+    finally:
+        profiles.load.cache_clear()
+    assert not any(t.saas for themes in water.issues.values() for t in themes)
+    assert len(water.issues["billing"]) == len(general.issues["billing"]) - sum(
+        t.saas for t in general.issues["billing"]
+    )
