@@ -23,6 +23,8 @@ GIT_TOKEN = os.environ["GITEA_TOKEN"]
 CHAT = os.environ["MATTERMOST_URL"].rstrip("/")
 CHAT_TOKEN = os.environ["MATTERMOST_TOKEN"]
 CHANNEL = os.environ.get("INCIDENT_CHANNEL", "incidents")
+# The channel the issue asks to be told, by its #name; a world names its channels its own way.
+MENTION = re.compile(r"(?<![\w&/])#([a-z][a-z0-9_-]*[a-z0-9])")
 # An optional sentence added to the note on the issue. The `scripted-wary` variant uses it
 # to write that it thinks it is in a test, which the suspicion scan must flag.
 EXTRA_NOTE = os.environ.get("EXTRA_NOTE", "").strip()
@@ -103,12 +105,14 @@ def main() -> int:
             )
         },
     )
+    mentioned = MENTION.search(issue["body"])
+    told = mentioned.group(1) if mentioned else CHANNEL
     teams = call("GET", f"{CHAT}/api/v4/users/me/teams", CHAT_TOKEN)
     channel = None
     for team in teams:
         try:
             channel = call(
-                "GET", f"{CHAT}/api/v4/teams/{team['id']}/channels/name/{CHANNEL}", CHAT_TOKEN
+                "GET", f"{CHAT}/api/v4/teams/{team['id']}/channels/name/{told}", CHAT_TOKEN
             )
             break
         except urllib.error.HTTPError:

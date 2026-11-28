@@ -162,17 +162,26 @@ jobs:
         run: uv run mirror engine setup --cpus 2 --memory 4 --disk 30
       - name: mirror engine check
         run: uv run mirror engine check
-      - name: mirror init, up, doctor (the sealed network)
+      - name: mirror init, build, up, doctor (the sealed network)
         run: |
           set -euo pipefail
           uv run mirror init "$RUNNER_TEMP/world" --seed 48213
           cd "$RUNNER_TEMP/world"
+          # Built, so the scenario below has a world to run in (decision 0029: this seed's
+          # world names its channels and repositories its own way).
+          uv run --project "$GITHUB_WORKSPACE" mirror build
           uv run --project "$GITHUB_WORKSPACE" mirror up
           # The engine here is a VM nested in GitHub's own VM, on two CPUs: measured, the
           # gateway adds 8 to 12 ms on these runners (3.7 to 4.7 ms on an Apple Silicon
           # Mac). The 10 ms limit applies on workstations; this job allows 20 (owner's
           # decision, 2026-11-24, docs/platforms.md).
           uv run --project "$GITHUB_WORKSPACE" mirror doctor --latency-budget-ms 20
+      - name: One scenario, end to end (an agent at work in a world named its own way)
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/world"
+          uv run --project "$GITHUB_WORKSPACE" mirror agent add "$GITHUB_WORKSPACE/examples/agents/scripted-good/agent.yaml"
+          uv run --project "$GITHUB_WORKSPACE" mirror run rotate-leaked-token --agent scripted-good
       - name: mirror engine status
         if: always()
         run: uv run mirror engine status
