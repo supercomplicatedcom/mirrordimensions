@@ -1,0 +1,1533 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Aerospace: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: aerospace
+name: Aerospace
+group: Industry and infrastructure
+aliases:
+  - aerospace and defense
+  - aircraft manufacturing
+  - aerostructures
+  - aviation manufacturing
+  - aircraft parts
+description: An aerospace manufacturer and repair station that builds and overhauls serialized aircraft components under strict traceability and export controls.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Aerospace
+  - Aviation
+  - Aerostructures
+  - Systems
+  - Dynamics
+  - Aeronautics
+  - Technologies
+  - Components
+invoice_items:
+  - Machined airframe components
+  - Repair and overhaul services
+organization:
+  head: Director of Manufacturing IT
+  it_admin: Enclave IT Administrator
+  teams:
+    platform:
+      department: Manufacturing Systems
+      title: Systems Engineer
+    billing:
+      department: Contracts and Billing
+      title: ERP Developer
+    data:
+      department: Quality Analytics
+      title: Data Engineer
+    support:
+      department: Customer Support
+      title: Customer Support Specialist
+      lead: Customer Support Supervisor
+    product:
+      department: Program Management
+      title: Program Manager
+    operations:
+      department: Production Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - contract-billing
+      - invoicing
+      - billing-service
+      - order-to-cash
+      - repair-billing
+    platform-docs:
+      - mfg-systems-docs
+      - systems-handbook
+      - runbooks
+      - quality-systems-wiki
+    data-pipeline:
+      - quality-data-loads
+      - traveler-warehouse
+      - program-reporting
+      - shopfloor-etl
+      - ops-analytics-etl
+    infra-config:
+      - enclave-infra
+      - gateway-config
+      - site-environments
+      - mfg-infra
+    customer-portal:
+      - operator-portal
+      - customer-orders-web
+      - repair-status-portal
+      - fleet-portal
+      - supplier-portal
+    ops-scripts:
+      - plant-scripts
+      - shopfloor-tools
+      - legacy-plant-scripts
+      - admin-tools
+  channels:
+    engineering:
+      - systems-engineering
+      - mfg-eng
+      - dev
+    incidents:
+      - site-incidents
+      - line-down
+      - incidents
+    releases:
+      - releases
+      - go-lives
+      - deploys
+    billing-team:
+      - contracts-billing
+      - billing-team
+      - erp-billing
+    platform-team:
+      - mfg-systems
+      - platform-team
+      - enclave-ops
+    data-team:
+      - quality-analytics
+      - data-team
+      - reporting
+    support:
+      - customer-support
+      - order-desk
+      - support
+systems:
+  typical:
+    - Siemens Teamcenter X
+    - PTC Windchill
+    - SAP S/4HANA Cloud
+    - Oracle Fusion Cloud ERP
+    - Gitea
+    - Mattermost
+    - Jira
+    - Microsoft Entra ID
+    - mastercontrol
+  common:
+    - ServiceNow
+    - Splunk
+    - CrowdStrike Falcon
+    - Confluence
+    - Onshape
+symbols:
+  b_doc:
+    - invoice
+    - credit memo
+    - progress invoice
+    - repair invoice
+    - exchange invoice
+    - '{monthly/quarterly} statement'
+  b_customer:
+    - airline
+    - MRO
+    - defense prime
+    - government
+    - spares
+    - OEM
+    - space
+  b_who:
+    - the contracts team
+    - customer service
+    - finance
+    - the program office
+    - quality
+    - export compliance
+  b_pwho:
+    - customer service
+    - an operator
+    - '{person}'
+    - the contracts team
+    - the program office
+  b_ticket_noun:
+    - ticket
+    - case
+    - AOG request
+    - escalation
+    - claim
+  b_money_path:
+    - billing/invoice.py
+    - billing/core_charges.py
+    - billing/progress.py
+    - billing/rounding.py
+  b_provider_event:
+    - payment succeeded
+    - payment failed
+    - remittance advice posted
+    - refund completed
+    - chargeback opened
+    - payout settled
+  b_taxkind:
+    - VAT
+    - sales tax
+    - GST
+    - customs duty
+    - reverse-charge VAT
+  b_region:
+    - Germany
+    - France
+    - Canada
+    - Brazil
+    - the UK
+    - Singapore
+    - Poland
+    - Japan
+  b_page:
+    - repair status
+    - certificates
+    - open quotes
+    - the exchange pool
+    - invoices
+    - technical publications
+    - serial lookup
+    - the dashboard
+  b_acct_size:
+    - '{200-900} serialized units'
+    - '{15-60} users'
+    - '{3-12} ship-to sites'
+    - '{40-300} part numbers on contract'
+    - over {1000-4000} repair orders
+  b_slow:
+    - about {20-90} seconds
+    - over a minute
+    - '{3-12} minutes'
+    - nearly {2-4} minutes
+  p_table:
+    - work_orders
+    - serial_units
+    - ncr_records
+    - inspections
+    - invoices
+    - shipments
+    - inventory_moves
+    - certificates
+  p_source:
+    - the CMM inspection exports
+    - the calibration records
+    - the furnace log files
+    - the supplier certificate data
+    - the CRM account list
+    - the traveler operation log
+  p_report:
+    - the on-time delivery report
+    - the nonconformance trend report
+    - the cycle time dashboard
+    - the open order backlog report
+    - the aging receivables report
+    - the repair turnaround report
+  p_finance_ask:
+    - the program controller
+    - someone in finance
+    - the cost accountant
+    - the controller
+    - the contracts manager
+  p_service_name:
+    - billing-service
+    - customer-portal
+    - data-pipeline
+    - the certificate generator
+    - the traveler sync
+  p_glossary_term:
+    - the MES
+    - the traveler
+    - the rota
+    - the reporting workers
+    - the export screen
+    - the enclave
+  p_alert_name:
+    - disk usage on the enclave
+    - failed backups
+    - certificate queue depth
+    - the nightly ERP sync finishing late
+    - the export screening queue
+  p_secret_thing:
+    - the MES database password
+    - the certificate signing key
+    - the carrier API key
+    - the warehouse service account key
+    - the payments provider token
+  p_limit_target:
+    - the reporting workers
+    - the invoice workers
+    - the portal pods
+    - the certificate generator
+    - the traveler sync
+  p_script:
+    - sync_travelers.sh
+    - rotate_logs.sh
+    - check_disk.sh
+    - export_serials.sh
+    - purge_certs.sh
+    - rotate_backups.sh
+    - copy_drawings.sh
+    - reset_kiosks.sh
+  p_script_path:
+    - /var/log/app
+    - /opt/billing/exports
+    - /srv/portal/certs
+    - /mnt/backups/daily
+    - /data/plant/travelers
+  p_script_symptom:
+    - fails with no such file
+    - exits 0 but does nothing
+    - complains about a missing binary
+    - hangs on the second plant server
+    - copies zero files
+  p_old_ref:
+    - the old cron host
+    - the retired jump box
+    - the pre-migration plant servers
+    - the previous traveler server
+    - the old kiosk image
+  p_runbook:
+    - docs/runbooks/billing-workers.md
+    - docs/runbooks/nightly-load.md
+    - docs/runbooks/certificates.md
+    - docs/runbooks/export-screening.md
+    - docs/runbooks/erp-downtime.md
+  p_pipeline_file:
+    - pipeline/load.py
+    - pipeline/clean.py
+    - pipeline/validate.py
+    - pipeline/lock.py
+    - pipeline/travelers.py
+  s_plan:
+    - a long-term agreement
+    - net 45 terms
+    - a pooled exchange contract
+    - a power-by-the-hour deal
+    - a blanket order
+  s_tool:
+    - the order desk screen
+    - the ERP admin console
+    - the support desk
+    - the quality system
+    - the shipping console
+  s_docs:
+    - the wiki
+    - the shared drive
+    - the handbook
+    - the plant runbook
+  s_lunch:
+    - the canteen
+    - the deli across the road
+    - the food truck
+    - the noodle place
+    - the lunch van
+  c_customer:
+    - a customer
+    - one of the airlines
+    - an MRO
+    - a defense prime
+    - a spares buyer
+  c_eng_area:
+    - the invoice job
+    - the certificate generator
+    - the traveler sync
+    - the export screen
+    - the serial import
+    - the core charge lookup
+    - the export endpoint
+    - the login flow
+    - the retry logic
+    - the repair quote flow
+  c_blocker:
+    - waiting on review
+    - blocked on enclave access
+    - waiting on the ERP vendor
+    - stuck on a flaky job
+    - waiting on export approval
+  c_team_topic:
+    - the sprint
+    - the release
+    - the backlog
+    - the board
+    - the audit
+  c_room:
+    - the canteen
+    - the training room
+    - the meeting room
+    - the front office
+  ae_part:
+    - turbine blades
+    - landing gear fittings
+    - hydraulic actuators
+    - wing brackets
+    - fuel nozzles
+    - avionics housings
+    - bearing races
+    - flap tracks
+  ae_cert:
+    - release certificate
+    - certificate of conformance
+    - first article report
+    - material certification
+    - inspection report
+  ae_unit:
+    - exchange unit
+    - repair unit
+    - rotable
+    - serialized part
+  ae_cell:
+    - the five-axis cell
+    - the heat treat furnace
+    - the inspection bay
+    - the paint booth
+    - the assembly cell
+    - the CMM room
+    - the plating line
+  ae_prog:
+    - the engine program
+    - the airframe program
+    - the helicopter program
+    - the satellite program
+  ae_plant:
+    - the machining plant
+    - the assembly plant
+    - the repair station
+    - the coating shop
+    - the main site
+  ae_ref:
+    - serial {1000000-9999999}
+    - work order {40000-49999}
+    - PO {4500000000-4599999999}
+    - contract line {1-9}
+  ae_raised:
+    - '{Raised/Flagged/Reported} by {b_who}'
+    - '{b_who|cap} {raised/flagged/mentioned} it'
+    - Came up on a call with {b_who}
+    - This landed with us via {b_who}
+  ae_urgent:
+    - Shipments are not blocked.
+    - An aircraft is waiting on this.
+    - Not urgent, {but/though} it keeps coming up.
+    - Nothing is stuck yet.
+    - Needs fixing before the audit.
+    - The customer may escalate.
+  ae_scope:
+    - '{3-30} units {b_since}'
+    - '{2-12} {b_customer} accounts {b_since}'
+    - about {5-40} shipments {b_since}
+    - so far {2-9} {b_ticket_noun}s
+    - '{3-25} order lines at one site'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        unit:
+          - '{ae_unit}'
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        path:
+          - billing/core_charges.py
+          - billing/returns.py
+          - billing/exchange.py
+      title:
+        - '{unit|cap} core credit missing on {doc}s'
+        - Core charge not credited after the {unit} core returns
+        - Core still open after the {unit} came back
+        - Why is core charge still on {customer} {doc}s?
+      body:
+        -   - '{ae_raised}, {ae_scope}.'
+            - '{ae_raised} on {customer} accounts, {ae_scope}.'
+        -   - '{path} waits for the core inspection.'
+            - Returns post in {path}, not on the {doc}.
+        -   - Cores past {30/45/60} days are not credited.
+            - Credits arrive after the {statement/period} closes.
+        -   - '{ae_urgent}'
+      comments:
+        - '{b_cm_repro} with a returned {unit}.'
+        - '{b_cm_check}, the inspection status may be wrong.'
+        - Finance wants the open cores listed.
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        doc:
+          - progress invoice
+          - milestone invoice
+          - cost voucher
+        customer:
+          - '{b_customer}'
+        n:
+          - '{1-9}'
+          - '{10-30}'
+        path:
+          - billing/ceilings.py
+          - billing/progress.py
+          - billing/contracts.py
+      title:
+        - '{doc|cap} exceeds funded value on contract line {n}'
+        - Progress {doc} goes past the contract line ceiling
+        - Ceiling check misses {doc}s for {customer} work
+        - Cumulative billing passes the ceiling on {customer} contracts
+      body:
+        -   - '{ae_raised}, {ae_scope}.'
+            - The contracts team found {2-9} lines over.
+        -   - '{path} sums {only/just} the posted {doc}s.'
+            - '{path} ignores {drafts/pending credits}.'
+        -   - A line {over/past} the ceiling is a finding.
+            - Customers reject billing above {funding/the ceiling}.
+        -   - '{ae_urgent}'
+      comments:
+        - '{b_cm_repro} with contract line {1-9}.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        cert:
+          - release certificate
+          - 8130 tag
+          - conformance certificate
+        path:
+          - billing/certs.py
+          - billing/lines.py
+          - billing/invoice.py
+      title:
+        - '{doc|cap} rejected: {cert} reference missing'
+        - Missing {cert} number on {customer} {doc}s
+        - '{doc|cap}s fail receiving, no {cert} reference'
+        - '{customer|cap} bounces {doc}s without a {cert} number'
+      body:
+        -   - '{ae_raised}, {ae_scope}.'
+            - Their receiving team sent back {2-40} documents.
+        -   - '{path} never reads the release record.'
+            - The invoice prints {no/a blank} certificate number.
+        -   - Their terms need the {cert} number on every line.
+            - Serialized lines must show the {cert}.
+        -   - '{ae_urgent}'
+      comments:
+        - '{b_cm_repro} with {ae_ref}.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up} It reads the number at release.'
+    - labels:
+        - needs-decision
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - AOG rush charges
+          - units beyond economic repair
+          - teardown fees
+          - warranty credits
+          - late core returns
+          - price changes on open orders
+        a:
+          - charge a flat fee
+          - credit the full amount
+          - bill actual cost
+          - waive it once
+          - apply the new price
+          - follow the contract
+        b:
+          - charge by the hour
+          - credit only the parts
+          - bill standard cost
+          - charge every time
+          - keep the old price
+          - decide per customer
+      title:
+        - '{question|cap}: who rules?'
+        - Decide how to handle {question}
+        - Open question on {question}
+        - Policy for {question}?
+      body:
+        -   - '{b_nd_a}, {b_nd_b} {b_nd_c}'
+            - '{b_who|cap} handles {question} {b_nd_b} {b_nd_c}'
+        -   - 'Options: {a}, or {b}.'
+            - We could {a}; or {b}; or keep it as is.
+        -   - '{b_nd_f}'
+            - Contracts and finance should {sign off/agree} first.
+      comments:
+        - '{b_cm_lean} {a}.'
+        - '{b_cm_ask_who}'
+        - Needs a ruling from {b_who}.
+    - labels:
+        - bug
+      let:
+        doc:
+          - '{b_doc}'
+          - commercial invoice
+          - packing list
+        customer:
+          - '{b_customer}'
+        path:
+          - billing/export.py
+          - billing/licences.py
+          - billing/customs.py
+      title:
+        - Export {doc} prints the wrong licence reference
+        - Export paperwork shows an old licence
+        - Licence reference missing on {customer} export {doc}s
+      body:
+        -   - '{ae_raised}, {ae_scope}.'
+            - Customs held {2-9} shipments {b_since}.
+        -   - '{path} reads the licence from the order.'
+            - The licence table in {path} {is keyed by/keys on} customer.
+        -   - Licences are issued per {destination/part}.
+            - A renewed licence gets {a new/another} number.
+        -   - Export compliance owns the table.
+      comments:
+        - '{b_cm_repro} with an export order.'
+        - Export compliance can confirm the numbers.
+        - '{b_cm_fix_up}'
+  portal:
+    - labels:
+        - bug
+      let:
+        state:
+          - in work
+          - awaiting parts
+          - in inspection
+          - in test
+        cert:
+          - '{ae_cert}'
+        path:
+          - portal/status.py
+          - portal/travelers.py
+          - portal/repairs.py
+      title:
+        - '{state|cap} status never clears on shipped units'
+        - Unit shows {state} though the {cert} is issued
+        - Repair tracker lags behind the traveler
+        - Repair status stuck at {state} after release
+      body:
+        -   - '{ae_raised}, {ae_scope}.'
+            - Operators phone {about/to ask about} {2-9} units.
+        -   - '{path} reads the last operation only.'
+            - Status maps from the traveler {nightly/hourly}.
+        -   - Rework steps reset the state.
+            - Shipped units keep an old status.
+      comments:
+        - '{b_cm_repro} with {ae_ref}.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+        - security
+      let:
+        kind:
+          - drawings
+          - repair manuals
+          - inspection reports
+          - fixture data
+        path:
+          - portal/drawings.py
+          - portal/downloads.py
+          - portal/files.py
+      title:
+        - Controlled data opens for wrong accounts
+        - Drawing download skips the export check
+        - A non-cleared account can open {kind}
+      body:
+        -   - '{ae_raised}, noticed while helping an operator.'
+            - Found while checking a ticket, {ae_scope}.
+        -   - '{path} never reads the screening flag.'
+            - The route in {path} checks login only.
+        -   - This {is/may be} a reportable issue.
+            - Some of these files {are/may be} export controlled.
+        -   - '{b_dlk_e}'
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_fix_up} It adds a clearance check to {path}.'
+        - Check the access log for {that/the drawing} route.
+    - labels:
+        - bug
+      let:
+        cert:
+          - '{ae_cert}'
+        field:
+          - serial number
+          - revision letter
+          - part number
+          - work order number
+        path:
+          - portal/certs.py
+          - portal/documents.py
+          - portal/release.py
+      title:
+        - '{cert|cap} PDF shows the wrong {field}'
+        - '{cert|cap} has an old {field}'
+        - Wrong {field} printed on the {cert}
+      body:
+        -   - '{ae_raised}, {ae_scope}.'
+            - Receiving rejected {2-9} units.
+        -   - '{path} fills the {field} from the order, not the unit.'
+            - The unit record holds the right {field}.
+        -   - Auditors {may/will} review certificates.
+            - Quality needs {a reissue/the file} within {2-5} days.
+      comments:
+        - '{b_cm_repro} with {ae_ref}.'
+        - Reissue old ones, or {skip/leave} them?
+        - '{b_cm_fix_up}'
+    - labels:
+        - enhancement
+      let:
+        kind:
+          - repair
+          - overhaul
+          - exchange
+          - teardown
+        path:
+          - portal/quotes.py
+          - portal/approvals.py
+      title:
+        - Portal approval for {kind} quotes
+        - Quote approval with a PO attached
+        - Let operators approve repair quotes online
+      body:
+        -   - '{ae_raised}. {b_g_asking}'
+            - Quotes go by email, {often/each month}.
+        -   - Today approval means {a phone call/an email}.
+            - The quote page in {path} is read only.
+        -   - It needs {a PO/the PO} upload and a trail.
+            - Approvals must be logged.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_small} {b_cm_start}'
+  docs:
+    - labels:
+        - docs
+        - enhancement
+      let:
+        flow:
+          - how a release certificate is issued
+          - the export screening step
+          - nonconformance report routing
+          - how config changes reach the portal
+          - calibration status checks
+          - site month-end close
+      title:
+        - '{flow|cap} needs a page in the handbook'
+        - Write up {flow} for new engineers
+        - Nobody has written down {flow}
+        - Document {flow}
+      body:
+        -   - "{flow|cap} lives in {person}'s head today."
+            - New joiners keep asking about {flow}.
+        -   - One page with {a diagram/the steps}.
+            - A page of steps and failures.
+        -   - '{Add/List} the quality contact {if/when} it stalls.'
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - bug
+      let:
+        page:
+          - docs/oncall.md
+          - docs/access.md
+          - docs/releases.md
+          - docs/runbooks/certificates.md
+          - docs/runbooks/export-screening.md
+        stale:
+          - the old traveler server
+          - the retired enclave gateway
+          - last year's audit dates
+          - the previous screening tool
+          - the former certificate template
+      title:
+        - '{Handbook/Docs}: {page} lists {stale}'
+        - Stale reference to {stale} in {page}
+        - '{page|cap} still names {stale}'
+      body:
+        -   - '{page|cap} still mentions {stale}.'
+            - '{page|cap} was last edited before the audit.'
+        -   - '{A new hire/Someone} hit a wall.'
+            - '{person} hit this on {day}.'
+        -   - Someone from {ae_plant} should read it through.
+      comments:
+        - '{b_cm_check}'
+        - '{Fixed/Updated} the first sections, {more/some} to go.'
+    - labels:
+        - docs
+        - task
+      let:
+        howto:
+          - reissue a release certificate
+          - add a customer to export screening
+          - reopen a closed repair order
+          - reprint a serial label
+          - attach a licence to an order
+          - close a nonconformance report
+        screen:
+          - the ERP
+          - the certificate tool
+          - the screening console
+      title:
+        - 'How-to: {howto}'
+        - Write up how to {howto}
+        - 'Add a how-to: {howto}'
+      body:
+        -   - '{Support/Service} asks about this {often/monthly/weekly}.'
+            - '{Quality/Planning} does this by hand.'
+        -   - Steps, common errors, {and/plus} who approves.
+            - Short, with screenshots of {screen}.
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - needs-decision
+      let:
+        change:
+          - audit findings
+          - a customer flow-down
+          - a specification revision
+          - a corrective action
+          - a supplier notice
+        who:
+          - '{b_who}'
+      title:
+        - '{change|cap}: where in the handbook?'
+        - How do we document {change}?
+        - Decide how to record {change}
+      body:
+        -   - '{change|cap} touches {the portal/billing/the data loads}.'
+            - Quality sends notices, nobody files.
+        -   - One log {is/might be} easier to keep.
+            - 'Options: a page per change, {or/versus} a running log.'
+        -   - '{b_nd_f}'
+      comments:
+        - '{b_cm_lean} a running log.'
+        - '{b_cm_ask_who}'
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        cell:
+          - '{ae_cell}'
+        report:
+          - the nonconformance trend report
+          - the quality dashboard
+        n:
+          - '{5-9}'
+          - '{10-30}'
+        path:
+          - pipeline/ncr.py
+          - pipeline/clean.py
+      title:
+        - '{report|cap} shows {n} percent too many NCRs'
+        - Reopened NCRs counted twice in {report}
+        - Nonconformance counts doubled for {cell}
+      body:
+        -   - '{report|cap} lists {2-9}0 records, quality counts fewer.'
+            - '{cell|cap} looks {n} percent worse {b_since}.'
+        -   - '{path} keys on the report id.'
+            - A reopened NCR gets a {new/second} row.
+        -   - Quality reports to the customer monthly.
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - bug
+        - incident
+      let:
+        event:
+          - an import
+          - a schema change
+          - a cleaning step
+        table:
+          - serial_units
+          - work_orders
+          - certificates
+        path:
+          - pipeline/clean.py
+          - pipeline/travelers.py
+      title:
+        - '{event|cap} breaks the serial key in {table}'
+        - Serial numbers lose zeros in warehouse
+        - Traveler load fails on some serials
+      body:
+        -   - '{table|cap} lists two units with one serial.'
+            - Serials like 00{1000-9999} load as {1000-9999}.
+        -   - '{path} casts the column on read.'
+            - The load reads serials {as numbers/numerically}.
+        -   - Traceability reports {then/} fail to join.
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_check} the column type first.'
+        - '{b_cm_fix_up}'
+    - labels:
+        - question
+        - data-quality
+      let:
+        report:
+          - the on-time delivery report
+          - the delivery dashboard
+        gap:
+          - '{2-9}'
+          - '{10-20}'
+      title:
+        - '{report|cap} does not match the program office ({gap} off)'
+        - '{report|cap}: {gap} gap against the program view'
+        - On-time delivery differs by {gap} points
+      body:
+        -   - The program office counts {from promise/by promise} date.
+            - The load counts from {the order/order} date.
+        -   - It was {gap} points {last quarter/in May}.
+            - The gap is about {gap} points {b_since}.
+        -   - Need a date rule {first/now}.
+      comments:
+        - '{b_cm_hand} the monthly total.'
+        - '{b_cm_ask_who}'
+    - labels:
+        - enhancement
+      let:
+        source:
+          - CMM inspection exports
+          - calibration records
+          - furnace log files
+          - supplier certificate data
+          - tool wear readings
+        who:
+          - quality
+          - the plant manager
+          - the program office
+          - finance
+        report:
+          - the cycle time dashboard
+          - the nonconformance trend report
+          - the repair turnaround report
+        format:
+          - CSV
+          - XML
+          - JSON lines
+          - a flat file
+      title:
+        - '{source|cap} should land in the warehouse'
+        - Bring {source} into the warehouse
+        - Load {source} into the warehouse
+      body:
+        -   - '{who|cap} wants it next to {report}.'
+            - Today {someone/a clerk} copies it by hand.
+        -   - It arrives as {format} {every hour/each night/after each batch}.
+            - Files land on {the enclave share/a plant share}.
+        -   - A rough size is {2-6} days with checks.
+      comments:
+        - '{b_cm_ask_who}'
+        - Keep the raw files {30-90} days.
+    - labels:
+        - bug
+        - data-quality
+      let:
+        cell:
+          - '{ae_cell}'
+        table:
+          - operations
+          - work_orders
+          - travelers
+        n:
+          - '{2-9}0'
+          - '{10-40}'
+      title:
+        - '{cell|cap} shows negative durations'
+        - Operation end before start in {table}
+        - Cycle times go negative for {cell}
+      body:
+        -   - '{n} operations end before they start.'
+            - Durations below zero appear {b_since}.
+        -   - Kiosk clocks drift {from/against} the server.
+            - Operators enter times by hand.
+        -   - '{Averages/The average} look too fast.'
+      comments:
+        - "{b_cm_repro} on last {day}'s data."
+        - '{b_cm_ask_who}'
+  infra:
+    - labels:
+        - security
+        - bug
+      let:
+        group:
+          - the whole domain
+          - all contractors
+          - every engineer
+          - the support group
+      title:
+        - Controlled files are open to {group}
+        - Enclave share is too open for {group}
+        - Controlled files are readable by {group}
+      body:
+        -   - '{person} found it while reviewing access.'
+            - A scan listed {2-9}0 files.
+        -   - It holds {drawings/inspection data}.
+            - It sits in the enclave.
+        -   - Limit it to named staff.
+      comments:
+        - '{b_cm_check}'
+        - I will tighten the rule {c_soon}.
+    - labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - code signing certificate
+          - customer gateway certificate
+          - enclave VPN certificate
+          - certificate generator key
+      title:
+        - '{cert|cap} expiry should page someone'
+        - Alert before the {cert} expires
+        - No warning for the {cert}
+      body:
+        -   - The {cert} expired on {day} and {nothing/no one} warned us.
+            - Uploads to the customer failed for {2-9} hours.
+        -   - Add a warning {14/21/30} days ahead.
+            - A nightly job check {would be/is} enough.
+      comments:
+        - '{b_cm_fix_up}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - chore
+        - security
+      let:
+        target:
+          - enclave file server
+          - certificate generator
+          - traveler server
+          - gateway
+        days:
+          - '{30-90}'
+        env_file:
+          - environments/production.yaml
+          - config/retention.yaml
+      title:
+        - Audit logs for the {target} kept only {days} days
+        - Contract needs longer logs for the {target}
+        - Log retention too short on the {target}
+      body:
+        -   - Retention in {env_file} says {days} days.
+            - The contract asks for {1-3} years of logs.
+        -   - Compliance asked about it {b_since}.
+        -   - Archive older logs to cold storage.
+      comments:
+        - '{b_cm_check}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - chore
+        - security
+      let:
+        target:
+          - enclave gateway image
+          - traveler server
+          - certificate tool
+          - kiosk operating system
+      title:
+        - '{target|cap} is out of support'
+        - Plan the move off the old {target}
+        - Upgrade the {target}
+      body:
+        -   - The vendor ends support in {2-9} months.
+            - The vendor no longer patches {it/this}.
+        -   - Do it in {the next/a} maintenance window.
+            - It needs an approved change window.
+      comments:
+        - '{b_cm_ask_who}'
+        - The change board needs {2-6} weeks notice.
+  ops:
+    - labels:
+        - bug
+      let:
+        script:
+          - sync_travelers.sh
+          - export_serials.sh
+          - purge_certs.sh
+        days:
+          - '{7-90}'
+        kind:
+          - traveler files
+          - exports
+          - certificates
+        symptom:
+          - '{p_script_symptom}'
+        old:
+          - '{p_old_ref}'
+      title:
+        - '{Scripts/Ops}: {script} keeps {days} days of {kind}, docs say something else'
+        - '{script} {symptom}'
+      body:
+        -   - It was written for {old}.
+            - Nobody has touched it {since/after} the move.
+      comments:
+        - '{b_cm_check}'
+comments:
+  - '{b_g_ask} the serial number?'
+  - Which site was this, {ae_plant}?
+  - '{b_cm_repro}.'
+  - The program office {asked/enquired} about this on {day}.
+  - Quality wants to know {if/when} it affects {ae_part}.
+  - '{b_g_loop} {person}, they know the repair side.'
+  - Shipping is not blocked, {but/though} it is close.
+  - Can we see the customer's {ae_cert} for this?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: safety briefing at {time} {c_soon}, hangar included.'
+        - toolbox talk at {time} on {day}, please attend.
+        - 'reminder: foreign object debris walk at {time} {c_soon}'
+      replies:
+        -   - '{c_ack}'
+            - does that include contractors?
+            - '{c_thanks}'
+        -   - '{c_yes}, everyone'
+            - '{c_yes}{c_sep} hi vis please'
+            - ''
+    - root:
+        - customer audit on {day}, please keep {c_room} tidy.
+        - '{c_hey}: auditors on site {day}, badges at reception'
+        - supplier audit {day} at {time}, escort rules apply
+      replies:
+        -   - '{c_ack}'
+            - what time do they arrive?
+            - '{c_thanks}'
+        -   - around {time}
+            - '{c_idk}, ask {person}'
+            - ''
+    - root:
+        - visitor rules changed {c_soon}, escorts needed for the machining plant.
+        - '{c_hey}, new badge rules {c_soon} for the repair station'
+        - export training is due {c_soon}, please finish it
+      replies:
+        -   - '{c_ack}'
+            - does that include contractors?
+            - '{c_thanks}'
+        -   - '{c_yes}, all of them'
+            - '{c_idk}, ask {person}'
+            - ''
+  off-topic:
+    - root:
+        - anyone want to carpool, route {2-9} is closed
+        - road works near the site again{c_sep} leave early
+        - who is up for {c_sport} after work {day}?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_no}, sorry'
+            - which gate?
+        -   - '{c_ack}'
+            - '{c_lol}'
+            - ''
+  engineering:
+    - root:
+        - '{c_ci_fail} is failing on the certificate branch'
+        - certificate branch is red, {c_ci_fail} failed again
+        - '{c_ci_fail} fails in {repo}, only on the serial change'
+      replies:
+        -   - same here after lunch
+            - which test exactly?
+            - '{c_blocker} on my side'
+        -   - the serial one
+            - looks like a missing fixture
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - i'll rerun it
+            - ''
+    - root:
+        - serial import drops zeros, seen it?
+        - serials lose leading zeros since {day}
+        - serials look wrong in the load
+      replies:
+        -   - which table?
+            - same here, only for old units
+            - '{c_idk}, checking'
+        -   - serial_units
+            - '{c_ack}'
+            - attaching the file to {issue}
+        -   - found it, a type cast
+            - '{c_thanks}'
+            - ''
+    - let:
+        ref:
+          - '{ae_ref}'
+      root:
+        - export screening step timed out on {ref}
+        - screening call fails for {ref}, is it down?
+        - '{c_hey}: export screen is slow today'
+      replies:
+        -   - works for me
+            - seeing timeouts too
+            - checking the logs
+        -   - the vendor is slow
+            - '{c_idk}'
+            - retry worked
+        -   - '{c_ack}'
+            - '{c_thanks}'
+            - ''
+    - root:
+        - 'design call: store certificates or {rebuild/regenerate}?'
+        - certificate PDFs, keep or rebuild?
+        - stored PDFs versus building {c_soon}, what do we want?
+      replies:
+        -   - store it, quality signs it
+            - rebuild is cheaper, data can change
+            - '{c_idk}'
+        -   - data changes after rework
+            - '{c_agree}'
+            - ''
+    - let:
+        thing:
+          - the batch size
+          - the poll rate
+          - the filter
+      root:
+        - traveler sync eats memory, who changed {thing}?
+        - memory on traveler sync keeps growing
+        - '{c_hey}, traveler sync restarted itself {c_soon}'
+      replies:
+        -   - not me
+            - i changed the batch size {c_soon}
+            - '{c_idk}'
+        -   - that could be it
+            - '{c_ack}'
+            - checking the graphs
+  team:
+    - let:
+        report:
+          - the nonconformance trend report
+          - the cycle time dashboard
+          - the on-time delivery report
+      root:
+        - quality wants a change to {report}
+        - '{c_hey}: request from quality for {report}'
+        - the program office wants {a tweak/a change} {to/on} {report}
+      replies:
+        -   - what do they need?
+            - is it quick?
+            - '{c_ack}'
+        -   - split by program
+            - a column for root cause
+            - '{c_idk}, asking'
+        -   - '{c_ack}, will look {c_soon}'
+            - put it on the board
+            - ''
+    - root:
+        - who covers the certificate generator while {person} is out?
+        - certificate issues, who has them {c_soon}?
+        - '{person} is {c_pto}, who takes certificate tickets?'
+      replies:
+        -   - i can take them
+            - '{c_idk}'
+            - ask {person}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - root:
+        - 'audit prep: what do we {owe/need}?'
+        - audit in {2-6} weeks, what is on our list?
+        - audit planning, who owns {the access/the log} review?
+      replies:
+        -   - the access review, log retention
+            - i'll write the list
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - add the enclave
+            - put it on the board
+    - let:
+        ref:
+          - '{ae_ref}'
+      root:
+        - 'customer escalation: {c_customer} says the certificate for {ref} is wrong'
+        - '{c_customer} rejected the certificate for {ref}'
+        - certificate problem for {c_customer}, {ref}
+      replies:
+        -   - checking the release record
+            - which field?
+            - '{c_ack}'
+        -   - the revision letter
+            - wrong serial
+            - '{c_idk}'
+        -   - i'll reissue it
+            - '{c_thanks}'
+            - ''
+  support:
+    - let:
+        ref:
+          - '{ae_ref}'
+      root:
+        - '{s_cust|cap} needs the release certificate for {ref}, portal finds nothing'
+        - certificate for {ref} is missing, {s_cust} is asking
+        - '{s_cust|cap} cannot find the certificate for {ref}'
+      replies:
+        -   - is the unit shipped?
+            - i see it in the log
+            - looking now
+        -   - shipped {c_soon}
+            - it was reworked, new serial
+            - '{c_idk}'
+        -   - '{c_ack}, resending'
+            - '{c_thanks}'
+            - ''
+    - let:
+        ref:
+          - '{ae_ref}'
+        part:
+          - '{ae_part}'
+      root:
+        - AOG request from {s_cust}, part {ref}, who has stock?
+        - '{s_cust|cap} has an aircraft on ground, needs {part}'
+        - 'urgent: {s_cust} needs {part}, AOG'
+      replies:
+        -   - checking the pool
+            - how many do they need?
+            - '{c_ack}'
+        -   - one
+            - two if possible
+            - '{c_idk}'
+        -   - one in stock, shipping {c_soon}
+            - '{c_thanks}'
+            - ''
+    - let:
+        ref:
+          - '{ae_ref}'
+      root:
+        - why is core charge still on {ref}?
+        - '{s_cust|cap} returned the core, charge open'
+        - core credit missing for {ref}, {s_cust} is asking
+      replies:
+        -   - is the core inspected?
+            - i see the receipt
+            - '{c_idk}'
+        -   - '{c_yes}'
+            - inspection pending
+            - no inspection yet
+        -   - escalating to eng, filed as {issue}
+            - '{c_ack}'
+            - ''
+    - let:
+        ref:
+          - '{ae_ref}'
+      root:
+        - quote for {ref} is waiting on approval, {s_cust} cannot find it
+        - '{s_cust|cap} cannot approve a quote online'
+        - repair quote missing on portal for {s_cust}
+      replies:
+        -   - is it released?
+            - send it by email
+            - '{c_idk}'
+        -   - not released yet
+            - '{c_yes}'
+            - waiting on a PO
+        -   - asking the contracts team
+            - '{c_ack}'
+            - ''
+    - let:
+        ref:
+          - '{ae_ref}'
+      root:
+        - export hold on {ref}, {s_cust} is asking when it ships
+        - '{ref} stuck on export screening, customer calling'
+        - shipment held for a licence check, {s_cust} wants a date
+      replies:
+        -   - export compliance has it
+            - do we have the licence?
+            - '{c_ack}'
+        -   - released {c_soon}
+            - waiting on the licence
+            - '{c_idk}, asking'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+  incidents:
+    - let:
+        cell:
+          - '{ae_cell}'
+        cell2:
+          - '{ae_cell}'
+      root:
+        - traveler sync stopped, {cell} is not reporting
+        - no operations from {cell} since {time}
+        - sync down and {cell} stopped reporting
+      replies:
+        -   - whole site or one cell?
+            - seeing the same on {cell2}
+            - checking the sync now
+        -   - just {cell}
+            - '{c_idk}, looking'
+            - restarted the service, still down
+        -   - back up after a restart
+            - network switch, plant IT has it
+            - '{c_ack}'
+    - root:
+        - certificate generator failing, shipping cannot release
+        - certificates not building, trucks waiting
+        - shipping waits on certificates, generator errors
+      replies:
+        -   - is the ERP up?
+            - trucks are waiting
+            - '{c_ack}, checking'
+        -   - ERP is up, queue is stuck
+            - restarting the generator
+            - '{c_idk}'
+        -   - certificates are building again
+            - queue cleared
+            - '{c_thanks}'
+    - let:
+        n:
+          - '{20-400}'
+      root:
+        - export screening queue stuck at {n}
+        - screening backlog at {n} orders
+        - orders held, screening queue stuck at {n}
+      replies:
+        -   - '{c_ack}, looking'
+            - last one cleared at {time}
+            - vendor side or ours?
+        -   - ours, the token expired
+            - '{c_idk}'
+            - checking the key
+        -   - reconnected, draining
+            - queue is draining
+            - '{c_thanks}'
+    - let:
+        plant:
+          - '{ae_plant}'
+      root:
+        - ERP sync running long, {plant} cannot see tomorrow's work orders
+        - work orders not showing at {plant}, sync is still running
+        - '{plant} has no schedule for {c_soon}, sync is late'
+      replies:
+        -   - '{c_ack}, checking the job'
+            - extract or load?
+            - '{c_idk}'
+        -   - extract finished, load at {2-9}0 percent
+            - waiting on a lock
+            - '{c_ack}'
+        -   - done, they see them now
+            - released the lock
+            - '{c_thanks}'
+    - let:
+        what:
+          - the certificate export
+          - the nightly ERP sync
+          - the invoice run
+          - the traveler sync
+      root:
+        - 'near miss: {what} almost failed, a retry saved it'
+        - '{what} nearly missed the cutoff, retried fine'
+        - close call with {what} last night
+      replies:
+        -   - what was the cause?
+            - '{c_ack}'
+            - add it to the review
+        -   - a lock timeout
+            - '{c_idk}'
+            - a gateway hiccup
+        -   - '{c_thanks}'
+            - ''
+  direct:
+    - let:
+        ref:
+          - '{ae_ref}'
+      root:
+        - '{s_hey}, can you reissue the certificate for {ref}? the revision was wrong'
+        - '{s_hey}, need a certificate reissue for {ref} {s_soon}'
+        - could you regenerate the certificate for {ref}? {s_soon}
+      replies:
+        -   - '{c_ack}, give me {5-15} minutes'
+            - which serial?
+            - sure
+        -   - the second unit
+            - '{ref}'
+            - '{c_thanks}'
+        -   - done, check your inbox
+            - sent
+            - ''
+    - let:
+        part:
+          - '{ae_part}'
+      root:
+        - 'quick question: which site makes {part}?'
+        - '{s_hey}, do you know which site builds {part}?'
+        - who owns {part}, machining or the main site?
+      replies:
+        -   - '{c_idk}, ask {person}'
+            - the machining plant since last year
+            - the main site
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - root:
+        - minute? core charge lookup looks off
+        - '{s_hey}, can we look at core charges?'
+        - core charge question, {s_soon}?
+      replies:
+        -   - '{c_ack}, in {5-20} min'
+            - sure, call me
+            - '{c_idk}, which order?'
+        -   - the one in the exchange code
+            - '{c_thanks}'
+            - ''
+incidents:
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment remittance callbacks failing
+      - Remittance callbacks {from/via} the payments provider erroring
+      - Errors on remittance callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} remittance callbacks failing, {s_cb_b}'
+      - '{s_cb_bad} - {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle provider timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Serial lookup timeouts for large fleets
+      - Serial lookup times out {for/on} big operators
+      - Large fleet accounts see portal 504s
+      - Portal slow on serial lookup
+    alert:
+      - '{s_portal_slow}, {s_portal_b}'
+      - '{s_al} {s_portal_slow}'
+      - serial lookup timing out {for/on} big fleets, {s_portal_b}
+    fix_message:
+      - '{s_page_fix|cap}'
+      - Page the serial lookup results
+      - Add pagination to serial lookup
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly traveler load failed
+      - Overnight plant load failed
+      - Warehouse load aborted on bad rows
+      - Nightly load did not finish
+    alert:
+      - '{s_load_a}, {s_load_b}'
+      - '{s_al} {s_load_a}'
+      - '{s_load_a} - quality dashboards are stale'
+    fix_message:
+      - '{s_load_fix|cap}'
+      - Skip bad traveler rows, log them

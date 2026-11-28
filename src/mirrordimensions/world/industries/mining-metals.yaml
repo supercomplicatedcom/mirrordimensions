@@ -1,0 +1,1057 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Mining and metals: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: mining-metals
+name: Mining and metals
+group: Industry and infrastructure
+aliases:
+  - mining
+  - metals
+  - minerals
+  - quarrying
+  - metals and mining
+description: A mining company that digs, processes and ships ore and concentrate, and bills smelters, refiners and traders on assay and price terms.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Mining
+  - Metals
+  - Resources
+  - Minerals
+  - Copper
+  - Gold
+invoice_items:
+  - Concentrate shipment
+  - Treatment charge
+organization:
+  head: Head of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Technology
+      title: Platform Engineer
+    billing:
+      department: Commercial Systems
+      title: Commercial Systems Engineer
+    data:
+      department: Mine Data and Analytics
+      title: Data Engineer
+    support:
+      department: Commercial Support
+      title: Support Specialist
+    product:
+      department: Digital Mining
+      title: Product Manager
+    operations:
+      department: Operations Technology
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, concentrate-billing, settlement-service, commercial-billing]
+    platform-docs: [platform-docs, tech-handbook, site-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, assay-loads, mine-etl, production-warehouse]
+    infra-config: [infra-config, site-network-config, environments, platform-config]
+    customer-portal: [customer-portal, buyer-portal, shipment-portal, offtake-portal]
+    ops-scripts: [ops-scripts, site-scripts, legacy-scripts, weighbridge-scripts]
+  channels:
+    engineering: [engineering, dev, tech-chat]
+    incidents: [incidents, site-alerts, outages]
+    support: [support, commercial-support, buyer-support]
+    data-team: [data-team, mine-data, assay-data]
+    billing-team: [billing-team, settlements, commercial-systems]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - sap s/4hana cloud
+    - esri arcgis online
+    - honeywell forge
+    - samsara
+    - servicenow
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - ptc thingworx
+symbols:
+  b_doc:
+    - provisional invoice
+    - final invoice
+    - debit note
+    - credit note
+    - royalty statement
+  b_customer:
+    - smelter
+    - trader
+    - refinery
+    - steel mill
+    - aggregate buyer
+    - toll processing client
+  b_who:
+    - the marketing desk
+    - the assay lab
+    - mine finance
+    - logistics
+    - the shipping desk
+  b_pwho:
+    - a buyer
+    - the assay lab
+    - '{person}'
+    - the marketing desk
+    - mine finance
+  b_region:
+    - Western Australia
+    - Chile
+    - Peru
+    - Nevada
+    - Ontario
+    - Quebec
+    - South Africa
+    - Queensland
+  b_taxkind:
+    - royalty
+    - severance tax
+    - export duty
+    - VAT
+    - carbon levy
+    - resource rent tax
+  b_currency:
+    - USD
+    - AUD
+    - CAD
+    - EUR
+    - GBP
+  b_page:
+    - shipments
+    - assay results
+    - invoices
+    - payment history
+    - account settings
+    - the dashboard
+    - price fixings
+    - stockpile balances
+  b_acct_size:
+    - '{20-120} shipments'
+    - '{15-60} users'
+    - '{3-12} billing contacts'
+    - '{40-300} lots'
+    - '{2-9} years of assay history'
+  b_provider_event:
+    - payment received
+    - payment failed
+    - letter of credit paid
+    - wire confirmed
+    - remittance posted
+    - chargeback opened
+  c_customer:
+    - a smelter
+    - one of the larger traders
+    - a refinery
+    - a toll processing client
+  s_plan:
+    - a term offtake contract
+    - a spot sale
+    - a toll treatment agreement
+    - a provisional pricing deal
+  p_source:
+    - the assay lab's LIMS export
+    - the weighbridge ticket feed
+    - the fleet management telemetry
+    - the survey office's stockpile report
+    - the port authority's vessel schedule
+    - the tailings sensor gateway
+  p_report:
+    - the daily production report
+    - the stockpile reconciliation
+    - the shipment tracker
+    - the royalty summary
+    - the concentrate grade dashboard
+  p_table:
+    - assay results
+    - weighbridge tickets
+    - haul cycles
+    - stockpile movements
+    - shipment lots
+    - blast records
+  p_finance_ask:
+    - the mine controller
+    - someone in commercial finance
+    - the royalty analyst
+    - the metals accountant
+  c_eng_area:
+    - the assay import
+    - the price fixing job
+    - the penalty calculation
+    - the weight reconciliation
+    - the shipment tracker
+    - the royalty report
+  s_thing:
+    - the assay import
+    - the weighbridge feed
+    - the settlement run
+    - the telemetry load
+    - the nightly load
+  p_alert_name:
+    - weighbridge feed lag
+    - the settlement run finishing late
+    - satellite link loss at the site
+    - failed backups of the assay database
+    - fleet telemetry delays
+  p_cert_host:
+    - the buyer portal certificate
+    - the weighbridge gateway certificate
+    - the LIMS server certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the LIMS service account password
+    - the market data API key
+    - the payments provider token
+    - the fleet telemetry key
+  mm_metal:
+    - copper concentrate
+    - gold doré
+    - zinc concentrate
+    - iron ore fines
+    - lithium spodumene
+    - nickel matte
+  mm_site:
+    - the {Redhill/Ironbridge/Stonehaven} pit
+    - the {north/south} concentrator
+    - the {Black Ridge/Deepwater} underground mine
+    - the port stockyard
+    - the {Kelso/Marlow} tailings facility
+  mm_impurity:
+    - arsenic
+    - mercury
+    - zinc
+    - moisture
+    - silica
+    - fluorine
+  mm_qp:
+    - the month after shipment
+    - the month of arrival
+    - the average of the quotational period
+    - the price on the fixing date
+  mm_lot:
+    - lot {1000-9999}
+    - shipment {100-999}
+    - vessel lot {10-99}
+    - the {Redhill/Ironbridge} blend
+  mm_vessel:
+    - the bulk carrier
+    - the feeder vessel
+    - the rail consist
+    - the road train
+  mm_note:
+    - Raised by the marketing desk.
+    - Mine finance hit it first.
+    - '{person} saw it on {mm_lot}.'
+    - A buyer queried it.
+  mm_cm:
+    - Checked against the assay certificate.
+    - Same on the last shipment.
+    - Rerun after the fix looks right.
+    - Numbers match the weighbridge.
+  mm_when:
+    - before the next shipment closes
+    - before the final invoices go out
+    - ahead of the royalty filing
+    - before month end
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        qp:
+          - '{mm_qp}'
+        lot:
+          - '{mm_lot}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Provisional price uses wrong month average
+        - '{doc|cap} for {lot} fixes price on {qp}'
+        - Quotational period ignores the contract
+        - Price for {lot} uses {qp}
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - '{mm_note}'
+          - A trader disputed the price basis.
+          - Finance noticed it on {lot}.
+        - - The contract names {qp}.
+          - Billing takes the shipment month.
+          - Price table has no period field.
+          - The fixing date is hard coded.
+          - '{mm_note}'
+        - - The difference is about {2-9} percent.
+          - Across a shipment that is large.
+          - Provisional and final disagree.
+          - '{mm_note}'
+        - - Needs a fix {mm_when}.
+          - '{p_owner_ask}'
+          - '{b_urgent}'
+          - '{mm_note}'
+      comments:
+        - '{mm_cm}'
+        - The contract names the period.
+        - '{b_cm_plan}'
+        - Credits may follow for earlier shipments.
+    - labels: [bug]
+      let:
+        imp:
+          - '{mm_impurity}'
+        lot:
+          - '{mm_lot}'
+      title:
+        - Penalty for {imp} applied at the wrong band
+        - '{imp|cap} penalty charged twice on {lot}'
+        - Final invoice ignores the {imp} threshold
+        - Moisture deduction uses wet tonnes
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - The smelter queried the penalty.
+          - '{mm_note}'
+        - - Penalty bands come from the contract.
+          - Code takes the first band only.
+          - The threshold is compared as text.
+          - Wet and dry weights get mixed.
+          - '{mm_note}'
+        - - '{imp|cap} content was {2-9} percent over.'
+          - The charge is {2-9} times too high.
+          - '{mm_note}'
+        - - '{b_urgent}'
+          - '{p_priority}'
+          - '{mm_note}'
+      comments:
+        - '{mm_cm}'
+        - Bands are inclusive at the top.
+        - Check the umpire assay too.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        metal:
+          - '{mm_metal}'
+      title:
+        - Treatment charge uses wrong band for {metal}
+        - Refining charge steps at wrong price
+        - Escalator for {metal} applied early
+        - Price participation is missing
+      body:
+        - - Charges step with the metal price.
+          - Step table has two band sets.
+          - The wrong band is chosen.
+          - '{mm_note}'
+        - - '{b_raised}, {b_scope}.'
+          - Final invoices differ from the quote.
+          - '{mm_note}'
+        - - Contract starts the band on signing.
+          - Prices crossed a band in {2-9} days.
+          - '{mm_note}'
+        - - '{p_owner_ask}'
+          - '{p_priority}'
+          - '{mm_note}'
+      comments:
+        - Check the contract schedule.
+        - '{mm_cm}'
+        - Add a test per band edge.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - weight disputes
+          - assay umpire results
+          - moisture adjustments
+      title:
+        - Bill scale weight or survey weight?
+        - Policy for {question}
+        - Weight tolerance for {question}
+        - Who signs off on {question}?
+      body:
+        - - Weighbridge and draft survey differ.
+          - The gap is {2-9} tonnes per {10-90}.
+          - '{b_raised}, {b_scope}.'
+          - '{mm_note}'
+        - - '{b_nd_a}'
+          - Contracts name different sources.
+          - '{mm_note}'
+        - - 'Options: bill the scale weight.'
+          - Or bill the survey weight.
+          - '{mm_note}'
+        - - Needs a ruling from {who}.
+          - '{b_nd_f}'
+          - '{mm_note}'
+      comments:
+        - Contracts say which weight rules.
+        - Legal should check the wording.
+        - Keep a ledger of open disputes.
+    - labels: [bug]
+      let:
+        lot:
+          - '{mm_lot}'
+        cause:
+          - an umpire assay
+          - a revised weight
+          - a late moisture result
+      title:
+        - Credit note after {cause} has the wrong date
+        - Adjustment for {lot} lands in the wrong month
+        - Debit note after {cause} is missing tax
+        - Credit note after {cause} ignores the first invoice
+      body:
+        - - After {cause} the note is created.
+          - The correction carries today's date.
+          - '{mm_note}'
+        - - It should reference the first invoice.
+          - Finance wants the original period.
+          - '{mm_note}'
+        - - '{b_raised}, {b_scope}.'
+          - Totals no longer tie to ledger.
+          - '{mm_note}'
+        - - '{p_owner_ask}'
+          - '{mm_note}'
+      comments:
+        - Closed periods should reject the posting.
+        - '{mm_cm}'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        tax:
+          - '{b_taxkind}'
+        region:
+          - '{b_region}'
+      title:
+        - '{tax|cap} rate for {region} is stale'
+        - Royalty statement uses an old {tax} rate
+        - Wrong {tax} on sales from {region}
+      body:
+        - - The rate is cached at startup.
+          - A new schedule began last month.
+          - '{mm_note}'
+        - - '{b_raised}, {b_scope}.'
+          - Royalty payments are short.
+          - '{mm_note}'
+        - - Restarting the workers clears it.
+          - '{mm_note}'
+        - - '{p_owner_ask}'
+          - '{mm_note}'
+      comments:
+        - Reload rates daily.
+        - '{mm_cm}'
+        - Finance will adjust the filing.
+  portal:
+    - labels: [bug]
+      let:
+        vessel:
+          - '{mm_vessel}'
+      title:
+        - Shipment tracker shows the wrong ETA
+        - ETA for {vessel} jumps back a day
+        - Tracker lists a lot twice
+        - Shipment status is stuck on loading
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Buyers rely on the tracker.
+          - '{mm_note}'
+        - - ETA comes from the port feed.
+          - Time zones differ at the port.
+          - '{mm_note}'
+        - - Status updates after a manual save.
+          - '{mm_note}'
+        - - '{b_urgent}'
+          - '{mm_note}'
+      comments:
+        - Show times in the port zone.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        cert:
+          - assay certificate
+          - weight certificate
+          - quality report
+      title:
+        - Download of the {cert} fails
+        - '{cert|cap} PDF is blank in {b_browser}'
+        - Buyers cannot open the {cert}
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - The file is created on demand.
+          - '{mm_note}'
+        - - The report job times out.
+          - Large lots take minutes.
+          - '{mm_note}'
+        - - Only the PDF fails.
+          - '{mm_note}'
+        - - '{p_priority}'
+          - '{mm_note}'
+      comments:
+        - Pre build after the final assay.
+        - '{b_cm_repro} on a fresh account.'
+        - Cache the file for a day.
+    - labels: [bug]
+      let:
+        what:
+          - price fixing requests
+          - nominations
+          - lot allocations
+      title:
+        - Cutoff for {what} uses server time
+        - '{what|cap} accepted after the deadline'
+        - Deadline for {what} ignores the buyer zone
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Buyers miss the window.
+          - '{mm_note}'
+        - - The cutoff is in server time.
+          - Daylight saving shifts it.
+          - '{mm_note}'
+        - - Marketing wants the buyer zone.
+          - '{mm_note}'
+        - - '{b_urgent}'
+          - '{mm_note}'
+      comments:
+        - Store a zone per account.
+        - '{mm_cm}'
+        - Confirm the contract wording.
+    - labels: [bug, security]
+      let:
+        what:
+          - assay certificates
+          - invoices
+          - shipment lots
+      title:
+        - Buyer users can see {what} of other buyers
+        - '{what|cap} list ignores the company'
+        - Wrong company sees {what}
+      body:
+        - - A buyer saw {what} not theirs.
+          - '{b_raised}, {b_scope}.'
+          - '{mm_note}'
+        - - The list filters by user only.
+          - '{mm_note}'
+        - - '{b_dlk_c}'
+          - '{mm_note}'
+        - - '{b_dlk_e}'
+          - '{mm_note}'
+      comments:
+        - '{b_cm_repro}, no company filter.'
+        - '{b_cm_fix_up} It adds a company check.'
+        - Check the access log first.
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/pricing.md
+          - docs/assays.md
+          - docs/weights.md
+      title:
+        - '{Handbook/Docs}: {page} lists an old formula'
+        - '{page} disagrees with the settlement code'
+        - '{page|cap} misses the new contract type'
+      body:
+        - - '{page|cap} describes the old method.'
+          - New contracts are not covered.
+          - '{mm_note}'
+        - - A joiner used the old formula.
+          - '{p_noticed|cap}.'
+          - '{mm_note}'
+        - - Commercial owns the rules.
+          - The code is the truth.
+          - '{mm_note}'
+        - - '{p_owner_ask}'
+          - '{mm_note}'
+      comments:
+        - Commercial will send the formulas.
+        - Will update it {mm_when}.
+        - Link the contract template.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - a weighbridge outage
+          - a stuck settlement run
+          - a LIMS import failure
+          - a satellite link loss
+      title:
+        - Runbook for {thing}
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        - - The guide says nothing about {thing}.
+          - Last time {thing} cost {2-6} hours.
+          - '{mm_note}'
+        - - On call asks the site team.
+          - Steps live in one person's notes.
+          - '{mm_note}'
+        - - A short page would help.
+          - Who to call, in what order.
+          - '{mm_note}'
+        - - '{p_priority}'
+          - '{mm_note}'
+      comments:
+        - Add the site control room number.
+        - Operations should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - lot naming
+          - who approves invoice reversals
+          - the month end freeze
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: handbook and practice differ'
+        - Where should {topic} live?
+      body:
+        - - New people keep asking about {topic}.
+          - The answer depends who you ask.
+          - '{mm_note}'
+        - - Finance and the lab disagree.
+          - Nothing is written down.
+          - '{mm_note}'
+        - - '{b_dc_c} {b_dc_e}'
+          - '{mm_note}'
+      comments:
+        - Ask {p_finance_ask} for the rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        lot:
+          - '{mm_lot}'
+      title:
+        - Duplicate assay results for {lot}
+        - Lot loaded twice from the lab
+        - '{lot|cap} has two assay certificates'
+        - Assay load repeats lots on rerun
+      body:
+        - - Found {2-60} duplicate lots.
+          - A count shows extra rows.
+          - '{mm_note}'
+        - - The lab resends corrected results.
+          - The load only inserts.
+          - '{mm_note}'
+        - - Grades are averaged twice.
+          - Final invoices may use both.
+          - '{mm_note}'
+        - - '{p_priority}'
+          - '{mm_note}'
+      comments:
+        - Keep the latest result per lot.
+        - Add a uniqueness check to validate.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        site:
+          - '{mm_site}'
+      title:
+        - Haul truck telemetry gaps at {site}
+        - Fleet data missing for {2-12} hours
+        - Cycle times wrong after the update
+      body:
+        - - No positions arrive for some trucks.
+          - The feed resumes with a jump.
+          - '{mm_note}'
+        - - The radio network dropped.
+          - A firmware update changed fields.
+          - '{mm_note}'
+        - - Production totals look low.
+          - Cycle times are inflated.
+          - '{mm_note}'
+        - - '{mm_note}'
+          - '{p_priority}'
+      comments:
+        - Backfilled from the truck logs.
+        - The gateway shows a drop at {time}.
+        - Flag gaps rather than zeros.
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Assay load finished {delay} late on {day_name}
+        - Settlement waited on the {day_name} load
+        - Grades not ready for shipment close
+      body:
+        - - The load ended {delay} past the usual time.
+          - Grade tables were empty.
+          - '{mm_note}'
+        - - The slowest step was {p_table}.
+          - The lab export came late.
+          - '{mm_note}'
+        - - '{p_noticed|cap}.'
+          - Nothing was lost, only late.
+          - '{mm_note}'
+        - - We need the cause {mm_when}.
+          - '{mm_note}'
+      comments:
+        - The lab sent files late again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [question, data-quality]
+      let:
+        report:
+          - '{p_report}'
+        gap:
+          - '{p_dollars}'
+      title:
+        - '{report|cap} does not match billing, {gap} off'
+        - Stockpile balance differs from the survey
+        - Tonnes in {report} disagree with invoices
+      body:
+        - - The survey and the ledger differ.
+          - The gap is {2-9} percent.
+          - '{mm_note}'
+        - - Moisture may explain part of it.
+          - Wet and dry tonnes are mixed.
+          - '{mm_note}'
+        - - '{p_owner_ask}'
+          - '{mm_note}'
+      comments:
+        - Survey is on a different date.
+        - '{mm_cm}'
+        - Reconcile on dry tonnes.
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        - - '{cert|cap} is due in {days} days.'
+          - We nearly missed the last renewal.
+          - '{mm_note}'
+        - - The weighbridge stops if it lapses.
+          - Buyers see a browser warning.
+          - '{mm_note}'
+        - - '{p_noticed|cap}.'
+          - '{mm_note}'
+        - - Needs a real alert and owner.
+          - '{p_owner_ask}'
+          - '{mm_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [bug, performance]
+      let:
+        site:
+          - '{mm_site}'
+      title:
+        - Satellite link at {site} drops often
+        - Remote site traffic stalls at {site}
+        - Telemetry from {site} arrives in bursts
+      body:
+        - - The link drops every {2-9} hours.
+          - Rain fade explains some drops.
+          - '{mm_note}'
+        - - Buffers fill on the gateway.
+          - Data arrives in late bursts.
+          - '{mm_note}'
+        - - The control room calls us.
+          - '{mm_note}'
+        - - '{p_priority}'
+          - '{mm_note}'
+      comments:
+        - Shortened keepalives on the gateway.
+        - A second link is quoted.
+        - Alert on flaps, not outages.
+    - labels: [security, bug]
+      let:
+        what:
+          - the plant network
+          - the weighbridge network
+          - the fleet gateway
+      title:
+        - Firewall rule into {what} is too wide
+        - Review vendor access to {what}
+        - Segmentation gap around {what}
+      body:
+        - - One rule allows more than needed.
+          - An audit flagged broad access.
+          - '{mm_note}'
+        - - Only a few ports are used.
+          - One source host would do.
+          - '{mm_note}'
+        - - Changes wait for a window.
+          - '{mm_note}'
+        - - '{p_owner_ask}'
+          - '{mm_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - assay records
+          - weighbridge tickets
+          - settlement records
+      title:
+        - Backups of {what} keep fewer years than policy
+        - Retention for {what} is {2-6} years
+        - Restore of {what} was never tried
+      body:
+        - - Policy keeps {what} {7-10} years.
+          - The archive prunes after {2-6} years.
+          - '{mm_note}'
+        - - The last restore was never tried.
+          - Failures are logged, nobody paged.
+          - '{mm_note}'
+        - - Buyers dispute grades years later.
+          - Regulators can ask for records.
+          - '{mm_note}'
+        - - '{p_priority}'
+          - '{mm_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: shift roster changes {c_soon}.'
+        - safety stand-down {day} at {time}
+        - reminder, hard hats in the yard
+        - '{c_hey}: the site bus runs late {c_soon}'
+        - open enrolment closes {c_soon}
+      replies:
+        - - '{c_ack}'
+          - will be there
+          - is it mandatory?
+        - - '{c_thanks}'
+          - ''
+    - root:
+        - welcome {person}, joining from the lab
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in commercial systems
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        - - welcome {person}!
+          - '{c_em}'
+        - - '{c_thanks}'
+          - ''
+    - root:
+        - heavy rain at {mm_site}, roads may close
+        - blast scheduled {day} at {time}, stay clear
+        - site flights delayed {c_soon}
+        - heads up, fire ban at {mm_site}
+      replies:
+        - - noted
+          - '{c_ack}'
+        - - will the feeds hold?
+          - ''
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - fly in fly out roster swap?
+        - how to keep a cab cool
+        - best coffee in town?
+      replies:
+        - - '{c_lol}'
+          - '{c_agree}'
+        - - ''
+          - same
+    - root:
+        - anyone selling a ute?
+        - fishing this weekend, who is in?
+        - the cantina chili is back
+        - '{c_pet} chewed my work boots'
+      replies:
+        - - '{c_lol}'
+          - ha
+        - - ''
+          - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the band lookup
+          - the moisture adjustment
+      root:
+        - '{thing} is wrong for wet lots'
+        - should {thing} use dry tonnes?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        - - i think {person} wrote it, ask them
+          - '{c_idk}'
+          - predates the migration, check old scripts
+        - - will look {c_when_eng}
+          - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - penalty tests fail on band edges
+        - flaky test in the weight reconciliation
+        - '{c_ci_fail} keeps timing out on price tests'
+      replies:
+        - - same here
+          - rerunning
+          - seen it, rounding in fixtures
+        - - fix is in {issue}
+          - '{c_ack}'
+    - root:
+        - does the import handle lab corrections?
+        - what happens when the lab resends?
+        - do we dedupe assay rows?
+        - how late can an assay arrive?
+        - are late assays billed or dropped?
+      replies:
+        - - about a week, i think
+          - check the lab docs
+          - '{c_idk}'
+        - - should write that down
+          - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on settlement days
+        - freeze for the shipment close starts {day}
+        - deploys paused until {time} on {day}
+        - royalty filing freeze starts {c_soon}
+      replies:
+        - - '{c_ack}'
+          - got it
+        - - is a hotfix ok?
+          - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, shipment day'
+        - skipping standup, on a site call
+        - who is picking up {issue}?
+      replies:
+        - - i can take it
+          - '{c_ack}'
+          - on my list
+        - - ''
+          - thanks
+    - root:
+        - shipment closes {c_soon}, billing freezes {day}
+        - final invoices go out {day}, blockers?
+        - vessel arrives {c_soon}, who has the checklist?
+        - royalty filing is due {day}, who is on it?
+      replies:
+        - - i am on call
+          - checklist is in the handbook
+          - '{c_ack}'
+        - - ping me if the run stalls
+          - ''
+    - root:
+        - buyer escalation, {c_customer} disputes the invoice
+        - smelter says the penalty is wrong
+        - escalation from marketing, weights
+      replies:
+        - - which shipment?
+          - i will check the logs
+        - - it is {issue}
+          - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says the price is wrong'
+        - '{who|cap} asks about the penalty'
+        - buyer cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants the assay certificate'
+        - tracker shows the wrong ETA for {who}
+      replies:
+        - - check the quotational period first
+          - penalties follow the bands, tell them
+          - try a fresh login
+          - checking the log now
+        - - '{s_ack}, will tell them'
+          - '{s_thx}'
+          - ''
+    - root:
+        - buyer disputes the {mm_lot} weight
+        - trader wants the final invoice
+        - '{s_cust|cap} cannot see the lots, {s_ticket}'
+        - escalating, wrong band, filed as {issue}
+      replies:
+        - - sending the breakdown now
+          - copy attached to the ticket
+        - - '{s_thx}'
+          - '{c_ack}'
+    - root:
+        - queue is at {10-60} open tickets, mostly invoices
+        - 'price questions: {10-40} since morning'
+        - tickets doubled after finals went out
+      replies:
+        - - same, will help after lunch
+          - '{c_ack}'
+        - - any macro for the penalty question?
+          - ''
+  incidents:
+    - let:
+        what:
+          - the weighbridge feed
+          - the assay import
+          - the fleet feed
+      root:
+        - '{what} stopped at {time}'
+        - '{s_al} {what} silent since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - the site says {what} looks stale
+      replies:
+        - - looking
+          - restarted the poller, watching it
+          - gateway is up, upstream issue
+        - - fixed, backfilling
+          - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        - - '{c_ack}'
+          - will join
+        - - ''
+          - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the LIMS server is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        - - on it
+          - '{c_ack}'
+        - - renewing today
+          - ''
+  direct:
+    - root:
+        - '{s_hey}, check the assay import {s_soon}?'
+        - which tonnes does the report use?
+        - can you look at {issue} before the close?
+        - '{s_hey}, got a minute for the bands?'
+        - handing over settlement, out {s_soon}
+      replies:
+        - - sure
+          - '{s_ack}'
+          - give me ten minutes
+        - - '{s_thx}'
+          - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived the audit, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        - - sounds good
+          - '{c_lol}'
+        - - ''
+          - same
+comments:
+  - Check the contract terms first.
+  - '{mm_cm}'
+  - Does this touch the settlement run?
+  - Ask commercial before changing it.
+  - Site operations would want to know.

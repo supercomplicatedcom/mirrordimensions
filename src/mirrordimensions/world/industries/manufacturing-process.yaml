@@ -1,0 +1,1597 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Manufacturing (process and chemicals): extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: manufacturing-process
+name: Manufacturing (process and chemicals)
+group: Industry and infrastructure
+aliases:
+  - process manufacturing
+  - chemicals
+  - specialty chemicals
+  - chemical manufacturing
+  - bulk chemicals
+description: A producer that blends and reacts raw materials into bulk and specialty chemical products, and bills customers per delivery, with certificates, safety data sheets and lot traceability.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Chemicals
+  - Chemical
+  - Specialty Products
+  - Industries
+  - Materials
+  - Polymers
+  - Coatings
+  - Process
+invoice_items:
+  - Bulk product shipments
+  - Tolling and blending services
+organization:
+  head: Director of Process IT
+  it_admin: Plant IT Administrator
+  teams:
+    platform:
+      department: Process Systems
+      title: Systems Engineer
+    billing:
+      department: Order to Cash
+      title: ERP Developer
+    data:
+      department: Process Analytics
+      title: Data Engineer
+    support:
+      department: Customer Service
+      title: Customer Service Representative
+      lead: Customer Service Supervisor
+    product:
+      department: Product Stewardship
+      title: Product Manager
+    operations:
+      department: Plant Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - order-billing
+      - invoicing
+      - billing-service
+      - order-to-cash
+      - delivery-billing
+    platform-docs:
+      - plant-systems-docs
+      - systems-handbook
+      - runbooks
+      - process-systems-wiki
+    data-pipeline:
+      - process-data-loads
+      - historian-warehouse
+      - plant-reporting
+      - batch-etl
+      - ops-analytics-etl
+    infra-config:
+      - plant-infra
+      - gateway-config
+      - site-environments
+      - process-infra
+    customer-portal:
+      - customer-portal
+      - customer-orders-web
+      - order-status-portal
+      - distributor-portal
+      - stewardship-portal
+    ops-scripts:
+      - plant-scripts
+      - process-tools
+      - legacy-plant-scripts
+      - admin-tools
+  channels:
+    engineering:
+      - systems-engineering
+      - process-eng
+      - dev
+    incidents:
+      - plant-incidents
+      - interface-down
+      - incidents
+    releases:
+      - releases
+      - go-lives
+      - deploys
+    billing-team:
+      - order-to-cash
+      - billing-team
+      - erp-billing
+    platform-team:
+      - process-systems
+      - platform-team
+      - plant-systems
+    data-team:
+      - process-analytics
+      - data-team
+      - reporting
+    support:
+      - customer-service
+      - order-desk
+      - support
+systems:
+  typical:
+    - SAP S/4HANA Cloud
+    - Veeva Vault
+    - Honeywell Forge
+    - PTC ThingWorx
+    - Gitea
+    - Mattermost
+    - Jira
+    - Microsoft Power BI
+    - aveva pi system
+    - labware lims
+  common:
+    - Okta
+    - Salesforce
+    - ServiceNow
+    - Microsoft Entra ID
+    - Datadog
+symbols:
+  b_doc:
+    - invoice
+    - credit memo
+    - pro forma invoice
+    - tolling invoice
+    - '{monthly/quarterly} statement'
+    - surcharge invoice
+  b_customer:
+    - bulk
+    - drum-and-tote
+    - contract
+    - spot
+    - distributor
+    - tolling
+    - export
+    - specialty
+  b_who:
+    - the order desk
+    - customer service
+    - finance
+    - the plant controller
+    - the logistics desk
+    - regulatory affairs
+  b_pwho:
+    - customer service
+    - a distributor
+    - '{person}'
+    - the order desk
+    - the logistics desk
+  b_ticket_noun:
+    - ticket
+    - case
+    - complaint
+    - escalation
+    - order hold
+  b_money_path:
+    - billing/invoice.py
+    - billing/pricing.py
+    - billing/indexes.py
+    - billing/rounding.py
+  b_provider_event:
+    - payment succeeded
+    - payment failed
+    - remittance advice posted
+    - refund completed
+    - chargeback opened
+    - payout settled
+  b_taxkind:
+    - VAT
+    - sales tax
+    - GST
+    - excise duty
+    - reverse-charge VAT
+  b_region:
+    - Germany
+    - the Netherlands
+    - Belgium
+    - Canada
+    - Brazil
+    - the UK
+    - Poland
+    - Singapore
+  b_page:
+    - order history
+    - tank inventory
+    - certificates of analysis
+    - safety data sheets
+    - invoices
+    - delivery schedule
+    - shipping documents
+    - the dashboard
+  b_acct_size:
+    - '{200-900} delivery lines'
+    - '{15-60} users'
+    - '{3-12} ship-to sites'
+    - '{40-300} product grades on contract'
+    - over {1000-4000} delivery lines
+  b_slow:
+    - about {20-90} seconds
+    - over a minute
+    - '{3-12} minutes'
+    - nearly {2-4} minutes
+  p_table:
+    - deliveries
+    - batches
+    - lab_results
+    - tank_readings
+    - invoices
+    - lots
+    - inventory_moves
+    - shipments
+  p_source:
+    - the historian's tag archive
+    - the lab system results
+    - the tank gauge feed
+    - the carrier tracking feed
+    - the CRM account list
+    - the weighbridge log
+  p_report:
+    - the batch yield report
+    - the on-time delivery report
+    - the inventory by tank report
+    - the monthly emissions summary
+    - the aging receivables report
+    - the margin by product report
+  p_finance_ask:
+    - the plant controller
+    - someone in finance
+    - the cost accountant
+    - the controller
+    - the credit manager
+  p_service_name:
+    - billing-service
+    - customer-portal
+    - data-pipeline
+    - the CoA generator
+    - the historian interface
+  p_glossary_term:
+    - the historian
+    - the LIMS
+    - the rota
+    - the reporting workers
+    - the weighbridge interface
+    - the batch record
+  p_alert_name:
+    - disk usage on the historian
+    - failed backups
+    - CoA queue depth
+    - the nightly inventory sync finishing late
+    - the tank gauge feed
+  p_secret_thing:
+    - the historian service account password
+    - the LIMS integration key
+    - the carrier API key
+    - the warehouse service account key
+    - the payments provider token
+  p_limit_target:
+    - the reporting workers
+    - the invoice workers
+    - the portal pods
+    - the historian interface
+    - the CoA generator
+  p_script:
+    - archive_historian.sh
+    - rotate_logs.sh
+    - check_disk.sh
+    - sync_lots.sh
+    - purge_coa_cache.sh
+    - rotate_backups.sh
+    - pull_tank_levels.sh
+    - reset_scales.sh
+  p_script_path:
+    - /var/log/app
+    - /opt/billing/exports
+    - /srv/portal/coa
+    - /mnt/backups/daily
+    - /data/historian/archive
+  p_script_symptom:
+    - fails with no such file
+    - exits 0 but does nothing
+    - complains about a missing binary
+    - hangs on the second plant server
+    - copies zero files
+  p_old_ref:
+    - the old cron host
+    - the retired jump box
+    - the pre-migration plant servers
+    - the previous historian host
+    - the old lab gateway
+  p_runbook:
+    - docs/runbooks/billing-workers.md
+    - docs/runbooks/nightly-load.md
+    - docs/runbooks/historian-interface.md
+    - docs/runbooks/coa-generation.md
+    - docs/runbooks/weighbridge.md
+  p_pipeline_file:
+    - pipeline/load.py
+    - pipeline/clean.py
+    - pipeline/validate.py
+    - pipeline/lock.py
+    - pipeline/tags.py
+  s_plan:
+    - a supply contract
+    - net 45 terms
+    - a rebate agreement
+    - a consignment tank
+    - the annual volume deal
+  s_tool:
+    - the order desk screen
+    - the ERP admin console
+    - the support desk
+    - the lab system
+    - the weighbridge console
+  s_docs:
+    - the wiki
+    - the shared drive
+    - the handbook
+    - the plant runbook
+  s_lunch:
+    - the canteen
+    - the deli across the road
+    - the food truck
+    - the noodle place
+    - the lunch van
+  c_customer:
+    - a customer
+    - one of the bigger distributors
+    - a bulk buyer
+    - a coatings customer
+    - a toll customer
+  c_eng_area:
+    - the invoice job
+    - the CoA template
+    - the SDS sync
+    - the weight ticket import
+    - the tank level poll
+    - the pricing lookup
+    - the export endpoint
+    - the login flow
+    - the retry logic
+    - the lot lookup
+  c_blocker:
+    - waiting on review
+    - blocked on plant access
+    - waiting on the lab system vendor
+    - stuck on a flaky job
+    - waiting on a turnaround window
+  c_team_topic:
+    - the sprint
+    - the release
+    - the backlog
+    - the board
+    - the turnaround
+  c_room:
+    - the canteen
+    - the training room
+    - the meeting room
+    - the control room lobby
+  mp_product:
+    - solvents
+    - resins
+    - coating additives
+    - adhesive bases
+    - surfactants
+    - pigment dispersions
+    - catalysts
+    - lubricant additives
+  mp_pack:
+    - bulk tank truck
+    - ISO tank
+    - drum
+    - tote
+    - bagged pallet
+    - railcar
+  mp_unit:
+    - the reactor
+    - the blending tank
+    - the distillation column
+    - the packaging line
+    - the tank farm
+    - the filling line
+    - the dryer
+  mp_prop:
+    - viscosity
+    - purity
+    - moisture
+    - density
+    - colour
+    - pH
+    - flash point
+    - acid number
+  mp_plant:
+    - the north site
+    - the east site
+    - the blending plant
+    - the tank terminal
+    - the main site
+  mp_lot:
+    - lot
+    - batch
+    - blend lot
+    - rework lot
+  mp_ref:
+    - lot {100000-999999}
+    - batch B{10000-99999}
+    - order {400000-499999}
+    - delivery {80000-89999}
+  mp_doc:
+    - certificate of analysis
+    - safety data sheet
+    - bill of lading
+    - hazmat declaration
+    - weight ticket
+    - batch record
+  mp_raised:
+    - '{Raised/Flagged/Reported} by {b_who}'
+    - '{b_who|cap} {raised/flagged/mentioned} it'
+    - Came up on a call with {b_who}
+    - This landed with us via {b_who}
+  mp_urgent:
+    - Deliveries are not blocked.
+    - A truck is waiting on this {day}.
+    - Not urgent, {but/though} it keeps coming up.
+    - Nothing is stuck yet.
+    - '{b_who|cap} needs it before month end.'
+    - Auditors may ask about this.
+  mp_scope:
+    - '{3-30} deliveries {b_since}'
+    - '{2-12} {b_customer} accounts {b_since}'
+    - about {5-40} lots {b_since}
+    - so far {2-9} {b_ticket_noun}s
+    - '{3-25} order lines at one site'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        ticket:
+          - weight ticket
+          - scale ticket
+          - tank gauge reading
+          - flow meter total
+        path:
+          - billing/quantities.py
+          - billing/invoice.py
+          - billing/pricing.py
+      title:
+        - '{doc|cap} quantity differs from the {ticket}'
+        - '{doc|cap}s bill ordered volume, not the {ticket}'
+        - Why does the {doc} not match the {ticket}?
+        - '{ticket|cap} and {doc} disagree for {customer} deliveries'
+        - Quantity on the {doc} ignores the {ticket}
+      body:
+        -   - '{mp_raised}, {mp_scope}.'
+            - '{mp_raised} on {customer} accounts, {mp_scope}.'
+        -   - '{path} reads the order, never the {ticket}.'
+            - The {path} module bills the {ordered/booked} volume.
+        -   - Billing must use {net weight/the metered total} from the {ticket}.
+            - Net quantity should come from the {ticket}, {plus/with} {a/the} density correction.
+        -   - '{mp_urgent}'
+            - '{mp_urgent} {b_offer}'
+      comments:
+        - '{b_cm_repro} with a {customer} delivery.'
+        - '{b_cm_check}, the {ticket} import may be late.'
+        - Credit memos {are/will be} needed for billed lots.
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        index:
+          - feedstock index
+          - energy index
+          - freight index
+          - currency basket
+        path:
+          - billing/indexes.py
+          - billing/surcharges.py
+          - billing/contracts.py
+      title:
+        - "{index|cap} surcharge uses last month's value"
+        - Wrong month's {index} applied to {customer} {doc}s
+        - '{index|cap} surcharge looks stale on {doc}s'
+        - Surcharge on {doc}s follows the wrong {index}
+      body:
+        -   - '{mp_raised}, {mp_scope}.'
+            - A {customer} buyer questioned the surcharge, {mp_scope}.
+        -   - '{path} caches the {index} {for/across} the whole month.'
+            - The index table in {path} {updates/loads} on the {first/fifth} of the month.
+        -   - Contracts say the {index} {at/on} the date of shipment.
+            - Price follows the {index} published before delivery.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro}, with a delivery on the {2-28}th.'
+        - '{b_cm_ask_who}'
+        - Which contracts use a lagged index?
+    - labels:
+        - bug
+      let:
+        deposit:
+          - drum deposit
+          - tote deposit
+          - ISO tank deposit
+          - cylinder deposit
+        pack:
+          - drum
+          - tote
+          - ISO tank
+          - cylinder
+        customer:
+          - '{b_customer}'
+        path:
+          - billing/containers.py
+          - billing/deposits.py
+          - billing/returns.py
+      title:
+        - '{deposit|cap} not credited after the {pack} comes back'
+        - '{deposit|cap} missing from the credit memo'
+        - '{pack|cap} returns do not release the {deposit}'
+        - Returned {pack}s still carry the {deposit}
+      body:
+        -   - '{mp_raised}, {mp_scope}.'
+            - '{b_who|cap} {raised/reported} it for {customer} accounts.'
+        -   - The {deposit} stays open after {the receipt/the return scan}.
+            - Returns are logged in {path}, but no credit is created.
+        -   - Finance has {2-9} accounts waiting.
+            - Customers see the open deposit {online/there}.
+      comments:
+        - '{b_cm_repro} with a returned {pack}.'
+        - '{b_cm_ask_who}'
+        - How long do deposits stay open?
+    - labels:
+        - needs-decision
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - credits for off-spec lots
+          - short deliveries on a tank truck
+          - rebates across contract years
+          - demurrage on railcars
+          - price changes on open contracts
+          - returns of opened drums
+        a:
+          - credit the full lot
+          - credit pro rata
+          - replace the product
+          - bill what was weighed
+          - apply the new price
+          - charge the actual cost
+        b:
+          - credit only the difference
+          - wait for the lab result
+          - offer a discount
+          - bill what was ordered
+          - keep the old price
+          - pass it to the customer
+      title:
+        - '{question|cap}: who rules?'
+        - Decide how to handle {question}
+        - Open question on {question}
+        - Policy for {question}?
+      body:
+        -   - '{b_nd_a}, {b_nd_b} {b_nd_c}'
+            - '{b_who|cap} handles {question} {b_nd_b} {b_nd_c}'
+        -   - 'Options: {a}, or {b}.'
+            - We could {a}; or {b}; or keep it as is.
+        -   - '{b_nd_f}'
+            - Quality and finance should {sign off/agree} first.
+      comments:
+        - '{b_cm_lean} {a}.'
+        - '{b_cm_ask_who}'
+        - Needs a ruling from {b_who}.
+    - labels:
+        - bug
+      let:
+        fee:
+          - hazmat fee
+          - dangerous goods fee
+          - hazard surcharge
+        grade:
+          - '{mp_product}'
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        path:
+          - billing/hazard.py
+          - billing/surcharges.py
+          - billing/classes.py
+      title:
+        - '{fee|cap} charged on {grade} that is not regulated'
+        - '{grade|cap} carries the {fee} on {doc}s'
+        - Hazard fee on unregulated {grade}
+      body:
+        -   - '{mp_raised}, {mp_scope}.'
+            - '{customer|cap} buyers have disputed it {b_since}.'
+        -   - "{path} reads the family's hazard class."
+            - The fee table in {path} matches on {family/grade}.
+        -   - Regulatory says {it/the grade} is unregulated.
+            - The grade changed class {after/since} reformulation.
+      comments:
+        - '{b_cm_repro} with a recent order.'
+        - Regulatory can confirm the class list.
+        - '{b_cm_fix_up}'
+  portal:
+    - labels:
+        - bug
+      let:
+        product:
+          - '{mp_product}'
+        problem:
+          - an old revision
+          - the wrong language
+          - section 14 missing
+          - a missing revision date
+        path:
+          - portal/sds.py
+          - portal/documents.py
+          - portal/sync_sds.py
+      title:
+        - '{product|cap} safety data sheet has {problem}'
+        - Customers download an SDS for {product} with {problem}
+        - Wrong safety data sheet served for {product}
+        - SDS for {product} shows {problem}
+      body:
+        -   - '{mp_raised}, {mp_scope}.'
+            - Regulatory affairs {noticed/flagged} it for {product}.
+        -   - '{path} syncs the sheets {nightly/weekly}, and the sync {skips/misses} revisions.'
+            - The portal serves the file from {path}, which is {not/never} refreshed.
+        -   - Customers must see the {current/latest} revision, by language.
+            - A stale sheet is a finding.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_ask_who}'
+        - Do we log the version served?
+    - labels:
+        - enhancement
+      let:
+        who:
+          - '{b_who}'
+          - sales
+        customer:
+          - bulk
+          - distributor
+          - specialty
+        tank:
+          - storage
+          - customer
+          - day
+        path:
+          - portal/tanks.py
+          - portal/inventory.py
+      title:
+        - Let {customer} accounts see tank levels
+        - Show tank levels for managed accounts
+        - Tank inventory page for {customer} customers
+      body:
+        -   - '{who|cap} {asks/wants} to see {tank} levels {every few weeks/each month/again}.'
+            - '{mp_raised}. {b_g_asking}'
+        -   - Levels arrive {every 15 minutes/hourly}.
+            - The feed lands in {path}.
+        -   - '{Customers/Buyers} want a reorder alert.'
+            - A reorder alert would {help/be useful}.
+      comments:
+        - '{b_cm_ask_who}'
+        - How long keep the readings?
+        - Whose data is it to show?
+    - labels:
+        - bug
+      let:
+        kind:
+          - blended
+          - reworked
+          - repacked
+          - split
+        path:
+          - portal/coa.py
+          - portal/lots.py
+          - portal/search.py
+      title:
+        - '{kind|cap} lots do not match CoA search'
+        - Certificate of analysis missing for {kind} lots
+        - Search by lot fails for {kind} lots
+        - CoA lookup finds nothing for {kind} lots
+      body:
+        -   - '{mp_raised}, {mp_scope}.'
+            - Customer service {raised/reported} {2-9} cases {b_since}.
+        -   - '{path} matches {the exact/the full} lot string.'
+            - '{path} strips the suffix on {kind} lots.'
+        -   - Lab results exist under a {different/changed} lot id.
+            - ERP and lab differ on ids.
+      comments:
+        - '{b_cm_repro} with {mp_ref}.'
+        - Does the lab keep old ids?
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+        - security
+      let:
+        doc:
+          - CoA
+          - specification sheet
+          - technical data sheet
+        kind:
+          - distributor
+          - customer
+          - account
+        path:
+          - portal/specs.py
+          - portal/coa.py
+          - portal/files.py
+      title:
+        - '{doc|cap} for a custom grade opens {for/on} another account'
+        - Custom spec visible to other accounts
+        - A special grade's {doc} is visible to another {kind}
+      body:
+        -   - '{mp_raised}, noticed while helping a customer.'
+            - Found while checking a ticket, {mp_scope}.
+        -   - '{path} filters by grade only.'
+            - The route in {path} {checks/keys on} product only.
+        -   - Custom specs can reveal {formulas/limits}.
+            - Some of these are confidential.
+        -   - '{b_dlk_e}'
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_fix_up} It adds an owner check to {path}.'
+        - Check the access log for {that/the CoA} route.
+  docs:
+    - labels:
+        - docs
+        - enhancement
+      let:
+        flow:
+          - how batch releases reach the ERP
+          - how a CoA is generated
+          - how SDS revisions reach the portal
+          - inventory valuation by tank
+          - weighbridge ticket import
+          - plant month-end close
+      title:
+        - '{flow|cap} needs a page in the handbook'
+        - Write up {flow} for new engineers
+        - Nobody has written down {flow}
+        - Document {flow}
+      body:
+        -   - "{flow|cap} lives in {person}'s head today."
+            - New joiners keep asking about {flow}.
+        -   - One page with {a diagram/the steps}.
+            - A page of steps and failures.
+        -   - '{Add/List} the lab contact {if/when} it stalls.'
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - bug
+      let:
+        page:
+          - docs/oncall.md
+          - docs/access.md
+          - docs/releases.md
+          - docs/runbooks/historian-interface.md
+          - docs/runbooks/weighbridge.md
+        stale:
+          - the old historian host
+          - the retired lab gateway
+          - last year's turnaround dates
+          - the previous CoA template
+          - the former weighbridge vendor
+      title:
+        - '{Handbook/Docs}: {page} lists {stale}'
+        - Stale reference to {stale} in {page}
+        - '{page|cap} still names {stale}'
+      body:
+        -   - '{page|cap} still mentions {stale}.'
+            - '{page|cap} has not changed since the {migration/audit}.'
+        -   - '{A new hire/Someone} hit a wall.'
+            - '{person} hit this on {day}.'
+        -   - Someone from {mp_plant} should read it through.
+      comments:
+        - '{b_cm_check}'
+        - '{Fixed/Updated} the first sections, {more/some} to go.'
+    - labels:
+        - docs
+        - task
+      let:
+        howto:
+          - reissue a CoA after correction
+          - add a product to SDS
+          - reload tank gauge readings
+          - reprint a weight ticket
+          - reverse a batch posting
+          - register a new weighbridge scale
+        screen:
+          - the ERP
+          - the lab system
+          - the weighbridge console
+      title:
+        - 'How-to: {howto}'
+        - Write up how to {howto}
+        - 'Add a how-to: {howto}'
+      body:
+        -   - '{Support/Service} asks about this {often/monthly/weekly}.'
+            - The {lab/QA team} does this by hand.
+        -   - Steps, common errors, {and/plus} who approves.
+            - Short, with screenshots of {screen}.
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - needs-decision
+      let:
+        change:
+          - REACH changes
+          - an SDS format change
+          - a TSCA notice
+          - a reclassified grade
+          - a new GHS label rule
+        who:
+          - '{b_who}'
+      title:
+        - '{change|cap}: where in the handbook?'
+        - How do we document {change}?
+        - Decide how to record {change}
+      body:
+        -   - '{change|cap} touches {the portal/billing/the data loads}.'
+            - Regulatory sends notices, nobody files.
+        -   - One log {is/might be} simpler to keep current.
+            - 'Options: a page per change, {or/versus} a running log.'
+        -   - '{b_nd_f}'
+      comments:
+        - '{b_cm_lean} a running log.'
+        - '{b_cm_ask_who}'
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        unit:
+          - '{mp_unit}'
+        report:
+          - the batch yield report
+          - the yield dashboard
+        event:
+          - a rework
+          - a recycle step
+          - a charge correction
+          - a split batch
+        path:
+          - pipeline/yields.py
+          - pipeline/clean.py
+      title:
+        - '{unit|cap} yield looks impossible in {report}'
+        - Yield above 100 percent after {event}
+        - Batch yield above 100 percent for {unit}
+      body:
+        -   - '{unit|cap} shows {101-130} percent yield {b_since}.'
+            - '{report|cap} lists {2-9} batches above 100 percent.'
+        -   - '{event|cap} adds the same material twice.'
+            - Recycled {solvent/material} counts as new input.
+        -   - '{Process/Plant} engineers distrust the number.'
+            - They compare it with DCS totals.
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - bug
+        - incident
+      let:
+        tag:
+          - reactor temperature
+          - tank level
+          - flow meter
+          - pressure
+          - pump current
+        event:
+          - archive rotation
+          - an interface reconnect
+          - the clock change
+          - a historian restart
+        report:
+          - the daily process summary
+          - the batch report
+          - the energy report
+      title:
+        - '{event|cap} leaves holes in the tag load'
+        - Missing {tag} readings after {event}
+        - Historian tag load has gaps after {event}
+      body:
+        -   - '{tag|cap} readings stop for {1-6} hours around {event}.'
+            - The load skips {tag} for {1-6} hours after {event}.
+        -   - '{person} noticed it on {day}.'
+            - Process engineers saw the gap in {report}.
+        -   - We need backfill after reconnects.
+            - Interface reconnects, load does not backfill.
+      comments:
+        - '{b_cm_check} the interface log first.'
+        - '{b_cm_fix_up}'
+        - How far back is the archive?
+    - labels:
+        - question
+        - data-quality
+      let:
+        report:
+          - the monthly emissions summary
+          - the flare report
+          - the discharge summary
+        gap:
+          - '{2-9}'
+          - '{10-20}'
+      title:
+        - '{report|cap} does not match the permit log ({gap} off)'
+        - Emissions summary differs from plant log
+        - '{report|cap} and production disagree by {gap}'
+      body:
+        -   - It sums flow from {the tags/the loads}.
+            - Environmental uses the permit log.
+        -   - It was {gap} percent last quarter.
+            - The gap is about {gap} percent {b_since}.
+        -   - Reporting to the regulator is dated.
+      comments:
+        - '{b_cm_hand} the monthly total.'
+        - '{b_cm_ask_who}'
+    - labels:
+        - enhancement
+      let:
+        source:
+          - lab results
+          - tank gauge readings
+          - energy meter data
+          - railcar tracking
+          - batch records
+        who:
+          - quality
+          - the plant manager
+          - the process team
+          - finance
+        report:
+          - the batch yield report
+          - the inventory by tank report
+          - the margin by product report
+        format:
+          - CSV
+          - XML
+          - JSON lines
+          - a flat file
+      title:
+        - '{source|cap} should land in the warehouse'
+        - Bring {source} into the warehouse
+        - Load {source} into the warehouse
+      body:
+        -   - '{who|cap} wants it next to {report}.'
+            - Today {someone/a chemist} pulls it by hand.
+        -   - It arrives as {format} {every hour/each night/after each batch}.
+            - Files land on {the plant server/a plant share}.
+        -   - A rough size is {2-6} days with checks.
+      comments:
+        - '{b_cm_ask_who}'
+        - Keep the raw files {30-90} days.
+    - labels:
+        - bug
+        - data-quality
+      let:
+        prop:
+          - '{mp_prop}'
+        unit_a:
+          - mg per litre
+          - percent
+          - percent by weight
+        unit_b:
+          - ppm
+          - parts per million
+          - g per litre
+      title:
+        - '{prop|cap} results arrive in two units'
+        - Units differ across lab results for {prop}
+        - Lab results mix {unit_a} and {unit_b}
+      body:
+        -   - Newer methods report {unit_b}, older ones {unit_a}.
+            - The lab system stores {prop} as {unit_a} and {unit_b}.
+        -   - The load copies {the number/values}, not units.
+            - Charts jump when the method {changed/switched}.
+        -   - Quality needs one unit per property.
+      comments:
+        - "{b_cm_repro}, using last month's results."
+        - '{b_cm_ask_who}'
+  infra:
+    - labels:
+        - security
+        - bug
+      let:
+        target:
+          - historian server
+          - OPC gateway
+          - tank gauge gateway
+          - weighbridge controller
+      title:
+        - '{target|cap} is reachable from the office network'
+        - No segmentation from office to the {target}
+        - Office laptops can reach the {target}
+      body:
+        -   - '{person} {reached/found} the {target} from an office laptop.'
+            - Office scans reach the {target}.
+        -   - The rule allows {the whole/every} office range.
+            - It sits in the {plant/process} zone.
+        -   - Limit access to the {jump/bastion} host and log it.
+      comments:
+        - '{b_cm_check}'
+        - I will tighten the rule {c_soon}.
+    - labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - OPC UA certificate
+          - historian web certificate
+          - LIMS gateway certificate
+          - carrier API certificate
+      title:
+        - '{cert|cap} expiry should page someone'
+        - Alert before the {cert} expires
+        - No warning for the {cert}
+      body:
+        -   - The {cert} expired on {day} and {nothing/no one} warned us.
+            - Readings stopped for about {2-9} hours.
+        -   - Add a warning {14/21/30} days ahead.
+            - A nightly job check {would be/is} enough.
+      comments:
+        - '{b_cm_fix_up}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - bug
+        - performance
+      let:
+        target:
+          - historian host
+          - lab gateway
+          - weighbridge server
+          - tank farm gateway
+        n:
+          - '{5-25}'
+        env_file:
+          - environments/production.yaml
+          - config/retention.yaml
+          - environments/plant.yaml
+      title:
+        - '{target|cap} disk is nearly full'
+        - No retention set on the {target} archive
+        - Disk on the {target} fills in {n} days
+      body:
+        -   - Usage went from {40-60} to {85-95} percent {b_since}.
+            - The archive grows about {2-9} GB a day.
+        -   - '{Retention/Rotation} is not set in {env_file}.'
+            - Retention is not set in {env_file}.
+        -   - Alerts fire at {95/98} percent, which is too late.
+      comments:
+        - '{b_cm_check}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - chore
+        - security
+      let:
+        target:
+          - historian client
+          - OPC gateway image
+          - lab system client
+          - weighbridge software
+      title:
+        - '{target|cap} is out of support'
+        - Plan the move off the old {target}
+        - Upgrade the {target}
+      body:
+        -   - The vendor ends support in {2-9} months.
+            - The vendor no longer patches {it/this}.
+        -   - It needs a turnaround window, {check/see} the calendar.
+            - Do it during the next turnaround.
+      comments:
+        - '{b_cm_ask_who}'
+        - Plant IT needs {2-6} weeks notice.
+  ops:
+    - labels:
+        - bug
+      let:
+        script:
+          - archive_historian.sh
+          - pull_tank_levels.sh
+          - purge_coa_cache.sh
+        days:
+          - '{7-90}'
+        kind:
+          - archives
+          - exports
+          - readings
+        symptom:
+          - '{p_script_symptom}'
+        old:
+          - '{p_old_ref}'
+      title:
+        - '{Scripts/Ops}: {script} keeps {days} days of {kind}, docs say something else'
+        - '{script} {symptom}'
+      body:
+        -   - It was written for {old}.
+            - Nobody has touched it {since/after} the move.
+      comments:
+        - '{b_cm_check}'
+comments:
+  - '{b_g_ask} the lot number?'
+  - Which site was this, {mp_plant}?
+  - '{b_cm_repro} with {mp_ref}.'
+  - The plant manager {asked/enquired} about this on {day}.
+  - Quality wants to know if {it/this} touches released lots.
+  - '{b_g_loop} {person}, they know the lab side.'
+  - Shipping is not blocked, {but/though} it is close.
+  - Can we see the {mp_doc} for this?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: safety briefing at {time} {c_soon}, control room included.'
+        - toolbox talk at {time} on {day}, please attend.
+        - 'reminder: plant safety walk at {time} {c_soon}'
+      replies:
+        -   - '{c_ack}'
+            - does that include contractors?
+            - '{c_thanks}'
+        -   - '{c_yes}, everyone on site'
+            - '{c_yes}{c_sep} hard hats please'
+            - ''
+    - root:
+        - turnaround starts {c_soon}, north gate parking is closed
+        - '{c_hey}: turnaround crews arrive {c_soon}, badges at the gate'
+        - turnaround {c_soon}, expect extra traffic on site
+      replies:
+        -   - '{c_ack}'
+            - where do contractors park?
+            - '{c_thanks}'
+        -   - the east lot
+            - '{c_idk}, ask {person}'
+            - ''
+    - root:
+        - fire drill at {time} {c_soon}, muster at the east gate.
+        - '{c_hey}, evacuation drill on {day} at {time}'
+        - drill on {day}, assembly point is the east gate
+      replies:
+        -   - '{c_ack}'
+            - is the lab included?
+            - '{c_thanks}'
+        -   - '{c_yes}, the lab too'
+            - everyone on site
+            - ''
+  off-topic:
+    - root:
+        - anyone want to carpool, route {2-9} is closed
+        - road works near the site again{c_sep} leave early
+        - who is up for {c_sport} after work {day}?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_no}, sorry'
+            - which gate?
+        -   - '{c_ack}'
+            - '{c_lol}'
+            - ''
+  engineering:
+    - root:
+        - '{c_ci_fail} is failing on the CoA branch'
+        - CoA template branch is red, {c_ci_fail} failed again
+        - '{c_ci_fail} fails in {repo}, only on the CoA change'
+      replies:
+        -   - same here after lunch
+            - which test exactly?
+            - '{c_blocker} on my side'
+        -   - the unit one
+            - looks like a missing fixture
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - i'll rerun it
+            - ''
+    - let:
+        prop:
+          - '{mp_prop}'
+      root:
+        - lab results import is dropping {prop} rows, anyone seen it?
+        - '{prop} results missing from the import {since/after} {day}'
+        - lab import skips {prop} for blended lots
+      replies:
+        -   - which method id?
+            - same here, only for {prop}
+            - '{c_idk}, checking'
+        -   - method {10-99}
+            - '{c_ack}'
+            - attaching the file to {issue}
+        -   - found it, a unit mismatch
+            - '{c_thanks}'
+            - ''
+    - root:
+        - SDS sync ran at {time}, portal shows the old one
+        - portal serves old SDS after {time} sync
+        - '{c_hey}: SDS sync done, portal is stale'
+      replies:
+        -   - cache or sync?
+            - checking the sync log
+            - '{c_ack}'
+        -   - cache, clearing it
+            - sync skipped it
+            - '{c_idk}'
+        -   - cleared, now shows the new one
+            - '{c_thanks}'
+            - ''
+    - root:
+        - 'CoA PDFs: store or {rebuild/build on demand}?'
+        - CoA PDFs, keep them or {rebuild/regenerate}?
+        - stored PDFs versus building {c_soon}, what do we want?
+      replies:
+        -   - store it, the lab signs it
+            - rebuild is cheaper, data can {change/move}
+            - '{c_idk}'
+        -   - the data changes after lab corrections
+            - '{c_agree}'
+            - ''
+    - let:
+        thing:
+          - the buffer size
+          - the poll rate
+          - the tag list
+      root:
+        - historian interface eats memory, who changed {thing}?
+        - memory on the interface keeps growing
+        - '{c_hey}, historian interface restarted itself {c_soon}'
+      replies:
+        -   - not me
+            - i changed the buffer size {c_soon}
+            - '{c_idk}'
+        -   - that could be it
+            - '{c_ack}'
+            - checking the graphs
+  team:
+    - let:
+        report:
+          - the batch yield report
+          - the inventory by tank report
+          - the daily process summary
+      root:
+        - process engineers want a change to {report}
+        - '{c_hey}: request from the process team for {report}'
+        - operations asked for a tweak to {report}
+      replies:
+        -   - what do they need?
+            - is it quick?
+            - '{c_ack}'
+        -   - split by reactor
+            - a column for downtime reason
+            - '{c_idk}, asking'
+        -   - '{c_ack}, will look {c_soon}'
+            - put it on the board
+            - ''
+    - root:
+        - who covers the weighbridge console while {person} is out?
+        - weighbridge issues, who is on them {c_soon}?
+        - '{person} is {c_pto}, who takes weighbridge tickets?'
+      replies:
+        -   - i can take them
+            - '{c_idk}'
+            - ask {person}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - root:
+        - 'turnaround plan: what do we {need/want}?'
+        - turnaround in {2-6} weeks, what is on our list?
+        - turnaround planning, who owns the {historian/gateway} steps?
+      replies:
+        -   - the historian upgrade, gateway image
+            - i'll write the list
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - add the lab gateway
+            - put it on the board
+    - root:
+        - 'customer escalation: {c_customer} says the CoA is missing for {mp_ref}'
+        - '{c_customer} cannot find the CoA for {mp_ref}'
+        - missing CoA complaint from {c_customer}, {mp_ref}
+      replies:
+        -   - checking the lab system
+            - was it blended?
+            - '{c_ack}'
+        -   - yes a blend lot
+            - lab released it, CoA never built
+            - '{c_idk}'
+        -   - i'll rebuild it
+            - '{c_thanks}'
+            - ''
+  support:
+    - let:
+        ref:
+          - '{mp_ref}'
+      root:
+        - '{s_cust|cap} wants the CoA for {ref}, portal finds nothing'
+        - CoA for {ref} is missing, {s_cust} is asking
+        - '{s_cust|cap} cannot find the CoA for {ref}'
+      replies:
+        -   - is it a blend lot?
+            - i see it in the lab
+            - looking now
+        -   - it was reworked, new lot id
+            - '{c_ack}, resending'
+            - released {c_soon}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - let:
+        lang:
+          - German
+          - French
+          - Spanish
+          - Dutch
+          - Portuguese
+      root:
+        - customer needs the SDS in {lang}, how do i send it?
+        - '{s_cust|cap} asks for the {lang} SDS'
+        - SDS request in {lang}, portal only shows English
+      replies:
+        -   - is it published?
+            - use the portal download
+            - '{c_idk}'
+        -   - not published yet
+            - '{c_yes}'
+            - only English for that grade
+        -   - asking regulatory
+            - send it by hand, note it
+            - ''
+    - let:
+        ref:
+          - '{mp_ref}'
+      root:
+        - '{s_cust|cap} disputes the quantity on {ref}, says the truck was short'
+        - quantity dispute on {ref}, {s_cust} says short {2-9} percent
+        - weight differs from the invoice on {ref}, {s_cust} is asking
+      replies:
+        -   - do we have the weight ticket?
+            - which scale?
+            - '{c_ack}'
+        -   - ticket says full
+            - scale {1-3}
+            - '{c_idk}, asking logistics'
+        -   - credit memo coming
+            - '{c_thanks}'
+            - ''
+    - let:
+        ref:
+          - '{mp_ref}'
+      root:
+        - tank truck for {s_cust} has not arrived, order {ref}
+        - '{s_cust|cap} asks where the truck for {ref} is'
+        - late delivery on {ref}, {s_cust} is calling
+      replies:
+        -   - logistics says {c_soon}
+            - carrier has it
+            - '{c_ack}'
+        -   - left at {time}
+            - '{c_idk}, asking'
+            - stuck at the terminal
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - let:
+        pack:
+          - drums
+          - totes
+          - ISO tanks
+      root:
+        - drum deposit credit missing for {s_cust}, returns logged {c_soon}
+        - '{s_cust|cap} asks about the {pack} deposit'
+        - deposit still open after returning {pack}s
+      replies:
+        -   - is the return scanned?
+            - i see the receipt
+            - '{c_idk}'
+        -   - '{c_yes}'
+            - scanned {c_soon}
+            - no return scan yet
+        -   - escalating to eng, filed as {issue}
+            - '{c_ack}'
+            - ''
+  incidents:
+    - let:
+        unit:
+          - '{mp_unit}'
+        unit2:
+          - '{mp_unit}'
+      root:
+        - historian interface stopped, {unit} is not reporting
+        - no readings from {unit} since {time}
+        - interface down and {unit} stopped reporting
+      replies:
+        -   - whole plant or one unit?
+            - seeing the same on {unit2}
+            - checking the interface now
+        -   - just {unit}
+            - '{c_idk}, looking'
+            - restarted the service, still down
+        -   - back up after a restart
+            - network switch, plant IT has it
+            - '{c_ack}'
+    - root:
+        - CoA generation failing, shipping cannot release
+        - CoAs not building, trucks waiting
+        - shipping waits on CoAs, generator errors
+      replies:
+        -   - is the lab system up?
+            - trucks are waiting
+            - '{c_ack}, checking'
+        -   - lab is up, queue is stuck
+            - restarting the generator
+            - '{c_idk}'
+        -   - CoAs are building again
+            - queue cleared
+            - '{c_thanks}'
+    - let:
+        n:
+          - '{200-4000}'
+      root:
+        - weighbridge tickets not importing, queue at {n}
+        - weight ticket import is stuck at {n} rows
+        - the weighbridge import backed up to {n}
+      replies:
+        -   - '{c_ack}, looking'
+            - last one imported at {time}
+            - scale side or ours?
+        -   - ours, the file share dropped
+            - '{c_idk}'
+            - checking the share
+        -   - reconnected, draining
+            - queue is draining
+            - '{c_thanks}'
+    - root:
+        - inventory sync slow, no tank levels
+        - tank levels stale, sync still running
+        - no tank levels for {c_soon}, sync is late
+      replies:
+        -   - '{c_ack}, checking the job'
+            - extract or load?
+            - '{c_idk}'
+        -   - extract finished, load at {2-9}0 percent
+            - waiting on a lock
+            - '{c_ack}'
+        -   - done, levels look right now
+            - released the lock
+            - '{c_thanks}'
+    - let:
+        what:
+          - the CoA export
+          - the nightly inventory sync
+          - the invoice run
+          - the tank level poll
+      root:
+        - 'near miss: {what} almost failed, a retry saved it'
+        - '{what} nearly missed the cutoff, retried fine'
+        - close call with {what} last night
+      replies:
+        -   - what was the cause?
+            - '{c_ack}'
+            - add it to the review
+        -   - a lock timeout
+            - '{c_idk}'
+            - a gateway hiccup
+        -   - '{c_thanks}'
+            - ''
+  direct:
+    - let:
+        ref:
+          - '{mp_ref}'
+      root:
+        - '{s_hey}, can you rebuild the CoA for {ref}? the lab corrected a result'
+        - '{s_hey}, need a CoA rebuild for {ref} {s_soon}'
+        - could you regenerate the CoA for {ref}? {s_soon}
+      replies:
+        -   - '{c_ack}, give me {5-15} minutes'
+            - which lot?
+            - sure
+        -   - the blend lot
+            - '{ref}'
+            - '{c_thanks}'
+        -   - done, check your inbox
+            - sent
+            - ''
+    - let:
+        product:
+          - '{mp_product}'
+      root:
+        - 'quick question: which site makes {product}?'
+        - '{s_hey}, do you know which site blends {product}?'
+        - who owns {product}, east site or main?
+      replies:
+        -   - '{c_idk}, ask {person}'
+            - the east site since last year
+            - the main site
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - let:
+        index:
+          - feedstock index
+          - energy index
+          - freight index
+      root:
+        - minute for the surcharge table? {index} looks off
+        - '{s_hey}, can we look at the {index} together?'
+        - index question, {index}, {s_soon}?
+      replies:
+        -   - '{c_ack}, in {5-20} min'
+            - sure, call me
+            - '{c_idk}, which table?'
+        -   - the one in billing/indexes.py
+            - '{c_thanks}'
+            - ''
+incidents:
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment remittance callbacks failing
+      - Remittance callbacks {from/via} the payments provider erroring
+      - Errors on remittance callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} remittance callbacks failing, {s_cb_b}'
+      - '{s_cb_bad} - {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle provider timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Portal order history timeouts {for/on} large accounts
+      - Order history times out for distributors
+      - Large accounts see portal 504s
+      - Portal slow on order history
+    alert:
+      - '{s_portal_slow}, {s_portal_b}'
+      - '{s_al} {s_portal_slow}'
+      - order history timing out {for/on} big accounts, {s_portal_b}
+    fix_message:
+      - '{s_page_fix|cap}'
+      - Page the order history list
+      - Add pagination to order history
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly historian load failed
+      - Overnight lab load failed
+      - Warehouse load aborted on bad rows
+      - Nightly load did not finish
+    alert:
+      - '{s_load_a}, {s_load_b}'
+      - '{s_al} {s_load_a}'
+      - '{s_load_a} - plant dashboards are stale'
+    fix_message:
+      - '{s_load_fix|cap}'
+      - Skip bad tag rows, log them
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Gateway certificates expired
+      - Plant gateway certificates expired
+      - Certificate expiry on the interface
+      - Expired certificates on staging
+    alert:
+      - '{s_cert_a}, {s_cert_b}'
+      - '{s_al} {s_cert_a}'
+      - '{s_cert_a} - interface offline'
+    fix_message:
+      - '{s_cert_fix|cap}, {s_cert_warn}'
+      - '{s_cert_fix|cap}'

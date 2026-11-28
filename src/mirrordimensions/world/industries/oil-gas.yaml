@@ -1,0 +1,1234 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Energy: oil and gas: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: oil-gas
+name: "Energy: oil and gas"
+group: Industry and infrastructure
+aliases:
+  - oil and gas
+  - petroleum
+  - upstream
+  - midstream
+  - oil
+description: An oil and gas company that produces, moves and sells crude, gas and fuel, and bills its shippers, working-interest partners and dealers.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Energy
+  - Petroleum
+  - Midstream
+  - Resources
+  - Oil and Gas
+  - Pipeline
+invoice_items:
+  - Crude transportation
+  - Terminal storage
+organization:
+  head: Director of Information Technology
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Information Technology
+      title: Platform Engineer
+    billing:
+      department: Revenue Accounting Systems
+      title: Billing Systems Engineer
+    data:
+      department: Production Data
+      title: Data Engineer
+    support:
+      department: Field and Partner Support
+      title: Support Specialist
+    product:
+      department: Digital Products
+      title: Product Manager
+    operations:
+      department: Operations Technology
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, jib-billing, revenue-billing, settlement-service]
+    platform-docs: [platform-docs, it-handbook, field-it-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, production-loads, allocation-etl, volumes-warehouse]
+    infra-config: [infra-config, plant-network-config, environments, platform-config]
+    customer-portal: [customer-portal, partner-portal, shipper-portal, dealer-portal]
+    ops-scripts: [ops-scripts, field-scripts, legacy-scripts, scada-scripts]
+  channels:
+    engineering: [engineering, dev, engineering-chat]
+    incidents: [incidents, outages, scada-incidents]
+    support: [support, field-support, partner-support]
+    data-team: [data-team, production-data, volumes-data]
+    billing-team: [billing-team, revenue-systems, jib-team]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - sap s/4hana cloud
+    - honeywell forge
+    - schneider electric ecostruxure
+    - esri arcgis online
+    - servicenow
+    - aveva pi system
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - jira
+symbols:
+  b_doc:
+    - joint interest bill
+    - fuel delivery invoice
+    - pipeline tariff invoice
+    - terminal throughput invoice
+    - credit memo
+  b_customer:
+    - wholesale fuel
+    - commercial fleet
+    - pipeline shipper
+    - working-interest partner
+    - retail dealer
+    - industrial gas
+  b_who:
+    - the land desk
+    - joint interest accounting
+    - the marketing desk
+    - revenue accounting
+    - the field office
+  b_pwho:
+    - a dealer
+    - a partner
+    - '{person}'
+    - the scheduling desk
+    - revenue accounting
+  b_region:
+    - Texas
+    - Alberta
+    - North Dakota
+    - Oklahoma
+    - Louisiana
+    - New Mexico
+    - Saskatchewan
+    - Pennsylvania
+  b_taxkind:
+    - severance tax
+    - excise tax
+    - fuel duty
+    - carbon levy
+    - ad valorem tax
+    - GST
+  b_currency:
+    - USD
+    - CAD
+    - EUR
+    - GBP
+    - AUD
+  b_page:
+    - joint interest statements
+    - delivery tickets
+    - tariff rates
+    - nominations
+    - payment history
+    - meter statements
+    - the dashboard
+    - account settings
+  b_acct_size:
+    - '{200-900} delivery tickets'
+    - '{15-60} users'
+    - '{40-300} ship-to sites'
+    - '{20-120} wells on one statement'
+    - '{3-12} billing contacts'
+  b_provider_event:
+    - payment received
+    - payment failed
+    - remittance advice posted
+    - ACH return
+    - wire confirmed
+    - chargeback opened
+  c_customer:
+    - a dealer
+    - one of the larger shippers
+    - a working-interest partner
+    - a fleet customer
+  s_plan:
+    - a term supply contract
+    - a spot account
+    - a dealer agreement
+    - a throughput agreement
+  p_source:
+    - the pipeline operator's allocation statements
+    - the historian's daily tag export
+    - the lab's quality results
+    - the land system's owner list
+    - the trucking dispatch feed
+    - the measurement system's meter files
+  p_report:
+    - the daily production report
+    - the monthly volumes dashboard
+    - the allocation summary
+    - the imbalance report
+    - the lease operating statement
+  p_table:
+    - run tickets
+    - meter readings
+    - well headers
+    - daily volumes
+    - owner interests
+    - tank gauges
+  p_finance_ask:
+    - the revenue accounting lead
+    - someone in joint interest accounting
+    - the controller
+    - the royalty analyst
+  c_eng_area:
+    - the allocation job
+    - the tariff lookup
+    - the statement export
+    - the nomination form
+    - the run ticket import
+    - the meter file parser
+  s_thing:
+    - the allocation job
+    - the run ticket import
+    - the statement export
+    - the historian feed
+    - the nightly load
+  p_alert_name:
+    - historian replication lag
+    - the allocation job finishing late
+    - gateway certificate expiry
+    - failed backups of the measurement archive
+    - invoice queue depth
+  p_cert_host:
+    - the SCADA gateway certificate
+    - the partner portal certificate
+    - the OPC UA server certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the historian service account password
+    - the tariff feed API key
+    - the payments provider token
+    - the measurement archive key
+  og_well:
+    - well {10-40}-{2-36}H
+    - the {Rangeview/Coldwater/Pinehurst/Sandhill} {2-9}H well
+    - the {Rangeview/Coldwater/Sandhill} pad
+    - lease {100-899}
+  og_month:
+    - January
+    - February
+    - March
+    - April
+    - May
+    - June
+    - July
+    - August
+    - September
+    - October
+    - November
+    - December
+  og_vol:
+    - '{20-900} barrels'
+    - '{10-300} mcf'
+    - about {2-9} percent of volume
+    - '{2-40} thousand cubic feet'
+  og_site:
+    - the Cardwell terminal
+    - the north pump station
+    - the Eagle Bend gas plant
+    - the {Rangeview/Coldwater} tank battery
+    - the compressor station on {Route/Road} {10-90}
+  og_tag:
+    - the wellhead pressure tag
+    - the separator temperature tag
+    - the flow meter tag
+    - the tank level tag
+    - the compressor vibration tag
+  og_unit:
+    - barrels
+    - cubic metres
+    - thousand cubic feet
+    - million BTU
+  og_ot:
+    - the plant network
+    - the SCADA zone
+    - the control room subnet
+    - the field gateway
+  og_report_who:
+    - the pipeline controllers
+    - the field operators
+    - the gas measurement team
+    - the production engineers
+    - the land team
+  og_fix_when:
+    - before the month end close
+    - before the next nomination cycle
+    - before the allocation deadline
+    - ahead of the statement run
+  og_note:
+    - Raised from the field office.
+    - Revenue accounting hit it first.
+    - '{person} saw it closing {og_month}.'
+    - A partner asked about it.
+  og_cm_units:
+    - Converted by hand, numbers agree.
+    - Checked the units, they line up.
+    - Both sources use matching units.
+    - The conversion factor is the issue.
+  og_cm_close:
+    - Needs to land before the {og_month} close.
+    - Not during the allocation window.
+    - After the statement run.
+    - Outside the nomination cutoff, please.
+  og_stale:
+    - cached
+    - read once per run
+    - loaded at startup
+    - never refreshed
+  og_eff:
+    - effective date
+    - delivery date
+    - invoice date
+    - posting date
+  og_cause:
+    - a meter correction
+    - a late lab result
+    - a revised allocation
+    - a reopened month
+  og_tariff:
+    - the pipeline tariff
+    - the terminal rate
+    - the gathering fee
+    - the storage rate
+  og_extra:
+    - a fuel surcharge
+    - a demurrage line
+    - a quality adjustment
+    - a blending charge
+  og_ticket:
+    - delivery ticket
+    - run ticket
+    - meter statement
+  og_ids:
+    - API well numbers
+    - lease identifiers
+    - meter ids
+  og_records:
+    - measurement records
+    - meter files
+    - run tickets
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        well:
+          - '{og_well}'
+        month:
+          - '{og_month}'
+        who:
+          - '{b_who}'
+      title:
+        - Joint interest bill for {well} uses old decimals
+        - Owner interest change missed on {month} bills
+        - Partner shares on {well} exceed 100 percent
+        - '{month} bills for {well}: stale decimal interests'
+        - Why do two partners share {well} equally?
+      body:
+        -   - '{who|cap} reported it on the {month} statements.'
+            - '{og_note}'
+            - '{b_raised}, {b_scope}.'
+        -   - Decimals are {og_stale} in billing/invoice.py.
+            - The interest table is {og_stale}.
+            - Mid-month changes arrive too late.
+            - '{og_note}'
+        -   - Shares on {well} add up to {80-130} percent.
+            - Two partners show the same share.
+            - The gap per partner is small.
+            - '{og_note}'
+        -   - Land changes arrive after the run.
+            - Decimals post after bills are cut.
+            - Signed interests are dated day {2-28}.
+            - '{og_note}'
+        -   - Needs a fix {og_fix_when}.
+            - '{p_owner_ask}'
+            - '{og_note}'
+      comments:
+        - '{b_cm_repro} with a copy of the {month} interests.'
+        - The effective date is not honoured.
+        - '{b_cm_plan}.'
+        - Land says signed on day {2-28}.
+    - labels: [bug]
+      let:
+        vol:
+          - '{og_vol}'
+        site:
+          - '{og_site}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Ticket volumes differ from allocation by {vol}
+        - '{doc|cap} for {site} is {vol} off'
+        - Billed volume differs from meters at {site}
+        - Volume mismatch on {doc}s from {site}
+      body:
+        -   - Billing uses run ticket volumes.
+            - The {doc} takes ticket volume.
+            - '{og_note}'
+        -   - The operator uses the allocated figure.
+            - Allocation gives a different number.
+            - '{og_note}'
+        -   - The gap is about {vol} at {site}.
+            - '{b_raised}, {b_scope}.'
+            - '{og_note}'
+        -   - They measure at different points.
+            - Both numbers are right.
+            - '{og_note}'
+        -   - Not sure which the contract names.
+            - '{og_note}'
+            - '{b_urgent}'
+      comments:
+        - Contract names the custody transfer point.
+        - '{og_cm_units}'
+        - Bill tickets, then true up?
+        - '{b_cm_ask_who}'
+    - labels: [bug, needs-decision]
+      let:
+        tariff:
+          - '{og_tariff}'
+        n:
+          - '{2-15}'
+        who:
+          - '{b_who}'
+        question:
+          - credits for rate changes
+          - reissues after rate changes
+          - disputed charges
+      title:
+        - '{tariff|cap} change hits barrels delivered earlier'
+        - '{tariff|cap} change charged all month'
+        - Rate change on {tariff} was not prorated
+        - '{tariff|cap} rose on day {n}, bills use it all month'
+      body:
+        -   - The new rate began on day {n}.
+            - The change took effect mid-month.
+            - '{og_note}'
+        -   - '{tariff|cap} is read by invoice date.'
+            - Lookup uses the invoice date.
+            - '{og_note}'
+        -   - Early deliveries are overbilled.
+            - '{b_raised}, {b_scope}.'
+            - '{og_note}'
+        -   - Rate table has no end date.
+            - Billing keeps one rate per month.
+            - '{og_note}'
+        -   - Do we reissue or credit?
+            - '{b_nd_a}'
+            - '{og_note}'
+      comments:
+        - Credit memos are the cleaner path.
+        - '{b_cm_repro} on a copy of the {og_month} data.'
+        - Regulated tariffs go by delivery date.
+    - labels: [enhancement]
+      let:
+        thing:
+          - '{og_extra}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Show {thing} as its own line
+        - Customers ask for {thing} to be itemised
+        - Add {thing} to the {doc}
+        - '{thing|cap}: separate line, please'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Dealers ask for {thing} monthly.
+            - '{og_note}'
+        -   - Today {thing} sits in the unit price.
+            - The ledger has the line already.
+            - '{og_note}'
+        -   - The {doc} template needs a new field.
+            - It needs a schema change.
+            - '{og_note}'
+        -   - '{b_fr_d}'
+            - Needs a call on priority.
+            - '{og_note}'
+      comments:
+        - Finance needs the split in exports.
+        - Does the line carry {b_taxkind}?
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        cause:
+          - '{og_cause}'
+      title:
+        - Adjustment after {cause} lands in the wrong month
+        - Credit memo after {cause} has today's date
+        - '{cause|cap} adjusts the wrong period'
+        - Adjustments for {cause} break monthly totals
+      body:
+        -   - After {cause} the line is booked today.
+            - The correction carries today's date.
+            - '{cause|cap} posts to the current month.'
+            - The adjustment is dated today.
+            - '{og_note}'
+        -   - Revenue accounting wants the original period.
+            - Ledger and statement name different months.
+            - Finance expects the {og_month} period.
+            - Month totals no longer tie out.
+            - '{og_note}'
+        -   - The date comes from {b_credit_path}.
+            - Closed periods are not checked.
+            - Posting ignores the period lock.
+            - A closed month can still change.
+            - '{og_note}'
+        -   - '{b_urgent}'
+            - '{p_owner_ask}'
+            - '{og_note}'
+            - '{p_priority}'
+      comments:
+        - Closed periods should reject the posting.
+        - Auditors want a note on each.
+        - '{b_cm_fix_up}'
+    - labels: [needs-decision]
+      let:
+        kind:
+          - '{b_customer}'
+        who:
+          - '{b_who}'
+        question:
+          - late fee waivers
+          - interest disputes
+          - grace days
+      title:
+        - Late interest for {kind} accounts on net 60
+        - Which grace days apply to {kind} accounts?
+        - Interest on overdue {kind} bills, one rule or several?
+        - Policy for late fees on {kind} accounts
+      body:
+        -   - Late interest starts on day {30-45}.
+            - Every account gets the same rule.
+            - Interest runs from day {30-45} everywhere.
+            - One rule covers all {kind} accounts.
+            - '{og_note}'
+        -   - Some contracts say net {45-60}.
+            - The rule ignores contract terms.
+            - '{kind|cap} contracts allow {45-60} days.'
+            - Customers dispute fees inside their terms.
+            - '{og_note}'
+        -   - 'Options: follow each contract.'
+            - Or keep one rule for all.
+            - Or give a flat grace of {2-10} days.
+            - Or waive fees under {20-90} dollars.
+            - '{og_note}'
+        -   - We could store terms per account.
+            - '{b_nd_a}'
+            - Terms could sit on the profile.
+            - Collections could own the exceptions.
+            - '{og_note}'
+        -   - Needs a ruling from {b_who}.
+            - '{b_nd_f}'
+            - '{p_owner_ask}'
+            - Hold fees for {kind} until decided.
+            - '{og_note}'
+      comments:
+        - Per account terms need a backfill.
+        - Legal should confirm the contracts.
+        - Disputes doubled since the rule changed.
+  portal:
+    - labels: [bug]
+      let:
+        unit:
+          - '{og_unit}'
+        who:
+          - '{b_customer}'
+      title:
+        - Nomination form rejects volumes with decimals
+        - Nominations in {unit} are rounded on save
+        - '{who|cap} users cannot submit a nomination in {unit}'
+        - Nomination volume becomes a whole number
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{who|cap} users hit it before cutoff.'
+            - '{og_note}'
+        -   - The field strips the decimal point.
+            - Values are rounded before saving.
+            - '{og_note}'
+        -   - Volumes in {unit} need decimals.
+            - Scheduling keys them in by hand.
+            - '{og_note}'
+        -   - '{b_urgent}'
+            - '{og_note}'
+      comments:
+        - The form field is typed integer.
+        - '{b_cm_repro} on a fresh account.'
+        - Cutoff is at {time}.
+    - labels: [bug]
+      let:
+        ticket:
+          - '{og_ticket}'
+        site:
+          - '{og_site}'
+      title:
+        - '{ticket|cap} PDF has the wrong temperature correction'
+        - '{ticket|cap} from {site} prints the wrong unit'
+        - Downloaded {ticket} drops the gravity column
+        - '{ticket|cap} PDFs are cut off'
+      body:
+        -   - A dealer said the {ticket} looked wrong.
+            - '{b_raised}, {b_scope}.'
+            - Support has {2-9} complaints about the {ticket}.
+            - '{og_note}'
+        -   - The template drops long rows.
+            - Net and gross swap places.
+            - Columns shift on long names.
+            - Volume lines are cut off.
+            - '{og_note}'
+        -   - The portal screen is correct.
+            - Only the file is wrong.
+            - On screen the numbers match.
+            - The printout differs from the screen.
+            - '{og_note}'
+        -   - '{b_cm_shot} {b_cm_shot2}'
+            - '{p_priority}'
+            - '{b_urgent}'
+            - '{og_note}'
+      comments:
+        - Layout breaks on long product names.
+        - '{b_cm_portal}, {b_cm_pdf}'
+        - Template rounds to two places.
+    - labels: [bug, security]
+      let:
+        what:
+          - ship-to sites
+          - delivery tickets
+          - joint interest statements
+      title:
+        - Partner users can see {what} of other companies
+        - '{what|cap} list is not filtered by company'
+        - Users from one company see {what} of another
+      body:
+        -   - A partner user saw {what} they should not.
+            - '{b_raised}, {b_scope}.'
+            - '{og_note}'
+        -   - The list filters by user only.
+            - The lookup joins on site code.
+            - '{og_note}'
+        -   - '{b_dlk_c}'
+            - '{og_note}'
+        -   - '{b_dlk_e}'
+            - '{og_note}'
+      comments:
+        - '{b_cm_repro}, no company filter in the query.'
+        - '{b_cm_fix_up} It adds a company check.'
+        - Check the access log for {2-9} weeks.
+    - labels: [enhancement]
+      let:
+        who:
+          - '{b_customer}'
+      title:
+        - Let {who} users download a year of statements
+        - Bulk statement download for {who} accounts
+        - '{who|cap} accounts want a yearly bundle'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Audits need a year of statements.
+            - '{og_note}'
+        -   - Today each statement is one click.
+            - Accounts with {b_acct_size} suffer most.
+            - '{og_note}'
+        -   - A background zip would do.
+            - A mailed link would be enough.
+            - '{og_note}'
+        -   - '{b_fr_d}'
+            - '{og_note}'
+      comments:
+        - Split the zip by quarter.
+        - '{b_cm_plan}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/measurement.md
+          - docs/units.md
+          - docs/allocation.md
+      title:
+        - '{Handbook/Docs}: {page} lists old standard conditions'
+        - '{page} disagrees with the allocation job'
+        - '{page|cap} gives a conversion factor we dropped'
+      body:
+        -   - '{page|cap} uses the old pressure base.'
+            - The units table predates the migration.
+            - '{og_note}'
+        -   - A new joiner followed it, {og_vol} wrong.
+            - '{p_noticed|cap}.'
+            - '{og_note}'
+        -   - The pipeline uses the contract basis.
+            - Loader reads factors from a table.
+            - '{og_note}'
+        -   - '{p_owner_ask}'
+            - '{og_note}'
+      comments:
+        - '{og_cm_units}'
+        - Measurement owns numbers, we own pages.
+        - Will update it after the {og_month} close.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - a SCADA feed outage
+          - a historian restore
+          - a stuck allocation run
+          - a failed nomination import
+      title:
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+        - Runbook for {thing}
+      body:
+        -   - The guide says nothing about {thing}.
+            - Last time {thing} cost {2-5} hours.
+            - '{og_note}'
+        -   - On call asks the control room.
+            - Steps live in one person's notes.
+            - '{og_note}'
+        -   - A short page would help.
+            - Who to call, in what order.
+            - '{og_note}'
+        -   - '{p_priority}'
+            - '{og_note}'
+      comments:
+        - Add the control room phone number.
+        - Operations technology should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - the contract basis for volumes
+          - who signs off imbalance adjustments
+          - the month end freeze for allocations
+      title:
+        - Decide how to write up {topic}
+        - '{topic|cap}: handbook and practice disagree'
+        - Where should {topic} live?
+      body:
+        -   - New people keep asking about {topic}.
+            - The answer depends who you ask.
+            - '{og_note}'
+        -   - Accounting and the field disagree.
+            - Nothing is written down.
+            - '{og_note}'
+        -   - '{b_dc_c} {b_dc_e}'
+            - '{og_note}'
+      comments:
+        - Ask {p_finance_ask} for the official rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        tag:
+          - '{og_tag}'
+        site:
+          - '{og_site}'
+      title:
+        - Gaps in {tag} at {site}
+        - '{tag|cap} has no readings for {2-14} hours'
+        - Missing historian data for {site}
+        - Flat line on {tag} after the {day} restart
+      body:
+        -   - The historian has no values for {tag}.
+            - The tag flat-lines for {2-14} hours.
+            - '{og_note}'
+        -   - The field gateway replays data late.
+            - A link outage would explain it.
+            - '{og_note}'
+        -   - That day's volumes look low.
+            - Allocation counted the gap as zero.
+            - '{og_note}'
+        -   - '{og_note}'
+            - '{p_priority}'
+      comments:
+        - Gateway log shows reconnect at {time}.
+        - Backfilled from the buffer, gap closed.
+        - Can the load skip gap days?
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Allocation load finished {delay} late on {day_name}
+        - Allocation not ready for the {day_name} close
+        - '{day_name} volumes arrived {delay} after cutoff'
+      body:
+        -   - Allocation ended {delay} past the usual time.
+            - The job ran {delay} longer than normal.
+            - Done {delay} late on {day_name}.
+            - Finish time slipped by {delay}.
+            - '{og_note}'
+        -   - The report was empty at opening.
+            - Dashboards were stale at {time}.
+            - The field saw yesterday's numbers.
+            - Nominations were keyed from old data.
+            - '{og_note}'
+        -   - The slowest step was {p_table}.
+            - The meter file import ran long.
+            - Most time went to {p_table}.
+            - The clean step looked fine.
+            - '{og_note}'
+        -   - '{p_noticed|cap}.'
+            - Nothing was lost, only late.
+            - No volumes were dropped.
+            - '{og_note}'
+        -   - We need the cause {og_fix_when}.
+            - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{og_note}'
+      comments:
+        - The operator's file arrived late again.
+        - Start the load on file arrival?
+        - Added row counts to the {day_name} log.
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - '{og_ids}'
+      title:
+        - Duplicate {what} in the well header table
+        - Same {what} on two wells in {p_table}
+        - '{what|cap} collide after the land system merge'
+      body:
+        -   - Found {2-60} duplicate {what}.
+            - A count shows {2-40} extra rows.
+            - '{what|cap} repeat on {2-60} wells.'
+            - The warehouse holds extra wells.
+            - '{og_note}'
+        -   - The merge kept both records.
+            - Old and new rows both loaded.
+            - Warehouse keys are not unique.
+            - The merge never retired old ids.
+            - '{og_note}'
+        -   - Volumes get allocated twice.
+            - Royalty figures may be doubled.
+            - Allocation counts both rows.
+            - Reports show inflated volumes.
+            - '{og_note}'
+        -   - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{og_note}'
+      comments:
+        - Deduplicated by key, counts match land.
+        - Add a uniqueness check to validate?
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        unit:
+          - '{og_unit}'
+        report:
+          - '{p_report}'
+      title:
+        - '{report|cap} shows {unit} where we expect another unit'
+        - Unit mismatch in {report}
+        - '{report|cap} and billing disagree on units'
+      body:
+        -   - One source stores {unit}.
+            - '{report|cap} mixes two units in a column.'
+            - '{og_note}'
+        -   - Totals are off by a factor.
+            - The gap is {2-9} percent.
+            - '{og_note}'
+        -   - '{og_cm_units}'
+            - '{og_note}'
+        -   - '{p_owner_ask}'
+            - '{og_note}'
+      comments:
+        - A feed sends metres as barrels.
+        - Added a unit column, nothing guessed.
+        - '{og_cm_units}'
+    - labels: [enhancement]
+      let:
+        who:
+          - '{og_report_who}'
+      title:
+        - Load tank gauges for {who}
+        - '{who|cap} want hourly gauge readings'
+        - Hourly volumes for {who}
+      body:
+        -   - '{who|cap} ask for hourly readings.'
+            - '{who|cap} want gauges every hour.'
+            - Daily totals are too coarse for {who}.
+            - '{og_note}'
+        -   - They pull them by hand.
+            - Today they export from the historian.
+            - Someone copies numbers into a sheet.
+            - '{og_note}'
+        -   - Roughly {2-9} million rows a month.
+            - About {20-90} gauges, hourly readings.
+            - Storage cost rises a little.
+            - '{og_note}'
+        -   - Needs a new feed and table.
+            - Partition by day, stay cheap.
+            - Raw values plus an hourly view.
+            - '{og_note}'
+        -   - '{b_fr_d}'
+            - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{og_note}'
+      comments:
+        - Keep raw values, derive hourly.
+        - '{b_cm_plan}'
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        -   - '{cert|cap} is due in {days} days.'
+            - We nearly missed the last renewal.
+            - '{og_note}'
+        -   - Control room cannot reconnect after lapse.
+            - Replacing it needs a site visit.
+            - '{og_note}'
+        -   - '{p_noticed|cap}.'
+            - '{og_note}'
+        -   - Needs a real alert and owner.
+            - '{p_owner_ask}'
+            - '{og_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window on {day}.
+        - Page on it in alerts.yaml.
+    - labels: [security, bug]
+      let:
+        ot:
+          - '{og_ot}'
+      title:
+        - Firewall rule into {ot} is too wide
+        - Review the historian rule into {ot}
+        - 'Segmentation: {ot} is reachable from office laptops'
+      body:
+        -   - One rule allows more than needed.
+            - The audit flagged a broad rule.
+            - A rule opens {ot} to all hosts.
+            - Last review found a wide rule.
+            - '{og_note}'
+        -   - Only a few ports are used.
+            - Traffic logs show {2-6} ports in use.
+            - One source host would do.
+            - Most of the rule is unused.
+            - '{og_note}'
+        -   - Changes to {ot} need sign-off.
+            - Any change waits for a window.
+            - Operations technology must approve.
+            - Next window is on {day}.
+            - '{og_note}'
+        -   - '{p_owner_ask}'
+            - '{p_priority}'
+            - '{og_note}'
+      comments:
+        - Listed traffic for {2-9} days, two ports used.
+        - Operations technology agrees, window on {day}.
+        - Keep the old rule off.
+    - labels: [bug, security]
+      let:
+        what:
+          - '{og_records}'
+      title:
+        - Backups of {what} keep fewer years than policy
+        - Retention for {what} is {2-6} years
+        - Archive of {what} has no restore check
+      body:
+        -   - Policy keeps {what} seven years.
+            - The archive prunes after {2-6} years.
+            - '{what|cap} older than {2-6} years vanish.'
+            - Retention for {what} is too short.
+            - '{og_note}'
+        -   - The last restore was never tried.
+            - Failures are logged, nobody paged.
+            - Nobody checks the backup report.
+            - A restore drill is overdue.
+            - '{og_note}'
+        -   - Regulators can ask for old records.
+            - Royalty audits reach back years.
+            - Partners dispute volumes from years ago.
+            - Legal wants {what} kept in full.
+            - '{og_note}'
+        -   - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{og_note}'
+      comments:
+        - Raised retention, storage cost is small.
+        - Scheduled a restore check for {day}.
+    - labels: [enhancement, performance]
+      let:
+        alert:
+          - '{p_alert_name}'
+      title:
+        - Alert for {alert} fires too late
+        - Tune the threshold for {alert}
+        - '{alert|cap} should page us first'
+      body:
+        -   - The alert for {alert} fires late.
+            - The threshold is too loose.
+            - '{og_note}'
+        -   - The control room called us first.
+            - We lost {1-4} hours before anyone looked.
+            - '{og_note}'
+        -   - '{p_priority}'
+            - '{og_note}'
+      comments:
+        - Moved it {5-30} minutes earlier, watching noise.
+        - Give it its own route.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: field office on reduced hours {c_soon}.'
+        - safety stand-down {day} at {time}, everyone joins
+        - reminder, hard hat and boots required
+        - '{c_hey}: the ride to {og_site} runs {c_soon}, sign up'
+        - plant floor all hands, {day} at {time}
+      replies:
+        -   - '{c_ack}'
+            - will be there
+            - is it mandatory for remote staff?
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - welcome {person}, joining from the field side
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in operations technology
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        -   - welcome {person}!
+            - '{c_em}'
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - turnaround is on, expect slow replies {c_soon}
+        - plant turnaround starts {day}, control room is thin
+        - turnaround, route requests via the planner
+        - turnaround reminder, change freeze from {day}
+        - turnaround crews on site {c_soon}, badge checks slow
+        - '{c_hey}: turnaround window is {2-6} weeks'
+        - turnaround starts in {2-9} days
+      replies:
+        -   - noted
+            - '{c_ack}'
+        -   - does that include the historian?
+            - what about the scada vpn?
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - did the rain reach the field?
+        - how to cool a truck cab
+      replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+        -   - ''
+            - same
+    - root:
+        - anyone selling a pickup truck?
+        - fishing this weekend, who is in?
+        - cafeteria chili is back, enjoy
+        - '{c_pet} destroyed another pair of work boots'
+      replies:
+        -   - '{c_lol}'
+            - ha
+        -   - ''
+            - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the volume converter
+          - the owner interest lookup
+      root:
+        - '{thing} is wrong for gas wells'
+        - should {thing} round before the unit conversion?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        -   - i think {person} wrote it, ask them
+            - '{c_idk}'
+            - predates the migration, check old scripts
+        -   - will look {c_when_eng}
+            - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - the unit conversion tests fail on {day} runs
+        - flaky test in the meter parser
+        - '{c_ci_fail} keeps timing out on allocation tests'
+      replies:
+        -   - same here
+            - rerunning
+            - seen it, rounding in the fixtures
+        -   - fix is in {issue}
+            - '{c_ack}'
+    - root:
+        - does the historian client reconnect?
+        - what does the poller do offline?
+        - do we buffer if historian dies?
+        - how long do gateways keep data?
+        - is the poller idempotent on replay?
+        - '{c_eng_area} double counts after a replay'
+        - do we dedupe replayed historian points?
+      replies:
+        -   - about two days, i think
+            - i would check the gateway docs
+            - '{c_idk}'
+        -   - should write that in the handbook
+            - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day} at {time} for close
+        - freeze for the allocation window starts {day}
+        - no deploys during nomination cutoff until {time}
+        - no deploys on {day} before {time}
+        - '{c_hey}: statement run freeze on {day}'
+        - freeze for the {og_month} close starts {c_soon}
+        - deploys paused until {time} on {day}
+      replies:
+        -   - '{c_ack}'
+            - got it
+        -   - is a hotfix ok?
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, month end'
+        - skipping standup, in the control room
+        - who is picking up {issue}?
+      replies:
+        -   - i can take it
+            - '{c_ack}'
+            - on my list
+        -   - ''
+            - thanks
+    - root:
+        - month end close starts {c_soon}, billing freezes {day}
+        - revenue accounting needs statements by {day}, any blockers?
+        - joint interest run is {c_soon}, who has the checklist?
+        - statement run is {day}, is anyone on call?
+      replies:
+        -   - i am on call
+            - checklist is in the handbook
+            - '{c_ack}'
+        -   - ping me if the run stalls
+            - ''
+    - root:
+        - customer escalation, {c_customer} cannot see statements
+        - dealer says ticket differs from gauge
+        - escalation from marketing, late bill
+      replies:
+        -   - which account?
+            - i will check the logs
+        -   - it is {issue}
+            - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says ticket volume is off'
+        - '{who|cap} asks about the surcharge'
+        - dealer cannot download last month's statement, {s_ticket}
+        - '{s_hey}, {who} wants the tariff sheet'
+        - nomination did not save for {who}, past the cutoff
+      replies:
+        -   - temperature correction is the usual reason
+            - surcharge follows the index, see rates
+            - try a fresh login
+            - checking the log now
+        -   - '{s_ack}, will tell them'
+            - '{s_thx}'
+            - ''
+    - root:
+        - partner wants a copy of the {og_month} joint interest statement
+        - partner disputes {og_well}, wants a breakdown
+        - '{s_cust|cap} cannot see the owners list, {s_ticket}'
+        - escalating, wrong decimal, filed as {issue}
+      replies:
+        -   - sending the breakdown now
+            - copy attached to the ticket
+        -   - '{s_thx}'
+            - '{c_ack}'
+    - root:
+        - queue is at {20-60} open tickets, mostly statements
+        - month end rush, {10-30} dealer calls since morning
+        - tickets doubled after bills went out
+      replies:
+        -   - same, will help after lunch
+            - '{c_ack}'
+        -   - any macro for the surcharge question?
+            - ''
+  incidents:
+    - let:
+        what:
+          - '{og_tag}'
+          - the historian feed
+          - the allocation job
+      root:
+        - '{what} stopped updating at {time}'
+        - '{s_al} {what} flat since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - control room says {what} looks stale
+      replies:
+        -   - looking
+            - restarted the poller, watching it
+            - gateway is up, it is upstream
+        -   - fixed, backfilling
+            - '{c_ack}'
+    - root:
+        - near miss, retry saved the import
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        -   - '{c_ack}'
+            - will join
+        -   - ''
+            - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - '{og_ot} gateway is at {75-95} percent disk'
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        -   - on it
+            - '{c_ack}'
+        -   - renewing today
+            - ''
+  direct:
+    - root:
+        - '{s_hey}, check the meter file import {s_soon}?'
+        - which units does allocation use?
+        - can you look at {issue} before the close?
+        - '{s_hey}, got a minute for tariffs?'
+        - handing over statement run, out {s_soon}
+      replies:
+        -   - sure
+            - '{s_ack}'
+            - give me ten minutes
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived the turnaround, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        -   - sounds good
+            - '{c_lol}'
+        -   - ''
+            - same
+comments:
+  - Check the contract basis first.
+  - '{og_cm_units}'
+  - Does this touch month end?
+  - Ask the field before changing meters.
+  - '{og_cm_close}'
+  - Control room would want to know.

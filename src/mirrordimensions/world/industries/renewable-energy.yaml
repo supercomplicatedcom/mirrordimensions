@@ -1,0 +1,1094 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Renewable energy: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: renewable-energy
+name: Renewable energy
+group: Industry and infrastructure
+aliases:
+  - renewables
+  - solar and wind
+  - clean energy
+  - solar
+  - wind power
+description: A solar and wind developer and operator that sells power and certificates under long contracts, and bills its offtakers and community solar subscribers.
+name_suffixes:
+  - Renewables
+  - Solar
+  - Wind Energy
+  - Clean Power
+  - Energy Partners
+  - Power
+invoice_items:
+  - Energy delivered
+  - Renewable certificates
+organization:
+  head: Director of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Technology
+      title: Platform Engineer
+    billing:
+      department: Revenue Operations
+      title: Billing Engineer
+    data:
+      department: Asset Data
+      title: Data Engineer
+    support:
+      department: Subscriber and Offtaker Care
+      title: Care Specialist
+    product:
+      department: Digital Products
+      title: Product Manager
+    operations:
+      department: Asset Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, ppa-billing, settlement-engine, revenue-billing]
+    platform-docs: [platform-docs, tech-handbook, runbooks, site-ops-docs]
+    data-pipeline: [data-pipeline, production-loads, telemetry-etl, generation-warehouse]
+    infra-config: [infra-config, site-network-config, environments, platform-config]
+    customer-portal: [customer-portal, subscriber-portal, offtaker-portal, my-solar]
+    ops-scripts: [ops-scripts, site-scripts, legacy-scripts, scada-scripts]
+  channels:
+    engineering: [engineering, dev, tech-chat]
+    incidents: [incidents, site-alerts, outages]
+    support: [support, subscriber-care, offtaker-care]
+    data-team: [data-team, asset-data, telemetry]
+    billing-team: [billing-team, settlements, revenue-ops]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - oracle netsuite
+    - schneider electric ecostruxure
+    - honeywell forge
+    - esri arcgis online
+    - servicenow
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - salesforce
+symbols:
+  b_doc:
+    - PPA invoice
+    - subscriber statement
+    - REC sale invoice
+    - O&M invoice
+    - credit memo
+  b_customer:
+    - utility offtaker
+    - corporate offtaker
+    - community solar
+    - municipal
+    - REC buyer
+    - residential
+  b_who:
+    - asset management
+    - the trading desk
+    - revenue accounting
+    - the O&M team
+    - subscriber care
+  b_pwho:
+    - an offtaker
+    - a subscriber
+    - '{person}'
+    - asset management
+    - revenue accounting
+  b_region:
+    - Texas
+    - California
+    - Iowa
+    - Oklahoma
+    - Ontario
+    - Queensland
+    - Scotland
+    - Andalusia
+  b_taxkind:
+    - state sales tax
+    - VAT
+    - GST
+    - property tax
+    - renewable surcharge
+    - franchise fee
+  b_page:
+    - statements
+    - production reports
+    - bill credits
+    - payment methods
+    - account settings
+    - the dashboard
+    - REC balances
+    - subscription details
+  b_acct_size:
+    - '{3-12} generating sites'
+    - '{15-60} users'
+    - '{200-900} statements'
+    - '{40-300} subscribers per site'
+  b_provider_event:
+    - payment succeeded
+    - payment failed
+    - ACH return
+    - wire confirmed
+    - remittance posted
+    - chargeback opened
+  c_customer:
+    - a utility offtaker
+    - one of the larger subscribers
+    - a corporate buyer
+    - a municipal account
+  s_plan:
+    - a fixed price PPA
+    - a community solar plan
+    - a REC contract
+    - an indexed price contract
+  p_source:
+    - the inverter vendor's telemetry export
+    - the REC registry's transfer reports
+    - the weather provider's irradiance feed
+    - the utility's interval meter data
+    - the turbine controller logs
+    - the work order system's export
+  p_report:
+    - the monthly production report
+    - the availability report
+    - the P50 versus actual dashboard
+    - the REC inventory report
+    - the tax equity reporting pack
+  p_table:
+    - meter generation
+    - inverter output
+    - turbine status
+    - REC certificates
+    - work orders
+    - site forecasts
+  p_finance_ask:
+    - the revenue accountant
+    - someone in asset finance
+    - the controller
+    - the tax equity analyst
+  c_eng_area:
+    - the production import
+    - the PPA price lookup
+    - the bill credit calculation
+    - the curtailment adjustment
+    - the REC allocation
+    - the forecast job
+  s_thing:
+    - the production import
+    - the telemetry load
+    - the statement run
+    - the forecast job
+    - the credit calculation
+  p_alert_name:
+    - telemetry lag from the sites
+    - the settlement run finishing late
+    - site communication loss
+    - failed backups of the settlement database
+    - forecast job failures
+  p_cert_host:
+    - the historian gateway certificate
+    - the subscriber portal certificate
+    - the inverter cloud API certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the inverter vendor API key
+    - the historian service account password
+    - the payments provider token
+    - the REC registry credentials
+  re_site:
+    - the {Prairie/Ridgeline/Meadow/Hillcrest} solar farm
+    - the {Cedar/Redrock/Longview} wind site
+    - the {Maple/Willow} Creek array
+    - the {north/south} ridge turbines
+    - the {Oakfield/Dunmore} rooftop portfolio
+  re_gen:
+    - solar farms
+    - wind sites
+    - the rooftop portfolio
+    - the battery sites
+  re_fault:
+    - an inverter fault
+    - a tracker stuck
+    - a gearbox alarm
+    - a feeder trip
+    - a communications drop
+  re_weather:
+    - hail
+    - snow on the panels
+    - a wind lull
+    - a heat wave
+    - dust
+    - icing on the blades
+  re_unit:
+    - megawatt hours
+    - kilowatt hours
+    - watts per square metre
+    - kilowatts
+  re_vintage:
+    - the {2020-2026} vintage
+    - last year's vintage
+    - the current vintage
+  re_note:
+    - Raised by asset management.
+    - Revenue accounting hit it first.
+    - '{person} saw it in the {2-12}th statement.'
+    - An offtaker asked about it.
+  re_cm:
+    - Checked against the meter data.
+    - Same on the last statement.
+    - Rerun after the fix looks right.
+    - Numbers match the settlement meter.
+  re_when:
+    - before the next settlement run
+    - before the statements go out
+    - ahead of the tax equity pack
+    - before the PPA anniversary
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        site:
+          - '{re_site}'
+        doc:
+          - '{b_doc}'
+        who:
+          - '{b_who}'
+      title:
+        - Invoice volume ignores loss factor at {site}
+        - '{doc|cap} reads the generation meter'
+        - Billed energy for {site} is {2-6} percent high
+        - Loss adjustment missing on {doc}s
+      body:
+        - - '{who|cap} spotted it on the monthly {doc}.'
+          - '{b_raised}, {b_scope}.'
+          - '{re_note}'
+          - An offtaker questioned the volume.
+        - - Contract bills at the delivery point.
+          - The invoice uses the inverter meter.
+          - Billing reads the wrong meter column.
+          - Loss factors sit in the contract.
+          - '{re_note}'
+        - - The gap is about {2-6} percent.
+          - Over a month that adds up.
+          - Volumes are high on every site.
+          - '{re_note}'
+        - - Needs a fix {re_when}.
+          - '{p_owner_ask}'
+          - '{b_urgent}'
+          - '{re_note}'
+      comments:
+        - '{re_cm}'
+        - Factor lives in the contract table.
+        - '{b_cm_plan}'
+        - Credits may follow for earlier months.
+    - labels: [bug]
+      let:
+        site:
+          - '{re_site}'
+        cause:
+          - a grid curtailment order
+          - a transmission outage
+          - a utility maintenance window
+      title:
+        - Curtailed hours billed at full price
+        - Deemed energy missing after {cause}
+        - '{site|cap} invoice ignores {cause}'
+        - Curtailment is not compensated on the {site} invoice
+      body:
+        - - After {cause} the invoice looks low.
+          - '{b_raised}, {b_scope}.'
+          - The offtaker disputes {2-40} hours.
+          - '{re_note}'
+        - - Curtailed hours need deemed energy.
+          - The contract pays for lost output.
+          - Deemed energy is not calculated.
+          - '{re_note}'
+        - - Billing only sees metered output.
+          - Curtailment flags arrive from the utility.
+          - '{re_note}'
+        - - Needs a call on the estimate.
+          - '{p_owner_ask}'
+          - '{re_note}'
+      comments:
+        - Use the forecast for deemed energy.
+        - '{re_cm}'
+        - Ask the offtaker for the order.
+    - labels: [bug]
+      let:
+        subs:
+          - subscribers
+          - households
+          - small businesses
+      title:
+        - Bill credits land in wrong month
+        - Solar credits shifted by one cycle
+        - Credits for {subs} follow the old production share
+        - Credit amounts differ from site output
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - '{subs|cap} complain about odd credits.'
+          - Subscriber care has {3-40} tickets.
+          - '{re_note}'
+        - - Credits use last month's production.
+          - The share table was not refreshed.
+          - Churned subscribers still get a share.
+          - '{re_note}'
+        - - Utility bills show another credit.
+          - Utility applies credits a cycle later.
+          - '{re_note}'
+        - - '{b_urgent}'
+          - '{p_priority}'
+          - '{re_note}'
+      comments:
+        - Utility posts credits a cycle later.
+        - Recalculate shares after each churn.
+        - '{re_cm}'
+    - labels: [bug]
+      let:
+        vintage:
+          - '{re_vintage}'
+      title:
+        - REC transfer missing from buyer invoice
+        - Certificates from {vintage} billed twice
+        - REC invoice shows the wrong vintage
+        - REC counts differ from the registry
+      body:
+        - - The registry shows {20-900} certificates.
+          - The invoice shows a different count.
+          - '{b_raised}, {b_scope}.'
+          - '{re_note}'
+        - - A transfer posted after the run.
+          - The vintage field is not copied.
+          - Retired certificates are billed.
+          - '{re_note}'
+        - - The buyer needs matching numbers.
+          - Auditors compare the registry.
+          - '{re_note}'
+        - - '{p_priority}'
+          - '{p_owner_ask}'
+          - '{re_note}'
+      comments:
+        - Reconcile against the registry first.
+        - '{re_cm}'
+        - Add vintage to the invoice line.
+    - labels: [bug]
+      let:
+        n:
+          - '{2-12}'
+      title:
+        - Escalator applied on wrong anniversary
+        - PPA escalator jumps a month early
+        - Escalation rate is compounded twice
+        - Contract year starts on wrong date
+        - Escalator for year {n} is off
+        - Year {n} price is {2-5} percent wrong
+      body:
+        - - The escalator started in month {n}.
+          - The contract year follows signing.
+          - Billing uses the calendar year.
+          - '{re_note}'
+        - - Prices are {2-5} percent off.
+          - Two sites escalate on different dates.
+          - '{re_note}'
+        - - '{b_raised}, {b_scope}.'
+          - Offtakers will notice.
+          - '{re_note}'
+        - - '{p_owner_ask}'
+          - '{p_priority}'
+          - '{re_note}'
+      comments:
+        - Check the commercial operation date.
+        - '{re_cm}'
+        - Credits for months already billed.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - shortfall credits
+          - availability guarantees
+          - minimum output penalties
+      title:
+        - Policy for {question} when output falls short
+        - Who decides on {question}?
+        - How do we invoice {question}?
+      body:
+        - - Output fell below the guarantee.
+          - '{b_raised}, {b_scope}.'
+          - '{re_note}'
+        - - '{b_nd_a}'
+          - Contracts differ by offtaker.
+          - '{re_note}'
+        - - 'Options: credit on the next invoice.'
+          - Or pay out at year end.
+          - '{re_note}'
+        - - Needs a ruling from {who}.
+          - '{b_nd_f}'
+          - '{re_note}'
+      comments:
+        - Contracts name the true up date.
+        - Legal should check the wording.
+        - Keep a ledger of open credits.
+  portal:
+    - labels: [bug]
+      let:
+        what:
+          - credit
+          - production total
+          - savings figure
+      title:
+        - Portal shows last month's {what} as current
+        - '{what|cap} on the dashboard lags'
+        - Savings estimate differs from statement
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Subscribers compare it to the statement.
+          - '{re_note}'
+        - - The dashboard caches the month total.
+          - The cache never refreshes after close.
+          - '{re_note}'
+        - - The statement is correct.
+          - Only the screen is stale.
+          - '{re_note}'
+        - - '{b_cm_shot} {b_cm_shot2}'
+          - '{p_priority}'
+          - '{re_note}'
+      comments:
+        - Clear the cache after statements.
+        - '{b_cm_repro} on a fresh account.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        site:
+          - '{re_site}'
+      title:
+        - Production chart uses wrong time zone
+        - Hourly output for {site} is shifted
+        - Offtaker chart starts the day late
+      body:
+        - - Sites span {2-4} time zones.
+          - The chart shows server time.
+          - '{re_note}'
+        - - Peak output appears at night.
+          - The hours are shifted by {2-8}.
+          - '{re_note}'
+        - - The CSV export is correct.
+          - Only the chart differs.
+          - '{re_note}'
+        - - '{b_urgent}'
+          - '{re_note}'
+      comments:
+        - Group by the site's local day.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Daylight saving made it worse.
+    - labels: [bug, performance]
+      let:
+        what:
+          - hourly generation
+          - interval data
+          - meter history
+      title:
+        - Download of {what} times out
+        - '{what|cap} export fails for large sites'
+        - CSV for a year of {what} never finishes
+      body:
+        - - Offtaker wants a year of data.
+          - '{b_raised}, {b_scope}.'
+          - '{re_note}'
+        - - Export builds the file in memory.
+          - It queries every hour separately.
+          - '{re_note}'
+        - - It fails after {1-5} minutes.
+          - The request times out.
+          - '{re_note}'
+        - - A background job would work.
+          - '{re_note}'
+      comments:
+        - Stream the rows instead.
+        - A mailed link is enough.
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        what:
+          - statements
+          - production data
+          - credit history
+      title:
+        - Subscribers can open {what} of another site
+        - '{what|cap} lookup ignores the account'
+        - Wrong account sees {what} after a unit change
+      body:
+        - - A subscriber saw {what} they should not.
+          - '{b_raised}, {b_scope}.'
+          - '{re_note}'
+        - - Lookup joins on the site id.
+          - Address changes keep the old link.
+          - '{re_note}'
+        - - '{b_dlk_c}'
+          - '{re_note}'
+        - - '{b_dlk_e}'
+          - '{re_note}'
+      comments:
+        - '{b_cm_repro}, no account filter in the query.'
+        - '{b_cm_fix_up} It adds an owner check.'
+        - Check the access log first.
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/loss-factors.md
+          - docs/ppa-terms.md
+          - docs/settlement.md
+      title:
+        - '{Handbook/Docs}: {page} lists an old formula'
+        - '{page} disagrees with the settlement code'
+        - '{page|cap} misses the new contract type'
+      body:
+        - - '{page|cap} describes the old method.'
+          - The new contracts are not covered.
+          - '{re_note}'
+        - - A joiner used the old formula.
+          - '{p_noticed|cap}.'
+          - '{re_note}'
+        - - Asset finance own the rules.
+          - The code is the truth.
+          - '{re_note}'
+        - - '{p_owner_ask}'
+          - '{re_note}'
+      comments:
+        - Asset finance will send the formulas.
+        - Will update it {re_when}.
+        - Link to the signed contract template.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - a site telemetry outage
+          - a stuck settlement run
+          - an inverter API change
+          - a REC registry outage
+      title:
+        - Runbook for {thing}
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        - - The guide says nothing about {thing}.
+          - Last time {thing} cost {2-6} hours.
+          - '{re_note}'
+        - - On call asks the site team.
+          - Steps live in one person's notes.
+          - '{re_note}'
+        - - A short page would help.
+          - Who to call, in what order.
+          - '{re_note}'
+        - - '{p_priority}'
+          - '{re_note}'
+      comments:
+        - Add the site control room number.
+        - Asset operations should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - the contract year calendar
+          - who approves invoice reversals
+          - the month end freeze for settlements
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: handbook and practice differ'
+        - Where should {topic} live?
+      body:
+        - - New people keep asking about {topic}.
+          - The answer depends who you ask.
+          - '{re_note}'
+        - - Finance and operations disagree.
+          - Nothing is written down.
+          - '{re_note}'
+        - - '{b_dc_c} {b_dc_e}'
+          - '{re_note}'
+      comments:
+        - Ask {p_finance_ask} for the official rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        site:
+          - '{re_site}'
+        fault:
+          - '{re_fault}'
+      title:
+        - Telemetry gaps at {site}
+        - '{site|cap} reports no output for {2-30} hours'
+        - Missing inverter data after {fault}
+        - Flat line on output since {day}
+      body:
+        - - No values arrive from {site}.
+          - Output flat-lines for {2-30} hours.
+          - The feed resumes with a jump.
+          - '{re_note}'
+        - - The site gateway lost its link.
+          - A firmware update changed fields.
+          - The vendor API rate limited us.
+          - '{re_note}'
+        - - Settlement used the gap as zero.
+          - Deemed energy needs the real number.
+          - '{re_note}'
+        - - '{re_note}'
+          - '{p_priority}'
+      comments:
+        - Backfilled from the site buffer.
+        - Gateway log shows a drop at {time}.
+        - Can the load flag gaps?
+    - labels: [bug, data-quality]
+      let:
+        unit:
+          - '{re_unit}'
+        feed:
+          - the irradiance feed
+          - the wind speed feed
+          - the temperature feed
+      title:
+        - '{feed|cap} switched to {unit}'
+        - Forecast error jumped after units changed
+        - Weather values off by a factor
+      body:
+        - - The provider changed the units.
+          - Values arrive in {unit} now.
+          - '{re_note}'
+        - - Forecast job assumes the old unit.
+          - Forecasts are off by a factor.
+          - '{re_note}'
+        - - P50 numbers look strange.
+          - The error doubled overnight.
+          - '{re_note}'
+        - - '{p_priority}'
+          - '{p_owner_ask}'
+          - '{re_note}'
+      comments:
+        - Added a unit column, nothing guessed.
+        - '{re_cm}'
+        - Ask the provider for a changelog.
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Production load finished {delay} late on {day_name}
+        - Settlement waited on the {day_name} load
+        - Generation data not ready for statements
+      body:
+        - - The load ended {delay} past the usual time.
+          - Output tables were empty.
+          - '{re_note}'
+        - - The slowest step was {p_table}.
+          - The telemetry import ran long.
+          - '{re_note}'
+        - - '{p_noticed|cap}.'
+          - Nothing was lost, only late.
+          - '{re_note}'
+        - - We need the cause {re_when}.
+          - '{re_note}'
+      comments:
+        - The vendor API was slow again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - site ids
+          - meter ids
+          - REC account ids
+      title:
+        - Duplicate {what} after the portfolio acquisition
+        - Same {what} on two sites
+        - '{what|cap} collide between two systems'
+      body:
+        - - Found {2-60} duplicate {what}.
+          - A count shows {2-40} extra rows.
+          - '{re_note}'
+        - - The merge kept both records.
+          - Keys are not unique here.
+          - '{re_note}'
+        - - Output counts twice.
+          - Invoices may reach the wrong buyer.
+          - '{re_note}'
+        - - '{p_priority}'
+          - '{re_note}'
+      comments:
+        - Deduplicated by key, counts match.
+        - Add a uniqueness check to validate.
+        - '{b_cm_plan}'
+    - labels: [enhancement]
+      let:
+        who:
+          - the tax equity team
+          - the forecasting team
+          - the asset managers
+      title:
+        - Load the REC registry reports for {who}
+        - '{who|cap} want registry data in the warehouse'
+        - Registry transfers for {who}
+      body:
+        - - '{who|cap} ask for the transfers.'
+          - They download reports by hand.
+          - '{re_note}'
+        - - Files arrive as a monthly CSV.
+          - The format changes now and then.
+          - '{re_note}'
+        - - Needs a new feed and table.
+          - Keep the raw files for audit.
+          - '{re_note}'
+        - - '{b_fr_d}'
+          - '{re_note}'
+      comments:
+        - Keep raw files, parse later.
+        - '{b_cm_plan}'
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        - - '{cert|cap} is due in {days} days.'
+          - We nearly missed the last renewal.
+          - '{re_note}'
+        - - Sites stop reporting if it lapses.
+          - Subscribers see a browser warning.
+          - '{re_note}'
+        - - '{p_noticed|cap}.'
+          - '{re_note}'
+        - - Needs a real alert and owner.
+          - '{p_owner_ask}'
+          - '{re_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [bug, performance]
+      let:
+        gen:
+          - '{re_gen}'
+      title:
+        - Site VPN tunnels drop at {gen}
+        - Cellular modems flap at {gen}
+        - Remote links to {gen} are unstable
+      body:
+        - - Tunnels drop every {2-9} hours.
+          - Telemetry gaps follow each drop.
+          - '{re_note}'
+        - - The modem firmware is old.
+          - Keepalive timers are too long.
+          - '{re_note}'
+        - - Operations call us when sites vanish.
+          - '{re_note}'
+        - - '{p_priority}'
+          - '{re_note}'
+      comments:
+        - Shortened the keepalive on {2-9} sites.
+        - Firmware update is scheduled.
+        - Alert on tunnel flaps, not outages.
+    - labels: [security, bug]
+      let:
+        what:
+          - the site network
+          - the inverter cloud account
+          - the historian server
+      title:
+        - Firewall rule into {what} is too wide
+        - Review vendor access to {what}
+        - Segmentation gap around {what}
+      body:
+        - - One rule allows more than needed.
+          - An audit flagged broad access.
+          - '{re_note}'
+        - - Only a few ports are used.
+          - One source host would do.
+          - '{re_note}'
+        - - Changes wait for a window.
+          - '{re_note}'
+        - - '{p_owner_ask}'
+          - '{re_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - settlement records
+          - meter data
+          - REC transfer records
+      title:
+        - Backups of {what} keep fewer years than policy
+        - Retention for {what} is {2-6} years
+        - Restore of {what} was never tried
+      body:
+        - - Policy keeps {what} {7-10} years.
+          - The archive prunes after {2-6} years.
+          - '{re_note}'
+        - - The last restore was never tried.
+          - Failures are logged, nobody paged.
+          - '{re_note}'
+        - - Tax equity audits reach back years.
+          - Disputes can reach back years.
+          - '{re_note}'
+        - - '{p_priority}'
+          - '{re_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: site visit to {re_site} {c_soon}.'
+        - safety briefing {day} at {time}, everyone joins
+        - reminder, site boots and vests required
+        - '{c_hey}: the office is closed {c_soon}'
+        - open enrolment closes {c_soon}
+      replies:
+        - - '{c_ack}'
+          - will be there
+          - is it mandatory?
+        - - '{c_thanks}'
+          - ''
+    - root:
+        - welcome {person}, joining from the asset team
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in revenue ops
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        - - welcome {person}!
+          - '{c_em}'
+        - - '{c_thanks}'
+          - ''
+    - root:
+        - '{re_weather} warning for {re_site}, expect noise'
+        - forecast says {re_weather} {c_soon}
+        - sites report {re_weather}, alerts may spike
+        - heads up, {re_weather} at {re_site}
+      replies:
+        - - noted
+          - '{c_ack}'
+        - - will the alerts page us?
+          - ''
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - sunny here, cloudy at the farm
+        - how to cool a site truck
+        - best coffee near {re_site}?
+        - anyone tried {c_place}?
+      replies:
+        - - '{c_lol}'
+          - '{c_agree}'
+        - - ''
+          - same
+    - root:
+        - anyone selling a bike rack?
+        - hiking this weekend, who is in?
+        - the kitchen compost bin is back
+        - '{c_pet} chewed my site badge'
+      replies:
+        - - '{c_lol}'
+          - ha
+        - - ''
+          - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the loss factor lookup
+          - the share calculation
+      root:
+        - '{thing} is wrong for wind sites'
+        - should {thing} use local time or UTC?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        - - i think {person} wrote it, ask them
+          - '{c_idk}'
+          - predates the migration, check old scripts
+        - - will look {c_when_eng}
+          - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - settlement tests fail on leap days
+        - flaky test in the share calculation
+        - '{c_ci_fail} keeps timing out on forecast tests'
+      replies:
+        - - same here
+          - rerunning
+          - seen it, date fixtures
+        - - fix is in {issue}
+          - '{c_ack}'
+    - root:
+        - does the import handle vendor retries?
+        - what happens when a site resends?
+        - do we dedupe telemetry rows?
+        - how late can site data arrive?
+        - are late readings billed or dropped?
+      replies:
+        - - about two days, i think
+          - check the vendor docs
+          - '{c_idk}'
+        - - should write that down
+          - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on settlement days
+        - freeze for the month end starts {day}
+        - deploys paused until {time} on {day}
+        - tax equity freeze starts {c_soon}
+      replies:
+        - - '{c_ack}'
+          - got it
+        - - is a hotfix ok?
+          - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, settlement day'
+        - skipping standup, on a site call
+        - who is picking up {issue}?
+      replies:
+        - - i can take it
+          - '{c_ack}'
+          - on my list
+        - - ''
+          - thanks
+    - root:
+        - settlement run starts {c_soon}, billing freezes {day}
+        - statements go out {day}, any blockers?
+        - PPA anniversary is {c_soon}, who has the checklist?
+        - tax equity pack is due {day}, who is on it?
+      replies:
+        - - i am on call
+          - checklist is in the handbook
+          - '{c_ack}'
+        - - ping me if the run stalls
+          - ''
+    - root:
+        - offtaker escalation, {c_customer} disputes the invoice
+        - subscriber says the credit is wrong
+        - escalation from asset management, volumes
+      replies:
+        - - which account?
+          - i will check the logs
+        - - it is {issue}
+          - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says the credit is too low'
+        - '{who|cap} asks about the production total'
+        - subscriber cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants last year statements'
+        - autopay took two drafts from {who}
+      replies:
+        - - check the production share first
+          - credits lag a cycle, tell them
+          - try a fresh login
+          - checking the log now
+        - - '{s_ack}, will tell them'
+          - '{s_thx}'
+          - ''
+    - root:
+        - offtaker disputes the {re_gen} volumes
+        - subscriber moved out, wants final statement
+        - '{s_cust|cap} cannot see credits, {s_ticket}'
+        - escalating, wrong escalator, filed as {issue}
+      replies:
+        - - sending the breakdown now
+          - copy attached to the ticket
+        - - '{s_thx}'
+          - '{c_ack}'
+    - root:
+        - queue is at {20-90} open tickets, mostly credits
+        - 'credit questions: {10-60} since morning'
+        - tickets doubled after statements went out
+      replies:
+        - - same, will help after lunch
+          - '{c_ack}'
+        - - any macro for the credit question?
+          - ''
+  incidents:
+    - let:
+        what:
+          - '{re_site}'
+          - the telemetry feed
+          - the settlement run
+      root:
+        - '{what} stopped reporting at {time}'
+        - '{s_al} {what} silent since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - the site team says {what} looks stale
+      replies:
+        - - looking
+          - restarted the poller, watching it
+          - gateway is up, upstream issue
+        - - fixed, backfilling
+          - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        - - '{c_ack}'
+          - will join
+        - - ''
+          - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the historian is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        - - on it
+          - '{c_ack}'
+        - - renewing today
+          - ''
+  direct:
+    - root:
+        - '{s_hey}, check the telemetry import {s_soon}?'
+        - which unit does the chart use?
+        - can you look at {issue} before the run?
+        - '{s_hey}, got a minute for the escalator?'
+        - handing over settlement, out {s_soon}
+      replies:
+        - - sure
+          - '{s_ack}'
+          - give me ten minutes
+        - - '{s_thx}'
+          - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived the audit, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        - - sounds good
+          - '{c_lol}'
+        - - ''
+          - same
+comments:
+  - Check the contract terms first.
+  - '{re_cm}'
+  - Does this touch the settlement run?
+  - Ask asset finance before changing it.
+  - Site operations would want to know.

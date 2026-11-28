@@ -1,0 +1,1186 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Energy: utilities (power, water and gas): extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: utilities
+name: "Energy: utilities (power, water and gas)"
+group: Industry and infrastructure
+aliases:
+  - utility
+  - electric utility
+  - water utility
+  - gas utility
+  - power and water
+description: A power, water or gas utility that reads meters, bills households and businesses by usage, and keeps its networks running.
+name_suffixes:
+  - Electric
+  - Power and Light
+  - Water Authority
+  - Gas Company
+  - Utilities
+  - Public Utilities
+invoice_items:
+  - Metered usage
+  - Service availability charge
+organization:
+  head: Director of Information Systems
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Information Systems
+      title: Platform Engineer
+    billing:
+      department: Customer Billing Systems
+      title: Billing Systems Engineer
+    data:
+      department: Data and Analytics
+      title: Data Engineer
+    support:
+      department: Customer Care
+      title: Customer Care Specialist
+    product:
+      department: Digital Customer Experience
+      title: Product Manager
+    operations:
+      department: Operations Technology
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, customer-billing, bill-engine, rating-service]
+    platform-docs: [platform-docs, is-handbook, storm-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, meter-data-loads, usage-warehouse, interval-etl]
+    infra-config: [infra-config, environments, ami-network-config, platform-config]
+    customer-portal: [customer-portal, my-account, account-portal, outage-portal]
+    ops-scripts: [ops-scripts, field-scripts, legacy-scripts, meter-scripts]
+  channels:
+    engineering: [engineering, is-dev, engineering-chat]
+    incidents: [incidents, outages, storm-room]
+    support: [support, customer-care, care-escalations]
+    data-team: [data-team, meter-data, usage-data]
+    billing-team: [billing-team, bill-run, rates-billing]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - sap s/4hana cloud
+    - schneider electric ecostruxure
+    - esri arcgis online
+    - servicenow
+    - honeywell forge
+    - oracle cc&b
+    - aveva pi system
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - tyler technologies
+    - salesforce
+symbols:
+  b_doc:
+    - bill
+    - final bill
+    - estimated bill
+    - budget billing statement
+    - credit adjustment
+  b_customer:
+    - residential
+    - small business
+    - industrial
+    - municipal
+    - farm
+    - multi-family
+  b_who:
+    - the call centre
+    - the billing office
+    - regulatory affairs
+    - field services
+    - customer care
+  b_pwho:
+    - customer care
+    - a customer
+    - '{person}'
+    - the call centre
+    - field services
+  b_region:
+    - Ohio
+    - Ontario
+    - Texas
+    - Victoria
+    - Queensland
+    - Georgia
+    - Washington
+    - Alberta
+  b_taxkind:
+    - sales tax
+    - franchise fee
+    - gross receipts tax
+    - public purpose surcharge
+    - VAT
+    - storm recovery charge
+  b_currency:
+    - USD
+    - CAD
+    - AUD
+    - GBP
+    - EUR
+  b_page:
+    - bills
+    - usage history
+    - payment methods
+    - outage reports
+    - account settings
+    - the dashboard
+    - the budget plan
+    - meter reads
+  b_acct_size:
+    - '{12-40} service points'
+    - '{15-60} users'
+    - '{200-900} bills'
+    - '{3-12} billing contacts'
+    - '{2-9} years of interval data'
+  b_provider_event:
+    - payment succeeded
+    - payment failed
+    - autopay enrolled
+    - bank return
+    - chargeback opened
+    - refund completed
+  c_customer:
+    - a residential customer
+    - a large industrial account
+    - a municipal account
+    - a small business
+  s_plan:
+    - the budget plan
+    - a time-of-use plan
+    - the standard residential rate
+    - a commercial demand rate
+  p_source:
+    - the meter data management export
+    - the outage system's event log
+    - the payment processor's remittance files
+    - the weather service's daily feed
+    - the asset registry in the GIS
+    - the call centre's contact export
+  p_report:
+    - the daily load report
+    - the monthly revenue dashboard
+    - the collections aging report
+    - the outage statistics report
+    - the regulatory filing summary
+  p_table:
+    - meter reads
+    - service points
+    - daily usage
+    - bill lines
+    - outage events
+    - premises
+  p_finance_ask:
+    - the revenue accountant
+    - someone in rates and regulatory
+    - the controller
+    - the collections lead
+  c_eng_area:
+    - the bill run
+    - the meter read import
+    - the rate lookup
+    - the usage chart
+    - the outage form
+    - the autopay job
+  s_thing:
+    - the bill run
+    - the read import
+    - the interval load
+    - the autopay job
+    - the outage feed
+  p_alert_name:
+    - the bill run finishing late
+    - interval data lag
+    - payment gateway errors
+    - failed backups of the billing database
+    - outage feed delay
+  p_cert_host:
+    - the payment gateway certificate
+    - the AMI head-end certificate
+    - the customer portal certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the meter data service account password
+    - the payment processor token
+    - the SMS provider key
+    - the head-end API key
+  ut_cycle:
+    - cycle {1-21}
+    - the {day} cycle
+    - bill cycle {1-21}
+    - the {1-21}th cycle group
+  ut_meter:
+    - smart meters
+    - water meters
+    - gas meters
+    - demand meters
+  ut_rate:
+    - the residential rate
+    - the time-of-use rate
+    - the tiered water rate
+    - the commercial demand rate
+    - the seasonal gas rate
+  ut_district:
+    - the north district
+    - the lakeside district
+    - the east substation area
+    - the river valley
+    - the coastal district
+  ut_storm:
+    - the ice storm
+    - the heat wave
+    - the windstorm
+    - the flood
+    - the {day} outage
+  ut_read:
+    - an estimated read
+    - a missed read
+    - a rolled-over meter
+    - a backdated read
+    - a replaced meter
+  ut_asset:
+    - the east feeder
+    - the Millbrook substation
+    - the Ash Creek pump station
+    - the north water tower
+    - the gate station on Route {10-90}
+  ut_feed:
+    - the head-end feed
+    - the interval data feed
+    - the outage management feed
+    - the GIS asset export
+    - the meter data load
+  ut_unit:
+    - kilowatt hours
+    - therms
+    - cubic metres
+    - gallons
+    - hundred cubic feet
+  ut_note:
+    - Raised by the call centre.
+    - Customer care hit it first.
+    - '{person} saw it in cycle {1-21}.'
+    - A regulator inquiry mentions it.
+  ut_cm:
+    - Checked a copy of cycle data.
+    - Same on the last cycle.
+    - Rerun after the fix looks right.
+    - Numbers match the meter reads.
+  ut_when:
+    - before the next bill run
+    - before the cycle closes
+    - before the rate change takes effect
+    - ahead of the regulatory filing
+  ut_cust:
+    - a customer
+    - a landlord
+    - a tenant
+    - a business owner
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        read:
+          - '{ut_read}'
+        cycle:
+          - '{ut_cycle}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Estimated bill sent despite valid read
+        - '{doc|cap} after {read} uses the old usage'
+        - '{cycle|cap} bills ignore reads received late'
+        - Customers billed on estimates, reads exist
+        - Bill after {read} overstates usage
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{ut_note}'
+            - Support has {3-40} calls about it.
+            - '{b_pscope}'
+        -   - The read arrives after the cutoff.
+            - Reads land after the run starts.
+            - The import runs after {ut_cycle} closes.
+            - The run ignores late reads.
+            - '{ut_note}'
+        -   - The bill falls back to estimates.
+            - Estimates come from last year.
+            - Usage is guessed from history.
+            - A true up follows next cycle.
+            - '{ut_note}'
+        -   - Customers see a swing next month.
+            - Some pay twice what they used.
+            - The next bill reverses it.
+            - '{ut_note}'
+        -   - Needs a fix {ut_when}.
+            - '{p_owner_ask}'
+            - '{b_urgent}'
+            - '{ut_note}'
+      comments:
+        - '{ut_cm}'
+        - The cutoff is hard coded.
+        - '{b_cm_plan}'
+        - Regulators care about estimate counts.
+    - labels: [bug]
+      let:
+        rate:
+          - '{ut_rate}'
+        who:
+          - '{b_who}'
+      title:
+        - Peak hours shift at clock change
+        - Peak hours wrong for {rate} after the change
+        - '{rate|cap} peak band is off'
+        - Daylight saving breaks the {rate} bands
+      body:
+        -   - '{who|cap} reported it after the clock change.'
+            - '{b_raised}, {b_scope}.'
+            - Bills show peak use at night.
+            - '{ut_note}'
+        -   - Hours are stored in local time.
+            - The band table uses fixed offsets.
+            - Interval data is in UTC.
+            - Bands ignore the daylight saving date.
+            - '{ut_note}'
+        -   - Usage lands in the wrong band.
+            - One hour is priced wrong.
+            - Peak and off-peak swap.
+            - '{ut_note}'
+        -   - Credits will be needed.
+            - Finance wants a count of bills.
+            - '{p_priority}'
+            - '{ut_note}'
+      comments:
+        - '{ut_cm}'
+        - Convert to UTC before banding.
+        - Spring is the other direction.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        cause:
+          - a rate change
+          - a move out
+          - a plan switch
+          - a meter swap
+      title:
+        - Budget true up wrong after {cause}
+        - Annual reconciliation off after {cause}
+        - Level payment plan ignores {cause}
+        - Budget billing balance is off by {20-300} dollars
+      body:
+        -   - Plan customers see odd balances.
+            - '{b_raised}, {b_scope}.'
+            - A customer disputed the true up.
+            - '{ut_note}'
+        -   - The amount is set yearly.
+            - The plan ignores mid-year changes.
+            - Reconciliation runs once a year.
+            - '{ut_note}'
+        -   - After {cause} the average is stale.
+            - New rates never reach the plan.
+            - Old usage skews the average.
+            - '{ut_note}'
+        -   - Needs a call from {b_who}.
+            - '{p_owner_ask}'
+            - '{p_priority}'
+            - '{ut_note}'
+      comments:
+        - Recompute the average after each change.
+        - '{ut_cm}'
+        - Check regulator rules on plan changes.
+    - labels: [bug]
+      let:
+        who:
+          - '{ut_cust}'
+      title:
+        - Final bill ignores move out date
+        - Move out billing charges {who} for extra days
+        - Deposit refund missing from final bill
+        - Final bill for {who} uses the old read
+      body:
+        -   - Final bills charge for extra days.
+            - '{b_raised}, {b_scope}.'
+            - A tenant complained to the regulator.
+            - Care saw {2-9} final bills this week.
+            - '{ut_note}'
+        -   - Stop date is the request date.
+            - Proration uses the next read date.
+            - The deposit sits unapplied.
+            - Reads after move out are used.
+            - '{ut_note}'
+        -   - Interest on deposits is unpaid.
+            - Refunds are created by hand.
+            - The final read is late.
+            - Credits need a manual journal.
+            - '{ut_note}'
+        -   - '{b_urgent}'
+            - '{p_owner_ask}'
+            - '{ut_note}'
+      comments:
+        - Use the read date instead.
+        - Deposits earn interest by regulation.
+        - '{ut_cm}'
+    - labels: [bug]
+      let:
+        rate:
+          - the tiered water rate
+          - the inclining block rate
+          - the seasonal gas rate
+        n:
+          - '{28-33}'
+      title:
+        - '{rate|cap} charges the wrong tier on {n} day cycles'
+        - Tier thresholds are not prorated for {n} day cycles
+        - Water bills reach the top tier
+        - Block rate breaks on odd cycles
+      body:
+        -   - Tiers assume a 30 day cycle.
+            - Block sizes are never prorated.
+            - A {n} day cycle breaks the block.
+            - '{ut_note}'
+        -   - Customers reach the upper tier early.
+            - Short cycles undercharge, long ones overcharge.
+            - '{b_raised}, {b_scope}.'
+            - '{ut_note}'
+        -   - Regulatory rules require proration.
+            - The tariff says daily allowances.
+            - '{ut_note}'
+        -   - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{ut_note}'
+      comments:
+        - Prorate by days, per the tariff.
+        - '{ut_cm}'
+        - Credits for last year may follow.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - disconnection notices
+          - payment arrangement holds
+          - medical hold letters
+      title:
+        - Notice sent during a payment plan
+        - Who stops {question} during a plan?
+        - Disconnection notices ignore active arrangements
+        - Policy for {question} under hardship plans
+      body:
+        -   - A customer got a notice anyway.
+            - '{b_raised}, {b_scope}.'
+            - A regulator asked how it happened.
+            - '{ut_note}'
+        -   - The notice job reads balance only.
+            - Plans live in a different table.
+            - Holds are set by hand today.
+            - '{ut_note}'
+        -   - '{b_nd_a}'
+            - Rules differ by regulator and season.
+            - '{ut_note}'
+        -   - Needs a ruling from {who}.
+            - '{b_nd_f}'
+            - '{ut_note}'
+      comments:
+        - Winter rules forbid disconnection.
+        - Hold notices during an active plan.
+        - Legal should review the wording.
+  portal:
+    - labels: [bug]
+      let:
+        unit:
+          - '{ut_unit}'
+        meter:
+          - '{ut_meter}'
+      title:
+        - Usage chart shows the wrong day
+        - Chart for {meter} drops a day of {unit}
+        - Daily usage in {unit} does not match the bill
+        - Interval chart is blank for some {meter}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Customers compare the chart to bills.
+            - '{ut_note}'
+        -   - The chart groups by UTC day.
+            - A missing interval blanks the day.
+            - Hourly rows are summed twice.
+            - '{ut_note}'
+        -   - The bill is correct.
+            - Only the chart differs.
+            - '{ut_note}'
+        -   - '{b_cm_shot} {b_cm_shot2}'
+            - '{p_priority}'
+            - '{ut_note}'
+      comments:
+        - Group by local day, not UTC.
+        - '{b_cm_repro} on an account with {meter}.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        storm:
+          - '{ut_storm}'
+        district:
+          - '{ut_district}'
+      title:
+        - Outage report form fails on phones
+        - Customers cannot report outages in {district}
+        - Outage form times out during {storm}
+        - Location lookup fails for rural addresses
+      body:
+        -   - The form timed out during {storm}.
+            - Reports from {district} did not arrive.
+            - '{ut_note}'
+        -   - Address lookup is slow under load.
+            - Rural addresses do not geocode.
+            - '{ut_note}'
+        -   - People phone instead, so queues grow.
+            - Call wait times doubled.
+            - '{ut_note}'
+        -   - '{b_urgent}'
+            - '{p_priority}'
+            - '{ut_note}'
+      comments:
+        - Fall back to the account address.
+        - Cache the lookup, it was hammered.
+        - Load test it before storms.
+    - labels: [bug]
+      let:
+        what:
+          - autopay
+          - budget billing
+          - paperless billing
+      title:
+        - Customers charged twice after enrolling in {what}
+        - '{what|cap} enrolment creates two debits'
+        - Duplicate bank draft for {what}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Two debits posted the same day.
+            - '{ut_note}'
+        -   - The enrolment runs the first draft.
+            - The scheduler also drafts that day.
+            - '{ut_note}'
+        -   - Banks return some duplicates.
+            - Refunds are manual.
+            - '{ut_note}'
+        -   - '{b_urgent}'
+            - '{p_owner_ask}'
+            - '{ut_note}'
+      comments:
+        - Check for a pending draft first.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Refund list is in the ticket.
+    - labels: [enhancement, needs-decision]
+      let:
+        who:
+          - '{ut_cust}'
+      title:
+        - Let {who} view usage without full access
+        - Authorised contacts for {who} accounts
+        - Landlords want usage for vacant units
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Property managers ask monthly.
+            - '{ut_note}'
+        -   - Only the account holder logs in.
+            - Others call the centre.
+            - '{ut_note}'
+        -   - Privacy rules limit what to show.
+            - Legal must approve the scope.
+            - '{ut_note}'
+        -   - '{b_fr_d}'
+            - '{ut_note}'
+      comments:
+        - Read only roles are enough.
+        - Ask regulatory affairs about consent.
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/rate-codes.md
+          - docs/bill-cycles.md
+          - docs/tariffs.md
+      title:
+        - '{Handbook/Docs}: {page} lists retired rate codes'
+        - '{page} disagrees with the billing tables'
+        - '{page|cap} misses the new tariff'
+      body:
+        -   - '{page|cap} still shows the old codes.'
+            - The new schedule is not listed.
+            - '{ut_note}'
+        -   - A joiner used a retired code.
+            - '{p_noticed|cap}.'
+            - '{ut_note}'
+        -   - Rates and regulatory own the source.
+            - The billing tables are correct.
+            - '{ut_note}'
+        -   - '{p_owner_ask}'
+            - '{ut_note}'
+      comments:
+        - Rates will send the current list.
+        - Will update it {ut_when}.
+        - Link to the filed tariff instead.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - a storm day call surge
+          - a stuck bill run
+          - an outage feed delay
+          - a payment gateway outage
+      title:
+        - Runbook for {thing}
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        -   - The guide says nothing about {thing}.
+            - Last time {thing} cost {2-6} hours.
+            - '{ut_note}'
+        -   - Whoever is on call improvises.
+            - Steps live in one person's notes.
+            - '{ut_note}'
+        -   - A short page would help.
+            - Who to call, in what order.
+            - '{ut_note}'
+        -   - '{p_priority}'
+            - '{ut_note}'
+      comments:
+        - Include the control room number.
+        - Customer care should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - bill cycle calendars
+          - the regulatory filing schedule
+          - who approves bill reversals
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: practice and handbook differ'
+        - Where does {topic} live?
+      body:
+        -   - New people keep asking about {topic}.
+            - Nobody can say who owns {topic}.
+            - '{ut_note}'
+        -   - Billing and care answer differently.
+            - Nothing is written down.
+            - '{ut_note}'
+        -   - '{b_dc_c} {b_dc_e}'
+            - '{ut_note}'
+      comments:
+        - Ask {p_finance_ask} for the official rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        meter:
+          - '{ut_meter}'
+        feed:
+          - '{ut_feed}'
+      title:
+        - Interval data gaps for {meter} in {ut_district}
+        - '{feed|cap} dropped {2-40} hours of reads'
+        - Missing reads from {meter} after the firmware update
+        - Flat usage on {meter} since {day}
+      body:
+        -   - Interval data has gaps for {meter}.
+            - '{feed|cap} skipped hours overnight.'
+            - Reads stop after midnight.
+            - '{ut_note}'
+        -   - The head-end resends late.
+            - A firmware update changed the format.
+            - The network link dropped.
+            - '{ut_note}'
+        -   - Bills fall back to estimates.
+            - Usage charts show zero.
+            - Estimates are rising.
+            - '{ut_note}'
+        -   - '{ut_note}'
+            - '{p_priority}'
+      comments:
+        - Backfilled from the head-end buffer.
+        - Gap is closed for {2-9} meters.
+        - Can the load flag gaps?
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Usage load finished {delay} late on {day_name}
+        - Bill run waited on the {day_name} load
+        - Meter data not ready for {ut_cycle}
+      body:
+        -   - The load ended {delay} past the usual time.
+            - Usage was empty at the run.
+            - '{ut_note}'
+        -   - The slowest step was {p_table}.
+            - The interval import ran long.
+            - Storm volume doubled the files.
+            - '{ut_note}'
+        -   - '{p_noticed|cap}.'
+            - Nothing was lost, only late.
+            - '{ut_note}'
+        -   - We need the cause {ut_when}.
+            - '{p_owner_ask}'
+            - '{ut_note}'
+      comments:
+        - Head-end sent files late again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - service points
+          - premise ids
+          - meter serial numbers
+      title:
+        - Duplicate {what} after the system merge
+        - Same {what} on two accounts
+        - '{what|cap} map to the wrong premises'
+      body:
+        -   - Found {2-80} duplicate {what}.
+            - A count shows {2-40} extra rows.
+            - '{what|cap} repeat on {2-60} premises.'
+            - The warehouse has extra {what}.
+            - '{ut_note}'
+        -   - The merge kept both rows.
+            - Keys are not unique here.
+            - The old ids were never retired.
+            - Both systems loaded the same rows.
+            - '{ut_note}'
+        -   - Usage is attributed twice.
+            - Bills may reach the wrong account.
+            - Totals are inflated.
+            - Reports show the premises twice.
+            - '{ut_note}'
+        -   - '{p_priority}'
+            - '{ut_note}'
+            - '{p_owner_ask}'
+      comments:
+        - Deduplicated by key, counts match.
+        - Add a uniqueness check to validate.
+        - '{b_cm_plan}'
+    - labels: [enhancement]
+      let:
+        who:
+          - the grid planners
+          - the water quality team
+          - the conservation program
+          - the regulatory team
+      title:
+        - Load {ut_feed} into the warehouse for {who}
+        - '{who|cap} want hourly usage in the warehouse'
+        - Weather data for {who}
+      body:
+        -   - '{who|cap} ask for hourly data.'
+            - '{who|cap} want hourly readings.'
+            - Daily totals are too coarse for {who}.
+            - '{who|cap} need interval data.'
+            - '{ut_note}'
+        -   - They pull exports by hand today.
+            - Someone copies numbers to a sheet.
+            - Today it is a manual query.
+            - '{ut_note}'
+        -   - Roughly {2-9} million rows a month.
+            - About {20-90} thousand meters involved.
+            - Storage rises a little.
+            - '{ut_note}'
+        -   - Needs a new feed and table.
+            - Partition by day to stay cheap.
+            - Raw values plus an hourly view.
+            - '{ut_note}'
+        -   - '{b_fr_d}'
+            - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{ut_note}'
+      comments:
+        - Keep raw values, derive hourly.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        report:
+          - '{p_report}'
+        unit:
+          - '{ut_unit}'
+      title:
+        - '{report|cap} mixes {unit} with other units'
+        - Unit mismatch in {report}
+        - '{report|cap} and billing disagree on usage'
+      body:
+        -   - One feed sends {unit}.
+            - The report adds two unit types.
+            - '{ut_note}'
+        -   - Totals are off by a factor.
+            - The gap is {2-9} percent.
+            - '{ut_note}'
+        -   - '{p_owner_ask}'
+            - '{ut_note}'
+      comments:
+        - Added a unit column, nothing guessed.
+        - '{ut_cm}'
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        -   - '{cert|cap} is due in {days} days.'
+            - '{cert|cap} lapses in {days} days.'
+            - We nearly missed the last renewal.
+            - Renewal is on someone's calendar only.
+            - '{ut_note}'
+        -   - Customers cannot pay if it lapses.
+            - Meters stop reporting if it lapses.
+            - The portal shows a browser warning.
+            - Autopay would fail overnight.
+            - '{ut_note}'
+        -   - '{p_noticed|cap}.'
+            - Warnings go to chat only.
+            - The last renewal was by {person}.
+            - '{ut_note}'
+        -   - Needs a real alert and owner.
+            - '{p_owner_ask}'
+            - '{p_priority}'
+            - '{ut_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [performance, enhancement]
+      let:
+        storm:
+          - '{ut_storm}'
+      title:
+        - Portal capacity during {storm}
+        - Scale the outage pages before {storm}
+        - Storm day load broke the portal
+        - Autoscaling limits for outage traffic
+      body:
+        -   - Traffic hit {20-90} times normal.
+            - The portal slowed to a crawl.
+            - Outage pages timed out.
+            - '{ut_note}'
+        -   - Limits cap the pods too low.
+            - The cache was cold.
+            - '{ut_note}'
+        -   - Customers phoned instead.
+            - Call queues doubled.
+            - '{ut_note}'
+        -   - '{p_priority}'
+            - Needs a plan {ut_when}.
+            - '{ut_note}'
+      comments:
+        - Raised the pod limits, cache warmed.
+        - Static outage page as a fallback?
+        - Load test before the season.
+    - labels: [security, bug]
+      let:
+        ot:
+          - the AMI network
+          - the SCADA zone
+          - the head-end servers
+      title:
+        - Firewall rule into {ot} is too wide
+        - Review office access to {ot}
+        - Segmentation gap around {ot}
+      body:
+        -   - One rule allows more than needed.
+            - An audit flagged broad access.
+            - A rule opens {ot} to many hosts.
+            - Last review found a wide rule.
+            - '{ut_note}'
+        -   - Only a few ports are used.
+            - Traffic logs show {2-6} ports in use.
+            - One source host would do.
+            - Most of the rule is unused.
+            - '{ut_note}'
+        -   - Changes need operations sign-off.
+            - Any change waits for a window.
+            - Next window is on {day}.
+            - Operations technology must approve.
+            - '{ut_note}'
+        -   - '{p_owner_ask}'
+            - '{p_priority}'
+            - '{ut_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Operations technology agrees.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - billing records
+          - meter reads
+          - call recordings
+      title:
+        - Backups of {what} keep fewer years than policy
+        - Retention for {what} is {2-6} years
+        - Restore of {what} was never tried
+      body:
+        -   - Policy keeps {what} seven years.
+            - The archive prunes after {2-6} years.
+            - '{ut_note}'
+        -   - The last restore was never tried.
+            - Failures are logged, nobody paged.
+            - '{ut_note}'
+        -   - Regulators ask for old records.
+            - Billing disputes reach back years.
+            - '{ut_note}'
+        -   - '{p_priority}'
+            - '{ut_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: storm crews are working late {c_soon}.'
+        - emergency drill {day} at {time}, everyone joins
+        - reminder, hard hats in the yard
+        - '{c_hey}: the control centre tour runs {c_soon}'
+        - open enrolment closes {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - will be there
+            - is it mandatory?
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - welcome {person}, joining from field billing
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in customer care systems
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        -   - welcome {person}!
+            - '{c_em}'
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - storm watch for {ut_district}, expect slow replies
+        - '{ut_storm} is coming, change freeze from {day}'
+        - storm room opens {c_soon}, sign up for shifts
+        - heads up, {ut_storm} may hit {c_soon}
+      replies:
+        -   - noted
+            - '{c_ack}'
+        -   - does the freeze include the portal?
+            - what about the bill run?
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - did the rain reach you?
+        - how to cool a lineman's truck
+      replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+        -   - ''
+            - same
+    - root:
+        - anyone selling a bike trailer?
+        - fishing this weekend, who is in?
+        - cafeteria soup is back, enjoy
+        - '{c_pet} chewed through another cable'
+      replies:
+        -   - '{c_lol}'
+            - ha
+        -   - ''
+            - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the proration code
+          - the band lookup
+      root:
+        - '{thing} is wrong around the clock change'
+        - should {thing} use local time or UTC?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        -   - i think {person} wrote it, ask them
+            - '{c_idk}'
+            - predates the migration, check old scripts
+        -   - will look {c_when_eng}
+            - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - rate tests fail on leap days
+        - flaky test in the proration code
+        - '{c_ci_fail} keeps timing out on bill tests'
+      replies:
+        -   - same here
+            - rerunning
+            - seen it, date fixtures
+        -   - fix is in {issue}
+            - '{c_ack}'
+    - root:
+        - does the read import handle replays?
+        - what happens on a resend?
+        - do we dedupe interval rows?
+        - how late can a read arrive?
+        - are late reads billed or dropped?
+      replies:
+        -   - about two days, i think
+            - check the head-end docs
+            - '{c_idk}'
+        -   - should write that down
+            - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on bill run days
+        - freeze for {ut_cycle} starts {day}
+        - deploys paused until {time} on {day}
+        - storm freeze starts {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - got it
+        -   - is a hotfix ok?
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, bill run'
+        - skipping standup, in the storm room
+        - who is picking up {issue}?
+      replies:
+        -   - i can take it
+            - '{c_ack}'
+            - on my list
+        -   - ''
+            - thanks
+    - root:
+        - bill run starts {c_soon}, billing freezes {day}
+        - cycle {1-21} runs {day}, any blockers?
+        - rate change goes live {c_soon}, who has the checklist?
+        - regulatory filing is {day}, who is on it?
+      replies:
+        -   - i am on call
+            - checklist is in the handbook
+            - '{c_ack}'
+        -   - ping me if the run stalls
+            - ''
+    - root:
+        - customer escalation, {c_customer} cannot see bills
+        - customer says usage chart is wrong
+        - escalation from care, doubled draft
+      replies:
+        -   - which account?
+            - i will check the logs
+        -   - it is {issue}
+            - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says the bill is too high'
+        - '{who|cap} asks about the estimate'
+        - customer cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants a payment plan'
+        - autopay took two drafts from {who}
+      replies:
+        -   - check the read dates first
+            - estimates use last year, tell them
+            - try a fresh login
+            - checking the log now
+        -   - '{s_ack}, will tell them'
+            - '{s_thx}'
+            - ''
+    - root:
+        - customer disputes the {ut_cycle} bill
+        - move out customer wants final bill
+        - '{s_cust|cap} lost power, portal form fails, {s_ticket}'
+        - escalating, wrong tier, filed as {issue}
+      replies:
+        -   - sending the breakdown now
+            - copy attached to the ticket
+        -   - '{s_thx}'
+            - '{c_ack}'
+    - root:
+        - queue is at {20-90} open tickets, mostly bills
+        - 'storm calls: {50-300} since morning'
+        - tickets doubled after bills went out
+      replies:
+        -   - same, will help after lunch
+            - '{c_ack}'
+        -   - any macro for the estimate question?
+            - ''
+  incidents:
+    - let:
+        what:
+          - the head-end feed
+          - the outage feed
+          - the bill run
+      root:
+        - '{what} stopped updating at {time}'
+        - '{s_al} {what} stale since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - the storm room says {what} looks stale
+      replies:
+        -   - looking
+            - restarted the poller, watching it
+            - head-end is up, upstream issue
+        -   - fixed, backfilling
+            - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        -   - '{c_ack}'
+            - will join
+        -   - ''
+            - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the payment gateway is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        -   - on it
+            - '{c_ack}'
+        -   - renewing today
+            - ''
+  direct:
+    - root:
+        - '{s_hey}, check the read import {s_soon}?'
+        - which unit does the chart use?
+        - can you look at {issue} before the run?
+        - '{s_hey}, got a minute for rates?'
+        - handing over the bill run, out {s_soon}
+      replies:
+        -   - sure
+            - '{s_ack}'
+            - give me ten minutes
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived the storm, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        -   - sounds good
+            - '{c_lol}'
+        -   - ''
+            - same
+comments:
+  - Check the tariff on file first.
+  - '{ut_cm}'
+  - Does this touch the bill run?
+  - Ask regulatory affairs before changing it.
+  - Customer care would want to know.
