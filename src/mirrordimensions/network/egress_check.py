@@ -74,8 +74,8 @@ class Check(BaseModel):
     latency_s: float | None = None
 
 
-# Which guarantee each suite proves (decision 0027): a slow gateway or a tell in a page is
-# not a broken seal, and is reported under the guarantee it threatens.
+# Which design goal each suite checks (decision 0027): a slow gateway or a tell in a page is
+# not a broken seal, and is reported under the goal it threatens.
 ISOLATION_SUITES = frozenset({"egress", "ingress", "separation", "inside-out"})
 COVERAGE_SUITES = frozenset({"capture"})
 UNDETECTABILITY_SUITES = frozenset({"naming", "transparency"})
@@ -83,7 +83,7 @@ UNDETECTABILITY_SUITES = frozenset({"naming", "transparency"})
 
 class DoctorReport(BaseModel):
     isolation: Literal["full", "reduced", "failed"] = Field(
-        description="Nothing leaves the sandbox: the egress, ingress, separation and inside-out checks"
+        description="Isolation: the egress, ingress, separation and inside-out checks"
     )
     coverage: Literal["complete", "incomplete"] = Field(
         default="complete",
@@ -104,7 +104,7 @@ class DoctorReport(BaseModel):
 
     @property
     def all_held(self) -> bool:
-        """Every guarantee held."""
+        """Every design goal's checks passed."""
         return (
             self.isolation != "failed"
             and self.coverage == "complete"
@@ -116,7 +116,7 @@ class DoctorReport(BaseModel):
 
 
 def report_from(checks: list[Check], driver: str, boundary: str) -> DoctorReport:
-    """Each guarantee's verdict from the checks that prove it (decision 0027)."""
+    """Each design goal's verdict from the checks for it (decision 0027)."""
 
     def failing(suites: frozenset[str]) -> bool:
         return any(c.outcome == "fail" and c.suite in suites for c in checks)

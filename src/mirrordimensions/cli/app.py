@@ -249,7 +249,7 @@ def doctor(
             + (why(UNDETECTABILITY_SUITES) if report.undetectability != "full" else "")
         )
         if report.isolation != "failed" and not report.all_held:
-            st.out.line(f"{'note':<6}Nothing leaves the sandbox; what failed is named above.")
+            st.out.line(f"{'note':<6}The isolation checks passed; what failed is named above.")
         if any(c.suite == "transparency" and "Latency" in c.name for c in report.failed):
             st.out.line(
                 f"{'note':<6}The gateway's added latency is a timing measure: a busy computer "
@@ -1241,7 +1241,7 @@ def agent_new(
                 st.out.line("")
                 accepted = accept_reduced_guarantees or (
                     interactive
-                    and typer.confirm("? Accept these reduced guarantees", default=False)
+                    and typer.confirm("? Accept these reduced protections", default=False)
                 )
                 if accepted:
                     fields["reduced_guarantees"] = "accepted"
@@ -2148,7 +2148,7 @@ def engine_destroy(
 
 @engine_app.command("check")
 def engine_check(ctx: typer.Context) -> None:
-    """Prove the engine's guarantees: its own kernel, private endpoint, no host access, egress."""
+    """Check the engine from the outside: its own kernel, private endpoint, no host access, egress."""
     from mirrordimensions.service import engine as svc
 
     st = _state(ctx)

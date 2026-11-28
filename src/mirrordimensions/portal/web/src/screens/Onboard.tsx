@@ -249,7 +249,7 @@ function Connect({
             [
               "remote",
               "Remote gateway",
-              "The agent stays on its vendor's platform and comes in through an MCP server exposed to it. Reduced guarantees.",
+              "The agent stays on its vendor's platform and comes in through an MCP server exposed to it. Reduced protections.",
             ],
           ] as const
         ).map(([value, title, meta]) => (
@@ -268,7 +268,7 @@ function Connect({
         ))}
       </div>
       {remote ? (
-        <div className="notice" role="note" aria-label="Reduced guarantees">
+        <div className="notice" role="note" aria-label="Reduced protections">
           <p>{notice.data?.notice ?? "…"}</p>
           <label>
             <input
@@ -276,7 +276,7 @@ function Connect({
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
             />{" "}
-            I accept these reduced guarantees for this agent
+            I accept these reduced protections for this agent
           </label>
         </div>
       ) : (

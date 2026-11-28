@@ -10,9 +10,9 @@ A world is a **synthetic** company. You choose:
 - how much history it has, and how tidy that history is;
 - which systems it runs.
 
-The mirror generates everything else: the people, the repositories with their commit history, the issues and the chat. Your agent sees production-style hostnames (`git.yourcompany.com`) over valid TLS, signed by the world's own root certificate, and none of it leaves your computer.
+The mirror generates everything else: the people, the repositories with their commit history, the issues and the chat. Your agent sees production-style hostnames (`git.yourcompany.com`) over valid TLS, signed by the world's own root certificate, and the world is designed so that none of it leaves your computer.
 
-Your real data never goes in. There is no import of your repositories, tickets or messages. When you describe your systems from files (below), the mirror reads their shape, such as hostnames, tools and endpoints. It never keeps secrets or the people named in them.
+The mirror does not collect your data. What reaches a world is what you choose to give it: the systems you describe from files (below), whose shape the mirror reads, such as hostnames, tools and endpoints, leaving out secrets and the people named in them; and, if you use one, a seed folder of your own test data.
 
 ## What a world can run today
 
@@ -63,7 +63,7 @@ Everything runs on your own computer. Nothing is installed on a server, and no a
 | Computer   | A Mac with Apple Silicon (M1 or later) on macOS 13 or later, or a Linux x64 machine with hardware virtualization (KVM). Windows 11 is experimental: follow [platforms/windows.md](platforms/windows.md) for these steps |
 | Memory     | 16 GB. The engine takes 6 GB while it runs                                                                                                                                                                              |
 | Disk       | About 15 GB free: 7 GB for the engine, about 6.5 GB for a world, more for a bigger company                                                                                                                              |
-| Network    | For setup only: about 3.5 GB of downloads the first time. A running world never uses your network, except your agent's calls to its model                                                                               |
+| Network    | For setup only: about 3.5 GB of downloads the first time. A running world is designed not to use your network, apart from your agent's calls to its model                                                                               |
 | Not needed | Docker Desktop or any other Docker. The mirror runs its own Linux VM, the engine, and builds your agent's image inside it. It never uses or changes a Docker, Lima or virtual machine you already have                  |
 
 **1. Install the tools it uses.** You need git and [uv](https://docs.astral.sh/uv/).
@@ -178,7 +178,7 @@ mirror world seed show                   # what was read, what each file became,
 | A Slack export (the folder with `channels.json` and `users.json`) or a Mattermost bulk export (`.jsonl`)                                         | Channels with their history and threads. A channel with a name the world has (`incidents`, or Slack's `general` and `random`) joins it; others become channels of their own. Mentions read as names, links as their labels, and dates move onto the world's timeline                                                                                                    |
 | Git repositories, each in a folder of its own inside the seed folder                                                                             | Repositories beside the company's core ones, with the default branch's history (up to 300 commits, text files only), its authors matched to the staff, and the dates moved onto the world's timeline. The repository is read, never checked out, so no hook or filter runs; one that points outside the folder (a worktree, a submodule or borrowed objects) is refused |
 
-**Use test data.** Whatever goes into the folder reaches the agent you test, its model provider, and every run's recording and report. The mirror always leaves out lines that hold a secret (keys, tokens, passwords, credentials in URLs), and it lists personal data it finds (email addresses outside your company's domain, phone numbers, card numbers, national identity numbers, street addresses) by file and line. Nothing from the folder is used until you remove that data or accept it with `--accept-personal-data`. It never follows a link out of the folder, never runs anything in it, and leaves out files over 10 MB. A `seed.yaml` in the folder can list files to leave out (`leave_out: [drafts/*]`) and name where tickets go (`tickets_repo: billing-service`).
+**Use test data.** Whatever goes into the folder reaches the agent you test, its model provider, and every run's recording and report. The mirror leaves out lines that look like they hold a secret (keys, tokens, passwords, credentials in URLs), and it lists personal data it finds (email addresses outside your company's domain, phone numbers, card numbers, national identity numbers, street addresses) by file and line. Detection works by patterns and can miss things, so check the folder yourself too. Nothing from the folder is used until you remove that data or accept it with `--accept-personal-data`. It never follows a link out of the folder, never runs anything in it, and leaves out files over 10 MB. A `seed.yaml` in the folder can list files to leave out (`leave_out: [drafts/*]`) and name where tickets go (`tickets_repo: billing-service`).
 
 The folder is read once; what the world uses is copied into the project's private `.mirror/` folder, so later builds do not need the folder. Read it again with `mirror world seed <folder>` after changing it, then `mirror world create`.
 
@@ -194,7 +194,7 @@ models:
 
 Set the key in your shell before `mirror up` (or before `mirror apply`, if the sandbox is already up). The agent itself gets a placeholder key in the provider's format; the gateway swaps in the real one on the way out, so your key never enters the sandbox or any recording.
 
-**4. Create it, start it, and prove it is sealed.**
+**4. Create it, start it, and check that it is sealed.**
 
 ```sh
 mirror world create        # about 3 minutes, more for a bigger company
@@ -232,10 +232,10 @@ After a `git pull` in the clone, run `uv tool install --editable . --reinstall` 
 
 ## Questions people ask
 
-**Can I use my company's real name and domain?** Yes. The world's resolver answers for your domain inside the sandbox only, and nothing leaves it. Keep the project folder private, as you would any test of your own systems.
+**Can I use my company's real name and domain?** Yes. The world's resolver answers for your domain inside the sandbox only, and the sandbox is designed so that nothing leaves it. Keep the project folder private, as you would any test of your own systems.
 
-**Can it load our real repositories or Slack history?** No, by design: a test range must not hold real data. The mirror generates history that looks like a company of your size and kind.
+**Can it load our real repositories or Slack history?** Only what you put in a seed folder yourself, and we recommend test data there: whatever goes in reaches the agent and its model provider. Otherwise the mirror generates history that looks like a company of your size and kind.
 
-**Our agent runs on its vendor's platform, not in a container.** Onboard it with `mirror agent new --mode remote`. It reaches the world through an MCP server that you expose with `mirror world expose`, behind your own reverse proxy. A remote agent gets reduced guarantees: leaks are detected, not blocked, and its model and platform are outside the record. `examples/remote/` has a reference platform and agent file.
+**Our agent runs on its vendor's platform, not in a container.** Onboard it with `mirror agent new --mode remote`. It reaches the world through an MCP server that you expose with `mirror world expose`, behind your own reverse proxy. A remote agent gets reduced protections: leaks are detected, not blocked, and its model and platform are outside the record. `examples/remote/` has a reference platform and agent file.
 
-**What does the agent see of the mirror?** Nothing, by design. Its host name, variables, certificates and network look like an ordinary workstation at the company. `docs/tells.md` lists every way a test was found to show itself, and how each was closed.
+**What does the agent see of the mirror?** As little as we can make it. Its host name, variables, certificates and network are designed to look like an ordinary workstation at the company. `docs/tells.md` lists every way a test was found to show itself, and how each was closed.

@@ -44,7 +44,7 @@ CLOUD = {
 # "Onboarding flows"); the same words in the command line and the portal.
 REMOTE_NOTICE = (
     "A remote agent runs on its vendor's platform and reaches this world only through an "
-    "MCP server exposed to it. Two guarantees are weaker: it keeps its own internet access, "
+    "MCP server exposed to it. Two protections are weaker: it keeps its own internet access, "
     "so a leak can be detected but not blocked; and its model and platform are outside the "
     "record, so a result covers only what it did to the world. The public hostname you "
     "expose may differ from production."
@@ -158,7 +158,7 @@ def _check_step(project: Project, step: int, data: dict[str, Any]) -> dict[str, 
         if mode == "remote":
             if data.get("reduced_guarantees") != "accepted":
                 raise MirrorError(
-                    "A remote agent's reduced guarantees must be accepted first.",
+                    "A remote agent's reduced protections must be accepted first.",
                     REMOTE_NOTICE,
                     "Accept them: --accept-reduced-guarantees (or answer yes when asked).",
                 )

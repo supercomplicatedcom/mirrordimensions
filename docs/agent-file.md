@@ -53,7 +53,7 @@ grants:
 
 With `env`, the agent gets exactly the variables you list. Values can contain `${<system id>.url}`, `${<system id>.token}`, `${<system id>.username}` or `${<system id>.password}`, filled from the credentials issued for that system. The system ids are the `id:` fields in `mirror.yaml`. A world from the template, or from `--systems`, calls code hosting `code` and team chat `chat`.
 
-**A model key.** For each model route, the variable it names (`credential: {from_env: ANTHROPIC_API_KEY}`) holds a placeholder key in the provider's format. The agent calls the provider's usual hostname (`api.anthropic.com`). The world's resolver sends that hostname to the gateway, which swaps in your real key on the way out and records the exchange. Your key never enters the container.
+**A model key.** For each model route, the variable it names (`credential: {from_env: ANTHROPIC_API_KEY}`) holds a placeholder key in the provider's format. The agent calls the provider's usual hostname (`api.anthropic.com`). The world's resolver sends that hostname to the gateway, which swaps in your real key on the way out and records the exchange. Your key is kept out of the container.
 
 **The company's certificates.** The world's root certificate is added to the image's system trust store before it starts, as the company's image build would. Most clients pick it up from there. Python's `requests` and some others read their own bundle; point them at the system one with `SSL_CERT_FILE` or `REQUESTS_CA_BUNDLE` set to `/etc/ssl/certs/ca-certificates.crt`.
 
