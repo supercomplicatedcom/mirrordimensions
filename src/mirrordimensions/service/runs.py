@@ -59,7 +59,7 @@ from mirrordimensions.service.sandbox import (
     app_secrets,
     world_plan,
 )
-from mirrordimensions.service.worlddef import definition_hash
+from mirrordimensions.service.worlddef import project_hash
 from mirrordimensions.trace import access, report
 from mirrordimensions.twins.base import (
     DEVICES,
@@ -196,7 +196,7 @@ class _Run:
             WorldRef(
                 name=self.manifest.name,
                 seed=self.plan.seed,
-                definition_hash=_digest(definition_hash(self.manifest)),
+                definition_hash=_digest(project_hash(self.project, self.manifest)),
             ),
         )
         self.result.scenario, self.result.agent = item.id, agent.name

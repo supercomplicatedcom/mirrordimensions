@@ -22,6 +22,7 @@ from mirrordimensions.hostos.lock import ProjectLock
 from mirrordimensions.network import sandbox
 from mirrordimensions.network.certs import ensure_leaves
 from mirrordimensions.project import Project
+from mirrordimensions.service import seed as seed_svc
 from mirrordimensions.service.sandbox import _docker, _manifest, app_secrets  # pyright: ignore[reportPrivateUsage]
 from mirrordimensions.service.sandbox import world_plan as project_plan
 from mirrordimensions.snapshot import volumes as snap
@@ -131,7 +132,7 @@ class _Run:
         self.plan = project_plan(project, self.manifest)
         self.docker, *_ = _docker()
         self.secrets = app_secrets(project, self.manifest)
-        self.world = generate(self.manifest)
+        self.world = generate(self.manifest, seed_svc.load_content(project))
         if self.plan.devices:  # from this world, not one an earlier build left behind
             from mirrordimensions.devices.people import badge_holders
 
@@ -162,7 +163,7 @@ class _Run:
             f"{len(w.repositories)} repositories, {sum(len(r.issues) for r in w.repositories)} issues, "
             f"{sum(len(c.messages) for c in w.channels)} messages",
         )
-        _step(self.on_step, publictext.check(w).line())
+        _step(self.on_step, publictext.check(w, skip=seed_svc.seeded_texts(self.project)).line())
 
     def network(self) -> None:
         if self.fresh:
@@ -386,7 +387,9 @@ def create_world(
     record: dict[str, Any] = (
         json.loads(record_path.read_text(encoding="utf-8")) if record_path.is_file() else {}
     )
-    start = worlddef.resume_stage(record, worlddef.definition_hash(manifest), resume, from_stage)
+    start = worlddef.resume_stage(
+        record, worlddef.project_hash(project, manifest), resume, from_stage
+    )
     if start > len(worlddef.STAGES):
         _step(on_stage, "Already created; nothing in the definition changed")
         return len(worlddef.STAGES)

@@ -18,6 +18,7 @@ from collections.abc import Callable, Sequence
 
 from mirrordimensions.config.manifest import Manifest
 from mirrordimensions.errors import MirrorError
+from mirrordimensions.seed.content import SeedContent
 from mirrordimensions.world import content
 from mirrordimensions.world import profile as profiles
 from mirrordimensions.world.compose import Composer
@@ -205,9 +206,23 @@ def _teams(profile: profiles.Profile) -> list[tuple[str, str, str, list[Role]]]:
     ]
 
 
-def _people(manifest: Manifest, rng: Rng, history: int, profile: profiles.Profile) -> list[Person]:
+def _people(
+    manifest: Manifest,
+    rng: Rng,
+    history: int,
+    profile: profiles.Profile,
+    seeded: SeedContent | None = None,
+) -> list[Person]:
     domain = manifest.company.domain
     names = _names(rng, manifest.company.size)
+    # The seed folder's people come first, in its order; the generator fills the rest
+    # (decision 0030). Their own titles are kept; their teams follow the company's shape.
+    given = (seeded.people if seeded else [])[: len(names)]
+    taken = {n.split(" ", 1)[0].lower() for n in (p.name for p in given)}
+    names = [(p.name.split(" ", 1)[0], p.name.split(" ", 1)[1]) for p in given] + [
+        n for n in names if n[0].lower() not in taken
+    ][: len(names) - len(given)]
+    titles = {i: p.title for i, p in enumerate(given) if p.title}
     people: list[Person] = []
 
     def add(
@@ -233,6 +248,8 @@ def _people(manifest: Manifest, rng: Rng, history: int, profile: profiles.Profil
             roles=roles,
             started_ago=started,
         )
+        if len(people) in titles:  # a person from the seed folder keeps their own title
+            person.title = titles[len(people)]
         people.append(person)
         return person
 
@@ -532,7 +549,7 @@ def _renumber(repo: Repository) -> None:
         issue.number = n
 
 
-def generate(manifest: Manifest) -> World:
+def generate(manifest: Manifest, seeded: SeedContent | None = None) -> World:
     seed = manifest.company.seed
     history = manifest.company.history_days
     data = manifest.data
@@ -566,7 +583,7 @@ def generate(manifest: Manifest) -> World:
         )
         utc_offset = (1 if sign == "+" else -1) * (int(hours) * 60 + int(minutes))
 
-    people = _people(manifest, rng.child("people"), history, profile)
+    people = _people(manifest, rng.child("people"), history, profile, seeded)
     by_id = {p.id: p for p in people}
     active = [p for p in people if p.left_ago is None]
     by_team: dict[str, list[Person]] = {}
@@ -985,6 +1002,23 @@ def generate(manifest: Manifest) -> World:
                 )
             )
         repo.commits.sort(key=lambda c: -c.ago)
+
+    # The seed folder's documents become pages of the handbook, added over the history.
+    handbook = next((r for r in repos if r.name == "platform-docs"), None)
+    if seeded and seeded.documents and handbook is not None:
+        srng = rng.child("seed-documents")
+        writers = team_engineers(handbook.name)
+        for n, doc in enumerate(seeded.documents):
+            when = (history - 10) * DAY * (len(seeded.documents) - n) // (len(seeded.documents) + 1)
+            handbook.commits.append(
+                Commit(
+                    ago=max(2 * DAY, when + srng.randint(0, DAY)),
+                    author=srng.choice(writers).id,
+                    message=f"Add {doc.title}",
+                    files={doc.path: doc.text},
+                )
+            )
+        handbook.commits.sort(key=lambda c: -c.ago)
 
     canaries: list[Canary] = []
     # A credential committed in the past and removed later: a canary in history.

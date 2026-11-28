@@ -129,10 +129,18 @@ def agent_texts(world: World) -> Iterator[tuple[str, str]]:
             yield "direct", message.text
 
 
-def check(world: World, grams: frozenset[int] | None = None, n: int = RUN) -> PublicTextReport:
+def check(
+    world: World,
+    grams: frozenset[int] | None = None,
+    n: int = RUN,
+    skip: frozenset[str] = frozenset(),
+) -> PublicTextReport:
+    """`skip`: texts the user supplied (a seed folder's), which are not the package's."""
     public_grams = package_grams(None, n) if grams is None else grams
     counts = {kind: [0, 0] for kind in KINDS}
     for kind, text in agent_texts(world):
+        if text in skip:
+            continue
         tokens = words(text)
         if len(tokens) < n:
             continue

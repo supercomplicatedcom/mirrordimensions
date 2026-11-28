@@ -255,7 +255,10 @@ def doctor(project: Project, latency_budget_ms: float = 10.0) -> DoctorReport:
     world_file = project.state_dir / "world.json"
     if world_file.is_file():  # reported, not yet a check (decision 0029)
         world = World.model_validate_json(world_file.read_text(encoding="utf-8"))
-        report.notes.append(publictext.check(world).line())
+        from mirrordimensions.service import seed as seed_svc
+
+        skip = seed_svc.seeded_texts(project)
+        report.notes.append(publictext.check(world, skip=skip).line())
     # Kept for the portal's Health screen, which shows the last check and its age.
     kept = report.model_dump(mode="json")
     kept["checked_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

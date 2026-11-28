@@ -163,6 +163,23 @@ mirror world new halden --decide gitea.hostname=git.halden-freight.com
 
 A tool list imported this way becomes the world's MCP server, serving each tool it can map to Gitea or Mattermost. A tool it cannot map is listed and left out.
 
+**Fill it from a seed folder.** To give the world your own kind of data, put it in a folder and name that folder. The mirror reads that folder and nothing else on your computer, and builds the world from it; the rest is generated from the industry profile (decision 0030).
+
+```sh
+mirror world seed ~/halden-seed          # or: mirror world new halden ... --seed-folder ~/halden-seed
+mirror world seed show                   # what was read, what each file became, what was left out
+```
+
+| Put in the folder                                                                                          | It becomes                                                                                     |
+| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| A people CSV (a `name` column, or `first name` and `last name`; `title` and `department` if you have them) | The first people on the staff, with their titles. Their email addresses use the world's domain |
+| Markdown or text documents, in folders if you like                                                         | Pages of the handbook repository, with the same layout                                         |
+| Tickets, chat exports and git repositories                                                                 | Recognised and listed; read by the next versions                                               |
+
+**Use test data.** Whatever goes into the folder reaches the agent you test, its model provider, and every run's recording and report. The mirror always leaves out lines that hold a secret (keys, tokens, passwords, credentials in URLs), and it lists personal data it finds (email addresses outside your company's domain, phone numbers, card numbers, national identity numbers, street addresses) by file and line. Nothing from the folder is used until you remove that data or accept it with `--accept-personal-data`. It never follows a link out of the folder, never runs anything in it, and leaves out files over 10 MB. A `seed.yaml` in the folder can list files to leave out (`leave_out: [drafts/*]`).
+
+The folder is read once; what the world uses is copied into the project's private `.mirror/` folder, so later builds do not need the folder. Read it again with `mirror world seed <folder>` after changing it, then `mirror world create`.
+
 **3. Add your model.** If your agent calls a model, add a route to `mirror.yaml`. It is the only way out of the sandbox:
 
 ```yaml

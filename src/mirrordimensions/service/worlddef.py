@@ -90,8 +90,9 @@ def suggest(seed: int, industry: str | None = None, attempt: int = 0) -> Company
     return suggest_company(seed, industry, attempt)
 
 
-def definition_hash(manifest: Manifest) -> dict[str, str]:
-    """Hashes of the parts of a definition, so a change re-runs only the stages it affects."""
+def definition_hash(manifest: Manifest, seed: str = "") -> dict[str, str]:
+    """Hashes of the parts of a definition, so a change re-runs only the stages it affects.
+    `seed` is the digest of what the world uses from its seed folder (decision 0030)."""
 
     def h(value: Any) -> str:
         return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()[
@@ -119,7 +120,17 @@ def definition_hash(manifest: Manifest) -> dict[str, str]:
         "visibility": h({a.id: a.visibility for a in manifest.apps}),
         # Sites and devices configure the device platforms (decision 0026).
         "devices": _devices_hash(manifest),
+        # What the world uses from its seed folder: the company is generated again.
+        "seed": seed,
     }
+
+
+def project_hash(project: Project, manifest: Manifest) -> dict[str, str]:
+    """`definition_hash` for a project: its manifest and what it uses from a seed folder."""
+    from mirrordimensions.service import seed as seed_svc
+
+    content = seed_svc.load_content(project)
+    return definition_hash(manifest, content.digest if content else "")
 
 
 NO_DEVICES = hashlib.sha256(b'{"devices": [], "sites": []}').hexdigest()[:12]
@@ -135,7 +146,7 @@ def _devices_hash(manifest: Manifest) -> str:
 
 def first_stage_affected(old: dict[str, str], new: dict[str, str]) -> int:
     """1-based stage to resume from: company -> 1, systems -> 2, data -> 4, rules -> none (9)."""
-    if old.get("company") != new["company"]:
+    if old.get("company") != new["company"] or old.get("seed", "") != new.get("seed", ""):
         return 1
     if "absent" in old:
         if old.get("systems") != new["systems"]:
@@ -492,7 +503,7 @@ def world_status(project: Project) -> WorldStatus:
     last = int(record.get("last_stage", 0))
     changed = (
         bool(record)
-        and first_stage_affected(record.get("hashes", {}), definition_hash(manifest)) <= 8
+        and first_stage_affected(record.get("hashes", {}), project_hash(project, manifest)) <= 8
     )
     if record.get("failed"):
         state: WorldState = "failed"
@@ -517,7 +528,7 @@ def record_stage(
     project: Project, stage: int, manifest: Manifest, failed: str | None = None
 ) -> None:
     path = project.state_dir / "create.json"
-    record = {"last_stage": stage, "hashes": definition_hash(manifest), "failed": failed}
+    record = {"last_stage": stage, "hashes": project_hash(project, manifest), "failed": failed}
     write_text(path, json.dumps(record, indent=2) + "\n", owner_only=True)
     if failed is None and stage == SNAPSHOT_STAGE:
         from mirrordimensions.service.changes import record_built

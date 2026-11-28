@@ -100,14 +100,14 @@ def _record_built_if_unchanged(project: Project, manifest: Manifest) -> None:
     unchanged since the build (its creation record says so)."""
     if (project.state_dir / BUILT_FILE).is_file():
         return
-    from mirrordimensions.service.worlddef import STAGES, definition_hash, first_stage_affected
+    from mirrordimensions.service.worlddef import STAGES, first_stage_affected, project_hash
 
     created = _read(project, "create.json")
     if (
         created
         and not created.get("failed")
         and int(created.get("last_stage", 0)) >= len(STAGES)
-        and first_stage_affected(created.get("hashes", {}), definition_hash(manifest)) > 8
+        and first_stage_affected(created.get("hashes", {}), project_hash(project, manifest)) > 8
     ):
         dump = manifest.model_dump(mode="json")
         write_text(
@@ -183,12 +183,12 @@ def pending_changes(project: Project, manifest: Manifest, agents: dict[str, Any]
     if not built:
         # A world built before built.json was kept: its creation record still says whether
         # the definition changed, though not how.
-        from mirrordimensions.service.worlddef import definition_hash, first_stage_affected
+        from mirrordimensions.service.worlddef import first_stage_affected, project_hash
 
         created = _read(project, "create.json")
         if not created:
             return out  # never built: everything is still to come, nothing is "changed"
-        if first_stage_affected(created.get("hashes", {}), definition_hash(manifest)) <= 8:
+        if first_stage_affected(created.get("hashes", {}), project_hash(project, manifest)) <= 8:
             out.append(
                 Change(
                     kind="system",
