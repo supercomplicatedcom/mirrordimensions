@@ -1,0 +1,891 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Beauty and personal care: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: beauty-personal-care
+name: Beauty and personal care
+group: Consumer, fitness and wellness
+aliases:
+  - beauty
+  - cosmetics
+  - skincare
+  - personal care
+  - beauty brand
+description: A beauty and personal care brand that sells direct online, through subscriptions and through retail and salon partners, and traces every batch it ships.
+name_suffixes:
+  - Beauty
+  - Skin
+  - Cosmetics
+  - Botanicals
+  - Naturals
+  - Atelier
+invoice_items:
+  - Wholesale orders
+  - Subscription box
+organization:
+  head: Head of Technology
+  it_admin: IT Manager
+  teams:
+    platform: {department: Technology, title: Platform Engineer}
+    billing: {department: Technology, title: Commerce Engineer}
+    data: {department: Data and Insights, title: Data Engineer}
+    support: {department: Customer Care, title: Customer Care Specialist, lead: Customer Care Manager}
+    product: {department: Digital Product, title: Product Manager}
+    operations: {department: Fulfilment and Supply, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [orders-billing, subscriptions, billing-service, wholesale-invoicing]
+    platform-docs: [tech-handbook, platform-docs, launch-runbooks, team-docs]
+    data-pipeline: [sales-loads, insights-pipeline, data-pipeline, stock-and-sales-etl]
+    infra-config: [infra-config, cloud-config, env-config, deploy-config]
+    customer-portal: [account-portal, storefront-account, shopper-portal, customer-portal]
+    ops-scripts: [ops-scripts, fulfilment-scripts, legacy-scripts, warehouse-tools]
+  channels:
+    engineering: [engineering, tech, dev, commerce-eng]
+    incidents: [incidents, launch-alerts, prod-incidents, outages]
+    releases: [releases, deploys, storefront-releases, shipping]
+    billing-team: [billing-team, orders-and-billing, commerce-billing, billing-eng]
+    platform-team: [platform-team, platform, infra, tech-platform]
+    data-team: [data-team, insights, data, reporting]
+    support: [customer-care, support, care-team, cs-team]
+    leads: [leads, tech-leads, managers, team-leads]
+systems:
+  typical: [github, slack, shopify plus, klaviyo, gorgias, stripe, salesforce, segment]
+  common: [contentful, braze, zendesk, snowflake, okta]
+symbols:
+  b_doc: [invoice, credit note, wholesale invoice, subscription receipt, gift order receipt, refund receipt]
+  b_customer: [retail partner, salon, subscriber, online shopper, department store, pharmacy chain, affiliate, loyalty member]
+  b_who: [customer care, the wholesale team, finance, the retail partners team, the influencer team]
+  b_pwho: [customer care, a shopper, "{person}", the wholesale team, finance]
+  b_ticket_noun: [ticket, case, review, complaint]
+  b_page: [orders, subscriptions, saved shades, loyalty points, addresses, reviews, returns]
+  b_acct_size: ["{30-300} past orders", "{5-20} saved shades", "{3-9} active subscriptions", "over {500-2000} loyalty points"]
+  b_provider_event: [payment captured, payment declined, refund issued, chargeback opened, subscription renewed, payout settled]
+  b_money_path: [billing/orders.py, billing/promotions.py, billing/subscriptions.py, billing/rounding.py]
+  b_check_path: [the order tests, the promo tests, the subscription tests, the refund tests]
+  p_table: [orders, customers, subscriptions, products, batches, returns, reviews, loyalty_points, affiliate_sales]
+  p_report: [the weekly sales report, the launch day dashboard, the subscriber churn report, the returns by product report, the affiliate payout report, the stock cover report]
+  p_source: [the storefront order events, the fulfilment partner's stock files, the retail partner sell-through reports, the reviews platform export, the affiliate network reports, the email platform engagement data]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the head of wholesale finance]
+  p_alert_name: [checkout error rate, stock feed delay, order sync backlog, the nightly load finishing late, certificate expiry, error rate on the account portal, replication lag]
+  s_plan: [the monthly box, a quarterly box, a loyalty tier, a wholesale account, a salon account, a gift subscription]
+  c_customer: [a shopper, a subscriber, a salon owner, a retail buyer, an affiliate, a loyalty member]
+  s_tool: [the order admin, the care desk, the subscription lookup, the storefront admin, the ticket queue]
+  s_thing: [the order sync, the stock feed, the renewal job, the export, the cron, the promo engine, the shade quiz, the checkout]
+  c_eng_area: [the checkout, the promo engine, the stock sync, the shade matcher, the renewal job, the returns flow, the loyalty points, the export endpoint]
+  c_food: [pizza, sushi, noodles, tacos, a salad, a smoothie]
+  bp_product: [the serum, the foundation range, the lip kit, the SPF line, the hair mask, the fragrance set, the cleanser]
+  bp_shade: [shade matching, the shade quiz, the shade finder, a shade swap]
+  bp_launch: [a product drop, the holiday launch, a collab launch, a restock, a limited edition]
+  bp_issue: [an allergic reaction report, a damaged item, a wrong shade, a leaking bottle, an expired product, a missing mini]
+  bp_reg: [MoCRA, the EU cosmetics rules, Prop 65, ingredient labelling rules]
+  bp_batch: [batch code, lot number, expiry date, PAO symbol]
+  bp_promo: [a free gift with purchase, a minis set, a discount code, a loyalty bonus, a bundle deal]
+  bp_peak: [Black Friday, the holiday launch, a viral video, the summer sale, a restock drop]
+  bp_partner: [the department store, the pharmacy chain, the specialty retailer, the salon distributor]
+  bp_fail: [a duplicate order, a wrong shade shipped, a missing gift, a promo not applied, a double charge, a stuck refund]
+  bp_fix: [reran the sync, cleared the queue, restarted the worker, resent the feed]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        promo: ["{bp_promo}"]
+        doc: ["{b_doc}"]
+        path: ["{b_money_path}"]
+      title:
+        - "{promo|cap} stays after a refund"
+        - "Refund leaves {promo} on the order"
+        - "Gift not removed on return"
+        - "Refunded orders keep the discount"
+        - "{doc|cap} total wrong after a partial return"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "{/Also, /And /}A shopper returns one item."
+            - "An order is partly refunded."
+            - ""
+        -   - "{path|cap} keeps the full discount."
+            - "The promo never gets recalculated."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with a two item order."
+        - "{b_cm_check}, {path} skips returns."
+        - "Finance has {2-9} orders to fix."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        event: ["{b_provider_event}"]
+      title:
+        - "Skipped subscription box still charged"
+        - "Paused subscribers billed anyway"
+        - "Skip saves, billing ignores it"
+        - "Subscription skip charged after {event}"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_raised}, seen in {2-9} reviews."
+        -   - "{/Also, /And /}A subscriber skips a month."
+            - "A member pauses before the cutoff."
+            - ""
+        -   - "{/Also, /And /}the renewal job runs first."
+            - "Renewals run before the skip saves."
+            - ""
+        -   - "{b_urgent}"
+            - "Refunds need {b_pwho}."
+      comments:
+        - "The cutoff is {2/3/5} days before."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Lock the cutoff date."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        partner: ["{bp_partner}"]
+        doc: ["{b_doc}"]
+      title:
+        - "Testers and minis billed on the {doc}"
+        - "Free minis priced for {partner}"
+        - "Wholesale {doc} includes tester units"
+        - "{partner|cap} invoice counts tester cases"
+      body:
+        -   - "Testers ship free to {partner}."
+            - "Tester units are not billable."
+        -   - "The {doc} lists them at price."
+            - "They add to the total."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "Flag the item as a tester."
+        - "{b_cm_hand}"
+        - "{b_cm_plan}"
+    - labels: [needs-decision]
+      let:
+        who: ["{b_who}"]
+        question: [refunds for opened products, "returns after {30/60/90} days", a refund without the product, swapping a shade for free]
+      title:
+        - "Policy for {question}?"
+        - "Who decides {question}?"
+        - "Returns of opened products"
+        - "Decide how we handle {question}"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} handles {question} {b_nd_b}."
+        -   - "{/Also, /And /}opened items cannot be resold."
+            - "Allergy claims need a refund."
+            - ""
+        -   - "{/Also, /And /}answers vary by agent."
+            - "The rule is only in chat."
+            - ""
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who}."
+      comments:
+        - "Maybe refund once, then review."
+        - "{b_cm_lean} a photo for damaged items."
+        - "Legal should check the wording."
+    - labels: [bug]
+      title:
+        - "Affiliate commission paid on refunded orders"
+        - "Influencer payout counts cancelled sales"
+        - "Commission not reversed after a refund"
+        - "Affiliate totals disagree with the network"
+      body:
+        -   - "Payouts include refunded orders."
+            - "Cancelled sales still earn a commission."
+        -   - "{/Also, /And /}the report reads the order date."
+            - "Refunds land in a later month."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Net the refunds before payout."
+        - "{b_cm_repro} on last month's data."
+        - "Tell the influencer team."
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [logging an adverse event, a product recall, a batch hold, an ingredient change, a label update]
+      title:
+        - "How-to: handle {thing}"
+        - "Checklist for {thing}"
+        - "Write down the steps for {thing}"
+        - "Runbook: {thing}"
+      body:
+        -   - "Nobody keeps steps for {thing}."
+            - "{person} does {thing} from memory."
+        -   - "{bp_reg|cap} asks for a record."
+            - "Audits ask for a written trail."
+        -   - "{b_dc_c} would be plenty."
+            - "One page with the contacts."
+      comments:
+        - "Notes from the last case exist."
+        - "Add the regulator timelines."
+        - "Include who signs off."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/launch-day.md", "docs/runbooks/order-sync.md", "docs/runbooks/stock-feed.md", "docs/runbooks/checkout.md"]
+        step: [scaling the checkout first, pausing the promo engine, checking the stock feed, switching on the queue page, warning customer care]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "Launch runbook skips {step}"
+        - "{runbook}: {step} not listed"
+        - "Update {runbook} after the move"
+      body:
+        -   - "Followed {runbook} on launch day."
+            - "It left out {step}."
+        -   - "{person} told us in chat only."
+            - "{step|cap} sits in one head."
+        -   - "{p_owner_ask}"
+            - "{p_reviewer_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Add the launch time zones."
+        - "{b_cm_docs}"
+    - labels: [docs, enhancement]
+      let:
+        flow: [a shade swap, an order from checkout to dock, a subscription renewal, a return and refund]
+      title:
+        - "Explain how {flow} works"
+        - "Architecture note: {flow}"
+        - "One page on {flow}"
+        - "Describe {flow} end to end"
+      body:
+        -   - "New joiners ask how it works."
+            - "Only {person} knows the whole path."
+        -   - "{/Also, /And /}one diagram and a short page."
+            - "A simple picture would do."
+            - ""
+      comments:
+        - "I can draw it, someone check."
+        - "Include the edge cases."
+        - "{b_cm_docs}"
+  data:
+    - labels: [bug, data-quality]
+      let:
+        batch: ["{bp_batch}"]
+      title:
+        - "Shipments missing the {batch}"
+        - "Batch traceability gaps in {p_table}"
+        - "Orders not traceable to batch"
+        - "{batch|cap} blank for {2-400} shipments"
+      body:
+        -   - "The warehouse feed lacks the {batch}."
+            - "{2-400} shipments have no batch."
+        -   - "{/Also, /And /}A recall needs a manual search."
+            - "Quality asked for full traceability."
+            - ""
+        -   - "{p_noticed|cap}."
+            - "Found during a mock recall."
+        -   - "{p_owner_ask}"
+      comments:
+        - "It comes in a second file."
+        - "Join on the shipment id."
+        - "{b_cm_plan}"
+    - labels: [bug, incident]
+      let:
+        peak: ["{bp_peak}"]
+      title:
+        - "Orders reach the warehouse late in {peak}"
+        - "Load behind during {peak}"
+        - "{peak|cap} orders missing from the morning load"
+      body:
+        -   - "The load finished {1-4} hours late."
+            - "{peak|cap} doubled order volume."
+        -   - "{/Also, /And /}the stock report was wrong."
+            - "Oversold items shipped late."
+            - ""
+        -   - "{p_noticed|cap}."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Load orders in small batches."
+        - "{b_cm_prof} {b_cm_prof2}"
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "{report|cap} does not match billing"
+        - "Returns by product miss exchanges"
+        - "Subscriber churn differs from finance"
+        - "Sales report counts gift orders twice"
+      body:
+        -   - "The report is {2-9} percent off."
+            - "Finance sees another total."
+        -   - "{/Also, /And /}exchanges count as new orders."
+            - "Gifts count for both people."
+            - ""
+        -   - "{b_ex_a}."
+            - "{who|cap} needs it before the review."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Define the order type once."
+        - "{b_cm_check}"
+        - "Keep the old number beside it."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the nightly load"
+        - "Add {source} to the pipeline"
+        - "Should planning get {source}?"
+      body:
+        -   - "Planners ask for {source} weekly."
+            - "{person} pulls {source} by hand."
+        -   - "{/Also, /And /}it would sharpen launch forecasts."
+            - "Stock planning could use it."
+            - ""
+        -   - "{/Also, /And /}keep customer details out."
+            - "Hash emails before loading."
+            - ""
+      comments:
+        - "Which partners send {source}?"
+        - "Keep it for {1/2/3} years."
+        - "{b_cm_plan}"
+  portal:
+    - labels: [bug]
+      let:
+        shade: ["{bp_shade}"]
+      title:
+        - "{shade|cap} results are not saved"
+        - "Shade quiz forgets the answers"
+        - "Saved shades vanish after login"
+        - "{shade|cap} gives a different result twice"
+      body:
+        -   - "A shopper takes the quiz."
+            - "Results show on screen only."
+        -   - "{/Also, /And /}they log in and lose it."
+            - "The saved shade is empty."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Save the result on the profile."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Anonymous quizzes need a cookie."
+    - labels: [bug]
+      let:
+        browser: ["{b_browser}"]
+      title:
+        - "Skip button fails in {browser}"
+        - "Subscription page spins in {browser}"
+        - "Skip next box shows an error"
+        - "Pause option missing on mobile"
+      body:
+        -   - "The skip button does nothing."
+            - "The page shows a vague error."
+        -   - "It happens in {browser}."
+            - "Other browsers are fine."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "{b_cm_repro} on an older phone."
+        - "Probably a script error, {b_cm_syn}"
+        - "{b_cm_later}"
+    - labels: [enhancement]
+      let:
+        ask: [change a shipping date, swap a product next box, update a saved shade, return an item online]
+      title:
+        - "Let shoppers {ask} without writing in"
+        - "Portal: {ask}"
+        - "Shoppers want to {ask}"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+      comments:
+        - "Care gets {2-9} requests daily."
+        - "Needs a cutoff before packing."
+        - "{b_cm_srv}"
+    - labels: [bug]
+      title:
+        - "Order tracking shows the wrong carrier"
+        - "Tracking link opens another parcel"
+        - "Delivered status appears too early"
+      body:
+        -   - "The tracking link uses one carrier."
+            - "Parcels split across carriers."
+        -   - "{/Also, /And /}shoppers see a stale status."
+            - "The status lags a day."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Store the carrier per parcel."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+  infra:
+    - labels: [bug]
+      let:
+        launch: ["{bp_launch}"]
+      title:
+        - "Product images stale after {launch}"
+        - "Cache serves old pack shots"
+        - "CDN keeps the old banner"
+      body:
+        -   - "New images appear {1-6} hours late."
+            - "Shoppers see old pack shots."
+        -   - "{/Also, /And /}the cache ignores the new file."
+            - "No purge runs at release."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "Purge on publish."
+        - "Version the file names."
+        - "{b_cm_check}"
+    - labels: [performance]
+      let:
+        peak: ["{bp_peak}"]
+      title:
+        - "Checkout limits too tight for {peak}"
+        - "Rate limiting blocks shoppers in {peak}"
+        - "Raise checkout capacity before {peak}"
+      body:
+        -   - "Traffic jumps {2-6}x at {peak}."
+            - "Last time shoppers saw errors."
+        -   - "{/Also, /And /}limits trip on shared addresses."
+            - "Retries then add more load."
+            - ""
+        -   - "{/Also, /And /}raise limits and add workers."
+            - ""
+      comments:
+        - "{b_cm_prof}"
+        - "Test with last launch traffic."
+        - "{b_cm_plan}"
+    - labels: [security, bug]
+      title:
+        - "Reviews key stored in plain text"
+        - "Email platform key sits in repo"
+        - "Rotate the shipping api key"
+      body:
+        -   - "A key appears in {p_script_path}."
+            - "It sits in a config file."
+        -   - "{b_sc_c}"
+            - "{b_sc_d}"
+        -   - "{/Also, /And /}keep details out of chat."
+            - ""
+      comments:
+        - "Rotated it on {day}."
+        - "Moved it to the secret store."
+        - "{b_cm_clr}"
+  ops:
+    - labels: [question]
+      let:
+        script: ["sync_stock.sh", "export_orders.sh", "resend_tracking.sh", "{p_script}"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+        - "Does anything call {script}?"
+        - "Retire {script}?"
+        - "{script}: anyone using this?"
+      body:
+        -   - "Found {script} while tidying."
+            - "{script|cap} has no recent changes."
+        -   - "{/Also, /And /}written for the old warehouse."
+            - "It predates the new storefront."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Will remove it next month."
+      comments:
+        - "Not used by us."
+        - "Check cron on {p_old_ref}."
+        - "Keep it until the move ends."
+comments:
+  - "Care has {2-9} of these open."
+  - "{b_pwho|cap} has a shopper waiting."
+  - "Does it hit {bp_partner} orders too?"
+  - "Matters most around {bp_peak}."
+  - "Checked the order log, same result."
+  - "Is it only {bp_product}?"
+  - "Hold off until {bp_peak} ends."
+  - "Quality wants to know."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: {bp_launch} is {c_soon}, all hands on deck"
+        - "minis of {bp_product} in {c_room} {c_soon}"
+        - "{c_hey}, {bp_peak} planning {day} at {time}"
+        - "launch freeze starts {c_soon}"
+        - "welcome {person} to the commerce team"
+      replies:
+        -   - "can we try the new shade?"
+            - "who is on call?"
+            - "will it be recorded?"
+        -   - "{c_yes}, grab one in the kitchen"
+            - "rota is in the calendar"
+            - "{c_idk}, ask {person}"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_em}"
+    - root:
+        - "{c_hey}: benefits enrolment closes {c_soon}"
+        - "office closed {c_soon}, wfh"
+        - "it patching {c_soon}, restart please"
+        - "photo shoot in {c_room} {c_soon}"
+      replies:
+        -   - "{c_ack}"
+            - "{c_thanks}"
+        -   - ""
+            - "thanks for the heads up"
+    - root:
+        - "huge thanks to {person} for the launch weekend"
+        - "{c_hey}, we hit a sales record yesterday"
+        - "the team won the retail award"
+      replies:
+        -   - "amazing"
+            - "{c_em}"
+            - "well deserved"
+        -   - ""
+            - "{c_thanks}"
+  off-topic:
+    - root:
+        - "anyone tried {bp_product}?"
+        - "my skin loves {bp_product}"
+        - "swap shades with me, wrong match"
+        - "minis in {c_room}, help yourselves"
+        - "lunch ideas, sick of {c_food}"
+      replies:
+        -   - "love it"
+            - "smells amazing"
+            - "not for me"
+        -   - "{c_lol}"
+            - "save me one"
+            - ""
+    - root:
+        - "{c_sport} {c_soon}, anyone in?"
+        - "{c_weekend} {c_soon}, anyone?"
+        - "{c_pet} just did something silly"
+        - "reading anything good lately?"
+      replies:
+        -   - "i'm in"
+            - "nice"
+            - "can't, sorry"
+        -   - "{c_em}"
+            - ""
+  engineering:
+    - root:
+        - "checkout errors up since the deploy"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "{c_ci_fail} is failing on main"
+        - "who owns the promo engine?"
+        - "should we bump {c_dep}? new major is out"
+      replies:
+        -   - "i'll look {c_when_eng}"
+            - "which promo?"
+            - "{c_idk}, checking"
+        -   - "it is the new build"
+            - "rolled back, watching"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "design question for {c_eng_area}, async?"
+        - "heads up, freeze from {day} for {bp_peak}"
+        - "why does {c_eng_area} retry {2-9} times?"
+        - "who is on call this week?"
+      replies:
+        -   - "async, with a retry"
+            - "ask {person}"
+            - "it is in the handbook"
+        -   - "{c_ack}"
+            - "ok, thanks"
+            - ""
+    - root:
+        - "local env broke after {pulling main/a rebase}"
+        - "is {c_tool} down for anyone else?"
+        - "tiny pr: fix typo in {repo} readme"
+      replies:
+        -   - "restart the dev container"
+            - "same here"
+            - "merged"
+        -   - "{c_thanks}"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the promo fixes, standup in {5-15} minutes"
+        - "who picks up {issue}?"
+        - "sprint planning {day} at {time}, bring estimates"
+        - "anyone free to pair on {issue}?"
+        - "retro: who owns the promo rules?"
+      replies:
+        -   - "me, after standup"
+            - "i can {c_when_eng}"
+            - "{c_pto}, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {c_customer} reports {bp_fail}"
+        - "care says {bp_fail}, {issue} maybe?"
+        - "{c_hey}, {bp_fail} again, {2-9}th this week"
+        - "a reviewer mentions {bp_fail}"
+      replies:
+        -   - "which order?"
+            - "{issue} looks like it"
+            - "send me the order number"
+        -   - "{c_ack}, taking it"
+            - "checking the log"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers care escalations?"
+      replies:
+        -   - "in the handbook"
+            - "i do"
+        -   - "{c_thanks}"
+            - ""
+  support:
+    - let:
+        who: ["{c_customer}"]
+        issue_kind: ["{bp_issue}"]
+      root:
+        - "{who|cap} reports {issue_kind}"
+        - "{s_hey}, {who}: {issue_kind}, ticket {4100-4999}"
+        - "{who} is upset, {issue_kind}"
+        - "{issue_kind} again, what do we offer?"
+        - "review mentions {issue_kind}"
+      replies:
+        -   - "send a replacement"
+            - "known, see {issue}"
+            - "ask for a photo first"
+            - "escalate to quality"
+        -   - "{s_ack}, will reply"
+            - "{s_thx}"
+            - "done, refunded"
+            - ""
+    - let:
+        product: ["{bp_product}"]
+        why: [allergic reaction, breakout, wrong shade, smells off, did not like it]
+      root:
+        - "return request: {product}, {why}"
+        - "{s_hey}, refund for {product}, opened, {why}"
+        - "shopper wants money back, {why}"
+        - "opened {product} return, {why}"
+      replies:
+        -   - "refund once, no return"
+            - "ask for a photo"
+            - "allergy cases go to quality"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - let:
+        item: ["{item_a}", "{item_b}"]
+        sum: ["{s_money}"]
+      root:
+        - "{s_cust|cap} asks why {item} is {sum}"
+        - "buyer questions the {item} line"
+        - "can someone explain {item}? customer asks"
+        - "{item} went up, they noticed"
+      replies:
+        -   - "price list changed on the 1st"
+            - "freight follows the carrier rate"
+            - "{s_look} at the order"
+        -   - "{s_thx}"
+            - ""
+    - root:
+        - "queue is at {20-90} open tickets, mostly tracking"
+        - "{s_hey}, a subscriber was charged after skipping"
+        - "the quiz lost a shopper's result"
+        - "gift order went to wrong person"
+      replies:
+        -   - "known, see {issue}"
+            - "i'll check the order"
+            - "send me the order number"
+        -   - "{s_ack}"
+            - "{s_thx}"
+  incidents:
+    - root:
+        - "checkout errors spiking during {bp_launch}"
+        - "stock feed is {20-90} minutes behind"
+        - "orders not reaching the warehouse since {time}"
+        - "{s_hey}, payments declining at {time}"
+      replies:
+        -   - "is it all shoppers?"
+            - "{s_oncall} is looking"
+            - "queue page is on"
+        -   - "{bp_fix}, watching"
+            - "back at {time}"
+            - ""
+        -   - "{s_thx}, file an issue"
+            - ""
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed"
+        - "review of the launch outage is {day} at {time}"
+        - "on-call handover: nothing open"
+      replies:
+        -   - "threshold is tight, raising it"
+            - "worth an issue"
+            - "works for me"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "certificate for the storefront expires in {2-9} days"
+        - "{s_al} order sync backlog at {1-9},{100-900}"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "{s_al} stock feed stale since {time}"
+      replies:
+        -   - "renewing now"
+            - "i'll check the feed"
+            - "looks like the new build"
+        -   - "{s_ack}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you check the promo rules {s_soon}?"
+        - "{s_hey}, can you cover care escalations {s_soon}?"
+        - "where do batch codes live?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this review"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - ""
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "ugh, staging shop broke again"
+        - "survived {bp_peak}, finally"
+        - "{s_hey}, got a minute for launch prep?"
+      replies:
+        -   - "yes, count me in"
+            - "can't today"
+            - "same, long week"
+        -   - "tomorrow?"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Order emails delayed
+      - Shopper receipts arriving late
+      - Confirmation mail not sent
+    alert:
+      - "order emails delayed, oldest waited {20-90} min"
+      - "{s_al} confirmation queue age {s_age}"
+      - "receipts not going out since {time}"
+    fix_message:
+      - "Queue order emails, not inline sends"
+      - "{s_q_verb|cap} order mail {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment provider callback errors
+      - Elevated errors on payment callbacks
+      - Payment events failing
+    alert:
+      - "payment callbacks failing, rate above {5-30} percent"
+      - "{s_al} payment events erroring since {time}"
+      - "callback endpoint throwing 5xx errors"
+    fix_message:
+      - "Retry callbacks on timeout"
+      - "Retry callbacks that time out"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate order confirmations
+      - Shoppers got the receipt twice
+      - Confirmation sent twice
+    alert:
+      - "shoppers got receipts twice, {3-12} reports"
+      - "{s_al} duplicate confirmations after a retry"
+      - "same email sent twice since {day}"
+    fix_message:
+      - "Check the sent log first"
+      - "Skip emails already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly sales load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad order rows"
+      - "{s_al} warehouse load aborted, dashboards stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed order rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Sales load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "sales load ran twice, orders doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Account portal timeouts for big accounts
+      - Order history times out
+      - Portal slow for loyal shoppers
+    alert:
+      - "account portal timeouts, p95 above {5-20}s"
+      - "{s_al} order history 504s, largest accounts only"
+      - "portal slow for big accounts since {time}"
+    fix_message:
+      - "Page the order history"
+      - "Add pagination to orders"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Account login errors after deploy
+      - Shoppers signed out after the release
+      - Login loop on the storefront
+    alert:
+      - "shopper logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "shoppers cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - Storefront staging certificate expired
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}"
+      - "{s_al} tls errors on staging, no renewal"
+      - "certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - Launch alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "checkout alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "seeing the same in care tickets"
+    - "checking the checkout dashboard now"
+    - "is it all shoppers or some?"
+    - "might be the deploy from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the storefront, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the promo rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} sets shipping? {s_un_c}"
+    - "{s_un_a} why the order sync slowed? {s_un_c}"

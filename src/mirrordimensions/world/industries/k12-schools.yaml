@@ -1,0 +1,577 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# K-12 school districts: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: k12-schools
+name: K-12 school districts
+group: Education and non-profit
+aliases: [school district, public schools, k-12, primary and secondary education, school system]
+description: A public school district that enrols students, runs meals, buses and attendance, reports to the state and serves families through a portal.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [County Schools, Unified School District, Public Schools, Independent School District, City Schools, Regional School District]
+invoice_items: [Meal account top-up, Activity and field trip fees]
+organization:
+  head: Director of Technology
+  it_admin: District Systems Administrator
+  teams:
+    platform: {department: District Technology, title: Systems Engineer, lead: Technology Coordinator}
+    billing: {department: Business Office, title: Fee Systems Developer, lead: Business Systems Lead}
+    data: {department: Assessment and Data, title: Data Analyst, lead: Data Coordinator}
+    support: {department: Help Desk, title: Technology Support Specialist, lead: Help Desk Supervisor}
+    product: {department: Student Services, title: Student Systems Analyst, lead: Student Services Coordinator}
+    operations: {department: Operations, title: Operations Coordinator, lead: Operations Manager}
+names:
+  repos:
+    billing-service: [family-billing, fee-accounts, meal-accounts, student-fees]
+    platform-docs: [district-tech-handbook, tech-runbooks, systems-handbook, it-wiki]
+    data-pipeline: [state-reporting, student-data-loads, roster-sync, enrolment-etl]
+    infra-config: [district-infra, campus-config, systems-config, school-network-config]
+    customer-portal: [parent-portal, family-portal, guardian-access, school-connect]
+    ops-scripts: [old-district-scripts, sysadmin-scripts, legacy-tools, summer-scripts]
+  channels:
+    engineering: [district-tech, tech-dev, systems-dev]
+    incidents: [outages, school-outages, site-down, incidents]
+    releases: [releases, term-changes, deploys]
+    billing-team: [business-office-tech, fee-systems, billing-team]
+    platform-team: [infrastructure, district-infra, platform-team]
+    data-team: [state-reporting, data-team, assessment-data]
+    support: [help-desk, tech-support, school-support]
+    leads: [tech-leads, cabinet-tech, leads]
+systems:
+  typical: [Gitea, Mattermost, Google Workspace, Microsoft 365, Okta, Instructure Canvas, Jamf, Cisco Meraki Dashboard, powerschool, clever, infinite campus]
+  common: [Zoom, Zendesk, Microsoft Intune, Tyler Technologies, Esri ArcGIS Online, Qualtrics]
+symbols:
+  b_doc: [fee statement, meal account statement, fee notice, tuition statement]
+  b_customer: [household, multi-student, free-meal, after-care, preschool]
+  b_who: [the front office, the business office, the school secretaries, the registrar]
+  b_pwho: [a parent, the front office, "{person}", the school secretaries]
+  b_currency: [USD, US dollar, dollar]
+  b_taxkind: [sales tax, state fee, district fee, convenience fee]
+  b_region: [the north zone, the east zone, a neighbouring district, an out-of-district school, a charter campus]
+  b_provider_event: [payment succeeded, payment failed, refund completed, chargeback opened, autopay enrolled]
+  b_page: [fees, meal accounts, payment methods, student records, the family dashboard]
+  b_acct_size: ["{2-6} students", "{300-900} meal transactions", "{3-9} guardians", "{40-200} saved receipts"]
+  b_browser: [Chrome on a school laptop, Safari on an iPad, Edge, an older Chromebook, Firefox]
+  c_customer: [a parent, a principal, a school secretary, a transport coordinator]
+  s_plan: [the free lunch tier, the reduced price tier, a full price account, the after-care plan]
+  p_source: [the SIS enrolment export, the cafeteria till files, the bus vendor route feed, the state assessment file]
+  p_report: [the attendance dashboard, the weekly meal count report, the enrolment census report, the fee collections report]
+  p_table: [students, enrolments, attendance, meal transactions, fee accounts, guardians, sections]
+  p_finance_ask: [the business manager, someone in the business office, the district treasurer, the controller]
+  c_eng_area: [the roster sync, the attendance feed, the fee statement job, the meal balance lookup, the parent login flow]
+  s_thing: [the roster sync, the attendance export, the nightly report, the meal balance job]
+  s_inv_late: [fee notice emails delayed, fee statement mail running late, parent notices not going out, statement sends lagging behind]
+  s_dup_a: [parents got the fee notice twice, duplicate fee statement emails, same notice mailed repeatedly, fee notices sent twice]
+  s_dup_fix: [skip notices already sent, check the sent log first, do not resend after a retry, stop resending on retry]
+  s_page_fix: [paginate the fee history, page the student list, add pagination to fees, load fee history in pages]
+  s_portal_slow: [parent portal timeouts for large households, big households see portal 504s, fee page times out, large households, portal slow for multi-student families]
+  ks_term: [back to school week, count day, report card release, the first week of term, enrolment opening]
+  ks_campus: [the high school, the middle school, an elementary school, the alternative campus, the early learning centre]
+  ks_kid: [a kindergartener, a transfer student, a new enrolment, a sixth grader, a senior]
+  ks_who: [a principal, a school secretary, the nutrition office, the transport office, a counselor]
+  ks_sys: [the student records system, the attendance system, the meal accounting system, the bus routing tool, the gradebook]
+  ks_cert: [the parent portal certificate, the single sign-on certificate, the content filter certificate, the rostering service key]
+  ks_state: [the state count file, the attendance submission, the enrolment census, the discipline report]
+  ks_amt: ["{12-90}", "{120-380}", "{5-40}"]
+  ks_gripe: [the copier is jammed again, the bell schedule changed again, "wifi died in room {101-340}", the sub list is empty]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        acct: [lunch account, meal account, cafeteria account]
+        event: [a refund, a transfer between siblings, a till sync, a free meal approval]
+      title:
+        - "{acct|cap} goes negative after {event}"
+        - "Negative balance on a {acct} following {event}"
+        - "Meal balance is {wrong/off/stale} after {event}"
+        - "Why does {event} change the {acct} twice?"
+        - "{event|cap} leaves the {acct} {short/out of step/off}"
+      body:
+        - ["{b_raised}, {b_scope}.", "Noticed at the cafeteria till, {b_pscope}."]
+        - ["Till says one thing, portal another.", "Balance after {event} disagrees with the till."]
+        - ["{b_urgent}", "{b_urgent} {b_offer}"]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Till batches sync at {time}, so a lag is expected."
+        - "{b_cm_check}, I think {b_money_path} applies it twice."
+    - labels: [bug, security]
+      let:
+        doc: ["{b_doc}"]
+        who: [another student's, a sibling's, a former guardian's, a different household's]
+      title:
+        - "{doc|cap} lists {who} name and balance"
+        - "Can a guardian see {who} charges on a {doc}?"
+        - "Shared household {doc} exposes {who} details"
+        - "{doc|cap} PDF shows {who} lunch history"
+      body:
+        - ["{b_raised}, {b_scope}.", "Found while helping a parent, {b_pscope}."]
+        - ["Linked students all print on one {doc}.", "A custody restriction is ignored in {b_dl_path}."]
+        - ["{b_dlk_e}", "Student privacy matter, keep it here."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}, restricted guardian included."
+        - "Does FERPA make us notify them?"
+        - "{b_cm_fix_up} It filters by guardian link."
+    - labels: [bug]
+      let:
+        tier: [free lunch, reduced price, fee waiver, hardship waiver]
+        when: [after the yearly renewal, at the start of term, after an income change, after a direct certification file]
+      title:
+        - "{tier|cap} status not applied {when}"
+        - "Students lose {tier} {when}"
+        - "{tier|cap} flag resets {when}"
+        - "Full price charged to {tier} students {when}"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} for {2-40} students."]
+        - ["The grace window is {10-30} days at term start.", "Status comes from a state file."]
+        - ["{b_urgent}", "Families are being billed in error."]
+      comments:
+        - "Which file wins when two {tier} records disagree?"
+        - "{b_cm_plan}, the file loader is the cause."
+        - "Refund the full charges once fixed."
+    - labels: [enhancement]
+      let:
+        item: [field trip fees, athletics fees, instrument rental, after-care tuition, lost textbook charges, preschool tuition]
+      title:
+        - "Let guardians pay {item} in instalments"
+        - "Payment plan for {item}"
+        - "Partial payments on {item}"
+        - "{item|cap}: sibling discount, {requested again/asked for again/again}"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} for {item}, {b_scope}."]
+        - ["Payment is all or nothing today.", "Guardians pay in full first."]
+        - ["Board policy allows {2-6} instalments.", "The principal must approve any plan."]
+      comments:
+        - "Who tracks the plan afterwards?"
+        - "{b_cm_plan} for the backend, the form needs {person}."
+    - labels: [needs-decision]
+      let:
+        question: [unpaid meal balances, meal charges over the limit, alternate meals, debt at year end, balances for graduating seniors]
+        who: [the business office, the nutrition director, the board, the principals]
+      title:
+        - "Policy for {question}?"
+        - "Decision needed on {question}"
+        - "What should happen with {question}"
+        - "{question|cap}: who approves?"
+      body:
+        - ["Nothing in {b_credit_path} limits it.", "The code allows anything today."]
+        - ["{who|cap} should set the rule.", "Needs an answer {b_timeframe}."]
+      comments:
+        - "State meal debt rules changed."
+        - "Let's decide on {day}, {person} can you bring numbers?"
+    - labels: [bug]
+      let:
+        thing: [credit balances, sibling links, autopay enrolments, waiver status]
+      title:
+        - "Year end rollover drops {thing}"
+        - "{thing|cap} lost after the summer rollover"
+        - "Rollover job resets {thing} for {2-400} accounts"
+      body:
+        - ["{b_raised}, {b_scope}.", "Seen on {3-40} accounts since the August run."]
+        - ["The rollover copies accounts without {thing}.", "Nothing restores {thing} afterwards."]
+      comments:
+        - "A dry run has the gap."
+        - "{b_cm_later}"
+  portal:
+    - labels: [bug]
+      let:
+        event: [a school transfer, a mid-year enrolment, a custody update, a new household record]
+        child: [a student, a second child, a stepchild, a new sibling]
+      title:
+        - "Guardian cannot see {child} after {event}"
+        - "{child|cap} missing from the family dashboard after {event}"
+        - "Linked students vanish after {event}"
+        - "Parent sees no students after {event}"
+      body:
+        - ["{b_raised}, {b_pscope}.", "Parents write to the front office, {b_pscope}."]
+        - ["Links come from the records feed.", "Guardian links are rebuilt nightly."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Is the link dropped at withdrawal?"
+        - "{b_cm_ask_who}"
+    - labels: [performance, bug]
+      let:
+        load: [the first day of registration, the evening before term, opening night, the week before term]
+      title:
+        - "Registration pages time out on {load}"
+        - "Portal slows to a crawl on {load}"
+        - "Enrolment form errors during {load}"
+        - "Prepare the portal for {load}"
+      body:
+        - ["Families hit errors for {20-90} minutes.", "The help desk had {30-200} calls on {day}."]
+        - ["Most time is the household lookup.", "The form saves each field."]
+      comments:
+        - "Last year peaked at {200-900} sessions at once."
+        - "{b_cm_prof} {b_cm_prof2}"
+    - labels: [enhancement]
+      let:
+        lang: [Spanish, Vietnamese, Arabic, Somali, Mandarin, Haitian Creole, Hmong]
+      title:
+        - "Notices and forms are missing {lang} text"
+        - "Add {lang} to the family portal"
+        - "{lang} speaking families get English fee notices"
+      body:
+        - ["{b_raised}, {b_scope}.", "The language office asked for it."]
+        - ["Strings live in portal/templates.", "Emails need the same change."]
+      comments:
+        - "Do we use the translation service?"
+        - "Arabic needs a layout check."
+    - labels: [bug]
+      let:
+        device: [Chromebooks, iPads, shared lab machines, older Chromebooks]
+      title:
+        - "Student sign in fails on {device}"
+        - "Single sign on loops on {device}"
+        - "{device|cap} cannot reach the portal {since/after} {the deploy/an update/lunch}"
+      body:
+        - ["{b_raised}, {b_scope}.", "Teachers report it from {2-9} classrooms."]
+        - ["Staff laptops are fine.", "It started after the {day} change."]
+      comments:
+        - "Is the filter blocking the redirect?"
+        - "{b_cm_repro} on a managed device."
+  docs:
+    - labels: [docs, bug]
+      let:
+        page: [the state reporting calendar, the first week checklist, the enrolment deadlines page, the bell schedule changes page]
+        stale: [last year's count day, the old cutoff date, last year's holidays, the retired form name]
+      title:
+        - "{page|cap} still lists {stale}"
+        - "{Docs/Handbook}: {page} mentions {stale}"
+        - "Update {page}, it has {stale}"
+      body:
+        - ["{b_raised}.", "Noticed during {the summer/this week's} review."]
+        - ["The dates go stale yearly.", "Nobody owns the yearly refresh."]
+      comments:
+        - "Can dates come from the calendar?"
+        - "{b_cm_docs}"
+    - labels: [docs, task]
+      let:
+        event: [the count day extract, the summer rollover, the first day of school, the snow day notice, the grade reporting window]
+      title:
+        - "Runbook for {event}"
+        - "{event|cap} lacks a step in the handbook"
+        - "Write down who does what on {event}"
+      body:
+        - ["Only {person} knows the order of steps.", "The checklist lives in someone's email."]
+        - ["Include who to call.", "List the usual failures too."]
+      comments:
+        - "I can walk someone through it."
+        - "{b_cm_draft} the incident."
+    - labels: [docs, needs-decision]
+      let:
+        request: [records requests from parents, subpoenas for student records, directory information opt outs, transfers to another district]
+      title:
+        - "Write up how we handle {request}"
+        - "Decide who answers {request}"
+        - "{request|cap}: no written procedure"
+      body:
+        - ["Today it is case by case.", "Answers differ by person."]
+        - ["Counsel should review the wording.", "FERPA time limits apply."]
+      comments:
+        - "The registrar has a draft."
+        - "{b_cm_when} we agreed to log each request."
+  data:
+    - labels: [bug, incident]
+      let:
+        problem: ["missing {2-60} students", double counting transfers, short on entry dates, rejected by the state portal]
+      title:
+        - "State {count day/enrolment} extract is {problem}"
+        - "Count day file {problem}"
+        - "{problem|cap} in the state submission"
+      body:
+        - ["The deadline is {b_timeframe}.", "The state window closes on {day}."]
+        - ["{b_raised}.", "The registrar caught it first."]
+      comments:
+        - "Compare against the SIS roll for {ks_campus}."
+        - "{b_cm_repro}, late withdrawals are the cause."
+    - labels: [bug, data-quality]
+      let:
+        kind: [block schedule classes, late bus arrivals, half day students, dual enrolled students]
+      title:
+        - "Attendance feed has duplicate periods for {kind}"
+        - "{kind|cap} counted twice in attendance"
+        - "Attendance totals off for {kind}"
+      body:
+        - ["Rates are off by {1-6} percent.", "Principals noticed the daily figure."]
+        - ["Duplicates share a section id.", "Rows differ only by the period."]
+      comments:
+        - "Dedupe on student, section and date?"
+        - "{b_cm_check}, the vendor changed the export."
+    - labels: [bug]
+      let:
+        event: [a mid-year transfer, a section change, a schedule rebuild, a withdrawal and re-enrolment]
+      title:
+        - "Roster sync drops students after {event}"
+        - "Learning platform rosters wrong after {event}"
+        - "{event|cap} leaves a student in two sections"
+      body:
+        - ["Teachers see missing students, {b_pscope}.", "{b_raised}, {b_scope}."]
+        - ["The sync keys on section code.", "Deletes run before inserts."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Can we keep daily history?"
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{ks_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} expired with no warning"
+        - "Track expiry dates for school certificates"
+      body:
+        - ["Expiry in term blocks sign in.", "Help desk heard first last time."]
+        - ["Add a warning {14-30} days ahead.", "Put the renewal on the rota."]
+      comments:
+        - "{b_cm_plan}"
+        - "Summer is the safe time."
+    - labels: [enhancement, performance]
+      let:
+        peak: ["{ks_term}", snow day mornings, the evening of report cards]
+      title:
+        - "Scale the portal for {peak}"
+        - "Capacity plan for {peak}"
+        - "Tune {p_setting} before {peak}"
+      body:
+        - ["The pool ran dry by {time} last year.", "Traffic was {3-9} times a normal day."]
+        - ["Scale up {b_timeframe} and back down after.", "The database needs a plan too."]
+      comments:
+        - "{b_cm_prof}"
+        - "Snow day mornings spike hardest."
+    - labels: [bug, security]
+      let:
+        system: ["{ks_sys}"]
+        problem: ["retention is {7-30} days", the last restore was never tried, not covered after the upgrade, kept in one building only]
+      title:
+        - "Backups for {system}: {problem}"
+        - "{system|cap} backup gap: {problem}"
+        - "Can we restore {system}? {problem}"
+      body:
+        - ["Student records have legal retention.", "The auditors will ask about it."]
+        - ["Needs a restore drill before term.", "Test it on a copy first."]
+      comments:
+        - "Add it to the summer checklist."
+        - "{b_cm_check}"
+  ops:
+    - labels: [question, chore]
+      let:
+        thing: [bell schedule app, transport system, library catalogue, gradebook export, old attendance tool]
+      title:
+        - "Can we retire {p_script}? It feeds the {thing}"
+        - "Is the {thing} still read by {p_script}?"
+        - "{p_script} writes to the {thing}, anyone use it?"
+      body:
+        - ["No school has asked about it.", "The cron still runs at {time}."]
+      comments:
+        - "Ask the transport office first."
+        - "{b_cm_later}"
+comments:
+  - "Checked with the registrar, it matches."
+  - "A principal asked about this on {day}."
+  - "Counted {2-30} students affected so far."
+  - "Should wait until after {ks_term}, nothing risky now."
+  - "{ks_who|cap} confirmed it on their side."
+  - "Needs care, this touches student records."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: the district office is closed {c_soon}."
+        - "no school {c_soon}, offices shut too"
+        - "{c_hey|cap}, staff in-service {day} at {time}, laptops will be checked"
+        - "snow day {c_soon}? decision comes by {time}"
+        - "building closed {c_soon} for floors, wfh if you can"
+      replies:
+        - ["{c_thanks}", "{c_ack}", "does that include {ks_campus}?"]
+        - ["{c_yes}, all sites", "{c_no}, just the district office", ""]
+    - root:
+        - "welcome {person}, joining us as a {systems analyst/help desk tech/data analyst} {c_soon}"
+        - "{c_hey}, {person} starts {c_soon}, say hi"
+        - "new hire {person} is at the front desk today"
+        - "please welcome {person} to the technology office"
+        - "{person} is joining {c_soon}, set up a laptop please"
+      replies:
+        - ["welcome {person}!", "{c_em}", "{c_hey}"]
+        - ["which team?", "is the laptop ready?", ""]
+        - ["{c_thanks}", "{c_ack}", ""]
+    - root:
+        - "reminder: benefits open enrolment closes {c_soon}"
+        - "the retirement plan meeting is {day} at {time}"
+        - "{c_hey}: all staff survey closes {c_soon}, takes 5 minutes"
+        - "board meeting {day} at {time}, agenda is posted"
+        - "fire drill {day} around {time}, plan for it"
+      replies:
+        - ["where is the agenda?", "is it recorded?", "does it include {ks_campus}?"]
+        - ["{c_yes}", "{c_idk}", "check the staff site"]
+  off-topic:
+    - root:
+        - "did anyone see the {varsity/high school} game {last night/on friday}?"
+        - "who is going to the {football/volleyball/band} thing {c_soon}?"
+        - "{c_hey}, bake sale for the {robotics team/band/drama club} {c_soon}"
+        - "anyone have a good {tutor/daycare/dentist} near {ks_campus}?"
+        - "the {kids/class} are out on a trip"
+      replies:
+        - ["{c_agree}", "{c_lol}", "count me in"]
+        - ["what time?", "where?", ""]
+    - root:
+        - "lunch ideas? {ks_gripe}"
+        - "anyone want {c_food} {c_soon}?"
+        - "{c_place} has a lunch deal{c_sep} who is in?"
+        - "the vending machine ate {1-3} dollars again"
+        - "{c_food} or {c_food} for lunch?"
+      replies:
+        - ["{c_yes}", "{c_agree}", "not today, {s_busy}"]
+        - ["what time?", "{c_thanks}", ""]
+    - root:
+        - "{c_hey}, anyone doing anything this long weekend?"
+        - "going on {c_weekend} over the break, you?"
+        - "{c_pet} chewed my lanyard, again"
+        - "happy birthday {person}!"
+        - "summer plans? mine are {c_weekend}"
+      replies:
+        - ["{c_em}", "have fun!", "{c_lol}"]
+        - ["nothing planned", "{c_idk}", "{c_weekend} for me"]
+  engineering:
+    - root:
+        - "roster sync broke after the update{c_sep} seen it?"
+        - "roster job failed at {time}, {ks_campus} has no sections"
+        - "sync to the learning platform is {2-9} hours behind"
+        - "{c_eng_area} is erroring again for {ks_campus}"
+        - "does anyone know why {c_eng_area} deletes sections first?"
+      replies:
+        - ["{c_ack}, looking now", "same here", "{b_cm_check}"]
+        - ["vendor changed the api yesterday", "it was the {day} deploy", "{c_idk}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "deploy freeze before count day?"
+        - "deploy freeze for {ks_term}, from {day} until {c_soon}"
+        - "heads up, no changes to {ks_sys} before {ks_term}"
+        - "proposal: freeze changes the week of {ks_term}"
+        - "who needs a deploy before the {day} freeze?"
+      replies:
+        - ["{c_yes}, makes sense", "{c_agree}", "what about hotfixes?"]
+        - ["hotfixes need a lead's ok", "{c_yes}", ""]
+        - ["{c_ack}", ""]
+    - root:
+        - "{c_ci_fail} is failing again on main"
+        - "attendance export is slow at {time}, anyone looked?"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "who changed the {ks_state} export?"
+        - "{c_tool} broke for me after the update"
+      replies:
+        - ["{c_ack}", "{c_agree}", "me too"]
+        - ["looking after {c_when_eng}", "{c_idk}", ""]
+        - ["{c_thanks}", ""]
+  team:
+    - root:
+        - "who is covering the help desk {c_soon}?"
+        - "{c_pto}, can someone take the {registration/help} desk?"
+        - "i am {c_pto}, who covers the phones?"
+        - "need front desk cover at {ks_campus} {c_soon}"
+        - "coverage for {ks_campus} on {day}, anyone?"
+      replies:
+        - ["i can do the morning", "{c_yes}, i have it", "{c_no}, sorry"]
+        - ["{c_thanks}", "{c_ack}", ""]
+    - root:
+        - "back to school list: {laptops/labs} owner?"
+        - "{ks_term} prep meeting {day} at {time}"
+        - "who is picking up {issue}?"
+        - "standup in {5-15} minutes, {c_status} on my side"
+        - "anyone free to pair on {issue}?"
+      replies:
+        - ["i have the laptops", "i can take the accounts", "{c_idk}"]
+        - ["{c_ack}", "{c_thanks}", ""]
+    - root:
+        - "{ks_who} says {the portal is slow/fees look wrong/the bus app is down}"
+        - "escalation from {ks_who}: {c_eng_area} again"
+        - "a principal is asking about {issue}"
+        - "{ks_who} needs {ks_sys} fixed before {c_soon}"
+        - "customer escalation: {c_customer} cannot see fees"
+      replies:
+        - ["which school?", "since when?", "{b_cm_check}"]
+        - ["{ks_campus}", "since {day}", "{c_idk}"]
+        - ["i will call them", "{c_ack}", ""]
+  support:
+    - root:
+        - "a parent cannot see {fees/grades/lunch balance}{c_sep} {after a transfer/after a move/after the rollover}"
+        - "{s_cust} cannot see {ks_kid} on the portal"
+        - "parent says portal lists no students, {s_ticket}"
+        - "guardian locked out of the dashboard, {s_ticket}"
+        - "{c_customer} lost access after the {day} update"
+      replies:
+        - ["check the guardian link first", "{s_look}, one sec", "{c_ack}"]
+        - ["linked now, ask them to refresh", "it was the rollover", "{c_idk}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "refund request: {s_cust}, {ks_amt} dollars, says {charged twice/wrong tier/trip cancelled}"
+        - "meal balance dispute on {s_ticket}, {ks_amt} dollars"
+        - "{s_cust} says a refund never arrived, {s_ticket}"
+        - "field trip fee refund for {ks_kid}, {ks_amt} dollars"
+        - "family asks why the fee is {ks_amt} dollars this term"
+      replies:
+        - ["approved, send it", "needs the business office", "{s_look} at the till log"]
+        - ["done", "{c_thanks}", ""]
+    - root:
+        - "queue is at {3-40} open tickets, mostly password resets"
+        - "handover: {5-20} open tickets, nothing on fire"
+        - "heads up, {ks_campus} is {s_mood} today, {2-9} tickets"
+        - "updated the macro for {fee questions/lockouts/enrolment}"
+        - "tickets doubled since {ks_term}"
+      replies:
+        - ["{c_ack}", "{c_thanks}", "{c_em}"]
+        - ["i can take {ks_campus}", "{s_busy} here", ""]
+  incidents:
+    - root:
+        - "cafeteria tills are offline at {2-9} schools"
+        - "tills at {ks_campus} cannot sync since {time}"
+        - "meal balances missing at tills since {time}"
+        - "{ks_campus} serving line is down, cash only"
+        - "till sync failing for {2-9} sites"
+      replies:
+        - ["{c_ack}, checking the sync job", "same at {ks_campus}", "is it the vendor?"]
+        - ["vendor status shows an incident", "restarted the job", "{c_idk}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "{ks_sys} is {slow/down/timing out} for {ks_campus}"
+        - "is anyone else seeing {ks_sys} {s_symptom}?"
+        - "{ks_sys} {s_symptom} {s_since}"
+        - "bus routing is down, buses leave {time}"
+        - "state portal is down, file due {c_soon}"
+      replies:
+        - ["{c_ack}", "{b_cm_check}", "same here"]
+        - ["opened {issue}", "vendor is aware", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "certificate for {ks_cert} expires in {2-9} days"
+        - "the {p_alert_name} alert is flapping again"
+        - "post-incident review is {day} at {time}"
+        - "on-call handover: nothing open, {s_oncall} is quiet"
+        - "{s_al} wifi at {ks_campus} dropped, {2-9} access points"
+      replies:
+        - ["{c_ack}", "i will renew it {c_soon}", "{c_thanks}"]
+        - ["{c_agree}", ""]
+  direct:
+    - root:
+        - "{s_hey}, could you {s_look} at {ks_sys} {s_soon}?"
+        - "quick question: where do the {ks_state} files go?"
+        - "{s_hey}, can you read my notes on {ks_state} before {day}?"
+        - "got a minute, roster issue?"
+        - "{s_hey}, do you have the login for {ks_sys}?"
+      replies:
+        - ["{s_ack}", "{c_yes}, one sec", "{c_no}, {s_busy}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "{s_hey}, thought you would like this: {ks_gripe}"
+        - "ugh, {ks_gripe}"
+        - "{s_hey}, coming to the staff meeting {day}?"
+        - "can we move our check in {time}?"
+      replies:
+        - ["{s_ack}", "{c_agree}", "{c_lol}"]
+        - ["see you there", ""]
+    - root:
+        - "handing over {the roster work/the fee reports/the help desk} while i am {c_pto}"
+        - "i am working from home {c_soon}"
+        - "survived {ks_term}, finally"
+        - "can you cover my {registration/help} desk shift {c_soon}?"
+        - "heading to {ks_campus} for the afternoon"
+      replies:
+        - ["{c_ack}", "{c_thanks}", "{c_em}"]
+        - ["have a good one", ""]

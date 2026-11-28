@@ -1,0 +1,591 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Legal services: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: legal-services
+name: Legal services
+group: Professional services and real estate
+aliases: [law firm, law firms, legal, legal practice, attorneys]
+description: A law firm or legal department that bills clients by the matter, holds client funds in trust, and manages documents and deadlines.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [LLP, Law Group, Legal Partners, Attorneys at Law, Law Offices, and Associates]
+invoice_items: ["Professional fees", "Disbursements and expenses"]
+organization:
+  head: Chief Technology Officer
+  it_admin: IT Manager
+  teams:
+    platform: {department: Legal Technology, title: Legal Technology Engineer}
+    billing: {department: Finance Systems, title: Billing Systems Engineer}
+    data: {department: Knowledge and Data, title: Data Engineer}
+    support: {department: Client Services, title: Client Services Specialist}
+    product: {department: Practice Innovation, title: Practice Innovation Manager}
+    operations: {department: Firm Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [matter-billing, billing-engine, time-and-billing, ledes-billing]
+    platform-docs: [firm-handbook, legal-tech-docs, practice-runbooks, tech-handbook]
+    data-pipeline: [matter-warehouse, dms-loads, firm-analytics, reporting-loads]
+    infra-config: [firm-infra, environment-config, dms-config, platform-config]
+    customer-portal: [client-portal, client-hub, matter-portal, extranet]
+    ops-scripts: [admin-scripts, legacy-scripts, records-scripts, old-ops]
+  channels:
+    engineering: [legal-tech, dev, engineering]
+    incidents: [incidents, outages, system-alerts]
+    releases: [releases, deploys, change-log]
+    billing-team: [billing-systems, finance-systems, billing-eng]
+    platform-team: [legal-tech-platform, platform-team, infra-team]
+    data-team: [knowledge-data, data-team, analytics]
+    support: [client-services, helpdesk, support]
+    leads: [leads, practice-leads, managers]
+systems:
+  typical: [github, slack, microsoft 365, netdocuments, clio, docusign, okta]
+  common: [imanage, relativity, westlaw, litera, zoom]
+symbols:
+  b_doc: ["matter invoice", "pre-bill", "trust statement", "LEDES invoice", "{monthly/quarterly} statement"]
+  b_customer: ["corporate", "individual", "insurance carrier", "government", "in-house department"]
+  b_who: ["the billing partner", "accounting", "the practice group", "client legal ops"]
+  b_pwho: ["the billing partner", "a paralegal", "{person}", "the client"]
+  b_currency: ["EUR", "GBP", "CAD", "AUD", "CHF"]
+  b_taxkind: ["VAT", "sales tax", "GST", "withholding tax"]
+  b_region: ["England", "Ireland", "Ontario", "New South Wales", "Scotland"]
+  b_page: ["matters", "invoices", "trust ledgers", "the dashboard", "documents"]
+  b_acct_size: ["{200-900} time entries", "{15-60} timekeepers", "{3-12} open matters", "{40-300} saved contacts"]
+  c_customer: ["a corporate client", "a long-standing client", "an insurance carrier", "a partner's client"]
+  s_plan: ["an hourly matter", "a fixed fee matter", "a retainer", "a contingency matter"]
+  s_cust: ["a client on {s_plan}", "someone on {s_plan}", "a client with {s_plan}", "a partner with {s_plan}"]
+  p_table: ["matters", "time_entries", "clients", "trust_transactions", "invoices", "documents", "contacts", "payments"]
+  p_finance_ask: ["the billing partner", "someone in accounting", "the controller", "the finance director"]
+  p_report: ["the realization report", "the aged WIP report", "the trust reconciliation", "the collections report"]
+  p_source: ["the document management exports", "the conflicts database", "the court docketing feed", "the e-discovery platform logs", "the time entry app export"]
+  c_eng_area: ["the time entry sync", "the LEDES export", "the trust ledger job", "the conflict check"]
+  s_thing: ["the time sync", "the LEDES export", "the export", "the nightly load"]
+  ls_ebill: ["the client e-billing portal", "the carrier billing system", "the legal ops platform", "the client invoice gateway"]
+  ls_matter: ["a litigation matter", "a deal matter", "a regulatory matter", "an advisory matter"]
+  ls_wall: ["the deal team", "the merger group", "a conflicted team", "the litigation team"]
+  ls_deadline: ["the filing deadline", "month end", "the audit date", "the bar renewal date"]
+  ls_group: ["litigation", "corporate", "real estate", "employment", "tax"]
+  ls_task: ["the trust reconciliation", "the conflict check", "time entry review", "the pre-bill run"]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        ebill: ["{ls_ebill}"]
+        reason: ["a bad task code", "a missing timekeeper id", "a rate over the cap", "a wrong date format", "a stray blank line"]
+      title:
+        - "{ebill|cap} rejects the LEDES file"
+        - "LEDES export refused because of {reason}"
+        - "{reason|cap} fails the LEDES upload"
+        - "Clients report e-billing rejects for {reason}"
+        - "LEDES 1998B file rejected: {reason}"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {b_customer} accounts, {b_scope}."]
+        - ["No schema check runs before upload.", "The export in {b_export_path} skips validation."]
+        - ["Rejects delay payment by days.", "Each reject costs a resubmission."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a rate over the cap."
+        - "Validate before sending, not after."
+        - "{person} has the client's billing guidelines."
+    - labels: [bug, security]
+      let:
+        problem: ["can go negative after a refund", "mixes two clients' funds", "shows a balance after disbursement", "ignores a pending cheque"]
+      title:
+        - "Trust ledger {problem}"
+        - "IOLTA ledger {problem} on a closed matter"
+        - "Client funds: ledger {problem}"
+        - "Why does the trust ledger {problem}?"
+      body:
+        - ["{b_raised}, found during reconciliation.", "Accounting spotted it at month end."]
+        - ["The check in {b_credit_path} sums one account only.", "Disbursements are not locked against reads."]
+        - ["{b_dlk_e}", "Keep details out of open channels."]
+      comments:
+        - "{b_cm_repro} with two matters for one client."
+        - "Never overdraw a client balance."
+        - "Add a failing test per type."
+    - labels: [bug]
+      let:
+        change: ["a promotion", "a client rate agreement", "a new fiscal year", "an alternative fee arrangement", "a lateral hire"]
+      title:
+        - "Billing rate not applied after {change}"
+        - "Rates stale after {change}"
+        - "Old rate used after {change}"
+        - "Wrong rate on {b_doc}s after {change}"
+      body:
+        - ["{b_raised}, {b_scope}.", "Accounting found it pre-bill."]
+        - ["Rates are cached per timekeeper.", "{b_money_path} reads rates once."]
+        - ["{b_cm_provided} final bills stay fixed, drafts move.", "Drafts can change, final bills cannot."]
+      comments:
+        - "Effective dates matter here."
+        - "{b_cm_check} the rate card table."
+    - labels: [needs-decision]
+      let:
+        question: ["write-offs above the cap", "pre-bill edits after approval", "billing in 6-minute increments", "late time entries after the bill", "fee estimates beyond budget"]
+        who: ["the billing partner", "the finance director", "the practice group"]
+      title:
+        - "Policy for {question}?"
+        - "Decision needed: {question}"
+        - "{question|cap}: who approves?"
+        - "Agree rules for {question}"
+      body:
+        - ["{who|cap} decides {question} by hand today.", "Answers differ by partner."]
+        - ["The system has no rule.", "Nothing in {b_credit_path} limits it."]
+        - ["Need an answer {b_timeframe}."]
+      comments:
+        - "Clients' billing guidelines may override us."
+        - "Let's decide {day}, {person} can bring cases."
+    - labels: [bug]
+      let:
+        gap: ["{1-9} cents", "{40-900} dollars", "one expense line", "a single write-off"]
+      title:
+        - "Pre-bill and final differ by {gap}"
+        - "Final {b_doc} is {off/out} by {gap}"
+        - "Bill and pre-bill disagree by {gap}"
+        - "Why is {b_doc} not matching the pre-bill?"
+      body:
+        - ["{b_raised}, {b_scope}.", "A partner noticed one matter."]
+        - ["Expenses are added after approval.", "Rounding differs between the two."]
+      comments:
+        - "{b_rd_e} Accounting prefers that."
+        - "{b_cm_stage}, expenses post late."
+    - labels: [enhancement]
+      let:
+        doc: ["{b_doc}"]
+        feature: ["a client matter number", "a purchase order", "task and activity codes", "a budget variance line", "a second billing contact"]
+      title:
+        - "Add {feature} to matter invoices"
+        - "Clients want {feature} on the bill"
+        - "{feature|cap} on every {b_doc}?"
+        - "Show {feature} on {b_doc}s"
+      body:
+        - ["{b_raised} for {feature}, {b_scope}.", "{b_raised}, {b_scope}."]
+        - ["{b_ft_a} {b_ft_b} {b_ft_c}.", "{b_ft_d}, {b_ft_e} {b_ft_f}"]
+      comments:
+        - "Is {feature} free text or fixed?"
+        - "{b_cm_plan}"
+  portal:
+    - labels: [bug, security]
+      let:
+        thing: ["documents", "invoices", "trust balances", "messages"]
+        scope: ["another matter's", "a former client's", "a different client's"]
+      title:
+        - "Client sees {scope} {thing} in the portal"
+        - "Access check missing for {thing} in {ls_matter}"
+        - "{thing|cap} from {scope} matter visible"
+        - "Can a client open {scope} {thing}?"
+      body:
+        - ["{b_raised}, while helping a client.", "Spotted while checking {roles/access}."]
+        - ["Matter access is never checked.", "The query filters by client only."]
+        - ["{b_dlk_e}"]
+      comments:
+        - "{b_cm_repro} with two matters, one client."
+        - "Check the access log first."
+    - labels: [bug]
+      let:
+        problem: ["fails to send", "loses the attachment", "arrives twice", "shows the wrong sender"]
+        limit: ["{10-25} MB", "the size cap", "two files"]
+      title:
+        - "Secure message {problem} over {limit}"
+        - "Portal message {problem}"
+        - "Client messages {problem} for some matters"
+      body:
+        - ["{b_raised}, {b_pscope}.", "{b_pwho|cap} reported it, {b_pscope}."]
+        - ["Big files time out.", "The upload limit is not shown."]
+      comments:
+        - "{b_cm_stage}, attachments fail past {limit}."
+    - labels: [enhancement]
+      let:
+        ask: ["pay a bill by ACH", "approve an estimate", "sign an engagement letter", "upload files to a matter", "see a budget summary"]
+      title:
+        - "Let clients {ask} in the portal"
+        - "Self-service: {ask}"
+        - "Clients ask to {ask}"
+      body:
+        - ["Today clients email the team to {ask}.", "{b_who|cap} handles it by {hand/email}."]
+        - ["{b_fr_c}", "A portal form would be enough."]
+      comments:
+        - "Needs a firm signature step."
+        - "{b_fr_d}"
+    - labels: [bug]
+      let:
+        when: ["the matter closes", "a client changes address", "two clients merge", "a partner leaves"]
+      title:
+        - "Portal access breaks when {when}"
+        - "Users locked out after {when}"
+        - "Access rows stale when {when}"
+      body:
+        - ["{b_raised}, {b_pscope}.", "Client services saw it {twice/again}."]
+        - ["The DMS drives the role sync.", "Access syncs only nightly."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+  docs:
+    - labels: [docs, bug]
+      let:
+        page: ["the conflict check guide", "the trust accounting guide", "the matter opening checklist", "the retention schedule"]
+        stale: ["a retired partner", "last year's rates", "the old folder layout", "an outdated form"]
+      title:
+        - "{Docs/Handbook}: {page} still lists {stale}"
+        - "{page|cap} mentions {stale}"
+        - "Out of date: {page} has {stale}"
+      body:
+        - ["Noticed it onboarding a new associate.", "{b_raised}."]
+        - ["{person} owns the page now."]
+      comments:
+        - "Updated the page, please reread."
+        - "Check the intranet copy too."
+    - labels: [docs, task]
+      let:
+        howto: ["open a new matter", "close and archive a matter", "restore a document from the vault", "set up an ethical wall", "request a conflict check"]
+      title:
+        - "How-to: {howto}"
+        - "Write up how to {howto}"
+        - "Handbook page: {howto}"
+      body:
+        - ["New people ask how to {howto}.", "Only {person} knows how to {howto}."]
+        - ["A short page of steps."]
+      comments:
+        - "I can draft it after {ls_deadline}."
+        - "Link it from the index."
+    - labels: [needs-decision, docs]
+      let:
+        policy: ["ethical walls", "litigation holds", "client data retention", "outside counsel access", "matter closing"]
+        who: ["the general counsel", "the risk partner", "the records manager"]
+      title:
+        - "Decide how to write up {policy}"
+        - "Document our rules on {policy}"
+        - "{policy|cap}: guidance disagrees with practice"
+      body:
+        - ["The handbook and practice differ.", "{who|cap} should decide."]
+        - ["An owner is needed first.", "{b_g_needs}"]
+      comments:
+        - "Professional rules apply here."
+        - "{b_g_needs}"
+    - labels: [docs, enhancement]
+      let:
+        service: ["the time sync", "the LEDES export", "the trust ledger", "the DMS loads"]
+      title:
+        - "Add an architecture note for {service}"
+        - "Document how {service} works"
+      body:
+        - ["New engineers cannot follow {service}.", "Nothing explains {service} today."]
+      comments:
+        - "A diagram would help."
+  data:
+    - labels: [bug]
+      let:
+        error: ["a DMS export schema change", "a duplicate matter number", "a timeout from the time app", "a malformed timekeeper id"]
+      title:
+        - "Nightly load fails with {error}"
+        - "Nightly load stops on {error}"
+        - "Matter load aborted: {error}"
+        - "{error|cap} breaks the nightly load"
+      body:
+        - ["The load stopped at {time} on {day}.", "Failed overnight, reports are stale."]
+        - ["{b_pf_e}", "{b_urgent}"]
+      comments:
+        - "{b_cm_stage}, the same file fails."
+        - "Quarantine bad rows and continue?"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        gap: ["{1-9} matters", "about {2-9} percent", "a few thousand dollars", "{3-30} time entries"]
+      title:
+        - "{report|cap} does not match billing ({gap} off)"
+        - "{report|cap} and the ledger differ by {gap}"
+        - "Mismatch of {gap} in {report}"
+      body:
+        - ["Accounting spotted it at month end.", "{b_raised}."]
+        - ["Write-offs may be counted twice.", "Split matters may be double counted."]
+      comments:
+        - "{b_cm_prof} the join on matter id."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        owner: ["the practice group", "accounting", "knowledge management"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Should {owner} get {source}?"
+        - "Add {source} to the nightly load"
+      body:
+        - ["{owner|cap} wants {source} for reports.", "Reports need {source}."]
+        - ["Confidentiality rules need agreeing first."]
+      comments:
+        - "Does it hold privileged content?"
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        thing: ["split billed matters", "write-offs", "credit memos", "transferred matters"]
+      title:
+        - "Realization report double counts {thing}"
+        - "{thing|cap} counted twice in WIP"
+        - "WIP totals wrong for {thing}"
+      body:
+        - ["Partners saw inflated totals.", "{b_raised}."]
+        - ["The join repeats rows."]
+      comments:
+        - "Dedupe on matter and period."
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["the DMS gateway certificate", "the e-billing certificate", "the client portal certificate", "the VPN certificate"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} expires in {2-9} days"
+        - "Renew {cert}, nobody was warned"
+      body:
+        - ["Lawyers lose remote access after expiry.", "Last time it blocked {filings/court work}."]
+        - ["Add a warning {2-3} weeks ahead."]
+      comments:
+        - "{b_cm_check} the renewal job."
+    - labels: [security, bug]
+      let:
+        target: ["the document vault", "the billing database", "the email archive", "the trust ledger"]
+      title:
+        - "Backups of {target} lack an immutable copy"
+        - "No offsite copy of {target}"
+        - "Restore of {target} never tried"
+      body:
+        - ["Insurance asks about immutable copies.", "Ransomware worries the {risk partner/board/partners}."]
+        - ["A failed backup pages {nobody/no one}."]
+      comments:
+        - "Add it to the backup policy."
+        - "Try a restore on staging first."
+    - labels: [security, chore]
+      let:
+        target: ["the document vault", "the portal", "the billing database", "the VPN"]
+        days: ["{30-90}", "{90-180}", "{365-730}"]
+      title:
+        - "Audit logs for {target} kept {days} days"
+        - "Log retention for {target} is too short"
+        - "Raise log retention for {target}"
+      body:
+        - ["Client security reviews want longer logs.", "The insurer asks about log retention."]
+      comments:
+        - "Storage cost is small."
+    - labels: [question, needs-decision]
+      let:
+        wall: ["{ls_wall}"]
+      title:
+        - "Access group for {wall} is out of date"
+        - "Ethical wall for {wall} not enforced"
+        - "Who maintains the wall groups for {wall}?"
+      body:
+        - ["Group membership is edited by hand.", "A conflict check found stale members."]
+        - ["Needs an owner."]
+      comments:
+        - "Risk partner must sign off."
+  ops:
+    - labels: [question]
+      let:
+        script: ["sync_dms_folders.sh", "archive_closed_matters.py", "export_ledes.sh", "purge_temp_scans.sh"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+      body:
+        - ["Nothing in cron calls {script}.", "Nobody remembers who wrote {script}."]
+      comments:
+        - "Ask the records manager first."
+comments:
+  - "Accounting needs this before {ls_deadline}."
+  - "{b_cm_check} with the billing partner."
+  - "Does this affect {ls_matter}?"
+  - "Confirm with the risk partner first."
+  - "Is this privileged material?"
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: partners meeting {day} at {time}, in {c_room}."
+        - "firm meeting moved to {day} at {time}"
+        - "{c_hey|cap}, all attorneys meeting {day} at {time}"
+        - "reminder, partners meeting is {day} at {time}"
+        - "town hall {day} at {time}, agenda is in the invite"
+      replies:
+        - ["will it be recorded?", "is there a dial in?", "can we send questions first?"]
+        - ["{c_yes}, a recording goes up after", "{c_yes}, link is in the invite", ""]
+        - ["{c_thanks}", "{c_ack}", ""]
+    - root:
+        - "cle session {day} at {time}, lunch is provided"
+        - "{c_hey}: ethics cle is {day}, sign up with hr"
+        - "reminder, annual training closes {c_soon}"
+        - "security awareness training is due {c_soon}"
+        - "{c_hey}, new matter intake form goes live {c_soon}"
+      replies:
+        - ["is it mandatory?", "do we get credit hours?", "where is the sign up?"]
+        - ["{c_yes}, for everyone", "link is in your inbox", "{c_idk}, ask {person}"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "{ls_deadline} is {c_soon}, send final numbers to accounting"
+        - "heads up, {ls_deadline} is {day}"
+        - "{c_hey}: {ls_deadline} is {c_soon}, billing run starts {day}"
+        - "billing run is {day}, time entries due the day before"
+        - "court holiday {c_soon}, offices are closed"
+      replies:
+        - ["is the deadline firm?", "who checks time entries?", "which form do we use?"]
+        - ["{c_yes}, no extensions", "{person} does, ask them", "the one in the shared folder"]
+        - ["{c_ack}", "{c_thanks}"]
+  off-topic:
+    - root:
+        - "lunch ideas? i am sick of {c_food}"
+        - "anyone want {c_food} {c_soon}?"
+        - "{c_place} is doing a lunch deal"
+        - "walking to {c_place}, join?"
+        - "the cafeteria has {c_food} again"
+      replies:
+        - ["{c_yes}, give me {5-15} minutes", "in", "not today, {s_busy}"]
+        - ["{c_agree}", "{c_lol}"]
+    - root:
+        - "{c_pet} is {sleeping/hiding/snoring} under my desk"
+        - "look at {c_pet}, on the keyboard again"
+        - "happy birthday {person}!"
+        - "cake in {c_room} at {time} for {person}"
+        - "did anyone catch the {game/match/race} {last night/yesterday}?"
+      replies:
+        - ["{c_lol}", "aww", "{c_em}"]
+        - ["thanks all", "{c_thanks}", ""]
+    - root:
+        - "weekend plans? thinking {c_weekend}"
+        - "anyone doing {c_sport} this weekend?"
+        - "train is late, working remotely"
+        - "is it just me or {freezing/boiling} today"
+        - "reading anything good lately?"
+      replies:
+        - ["{c_weekend} sounds nice", "no plans, {c_weekend} maybe", "{c_sport} for me"]
+        - ["{c_lol}", "same", ""]
+  engineering:
+    - root:
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "pr up for {repo}, {c_patch}, who has a minute?"
+        - "review please: {c_eng_area}, {c_patch}"
+        - "{c_hey}, small pr in {repo}, {c_patch}"
+        - "{person}, could you review my change to {c_eng_area}?"
+      replies:
+        - ["{c_ack}, looking {c_soon}", "{c_yes}, after standup", "can take it {c_when_eng}"]
+        - ["left a few comments", "lgtm, merging", ""]
+    - root:
+        - "{c_eng_area} rejects rows with bad task codes"
+        - "the dms changed its export, {c_eng_area} broke"
+        - "client guideline changed again, {c_eng_area} needs a rule"
+        - "time entries with zero hours break {c_eng_area}"
+        - "duplicate matter numbers hit {c_eng_area} overnight"
+      replies:
+        - ["can you attach a file?", "which client is it?", "did the vendor announce it?"]
+        - ["attached", "it is the carrier one", "no notice, found it by luck"]
+        - ["i will patch it {c_when_eng}", "make it tolerant of both?"]
+    - root:
+        - "{c_ci_fail} is failing on main"
+        - "should we upgrade {c_dep}? a new major came out"
+        - "local env broke after {pulling main/a rebase}"
+        - "who is on call this week?"
+        - "{service} is slow, anyone changed something?"
+        - "heads up, deploy freeze from {day} at {time}"
+      replies:
+        - ["not me", "checking the logs", "{c_idk}"]
+        - ["found it, config change from {day}", "{c_ack}"]
+  team:
+    - root:
+        - "standup in {5-15} minutes, {c_status} on my side"
+        - "{c_hey}, standup moved to {time}"
+        - "skipping standup, {c_pto}"
+        - "who is covering the helpdesk {c_soon}?"
+      replies:
+        - ["{c_ack}", "{c_thanks}"]
+        - ["i can cover {day}", "{person} has it", ""]
+    - root:
+        - "month end billing: who owns {ls_task}?"
+        - "pre-bill run is {day}, {ls_task} is not done"
+        - "accounting wants {ls_task} done by {day}"
+        - "who is checking {issue}? it blocks the billing run"
+        - "{ls_task} needs an owner before {ls_deadline}"
+      replies:
+        - ["i can take it", "{person} did it last time", "{c_idk}"]
+        - ["list is in the shared folder", "will send it {c_soon}", ""]
+        - ["{c_thanks}"]
+    - root:
+        - "partner escalation: their {b_doc} total looks wrong, filed as {issue}"
+        - "a client cannot open files, ideas?"
+        - "{person}, the {ls_group} group asks about {issue}"
+        - "billing partner wants a rate report {c_soon}"
+      replies:
+        - ["looking at it {c_when_eng}", "which matter?", "sending the numbers {c_soon}"]
+        - ["matter number is in the ticket", "{c_ack}"]
+  support:
+    - root:
+        - "a client lost portal access, {anyone/has anyone} seen it?"
+        - "{s_cust|cap} asks why the bill is {s_money} this month"
+        - "an attorney lost time entries"
+        - "{s_cust|cap}: portal balance differs from the bill"
+        - "needs a copy of past {b_doc}s. possible?"
+      replies:
+        - ["is it in {s_ticket}?", "which matter number?", "checking the access sync"]
+        - ["yes, {s_ticket}", "will send it {c_soon}", ""]
+        - ["{c_thanks}", "{c_ack}"]
+    - root:
+        - "e-billing reject: {s_cust} bill bounced again"
+        - "the carrier portal rejected {2-9} bills overnight"
+        - "client asks about task codes"
+        - "legal ops wants LEDES by {day}"
+      replies:
+        - ["check the reject reason", "i will look at the export", "escalating to eng, {s_track_a}"]
+        - ["reason is a bad code", "resubmit after the fix", ""]
+    - root:
+        - "{morning/evening} handover: {5-20} open tickets, nothing on fire"
+        - "queue is at {20-80} open tickets, {behind/nearly caught up}"
+        - "heads up, {s_cust} is unhappy, waiting {2-9} days"
+        - "following up on {s_ticket}: is it {fixed/still open/waiting on us}?"
+      replies:
+        - ["{c_thanks}", "{c_ack}"]
+        - ["i will pick the older ones", "taking the partner tickets"]
+  incidents:
+    - root:
+        - "the dms sync is {s_symptom} {s_since}"
+        - "document sync is {late/stuck} {s_since}"
+        - "is anyone else seeing the dms {s_symptom}?"
+        - "matter folders not opening {s_since}"
+      replies:
+        - ["i see it too", "looking at the logs", "was there a deploy?"]
+        - ["restarted the sync worker", "{c_idk}"]
+        - ["{s_track_a}"]
+    - root:
+        - "the {s_thing} is {s_symptom} {s_since}"
+        - "nightly load is {late/stuck} {s_since}, reports are stale"
+        - "e-billing export is {s_symptom} {s_since}"
+        - "portal login is {s_symptom} {s_since}"
+        - "conflict check is slow, {2-9} minutes per search"
+      replies:
+        - ["i see it too", "checking dashboards", "{c_idk}"]
+        - ["rolled back, watching", "{s_fixed_a}"]
+    - root:
+        - "the {p_alert_name} alert is flapping again"
+        - "post-incident review is set for {day} at {time}"
+        - "on-call handover: nothing open, {s_oncall} is quiet"
+        - "DMS gateway certificate expires in {2-9} days"
+      replies:
+        - ["muting it for now", "who owns that alert?", "{c_ack}"]
+        - ["i will adjust the threshold", "added to the review"]
+  direct:
+    - root:
+        - "{s_hey}, can you send the {ls_group} rate card?"
+        - "{s_hey}, do you have the LEDES spec?"
+        - "quick question: write-off source?"
+        - "{s_hey}, who approves a fee estimate change?"
+        - "{s_hey}, need the engagement letter template {s_soon}"
+      replies:
+        - ["{s_ack}, sending it {s_soon}", "it is in the shared folder", "ask {person}, they have it"]
+        - ["{s_thx}", "perfect"]
+    - root:
+        - "{s_hey}, could you review my pr?"
+        - "got a minute for {s_thing}?"
+        - "can we move our catch up?"
+        - "lunch? {s_lunch} at {time}"
+        - "can you read the draft before {day}?"
+      replies:
+        - ["{s_ack}", "{c_yes}, give me {5-30} minutes", "{s_no}"]
+        - ["{s_thx}"]
+    - root:
+        - "i am working from home {c_soon}"
+        - "handing over {s_thing} while i am out {s_soon}"
+        - "{s_hey}, thought you would like this talk"
+        - "ugh, the vpn dropped again"
+        - "survived the audit prep, finally"
+      replies:
+        - ["{s_ack}", "{c_lol}", "{s_thx}"]
+        - ["good luck", "take care"]

@@ -1,0 +1,1276 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Payments and fintech: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+aliases:
+- payments
+- fintech
+- payment processing
+- payment service provider
+- merchant acquiring
+chat:
+  direct:
+  - replies:
+    - - '{s_ack}'
+      - sure, {s_soon}
+      - give me ten
+    - - per batch, like the acquirer
+      - i will check the contract
+      - '{s_thx}'
+    root:
+    - '{s_hey}, review the fee change {s_soon}?'
+    - quick question on how rounding works
+    - move the cutover review to {time}?
+    - '{s_hey}, look at the payout mismatch?'
+  - replies:
+    - - '{s_ack}, thanks'
+      - send me the checklist
+      - good luck
+    - - '{c_lol}'
+      - same here
+      - congrats
+    root:
+    - handing over the payout run, out {s_soon}
+    - ugh, audit wants last year's evidence
+    - survived the audit, finally
+  engineering:
+  - replies:
+    - - '{c_ack}, looking {c_when_eng}'
+      - is there a zero decimal test?
+      - what is the rounding rule here?
+    - - round per batch, like the acquirer
+      - yes, per idempotency key
+      - '{c_thanks}'
+    root:
+    - review my pr on {repo}? fee rounding
+    - '{c_ci_fail} fails on the webhook branch'
+    - should refunds be idempotent by key?
+    - freeze for month end from {day} {time}
+  - replies:
+    - - check the file hash first
+      - ops has the checklist
+      - see the runbook, i think
+    - - '{c_ack}'
+      - thanks, that helps
+      - i will write it up
+    root:
+    - how to replay a failed file?
+    - why does settlement take {40-90} minutes?
+    - is the processor api down?
+    - who owns the payout cutoff config?
+  - replies:
+    - - author left, see the old pr
+      - '{person} knows that area'
+      - risk has the rules written down
+    - - '{c_thanks}'
+      - good idea, will try
+    root:
+    - working on {issue}, who knows reserves?
+    - eyes on the retry change, {issue}?
+    - fee tests on last month's data?
+  - replies:
+    - - '{c_ack}'
+      - i am, until {day}
+      - '{c_idk}'
+    - - '{c_thanks}'
+      - check the change calendar
+      - ''
+    root:
+    - 'tiny pr: fix typo in {repo} readme'
+    - who is on call this week?
+    - '{service} is slow, anyone changed something?'
+    - local env broke after {pulling main/a rebase}
+  incidents:
+  - replies:
+    - - seeing it too, since {time}
+      - '{c_ack}, looking'
+      - acquirer says they are checking
+    - - no replay until the hash matches
+      - opened {issue}
+      - i will post in the thread
+    root:
+    - authorization error rate is up again
+    - 'handover: {s_oncall} is quiet, nothing open'
+    - anyone else seeing {s_thing} {s_symptom}?
+    - the settlement file is {p_delay} late
+  - replies:
+    - - '{c_ack}'
+      - are payouts affected?
+      - ok, keep us posted
+    - - yes, a retry saved it
+      - who is renewing it?
+      - '{c_thanks}'
+    root:
+    - the sponsor bank posted an incident
+    - bank partner cert expires in {2-9} days
+    - rolled back {repo}, balances look right
+    - near miss, idempotency caught a repeat
+  - replies:
+    - - seeing it too
+      - '{c_ack}, on it'
+      - paging the processor team
+    - - root cause is a full queue
+      - restarted the worker, clearing
+      - '{c_thanks}, will post a review'
+    root:
+    - '{s_al} webhook queue is backing up'
+    - payout failure rate above {2-9} percent
+    - card declines spiking since {time}
+    - fraud alerts stopped firing, checking now
+  off-topic:
+  - replies:
+    - - '{c_lol}'
+      - '{c_agree}'
+      - not yet
+    - - ''
+      - looks good
+      - '{c_thanks}'
+    root:
+    - did anyone follow the rate decision?
+    - lunch ideas? sick of {c_food}
+    - anyone trying the new coffee place?
+    - what are you all reading?
+  - replies:
+    - - count me in
+      - '{c_lol}'
+      - what time?
+    - - '{time}, meet by the lifts'
+      - ''
+      - '{c_yes}, bring umbrellas'
+    root:
+    - who wants the charity run?
+    - birthday cake in {c_room} at {time}
+    - lunch at {s_lunch}, who is in?
+    - did anyone watch the {match/game/race}?
+  support:
+  - replies:
+    - - can you paste the payout id?
+      - checking the ledger now
+      - looking, one sec
+    - - duplicate webhook, filed as {issue}
+      - '{c_ack}, refund and note the case'
+      - reserve release is {day}
+    - - '{c_thanks}'
+      - will tell the merchant
+    root:
+    - merchant says a payout is missing, {s_ticket}
+    - '{s_cust|cap} asks why fees went up'
+    - a refund shows pending since {time}
+    - '{s_cust|cap} wants a chargeback reversed'
+  - replies:
+    - - try again in an hour
+      - known issue, {issue}
+      - '{c_ack}'
+    - - the dispute deadline worries me
+      - is the evidence in?
+      - escalate to risk
+    - - '{c_thanks}'
+      - ''
+    root:
+    - api key rotation did not take, {s_ticket}
+    - merchant stuck at identity check, {s_ticket}
+    - queue is at {20-80} open cases
+    - heads up, {s_cust} waits {2-9} days
+  - replies:
+    - - it is under reports, statements
+      - we can reissue, ask finance
+      - '{c_ack}'
+    - - '{c_thanks}'
+      - ''
+    root:
+    - merchant needs last year's fee summary
+    - merchant wants invoice with tax number
+    - closing my shift, {5-20} open cases
+  team:
+  - replies:
+    - - '{c_ack}'
+      - i can cover
+      - on it
+    - - '{c_thanks}'
+      - ping me if it slips
+    root:
+    - standup in {5-15} minutes, {c_status} on my side
+    - i am {c_pto}, who covers merchant escalations?
+    - planning {day} at {time}, bring estimates
+    - 'escalation: {c_customer} sees a wrong payout'
+  - replies:
+    - - risk approves, not us
+      - i will update it {c_when_eng}
+      - '{c_idk}'
+    - - '{c_thanks}'
+      - '{c_ack}'
+    root:
+    - 'retro action: who approves large refunds?'
+    - who has the fee release checklist?
+    - is the board current?
+  town-square:
+  - replies:
+    - - '{c_thanks}'
+      - '{c_ack}'
+      - do instant payouts still work?
+    - - '{c_yes}, cards are fine'
+      - no, bank rails only
+      - ''
+    root:
+    - '{c_hey}: payment networks have maintenance {c_soon}'
+    - planned bank maintenance {c_soon}, payouts may slip
+    - '{c_hey}, the sponsor bank is closed {c_soon}'
+    - bank holiday {c_soon}, no payouts that day
+  - replies:
+    - - same course as last year?
+      - where is the link again?
+      - does the fraud module count?
+    - - new modules this year
+      - under learning in the hr portal
+      - '{c_idk}, ask {person}'
+    root:
+    - annual security training is due {c_soon}
+    - '{c_hey}: pci awareness course closes {c_soon}'
+    - compliance modules lock {c_soon}, finish them
+    - training overdue for {2-9} people
+  - replies:
+    - - '{c_ack}'
+      - will there be a briefing?
+    - - '{day} at {time}, in {c_room}'
+      - compliance will send a note
+      - ''
+    root:
+    - the assessor is on site {c_soon}
+    - audit week {c_soon}, send requests to {person}
+    - '{c_hey}: pci audit starts {day}'
+    - auditors visit {day}, answer only what is asked
+  - replies:
+    - - welcome!
+      - '{c_thanks}'
+      - where do they sit?
+    - - second floor, by risk
+      - '{c_idk}, ask {person}'
+      - ''
+    root:
+    - new hire on the risk team {c_soon}
+    - welcome {person} to merchant support
+    - '{c_hey}: new analyst starts {c_soon}, say hi'
+comments:
+- "{b_cm_check} the processor's event log."
+- Does it touch merchant balances?
+- Risk should see this first.
+- '{b_g_loop} finance, they run the close.'
+- What does the contract say here?
+description: A payments company that takes card and bank payments for merchants, settles funds to them and bills them fees.
+extends: general
+group: Financial services
+incidents:
+- alert:
+  - '{s_inv_late}, {s_inv_late_b}'
+  - '{s_al} {s_inv_late}'
+  - '{s_inv_late} - {s_inv_late_b}'
+  fix: billing/email_queue.py
+  fix_message:
+  - '{s_q_verb|cap} notices {s_q_how}'
+  - Queue statement emails, not inline sends
+  - '{s_q_verb|cap} merchant mail {s_q_how}'
+  role: billing
+  title:
+  - Merchant statements delayed
+  - Payout notices arriving late
+  - Fee statement delivery slow
+  - Statement email running behind
+- alert:
+  - '{s_cb_bad}'
+  - '{s_cb_bad}, {s_cb_b}'
+  - '{s_al} {s_cb_bad}, {s_cb_b}'
+  fix: billing/callbacks.py
+  fix_message:
+  - '{s_cb_fix|cap}'
+  - 'Handle processor timeouts: {s_cb_fix}'
+  - '{s_cb_fix|cap}, log each attempt'
+  role: billing
+  title:
+  - Processor callback errors
+  - Elevated errors on acquirer webhooks
+  - Settlement callbacks failing
+  - Processor events not handled
+- alert:
+  - '{s_dup_a}'
+  - '{s_dup_a}, {s_dup_b}'
+  - '{s_al} {s_dup_a}, {s_dup_b}'
+  fix: billing/sent_log.py
+  fix_message:
+  - '{s_dup_fix|cap}'
+  - 'Dedupe notices: {s_dup_fix}'
+  - '{s_dup_fix|cap}, keep a sent log'
+  role: billing
+  title:
+  - Duplicate payout notices
+  - Merchants receiving statements twice
+  - Payout emails sent twice
+  - Repeated merchant notices
+invoice_items:
+- Monthly platform fee
+- Payment processing fees
+issues:
+  billing:
+  - body:
+    - - '{b_raised}, {b_scope}.'
+      - '{b_raised} on {kind} accounts, {b_scope}.'
+    - - '{pf_1} {pf_2}'
+    - - '{pf_3} {pf_4}'
+    - - '{pf_5} {pf_6}'
+    - - '{b_urgent}'
+    comments:
+    - '{b_cm_repro} with {2-9} charges in one batch.'
+    - Round per batch like they do?
+    - '{b_cm_later}'
+    labels:
+    - bug
+    let:
+      fee:
+      - interchange fee
+      - scheme fee
+      - processing fee
+      - platform fee
+      kind:
+      - '{b_customer}'
+    title:
+    - '{fee|cap} rounds differently from the acquirer'
+    - Cent gap between {fee}s and the statement
+    - '{fee|cap}s off a cent at close'
+    - Why do {fee}s differ from settlement?
+  - body:
+    - - '{b_raised}, {b_scope}.'
+    - - '{pf_7} {pf_8}'
+    - - '{pf_9} {pf_10}'
+    - - '{pf_11} {pf_12}'
+    comments:
+    - '{b_cm_check} how {ev}s are modelled.'
+    - '{b_cm_ask_who}'
+    labels:
+    - bug
+    - needs-decision
+    let:
+      ev:
+      - '{pf_dispute}'
+    title:
+    - Fee charged on a reversed {ev}
+    - '{ev|cap} fee not refunded after a win'
+    - Dispute fee posted twice on one {ev}
+    - Fee for a {ev} stays after reversal
+  - body:
+    - - '{b_pscope}.'
+    - - '{pf_13} {pf_14}'
+    - - '{pf_15} {pf_16}'
+    - - Finance has refunded {3-40} merchants so far.
+    comments:
+    - '{b_cm_repro} with a {cur} charge to a {b_currency} account.'
+    - '{b_cm_hand} by {2-9} cents.'
+    labels:
+    - bug
+    let:
+      cur:
+      - '{b_currency}'
+    title:
+    - Cross border fee applied twice in {cur}
+    - FX markup shows twice on {cur} payouts
+    - '{cur} payout total differs from the quote'
+    - Currency conversion fee doubled for {cur}
+  - body:
+    - - '{b_raised}, {b_scope}.'
+    - - '{pf_17} {pf_18}'
+    - - '{pf_19} {pf_20}'
+    - - '{pf_21}'
+    comments:
+    - '{b_cm_check} what the contract says.'
+    - '{b_cm_ask_who}'
+    labels:
+    - enhancement
+    let:
+      rule:
+      - rolling reserve
+      - payout hold
+      - hold period
+      - minimum payout
+    title:
+    - Release of the {rule} runs a day late
+    - '{rule|cap} uses the wrong start date'
+    - '{rule|cap} not recalculated after a plan change'
+    - Reserve math for {rule} is unclear
+  data:
+  - body:
+    - - '{pf_38} {pf_39}'
+    - - '{pf_40} {pf_41}'
+    - - '{pf_42} {pf_43}'
+    - - Alert when the file is late.
+    comments:
+    - '{b_cm_check} the transfer log.'
+    - Rerun fixed it, add a guard.
+    labels:
+    - bug
+    - incident
+    let:
+      src:
+      - '{p_source}'
+    title:
+    - '{src|cap} arrived {p_delay} late'
+    - Ledger did not tie, {src} came late
+    - Settlement load blocked by {src}
+    - Missing rows in {src} on {day}
+  - body:
+    - - '{pf_44} {pf_45}'
+    - - '{pf_46} {pf_47}'
+    - - Which side should we trust?
+    comments:
+    - '{b_cm_hand} on the {day} snapshot.'
+    - Reproduced with the {day} snapshot.
+    labels:
+    - data-quality
+    - question
+    let:
+      table:
+      - '{p_table}'
+    title:
+    - Ledger and bank differ by {p_dollars}
+    - '{table|cap} do not match the processor'
+    - Reconciliation break on {table}
+    - '{table|cap} total off by {p_dollars}'
+  - body:
+    - - '{pf_48} {pf_49}'
+    - - '{pf_50} {pf_51}'
+    - - Add a unique source key.
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_plan}'
+    labels:
+    - bug
+    - data-quality
+    let:
+      table:
+      - '{p_table}'
+    title:
+    - Duplicate {table} after a replay
+    - '{table|cap} doubled by the settlement reload'
+    - Replay created {2-400} extra {table}
+    - Idempotency key missing on {table}
+  docs:
+  - body:
+    - - '{pf_63} {pf_64}'
+    - - '{pf_65} {pf_66}'
+    comments:
+    - I will add it next week.
+    - '{b_cm_ask_who}'
+    labels:
+    - docs
+    - bug
+    let:
+      runbook:
+      - '{p_runbook}'
+      step:
+      - pause the payout run
+      - notify the bank partner
+      - check the ledger first
+      - record the batch id
+    title:
+    - '{runbook} misses a step: {step}'
+    - Payout runbook skips how to {step}
+    - Cutoff notes skip when to {step}
+    - Runbook is silent on how to {step}
+  - body:
+    - - '{pf_67} {pf_68}'
+    - - '{pf_69} {pf_70}'
+    - - Add an owner and review date.
+    comments:
+    - '{b_cm_draft} the control matrix.'
+    - Link the tickets, not screenshots.
+    labels:
+    - docs
+    - enhancement
+    let:
+      control:
+      - change approval
+      - access reviews
+      - key custody
+      - vendor onboarding
+    title:
+    - Write up evidence for {control} for the audit
+    - Document how {control} works for PCI
+    - Auditors asked about {control}
+    - Where is the proof for {control}?
+  - body:
+    - - '{b_dc_a} {b_dc_b}'
+    - - '{pf_71} {pf_72}'
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_up} {b_cm_read2}'
+    labels:
+    - docs
+    - task
+    let:
+      topic:
+      - how a payout is built
+      - how settlement files arrive
+      - how a dispute moves
+      - how fees are priced
+    title:
+    - Handbook needs an overview of {topic}
+    - Explain {topic} for new engineers
+    - New starters ask {topic}
+    - Write a page on {topic}
+  infra:
+  - body:
+    - - '{pf_52} {pf_53}'
+    - - '{pf_54} {pf_55}'
+    - - Warn {14-30} days ahead, then page.
+    comments:
+    - '{b_cm_plan}'
+    - Partner needs {5-10} days notice.
+    labels:
+    - security
+    - enhancement
+    let:
+      cert:
+      - '{p_cert_host}'
+    title:
+    - Alert before {cert} expires
+    - '{cert|cap} expires in {2-9} days'
+    - Renewal of {cert} is manual
+    - Add expiry monitoring for {cert}
+  - body:
+    - - '{pf_56} {pf_57}'
+    - - '{pf_58} {pf_59}'
+    - - Measure before changing anything.
+    comments:
+    - '{b_cm_check} the last peak.'
+    - '{b_cm_later}'
+    labels:
+    - bug
+    - performance
+    let:
+      limit:
+      - rate limit
+      - request timeout
+      - connection pool
+      - queue size
+    title:
+    - Tune the {limit} on the API gateway
+    - '{limit|cap} too low during peak sales'
+    - Merchants hit the {limit} on holiday traffic
+    - Review {limit} before the next peak
+  - body:
+    - - '{pf_60} {pf_61}'
+    - - '{pf_62} and a note.'
+    - - Fieldwork starts in {2-8} weeks.
+    comments:
+    - Attach the change ticket for each.
+    - '{b_cm_later}'
+    labels:
+    - security
+    - chore
+    let:
+      zone:
+      - the card data environment
+      - the signing key service
+      - the payout network
+      - the vendor connection
+    title:
+    - Review access to {zone} before the audit
+    - 'PCI DSS review: rules for {zone}'
+    - Segmentation gaps found around {zone}
+    - Remove stale access to {zone}
+  ops:
+  - body:
+    - - '{pf_73} and it writes to {p_script_path}.'
+    - - '{pf_74}'
+    comments:
+    - '{b_cm_ask_who}'
+    - '{b_cm_later}'
+    labels:
+    - question
+    - chore
+    let:
+      script:
+      - '{p_script}'
+    title:
+    - Is {script} needed after the migration?
+    - Retire {script} from the batch hosts?
+    - '{script} still runs from the old cron'
+    - Can we delete {script}?
+  portal:
+  - body:
+    - - '{b_pscope}.'
+    - - '{pf_22} {pf_23}'
+    - - '{pf_24} {pf_25}'
+    - - Please keep details in this issue.
+    comments:
+    - '{b_cm_repro} {b_cm_stage}.'
+    - Can revoke flush the gateway cache?
+    - '{b_cm_fix_up}'
+    labels:
+    - bug
+    - security
+    let:
+      key:
+      - secret API key
+      - restricted key
+      - webhook signing secret
+      - publishable key
+    title:
+    - '{key|cap} still valid after rotation'
+    - Old {key} works for an hour after revoking
+    - '{key|cap} shown in full on the page'
+    - Revoked {key} still accepted by the API
+  - body:
+    - - '{b_pscope}.'
+    - - '{pf_26} {pf_27}'
+    - - '{pf_28} {pf_29}'
+    - - A clear message and retry help.
+    comments:
+    - '{b_cm_repro} with a {size} scan.'
+    - '{b_cm_plan}'
+    labels:
+    - bug
+    let:
+      size:
+      - 5 MB
+      - 10 MB
+      - 20 MB
+    title:
+    - Dispute evidence upload fails over {size}
+    - Evidence files rejected without a reason
+    - Upload of dispute evidence hangs at {size}
+    - Evidence PDF upload fails in {b_browser}
+  - body:
+    - - '{b_pscope}.'
+    - - '{pf_30} {pf_31}'
+    - - '{pf_32} {pf_33}'
+    comments:
+    - '{b_cm_check} replica lag.'
+    - '{b_cm_repro} {b_cm_stage}.'
+    labels:
+    - bug
+    let:
+      thing:
+      - the payout schedule
+      - the payout account
+      - the statement descriptor
+      - the support email
+    title:
+    - Change to {thing} does not show up
+    - '{thing|cap} reverts after saving'
+    - Saving {thing} gives no confirmation
+    - '{thing|cap} update takes a day to apply'
+  - body:
+    - - '{b_raised}, {b_pscope}.'
+    - - '{pf_34} {pf_35}'
+    - - '{pf_36} {pf_37}'
+    - - Risk must decide the wording.
+    comments:
+    - '{b_cm_ask_who}'
+    - Which fields may we show?
+    labels:
+    - enhancement
+    - needs-decision
+    let:
+      step:
+      - '{pf_kyc}'
+    title:
+    - Onboarding stuck at {step}
+    - Merchants drop off at {step}
+    - '{step|cap} fails for no clear reason'
+    - Rejected at {step}, merchants cannot see why
+name: Payments and fintech
+name_suffixes:
+- Pay
+- Payments
+- Financial Technologies
+- Capital
+- Money
+- Ledger
+- Labs
+names:
+  channels:
+    billing-team:
+    - payments-billing
+    - fees-team
+    - billing-eng
+    data-team:
+    - data-risk
+    - ledger-data
+    - data-team
+    engineering:
+    - engineering
+    - eng
+    - payments-eng
+    incidents:
+    - incidents
+    - payments-incidents
+    - on-call
+    releases:
+    - releases
+    - deploys
+    - shipping
+    support:
+    - merchant-support
+    - support
+    - partner-support
+  repos:
+    billing-service:
+    - merchant-billing
+    - fee-settlement
+    - invoicing-engine
+    - merchant-statements
+    customer-portal:
+    - merchant-dashboard
+    - merchant-portal
+    - developer-portal
+    - checkout-dashboard
+    data-pipeline:
+    - ledger-warehouse
+    - settlement-loads
+    - reporting-etl
+    - analytics-loads
+    infra-config:
+    - infra-config
+    - environment-config
+    - platform-config
+    - deploy-config
+    ops-scripts:
+    - ops-scripts
+    - recon-scripts
+    - legacy-jobs
+    - admin-tools
+    platform-docs:
+    - eng-handbook
+    - payments-runbooks
+    - platform-handbook
+    - team-docs
+organization:
+  head: VP of Engineering
+  it_admin: IT and Security Administrator
+  teams:
+    billing:
+      department: Payments Engineering
+      title: Software Engineer
+    data:
+      department: Data and Risk
+      title: Data Engineer
+    operations:
+      department: Risk and Operations
+      title: Risk Operations Analyst
+    platform:
+      department: Platform Engineering
+      title: Platform Engineer
+    product:
+      department: Product
+      title: Product Manager
+    support:
+      department: Merchant Support
+      title: Merchant Support Specialist
+slug: payments-fintech
+symbols:
+  b_acct_size:
+  - '{200-900} payouts'
+  - '{15-60} team members'
+  - '{3-12} bank accounts'
+  - '{40-300} stored payment methods'
+  b_cb_path:
+  - billing/processor_events.py
+  - billing/webhooks.py
+  - billing/settlement_events.py
+  b_check_path:
+  - the fee tests
+  - the payout tests
+  - the webhook tests
+  - the settlement tests
+  b_cn_a:
+  - The guard in {b_credit_path}
+  - Validation in {b_credit_path}
+  - The check in {b_credit_path}
+  b_cn_b:
+  - only counts the first reversal
+  - ignores earlier reversals
+  - skips reversals made together
+  b_cn_c:
+  - The total of all reversals
+  - Reversals added together
+  - The combined credit amount
+  b_credit_path:
+  - billing/credit_notes.py
+  - billing/refunds.py
+  - billing/fee_reversals.py
+  b_currency:
+  - USD
+  - EUR
+  - GBP
+  - CAD
+  - AUD
+  - JPY
+  b_customer:
+  - marketplace
+  - subscription
+  - enterprise merchant
+  - small merchant
+  - platform partner
+  - nonprofit
+  b_dl_path:
+  - billing/downloads.py
+  - billing/statements.py
+  b_doc:
+  - merchant invoice
+  - fee statement
+  - payout statement
+  - credit note
+  - '{monthly/quarterly} statement'
+  b_mail_path:
+  - billing/emails.py
+  - billing/email_queue.py
+  - billing/templates.py
+  - billing/sent_log.py
+  b_money_path:
+  - billing/fees.py
+  - billing/interchange.py
+  - billing/payouts.py
+  - billing/rounding.py
+  b_page:
+  - transactions
+  - payouts
+  - disputes
+  - API keys
+  - settings
+  - the dashboard
+  b_pay_path:
+  - portal/payout_accounts.py
+  - portal/bank_accounts.py
+  b_provider_event:
+  - charge succeeded
+  - refund settled
+  - dispute opened
+  - payout paid
+  - chargeback lost
+  b_pwho:
+  - merchant support
+  - a merchant
+  - '{person}'
+  - the partner team
+  - risk
+  b_taxkind:
+  - VAT
+  - sales tax
+  - GST
+  - withholding tax
+  b_ticket_noun:
+  - ticket
+  - case
+  - merchant report
+  - escalation
+  b_who:
+  - merchant success
+  - the risk team
+  - finance
+  - partnerships
+  - support
+  c_customer:
+  - a merchant
+  - one of the larger marketplaces
+  - a platform partner
+  - a small merchant
+  c_dep:
+  - the pdf library
+  - the http client
+  - the orm
+  - the date library
+  - the crypto library
+  c_eng_area:
+  - the payout job
+  - the webhook retries
+  - the settlement parser
+  - the refund flow
+  - the fee calculation
+  - the idempotency layer
+  p_alert_name:
+  - payout failure rate
+  - settlement file lag
+  - authorization error rate
+  - failed backups
+  - webhook queue depth
+  p_cert_host:
+  - the API gateway certificate
+  - the dashboard certificate
+  - the bank partner mTLS certificate
+  - the staging wildcard certificate
+  p_dns_name:
+  - api.{domain}
+  - dashboard.{domain}
+  - status.{domain}
+  - hooks.{domain}
+  p_finance_ask:
+  - the finance lead
+  - someone in finance
+  - treasury
+  - the controller
+  p_howto:
+  - restore a ledger snapshot into staging
+  - rotate a webhook signing secret
+  - replay a failed settlement file
+  - add a new payout rail
+  p_policy:
+  - the month end change freeze
+  - quarterly access reviews
+  - production data access
+  - on-call compensation
+  p_report:
+  - the daily settlement report
+  - the chargeback ratio dashboard
+  - the merchant volume report
+  - the reserve balance report
+  p_runbook:
+  - docs/runbooks/failed-payouts.md
+  - docs/runbooks/settlement-breaks.md
+  - docs/runbooks/webhook-backlog.md
+  - docs/runbooks/key-rotation.md
+  p_script:
+  - settle_cleanup.sh
+  - sweep_recon_files.sh
+  - archive_payouts.sh
+  - rotate_logs.sh
+  - check_disk.sh
+  p_script_path:
+  - /srv/settlement/inbound
+  - /srv/payouts/archive
+  - /var/log/payments
+  - /mnt/backups/daily
+  p_secret_thing:
+  - the processor API key
+  - the bank partner token
+  - the signing secret for webhooks
+  - the warehouse service account key
+  p_source:
+  - the acquirer's settlement files
+  - the card network reports
+  - the bank partner's statements
+  - the fraud vendor feed
+  p_table:
+  - charges
+  - payouts
+  - merchants
+  - refunds
+  - disputes
+  - ledger entries
+  pf_1:
+  - We round each transaction fee
+  - Fees are rounded per charge
+  - Rounding happens line by line
+  pf_10:
+  - on the statement.
+  - while the funds return.
+  pf_11:
+  - Finance should decide the rule
+  - Needs a ruling from {b_who}
+  pf_12:
+  - on who bears the fee.
+  - before anyone changes it.
+  pf_13:
+  - The markup is added at capture
+  - We apply conversion at capture
+  pf_14:
+  - and again when payouts are built.
+  - ', then again at payout.'
+  pf_15:
+  - The merchant sees a lower payout
+  - The payout is lower
+  pf_16:
+  - than the dashboard promised.
+  - than the quote said.
+  pf_17:
+  - The release job counts days
+  - Hold days are counted
+  pf_18:
+  - from creation, not capture.
+  - in calendar days only.
+  pf_19:
+  - Risk set the policy
+  - The contract says business days
+  pf_2:
+  - in {b_money_path}.
+  - ', but the acquirer rounds per batch.'
+  - and the total drifts.
+  pf_20:
+  - and it differs for some plans.
+  - for most merchants.
+  pf_21:
+  - Needs sign-off from risk.
+  - Merchants are asking for dates.
+  pf_22:
+  - Rotation shows success
+  - Revoking says it worked
+  pf_23:
+  - but the old value still passes.
+  - and then the key keeps working.
+  pf_24:
+  - A cache holds the key
+  - Gateways cache keys for an hour
+  pf_25:
+  - so revocation is delayed.
+  - across all regions.
+  pf_26:
+  - The upload size limit is {size}
+  - Larger files time out
+  pf_27:
+  - ', and the error is vague.'
+  - without a message.
+  pf_28:
+  - Merchants miss the response deadline
+  - The card network deadline is fixed
+  pf_29:
+  - ', so this costs money.'
+  - and cannot move.
+  pf_3:
+  - The monthly total differs
+  - The gap shows up on statements
+  - Reconciliation breaks
+  pf_30:
+  - The dashboard saves the change
+  - The change is accepted
+  pf_31:
+  - but the next page is stale.
+  - and then reverts.
+  pf_32:
+  - A cache holds the old value
+  - Settings are read from a replica
+  pf_33:
+  - ', so it looks lost.'
+  - for a few minutes.
+  pf_34:
+  - The form returns a generic error
+  - Merchants see only a code
+  pf_35:
+  - and no next step.
+  - with no next step.
+  pf_36:
+  - Compliance needs the reason logged
+  - Risk wants reasons recorded
+  pf_37:
+  - but not shown to merchants.
+  - for audit.
+  pf_38:
+  - The load waits for {src}
+  - Nothing starts until {src} lands
+  pf_39:
+  - ', and then it runs.'
+  - ', then goes on.'
+  pf_4:
+  - by a few cents per account.
+  - on high volume merchants.
+  - every close.
+  pf_40:
+  - Payouts were held
+  - The ledger showed a break
+  pf_41:
+  - until the file arrived.
+  - for {2-5} hours.
+  pf_42:
+  - The acquirer sent it late
+  - Their batch ran long
+  pf_43:
+  - on their side.
+  - and sent no notice.
+  pf_44:
+  - Finance found it
+  - The recon job flagged it
+  pf_45:
+  - while closing the month.
+  - on a {day} run.
+  pf_46:
+  - The break shows after replays
+  - Refunds land in the next file
+  pf_47:
+  - ', so the days disagree.'
+  - and then it clears.
+  pf_48:
+  - A replay resent the file
+  - The loader ran twice
+  pf_49:
+  - and rows were duplicated.
+  - without a unique key.
+  pf_5:
+  - Finance wants one rule
+  - Finance asks for a single rule
+  pf_50:
+  - Reports show inflated volume
+  - Volume looks high
+  pf_51:
+  - for {2-9} merchants.
+  - for one day.
+  pf_52:
+  - Spotted during a change review
+  - Noticed while checking an alert
+  pf_53:
+  - ', and nobody owns renewal.'
+  - and the date is close.
+  pf_54:
+  - Expiry would stop payouts
+  - Expiry would break API calls
+  pf_55:
+  - for the partner.
+  - until it is renewed.
+  pf_56:
+  - Peak traffic is near the limit
+  - Traffic spikes on sale days
+  pf_57:
+  - and requests are rejected.
+  - and checkouts fail.
+  pf_58:
+  - Marketplaces report errors
+  - Support got {3-12} reports
+  pf_59:
+  - within the same hour.
+  - in the last peak.
+  pf_6:
+  - that matches the acquirer's files.
+  - used everywhere.
+  pf_60:
+  - The assessor asked for access reviews
+  - PCI DSS needs a current review
+  pf_61:
+  - and an owner for each rule.
+  - every quarter.
+  pf_62:
+  - Unused rules should be removed
+  - Every removal needs a ticket
+  pf_63:
+  - Hit this during an incident
+  - The new on-call found it
+  pf_64:
+  - ', and it cost time.'
+  - at night.
+  pf_65:
+  - The page covers the happy path
+  - It predates the second rail
+  pf_66:
+  - only.
+  - and nobody updated it.
+  pf_67:
+  - The assessor asked for the process
+  - The audit request lists it
+  pf_68:
+  - and the last {2-4} cases.
+  - with recent examples.
+  pf_69:
+  - We do the work
+  - The proof is in tickets
+  pf_7:
+  - The fee posts at case opening
+  - A fee is charged at opening
+  pf_70:
+  - ', but evidence is scattered.'
+  - across several tools.
+  pf_71:
+  - Risk knows it
+  - Finance knows it best
+  pf_72:
+  - ', so ask them to review.'
+  - and a diagram would help.
+  pf_73:
+  - It was written for old formats
+  - Nobody current has touched it
+  pf_74:
+  - Its retention differs from policy.
+  - Check with finance first.
+  pf_8:
+  - and nothing reverses it.
+  - ', and a win never refunds it.'
+  pf_9:
+  - Merchants see the fee
+  - Statements show both lines
+  pf_dispute:
+  - chargeback
+  - retrieval request
+  - pre-arbitration
+  - arbitration
+  pf_kyc:
+  - business verification
+  - owner identity check
+  - bank account check
+  - sanctions screening
+  pf_mcc:
+  - marketplace
+  - digital goods
+  - travel
+  - subscription
+  - charity
+  pf_method:
+  - card
+  - ACH debit
+  - SEPA debit
+  - bank transfer
+  - wallet
+  pf_rail:
+  - card network
+  - ACH
+  - SEPA
+  - the faster payments rail
+  - the bank partner
+  s_cb_bad:
+  - elevated errors on processor callbacks
+  - webhooks from the acquirer failing
+  - settlement callbacks erroring
+  - callback endpoint throwing 5xx
+  s_cb_fix:
+  - retry callbacks on timeout
+  - retry timed out processor events
+  - add a retry for callback timeouts
+  - retry events that time out
+  s_cust:
+  - a merchant on {s_plan}
+  - someone on {s_plan}
+  - a merchant with {s_plan}
+  - an account on {s_plan}
+  s_dup_a:
+  - duplicate payout notices going out
+  - merchants got the statement twice
+  - same payout email repeated
+  - notices sent twice
+  s_dup_fix:
+  - stop resending on retry
+  - skip notices already sent
+  - check the sent log first
+  - do not resend after a retry
+  s_inv_late:
+  - merchant statements delayed
+  - fee statement emails late
+  - payout notices not going out
+  - statement sends lagging
+  s_inv_late_b:
+  - oldest has waited {20-90} min
+  - nothing sent since {time}
+  - send lag keeps rising
+  - backlog growing fast
+  s_plan:
+  - the standard pricing plan
+  - a custom pricing plan
+  - the enterprise plan
+  - a marketplace plan
+  s_thing:
+  - the payout job
+  - the settlement load
+  - the recon report
+  - the webhook worker
+  - the export
+  s_tool:
+  - the admin console
+  - the support desk
+  - the risk console
+  - the ticket queue
+systems:
+  common:
+  - salesforce
+  - zendesk
+  - splunk
+  - twilio
+  - docusign
+  typical:
+  - github
+  - slack
+  - jira
+  - okta
+  - stripe
+  - datadog
+  - pagerduty
+  - snowflake

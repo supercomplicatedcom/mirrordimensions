@@ -1,0 +1,890 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Consumer electronics: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: consumer-electronics
+name: Consumer electronics
+group: Consumer, fitness and wellness
+aliases:
+  - electronics
+  - connected devices
+  - smart home devices
+  - hardware maker
+  - gadgets
+description: A maker of connected consumer devices that sells through retailers, carriers and its own store, ships firmware updates over the air, and runs warranty and repair programs.
+name_suffixes:
+  - Electronics
+  - Devices
+  - Technologies
+  - Audio
+  - Home
+  - Labs
+invoice_items:
+  - Device shipments
+  - Extended warranty plans
+organization:
+  head: Head of Software Engineering
+  it_admin: IT Systems Administrator
+  teams:
+    platform: {department: Software Engineering, title: Platform Engineer}
+    billing: {department: Commerce Systems, title: Systems Engineer}
+    data: {department: Data and Analytics, title: Data Engineer}
+    support: {department: Customer Support, title: Support Specialist, lead: Support Manager}
+    product: {department: Product Management, title: Product Manager}
+    operations: {department: Supply Chain and Service, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [order-billing, warranty-billing, billing-service, channel-invoicing]
+    platform-docs: [eng-handbook, platform-docs, firmware-runbooks, team-docs]
+    data-pipeline: [telemetry-loads, device-data-pipeline, data-pipeline, sales-etl]
+    infra-config: [infra-config, cloud-config, env-config, ota-config]
+    customer-portal: [account-portal, support-portal, customer-portal, registration-web]
+    ops-scripts: [ops-scripts, rma-scripts, legacy-scripts, factory-tools]
+  channels:
+    engineering: [engineering, software, dev, platform-dev]
+    incidents: [incidents, ota-alerts, prod-incidents, outages]
+    releases: [releases, firmware-releases, deploys, shipping]
+    billing-team: [billing-team, commerce-systems, orders-billing, billing-eng]
+    platform-team: [platform-team, cloud-platform, platform, backend]
+    data-team: [data-team, analytics, data, telemetry]
+    support: [support, customer-support, rma-desk, cs-team]
+    leads: [leads, eng-leads, managers, team-leads]
+systems:
+  typical: [github, slack, jira, zendesk, salesforce, sap s/4hana cloud, ptc windchill, sentry]
+  common: [siemens teamcenter x, servicenow, datadog, launchdarkly, snowflake]
+symbols:
+  b_doc: [invoice, credit note, RMA credit, warranty invoice, pro forma invoice, channel rebate statement]
+  b_customer: [retailer, distributor, carrier, online reseller, direct customer, enterprise buyer, education buyer, warranty customer]
+  b_who: [customer support, the channel team, finance, the retail account team, service operations]
+  b_pwho: [customer support, a retail buyer, "{person}", the channel team, finance]
+  b_ticket_noun: [ticket, case, RMA, escalation]
+  b_page: [registered devices, warranty, orders, repairs, downloads, device settings, support cases]
+  b_acct_size: ["{3-30} registered devices", "{20-200} open RMAs", "over {500-3000} serial numbers", "{5-40} ship-to sites"]
+  b_provider_event: [payment captured, payment declined, refund issued, chargeback opened, warranty claim paid, payout settled]
+  b_money_path: [billing/orders.py, billing/warranty.py, billing/rebates.py, billing/rounding.py]
+  b_check_path: [the order tests, the warranty tests, the rebate tests, the RMA tests]
+  p_table: [orders, shipments, devices, serial_numbers, warranties, rmas, firmware_versions, telemetry_events, returns]
+  p_report: [the weekly shipments report, the return rate dashboard, the warranty cost report, the firmware adoption report, the channel sell-through report, the RMA turnaround report]
+  p_source: [the contract manufacturer's build reports, the device telemetry stream, the retailers' sell-through files, the repair centre exports, the carrier tracking updates, the crash reporting export]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the warranty accountant, the controller]
+  p_alert_name: [OTA error rate, telemetry ingest lag, RMA queue depth, the nightly load finishing late, certificate expiry, error rate on the support portal, replication lag]
+  s_plan: [a standard warranty, an extended warranty, a trade-in plan, a business account, a distributor account, a replacement plan]
+  c_customer: [a customer, a reseller, a retail buyer, an enterprise buyer, a carrier account, a repair partner]
+  s_tool: [the order admin, the support desk, the RMA console, the device lookup, the ticket queue]
+  s_thing: [the order sync, the RMA export, the OTA rollout, the telemetry job, the cron, the registration page, the firmware signer, the webhook handler]
+  c_eng_area: [the OTA rollout, the pairing flow, the RMA flow, the telemetry ingest, the registration page, the firmware signer, the warranty check, the export endpoint]
+  c_dep: [the bluetooth stack, the audio codec, the http client, the orm, the date library, the crypto library, the build toolchain]
+  c_food: [pizza, sushi, noodles, tacos, a sandwich, a burrito]
+  ce_device: [the smart speaker, the earbuds, the doorbell camera, the e-reader, the home hub, the fitness band, the smart plug]
+  ce_fw: [a firmware update, an OTA rollout, a staged release, a security patch, a bootloader change]
+  ce_fail: [a bricked unit, a pairing failure, a battery drain, a dead pixel report, a speaker crackle, a camera freeze]
+  ce_cert: [the FCC filing, CE marking, the UL listing, the RoHS declaration, battery shipping rules]
+  ce_part: [the battery cell, the display panel, the radio module, the charger, the microphone array]
+  ce_peak: [the holiday launch, a product launch, back to school, a retailer promotion, a firmware freeze]
+  ce_site: [the contract factory, the repair centre, the distribution centre, the returns centre]
+  ce_ver: ["{1-4}.{0-9}.{0-9}", "{5-9}.{0-9}", "{10-12}.{0-4}.{0-3}"]
+  ce_region: [the EU, the UK, Canada, Australia, Japan]
+  ce_rma: [a repair, a replacement, a refund, an advance exchange]
+  ce_why: [the battery, the update, the charger, the app, a drop, water damage]
+  ce_fix: [pulled the build, paused the rollout, restarted the signer, cleared the queue]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        rma: ["{ce_rma}"]
+        path: ["{b_money_path}"]
+      title:
+        - "RMA credit issued before return"
+        - "Credit for {rma} posted twice"
+        - "{doc|cap} created for {rma} without a return"
+        - "Advance exchange credited and invoiced"
+        - "Double credit on {rma}"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "{/Also, /And /}credit posts on the RMA date."
+            - "Credit posts when a case opens."
+            - ""
+        -   - "{path|cap} never waits for receipt."
+            - "Nothing checks the returned unit."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with an advance exchange."
+        - "{b_cm_check}, {path} posts on create."
+        - "Finance has {2-9} credits to reverse."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        customer: ["{b_customer}"]
+      title:
+        - "Rebate uses gross sales, not net"
+        - "{customer|cap} rebate statement is too high"
+        - "Rebate ignores returns and credits"
+        - "Rebate tiers miscounted for {customer}"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_raised} on {customer} accounts."
+        -   - "{/Also, /And /}the statement counts shipped units."
+            - "Returns are not netted off."
+            - ""
+        -   - "{/Also, /And /}contracts say net of returns."
+            - "Quarter end accruals will be off."
+            - ""
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "Net returns by shipment date."
+        - "{b_cm_hand}"
+        - "{b_cm_plan}"
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+      title:
+        - "Invoiced serials differ from shipped serials"
+        - "Serial numbers missing on the {doc}"
+        - "Retailer rejects {doc} for serial mismatch"
+        - "Wrong serials on a split shipment"
+      body:
+        -   - "A shipment splits across pallets."
+            - "Serials come from the pick list."
+        -   - "The {doc} lists the planned serials."
+            - "Substituted units keep old serials."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Use the scanned serials."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [needs-decision]
+      let:
+        who: ["{b_who}"]
+        question: [when the warranty clock starts, refunds on extended plans, covering water damage, paying out after a recall notice]
+      title:
+        - "Policy: {question}?"
+        - "Who decides {question}?"
+        - "Warranty start date rule"
+        - "Decide {question}"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} handles {question} {b_nd_b}."
+        -   - "{/Also, /And /}start dates use the ship date."
+            - "Customers register weeks later."
+            - ""
+        -   - "Rules differ by region."
+            - "{ce_region|cap} has its own rule."
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who}."
+      comments:
+        - "Purchase date with proof is fairer."
+        - "{b_cm_lean} registration, then ship date."
+        - "Legal should check each region."
+    - labels: [bug]
+      title:
+        - "Extended warranty refund is not prorated"
+        - "Cancelled plans refunded in full"
+        - "Plan refund ignores months used"
+      body:
+        -   - "Customers cancel an extended plan."
+            - "A refund is issued in full."
+        -   - "{/Also, /And /}the code skips the elapsed months."
+            - "No proration is applied."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Prorate by days used."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_hand}"
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [a firmware rollback, a staged rollout, a recall notice, a bootloader change, a signing key rotation]
+      title:
+        - "How-to: run {thing}"
+        - "Checklist for {thing}"
+        - "Write down the steps for {thing}"
+        - "Runbook: {thing}"
+      body:
+        -   - "Nobody keeps steps for {thing}."
+            - "{person} does {thing} from memory."
+        -   - "{/Also, /And /}A mistake bricks real devices."
+            - "Compliance asks for a record."
+            - ""
+        -   - "{b_dc_c} would be plenty."
+            - "One page with the contacts."
+      comments:
+        - "Notes from the last rollback exist."
+        - "Add the regulator contacts."
+        - "Include the approval chain."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/ota-rollout.md", "docs/runbooks/rma-queue.md", "docs/runbooks/firmware-signing.md", "docs/runbooks/telemetry-ingest.md"]
+        step: [pausing the rollout, checking the pilot group, signing the build, notifying support, purging the CDN]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "OTA runbook skips {step}"
+        - "{runbook}: {step} not listed"
+        - "Update {runbook} after the migration"
+      body:
+        -   - "Followed {runbook} during a rollout."
+            - "It left out {step}."
+        -   - "{person} told us in chat only."
+            - "{step|cap} sits in one head."
+        -   - "{p_owner_ask}"
+            - "{p_reviewer_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Add the rollout percentages."
+        - "{b_cm_docs}"
+    - labels: [docs, enhancement]
+      let:
+        flow: [a serial from factory to invoice, a device registration, an RMA from case to credit, a firmware build to device]
+      title:
+        - "Explain how {flow} works"
+        - "Architecture note: {flow}"
+        - "One page on {flow}"
+        - "Describe {flow} end to end"
+      body:
+        -   - "New joiners ask how it works."
+            - "Only {person} knows the whole path."
+        -   - "{/Also, /And /}one diagram and a short page."
+            - "A simple picture would do."
+            - ""
+      comments:
+        - "I can draw it, someone check."
+        - "Include the retailer rules."
+        - "{b_cm_docs}"
+  data:
+    - labels: [bug, data-quality]
+      let:
+        fw: ["{ce_fw}"]
+      title:
+        - "Telemetry duplicated after {fw}"
+        - "Devices report twice after an update"
+        - "Event counts double after the OTA"
+        - "Duplicate rows in telemetry_events"
+      body:
+        -   - "Devices resend queued events."
+            - "A reboot replays the buffer."
+        -   - "{/Also, /And /}the load keeps both copies."
+            - "No event id removes repeats."
+            - ""
+        -   - "{p_noticed|cap}."
+            - "Dashboards jumped overnight."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Key on device and sequence."
+        - "Firmware should send a stable id."
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "{report|cap} does not match the repair centre"
+        - "RMA turnaround off by {2-9} days"
+        - "Return rate differs from finance"
+        - "Firmware adoption counts retired units"
+      body:
+        -   - "The report is {2-9} percent off."
+            - "Service sees another number."
+        -   - "{/Also, /And /}closed cases are counted twice."
+            - "Retired units still report."
+            - ""
+        -   - "{b_ex_a}."
+            - "{who|cap} needs it before the review."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Define turnaround in one place."
+        - "{b_cm_check}"
+        - "Keep the old number beside it."
+    - labels: [security, task]
+      let:
+        region: ["{ce_region}"]
+      title:
+        - "Delete device telemetry on account removal"
+        - "Erasure requests miss {p_table}"
+        - "Camera and microphone data retention"
+        - "Purge deleted accounts under {region} rules"
+      body:
+        -   - "Removing an account clears the app."
+            - "The warehouse keeps old rows."
+        -   - "{region|cap} rules need removal in {30/45} days."
+            - "Privacy asked for a monthly purge."
+        -   - "{/Also, /And /}voice and camera data need care."
+            - "Device logs may hold identifiers."
+            - ""
+        -   - "{p_owner_ask}"
+      comments:
+        - "A nightly purge by account id."
+        - "Backups age out on their own."
+        - "{b_cm_later}"
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the nightly load"
+        - "Add {source} to the pipeline"
+        - "Should quality get {source}?"
+      body:
+        -   - "Quality asks for {source} weekly."
+            - "{person} pulls {source} by hand."
+        -   - "{/Also, /And /}it would catch defects sooner."
+            - "Return forecasts could use it."
+            - ""
+        -   - "{/Also, /And /}strip serial numbers where needed."
+            - "Keep personal data out."
+            - ""
+      comments:
+        - "Which sites send {source}?"
+        - "Keep it for {2/3} years."
+        - "{b_cm_plan}"
+  portal:
+    - labels: [bug]
+      let:
+        device: ["{ce_device}"]
+      title:
+        - "Registration rejects valid serial numbers"
+        - "Serial with spaces fails for {device}"
+        - "Lowercase serial not accepted"
+        - "Registration says serial not found"
+      body:
+        -   - "A customer types the serial."
+            - "Labels are hard to read."
+        -   - "{/Also, /And /}spaces and dashes break the match."
+            - "Lowercase letters fail."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Normalise before the lookup."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Some old serials have letters O."
+    - labels: [bug]
+      title:
+        - "Warranty lookup says expired too early"
+        - "Warranty end date a month off"
+        - "In-warranty units rejected at desk"
+      body:
+        -   - "The page shows a wrong date."
+            - "Customers are told it expired."
+        -   - "{/Also, /And /}it uses the ship date."
+            - "Registration is ignored."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Needs the policy ruling first."
+        - "{b_cm_repro} on a fresh account."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        browser: ["{b_browser}"]
+      title:
+        - "Firmware download link returns 404"
+        - "Old firmware page has dead link"
+        - "Driver download fails in {browser}"
+      body:
+        -   - "The support page lists old files."
+            - "Links point to a moved bucket."
+        -   - "It fails in {browser}."
+            - "Other browsers hit the same wall."
+        -   - "{p_priority}"
+      comments:
+        - "Redirect old paths."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Update the support articles too."
+    - labels: [enhancement]
+      let:
+        ask: [print a return label, track a repair, request an advance exchange, add a proof of purchase]
+      title:
+        - "Let customers {ask} online"
+        - "Portal: {ask}"
+        - "Customers want to {ask}"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+      comments:
+        - "Support gets {2-9} calls daily."
+        - "Needs fraud checks first."
+        - "{b_cm_srv}"
+  infra:
+    - labels: [security, enhancement]
+      title:
+        - "Alert before the signing key expires"
+        - "Signing key has no rotation plan"
+        - "Who rotates the OTA signing key?"
+        - "Signing certificate expires next quarter"
+      body:
+        -   - "The key expires in {20-120} days."
+            - "Nobody owns the rotation."
+        -   - "{/Also, /And /}A lapse blocks every update."
+            - "Devices reject unsigned builds."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Add a calendar reminder."
+      comments:
+        - "I will add a {30/14} day alert."
+        - "Rotate on staging first."
+        - "{b_cm_plan}"
+    - labels: [bug, performance]
+      let:
+        peak: ["{ce_peak}"]
+      title:
+        - "OTA servers slow during {peak}"
+        - "Firmware CDN misses the cache"
+        - "Update downloads stall in {peak}"
+      body:
+        -   - "Millions of devices check in."
+            - "Traffic jumps {2-6}x at {peak}."
+        -   - "{/Also, /And /}the cache serves a stale manifest."
+            - "Requests fall through to origin."
+            - ""
+        -   - "{/Also, /And /}stagger the check-in times."
+            - ""
+      comments:
+        - "{b_cm_prof}"
+        - "Add jitter on the device."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Device lab network drops staging units"
+        - "Staging devices lose their address"
+        - "Lab wifi blocks the update server"
+      body:
+        -   - "Lab units drop off at night."
+            - "Engineers lose test devices."
+        -   - "{/Also, /And /}the router reboots on a schedule."
+            - "Leases expire too fast."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "A static lease would help."
+        - "{b_cm_check}"
+        - "{b_cm_later}"
+  ops:
+    - labels: [question]
+      let:
+        script: ["sync_serials.sh", "export_rma.sh", "purge_old_builds.sh", "{p_script}"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+        - "Does anything call {script}?"
+        - "Retire {script}?"
+        - "{script}: anyone using this?"
+      body:
+        -   - "Found {script} while tidying."
+            - "{script|cap} has no recent changes."
+        -   - "{/Also, /And /}written for the old factory."
+            - "It predates the new gateway."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Will remove it next month."
+      comments:
+        - "Not used by us."
+        - "Check cron on {p_old_ref}."
+        - "Keep it until the move ends."
+comments:
+  - "Support has {2-9} of these open."
+  - "{b_pwho|cap} has a customer waiting."
+  - "Does it affect {ce_device} too?"
+  - "Only {ce_device}, or the whole range?"
+  - "Matters most around {ce_peak}."
+  - "Checked the device logs, same result."
+  - "Quality wants to know."
+  - "Hold off until {ce_peak} ends."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: {ce_peak} planning {day} at {time}"
+        - "new batch of {ce_device} in {c_room} {c_soon}"
+        - "all hands {day} at {time}, new product reveal"
+        - "welcome {person} to the firmware team"
+        - "reminder: {ce_cert} deadline is {c_soon}"
+      replies:
+        -   - "can we try it early?"
+            - "will it be recorded?"
+            - "who needs to attend?"
+        -   - "{c_yes}, grab one after"
+            - "all leads, yes"
+            - "{c_idk}, ask {person}"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_em}"
+    - root:
+        - "{c_hey}: benefits enrolment closes {c_soon}"
+        - "office closed {c_soon}, wfh"
+        - "it patching {c_soon}, restart please"
+        - "lab access is changing {c_soon}"
+      replies:
+        -   - "{c_ack}"
+            - "{c_thanks}"
+        -   - ""
+            - "thanks for the heads up"
+    - root:
+        - "huge thanks to {person} for the launch push"
+        - "{c_hey}, we shipped the update to everyone"
+        - "the team won an industry award"
+      replies:
+        -   - "amazing"
+            - "{c_em}"
+            - "well deserved"
+        -   - ""
+            - "{c_thanks}"
+  off-topic:
+    - root:
+        - "anyone tried the new {ce_device}?"
+        - "my {ce_device} at home just updated itself"
+        - "which phone do you use?"
+        - "lunch ideas, sick of {c_food}"
+        - "who is building a home lab?"
+      replies:
+        -   - "love it"
+            - "battery is great"
+            - "not for me"
+        -   - "{c_lol}"
+            - "dogfooding is hard"
+            - ""
+    - root:
+        - "{c_sport} {c_soon}, anyone in?"
+        - "{c_weekend} {c_soon}, anyone?"
+        - "{c_pet} chewed a cable again"
+        - "reading anything good lately?"
+      replies:
+        -   - "i'm in"
+            - "nice"
+            - "can't, sorry"
+        -   - "{c_em}"
+            - ""
+  engineering:
+    - root:
+        - "pairing keeps failing on build {ce_ver}"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "{c_ci_fail} is failing on main"
+        - "who owns the signing service?"
+        - "should we bump {c_dep}? new major is out"
+      replies:
+        -   - "i'll look {c_when_eng}"
+            - "which hardware rev?"
+            - "{c_idk}, checking"
+        -   - "it is the new stack"
+            - "rolled back, watching"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "design question for {c_eng_area}, async?"
+        - "heads up, firmware freeze from {day} for {ce_peak}"
+        - "why does {c_eng_area} retry {2-9} times?"
+        - "who is on call this week?"
+      replies:
+        -   - "async, with a retry"
+            - "ask {person}"
+            - "it is in the handbook"
+        -   - "{c_ack}"
+            - "ok, thanks"
+            - ""
+    - root:
+        - "local env broke after {pulling main/a rebase}"
+        - "is {c_tool} down for anyone else?"
+        - "tiny pr: fix typo in {repo} readme"
+      replies:
+        -   - "restart the dev container"
+            - "same here"
+            - "merged"
+        -   - "{c_thanks}"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the OTA fixes, standup in {5-15} minutes"
+        - "who picks up {issue}?"
+        - "sprint planning {day} at {time}, bring estimates"
+        - "anyone free to pair on {issue}?"
+        - "retro: who owns the RMA flow?"
+      replies:
+        -   - "me, after standup"
+            - "i can {c_when_eng}"
+            - "{c_pto}, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {c_customer} reports {ce_fail}"
+        - "support says {ce_fail}, {issue} maybe?"
+        - "{c_hey}, {ce_fail} again, {2-9}th this week"
+        - "a reviewer mentions {ce_fail}"
+      replies:
+        -   - "which hardware rev?"
+            - "{issue} looks like it"
+            - "send me the serial"
+        -   - "{c_ack}, taking it"
+            - "checking the logs"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers the rma desk?"
+      replies:
+        -   - "in the handbook"
+            - "i do"
+        -   - "{c_thanks}"
+            - ""
+  support:
+    - let:
+        who: ["{c_customer}"]
+        fail: ["{ce_fail}"]
+      root:
+        - "{who|cap} reports {fail}"
+        - "{s_hey}, {who}: {fail}, case {4100-4999}"
+        - "{who} is upset, {fail}"
+        - "{fail} again, what do we offer?"
+        - "review mentions {fail}"
+      replies:
+        -   - "ask for the serial number"
+            - "known, see {issue}"
+            - "start an RMA"
+            - "try a factory reset first"
+        -   - "{s_ack}, will reply"
+            - "{s_thx}"
+            - "done, replacement sent"
+            - ""
+    - let:
+        why: ["{ce_why}"]
+        rma: ["{ce_rma}"]
+      root:
+        - "customer wants {rma}, says {why}"
+        - "{s_hey}, {rma} request, {why}, still in warranty?"
+        - "out of warranty, {why}, wants {rma}"
+        - "reseller asks for {rma}, {why}"
+      replies:
+        -   - "check the registration date"
+            - "water damage is not covered"
+            - "ask for proof of purchase"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - let:
+        item: ["{item_a}", "{item_b}"]
+        sum: ["{s_money}"]
+      root:
+        - "{s_cust|cap} asks why {item} is {sum}"
+        - "buyer questions the {item} line"
+        - "can someone explain {item}? customer asks"
+        - "{item} went up, they noticed"
+      replies:
+        -   - "price list changed on the 1st"
+            - "freight follows the carrier rate"
+            - "{s_look} at the order"
+        -   - "{s_thx}"
+            - ""
+    - root:
+        - "queue is at {20-90} open cases, mostly pairing"
+        - "{s_hey}, units arrive dead on opening"
+        - "customer cannot register a {ce_device}"
+        - "app says update failed, again"
+      replies:
+        -   - "known, see {issue}"
+            - "i'll ask the firmware team"
+            - "send me the serial"
+        -   - "{s_ack}"
+            - "{s_thx}"
+  incidents:
+    - root:
+        - "OTA failures climbing on {ce_device}"
+        - "devices stuck on the update screen"
+        - "no telemetry since {time}"
+        - "{s_hey}, registration is {s_symptom}"
+      replies:
+        -   - "is it all regions?"
+            - "{s_oncall} is looking"
+            - "pausing the rollout"
+        -   - "{ce_fix}, watching"
+            - "back at {time}"
+            - ""
+        -   - "{s_thx}, file an issue"
+            - ""
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed"
+        - "review of the update outage is {day} at {time}"
+        - "on-call handover: nothing open"
+      replies:
+        -   - "threshold is tight, raising it"
+            - "worth an issue"
+            - "works for me"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "signing certificate expires in {2-9} days"
+        - "{s_al} telemetry ingest lag {s_age}"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "{s_al} RMA queue at {1-9},{100-900}"
+      replies:
+        -   - "renewing now"
+            - "i'll check the ingest"
+            - "looks like the new build"
+        -   - "{s_ack}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you check the OTA config {s_soon}?"
+        - "{s_hey}, can you cover the rma desk {s_soon}?"
+        - "quick question: where do serials live?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this teardown"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - ""
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "ugh, the lab router rebooted again"
+        - "survived {ce_peak}, finally"
+        - "{s_hey}, got a minute for {ce_cert} prep?"
+      replies:
+        -   - "yes, count me in"
+            - "can't today"
+            - "same, long week"
+        -   - "tomorrow?"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Order emails delayed
+      - Invoice mail running late
+      - Warranty confirmations not sent
+    alert:
+      - "order emails delayed, oldest waited {20-90} min"
+      - "{s_al} mail queue age {s_age}"
+      - "invoice mail not going out since {time}"
+    fix_message:
+      - "Queue order emails, not inline sends"
+      - "{s_q_verb|cap} invoice mail {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment provider callback errors
+      - Elevated errors on payment callbacks
+      - Payment events failing
+    alert:
+      - "payment callbacks failing, rate above {5-30} percent"
+      - "{s_al} payment events erroring since {time}"
+      - "callback endpoint throwing 5xx errors"
+    fix_message:
+      - "Retry callbacks on timeout"
+      - "Retry callbacks that time out"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate warranty emails
+      - Customers got the invoice twice
+      - Confirmation sent twice
+    alert:
+      - "customers got emails twice, {3-12} reports"
+      - "{s_al} duplicate confirmations after a retry"
+      - "same email sent twice since {day}"
+    fix_message:
+      - "Check the sent log first"
+      - "Skip emails already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly telemetry load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad event rows"
+      - "{s_al} warehouse load aborted, dashboards stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed event rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Telemetry load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "telemetry load ran twice, counts doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Support portal timeouts for large accounts
+      - Device list times out
+      - Portal slow for enterprise accounts
+    alert:
+      - "support portal timeouts, p95 above {5-20}s"
+      - "{s_al} device list 504s, largest accounts only"
+      - "portal slow for big accounts since {time}"
+    fix_message:
+      - "Page the device list"
+      - "Add pagination to devices"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Portal login errors after deploy
+      - Customers signed out after the release
+      - Login loop on the support portal
+    alert:
+      - "customer logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "customers cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - OTA staging certificate expired
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}"
+      - "{s_al} tls errors on staging, no renewal"
+      - "OTA certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - OTA alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "OTA alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "seeing the same in support cases"
+    - "checking the OTA dashboard now"
+    - "is it one model or all?"
+    - "might be the build from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the device backend, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the warranty rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} reads serials? {s_un_c}"
+    - "{s_un_a} why OTA checks slowed? {s_un_c}"

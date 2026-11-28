@@ -1,0 +1,894 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Fitness and wellness apps and wearables: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: fitness-apps
+name: Fitness and wellness apps and wearables
+group: Consumer, fitness and wellness
+aliases:
+  - fitness app
+  - wellness app
+  - wearables
+  - health and fitness tech
+  - connected fitness
+description: A company that makes a fitness and wellness app and its wearable devices, sells subscriptions through app stores and the web, and runs corporate wellness programs.
+name_suffixes:
+  - Fit
+  - Health Labs
+  - Wellness
+  - Motion
+  - Active
+  - Labs
+invoice_items:
+  - Premium subscription
+  - Corporate wellness program
+organization:
+  head: Head of Engineering
+  it_admin: IT Lead
+  teams:
+    platform: {department: Engineering, title: Platform Engineer}
+    billing: {department: Engineering, title: Payments Engineer}
+    data: {department: Data and Analytics, title: Data Engineer}
+    support: {department: Member Support, title: Support Specialist, lead: Support Manager}
+    product: {department: Product, title: Product Manager}
+    operations: {department: Partnerships and Operations, title: Partner Operations Analyst}
+names:
+  repos:
+    billing-service: [subscriptions, billing-service, payments-service, store-billing]
+    platform-docs: [eng-handbook, platform-docs, mobile-runbooks, team-docs]
+    data-pipeline: [events-warehouse, analytics-pipeline, data-pipeline, event-loads]
+    infra-config: [infra-config, cloud-config, env-config, deploy-config]
+    customer-portal: [web-app, account-web, member-web, web-checkout]
+    ops-scripts: [ops-scripts, legacy-scripts, admin-scripts, old-tools]
+  channels:
+    engineering: [engineering, eng, dev, mobile-and-web]
+    incidents: [incidents, prod-incidents, sync-alerts, outages]
+    releases: [releases, app-releases, store-submissions, shipping]
+    billing-team: [billing-team, subscriptions-team, payments, billing-eng]
+    platform-team: [platform-team, backend, platform, sync-platform]
+    data-team: [data-team, analytics, data, insights]
+    support: [support, member-support, help-desk, cs-team]
+    leads: [leads, eng-leads, managers, team-leads]
+systems:
+  typical: [github, slack, jira, stripe, segment, amplitude, braze, zendesk]
+  common: [firebase, sentry, launchdarkly, datadog, snowflake]
+symbols:
+  b_doc: [subscription receipt, renewal invoice, corporate wellness invoice, store payout statement, device order invoice, refund confirmation]
+  b_customer: [monthly subscriber, annual subscriber, family-plan, corporate wellness, student, trial-converted, lifetime-plan, gifted]
+  b_who: [support, the growth team, finance, partnerships, the coaching team]
+  b_pwho: [support, a subscriber, "{person}", the growth team, finance]
+  b_ticket_noun: [ticket, case, review, store complaint]
+  b_page: [workout history, subscription, payment methods, connected devices, challenges, friends, data export]
+  b_acct_size: ["{300-2000} workouts", "{3-9} connected devices", "over {1000-9000} sync events", "{20-80} challenge entries"]
+  b_provider_event: [renewal succeeded, renewal failed, refund issued, chargeback opened, trial converted, subscription cancelled, grace period started]
+  b_money_path: [billing/subscriptions.py, billing/renewals.py, billing/store_receipts.py, billing/proration.py]
+  b_check_path: [the renewal tests, the receipt tests, the store callback tests, the proration tests]
+  b_browser: [Safari, Firefox, Chrome on Android, mobile Safari, Edge, an in-app browser]
+  p_table: [users, subscriptions, workouts, devices, sync_events, entitlements, promo_redemptions, refunds, push_tokens]
+  p_report: [the weekly active users report, the trial conversion dashboard, the retention cohort report, the revenue by platform report, the churn dashboard, the device sync health report]
+  p_source: [the App Store server notifications, the Play billing events, the wearable sync logs, the push provider delivery reports, the coaching platform export, the web analytics events]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the controller]
+  p_alert_name: [sync api error rate, push delivery delay, store notification backlog, the nightly load finishing late, certificate expiry, crash-free sessions, replication lag]
+  s_plan: [the annual plan, a monthly plan, the family plan, a corporate plan, the student plan, a free trial]
+  c_customer: [a subscriber, a corporate client, an annual subscriber, a power user, a family plan owner, a coach]
+  s_tool: [the admin console, the support desk, the subscription lookup, the store dashboard, the user search]
+  s_thing: [the renewal job, the sync worker, the push sender, the export, the cron, the webhook handler, the paywall, the onboarding flow]
+  c_eng_area: [the renewal job, the sync worker, the store webhooks, the push queue, the paywall, the streak logic, the workout import, the export endpoint]
+  c_sport: [a run, climbing, a long bike ride, yoga, a swim, tennis, the gym]
+  fa_platform: [iOS, Android, the web app, the watch app, the band app]
+  fa_device: [the band, the watch, the chest strap, the smart scale, the ring]
+  fa_metric: [steps, heart rate, sleep score, active minutes, calories, resting heart rate]
+  fa_workout: [a run, a ride, a strength session, a yoga class, a swim, a HIIT session]
+  fa_store: [the App Store, Google Play, the web checkout]
+  fa_feature: [streaks, challenges, leaderboards, live classes, coaching plans, the weekly report]
+  fa_region: [the EU, California, Washington state, the UK, Canada]
+  fa_flag: [the new onboarding, the paywall test, the sleep tab, the coach chat]
+  fa_peak: [the January spike, the new year rush, the summer challenge, a marathon weekend, a viral workout video]
+  fa_fail: [sync stuck, a missing workout, a wrong step count, a lost streak, a duplicate charge, a failed restore]
+  fa_ver: ["{4-9}.{0-9}.{0-9}", "{3-8}.{1-9}", "{10-12}.{0-4}.{0-3}"]
+  fa_why: [new phone, low battery, flaky bluetooth, a timezone change, an os update, a reinstall]
+  fa_dev: [a new watch, a band upgrade, the old band, a borrowed phone]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        store: ["{fa_store}"]
+        event: ["{b_provider_event}"]
+        path: ["{b_money_path}"]
+      title:
+        - "Refunded in {store}, still premium"
+        - "Entitlement survives a refund from {store}"
+        - "Store refund does not end access"
+        - "Refunded users keep premium for weeks"
+        - "Refund notice from {store} is ignored"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_raised}, seen in {2-9} reviews."
+        -   - "A refund arrives from {store}."
+            - "The store sends a refund event."
+        -   - "The entitlement is never revoked."
+            - "{path|cap} skips refunds after {event}."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with a store refund."
+        - "Handler in {path} ignores the revoke type."
+        - "{b_cm_plan}"
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        platform: ["{fa_platform}"]
+        customer: ["{b_customer}"]
+      title:
+        - "Trial converts twice, web and {platform}"
+        - "Double charge after web trial, {platform}"
+        - "{customer|cap} users billed on two platforms"
+        - "Two active subscriptions for one user"
+        - "Duplicate plan after switching to {platform}"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "{/Also, /And /}A user trials on the web."
+            - "One account trials on two stores."
+            - ""
+        -   - "{/Also, /And /}each store converts at the end."
+            - "Both converted and both charged."
+            - ""
+        -   - "{b_urgent}"
+            - "Refunds need {b_pwho} to approve."
+      comments:
+        - "We check one store only."
+        - "Merge by account id before converting."
+        - "{b_cm_later}"
+    - labels: [needs-decision]
+      let:
+        who: ["{b_who}"]
+        question: [which employees count as seats, billing for inactive employees, a refund after an early exit, pausing a client over the summer]
+      title:
+        - "Policy for {question}?"
+        - "Corporate wellness: {question}"
+        - "Who decides {question}?"
+        - "Seat counts on the employer invoice"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} handles {question} {b_nd_b}."
+        -   - "{/Also, /And /}seats are counted at month end."
+            - "Invited users count, not active ones."
+            - ""
+        -   - "{/Also, /And /}employers dispute it every quarter."
+            - "Two clients asked for a credit."
+            - ""
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who}."
+      comments:
+        - "Active in the last {30/60/90} days seems fair."
+        - "{b_cm_lean} counting activated accounts only."
+        - "Contracts differ, check them before changing."
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        platform: ["{fa_platform}"]
+      title:
+        - "Family plan: removed member keeps access"
+        - "Removed family member not prorated"
+        - "Owner charged for removed seat"
+        - "{doc|cap} lists seats already removed"
+      body:
+        -   - "An owner removed a member on {day}."
+            - "A member left the family plan."
+        -   - "The {doc} still counts the seat."
+            - "Proration ignores the change day."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_hand}"
+        - "Seats end on removal day."
+    - labels: [bug, security]
+      let:
+        kind: [promo code, referral reward, gift code, student discount]
+      title:
+        - "{kind|cap} can be reused after cancelling"
+        - "Single-use {kind} redeems twice"
+        - "{kind|cap} stacks with the trial"
+        - "Cancelled users redeem a {kind} again"
+      body:
+        -   - "A {kind} is meant to work once."
+            - "Each {kind} should be single use."
+        -   - "{/Also, /And /}A cancelled account redeems it again."
+            - "Fresh accounts redeem it again."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{/Also, /And /}keep the details out of chat."
+            - "Keep this out of open channels."
+            - ""
+      comments:
+        - "Tie the {kind} to the payment method."
+        - "Checked {2-9} abusers by hand."
+        - "{b_cm_fix_up}"
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [a hotfix release, a store submission, a staged rollout, a rollback, a forced update]
+        topic: [releases, store reviews, flags, rollbacks]
+      title:
+        - "How-to: ship {thing}"
+        - "Checklist for {thing}"
+        - "Write down how we do {thing}"
+        - "Runbook: {thing}"
+      body:
+        -   - "Nobody has a list for {thing}."
+            - "Last time we did {thing} from memory."
+        -   - "{/Also, /And /}the store review adds days."
+            - "Set flags before the build."
+            - ""
+        -   - "{b_dc_a} {b_dc_b}"
+            - "{b_dc_c} would be plenty."
+      comments:
+        - "I have notes from last time."
+        - "Add a review contact per store."
+        - "Mention the staged rollout percentages."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/store-webhooks.md", "docs/runbooks/sync-api.md", "docs/runbooks/push-sender.md", "docs/runbooks/renewals.md"]
+        step: [pausing the queue first, checking the store dashboard, draining the workers, switching off the flag, rotating the push key]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "Runbook skips {step}"
+        - "{runbook}: {step} not listed"
+        - "Update {runbook} after the migration"
+      body:
+        -   - "Followed {runbook} during an incident."
+            - "It left out {step}."
+        -   - "{person} told us in chat only."
+            - "{step|cap} lives in someone's head."
+        -   - "{p_owner_ask}"
+            - "{p_reviewer_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Add a screenshot of the dashboard."
+        - "{b_cm_docs}"
+  data:
+    - labels: [bug, data-quality]
+      let:
+        metric: ["{fa_metric}"]
+        dev: ["{fa_dev}"]
+      title:
+        - "Workouts counted twice, phone and band"
+        - "Duplicate workouts after pairing {dev}"
+        - "{metric|cap} doubled when two sources report"
+        - "Double counted workouts in {p_table}"
+      body:
+        -   - "A workout arrives from two sources."
+            - "Phone and band both send it."
+        -   - "{/Also, /And /}the clean step keeps both rows."
+            - "Nothing links the two copies."
+            - ""
+        -   - "{p_noticed|cap}."
+            - "Support has {2-9} complaints."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Match on start time and duration."
+        - "Prefer the band when both exist."
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "{report|cap} disagrees with finance"
+        - "Trial conversions off by {2-9} percent"
+        - "Retention cohorts shift between runs"
+        - "Revenue by platform misses payouts"
+      body:
+        -   - "The dashboard is {2-9} percent higher."
+            - "Finance shows a different total."
+        -   - "{/Also, /And /}store fees and refunds differ."
+            - "Refunds land in another period."
+            - ""
+        -   - "{b_ex_a}."
+            - "{who|cap} needs this {for the board pack/before month end}."
+        -   - "{p_owner_ask}"
+      comments:
+        - "One view counts trials as paid."
+        - "Define the cohort by first charge."
+        - "{b_cm_check}"
+    - labels: [security, task]
+      let:
+        region: ["{fa_region}"]
+      title:
+        - "Account deletions must purge the warehouse"
+        - "Erasure requests miss {p_table}"
+        - "Deleted users still in the warehouse"
+        - "Purge deleted users under {region} rules"
+      body:
+        -   - "Deleting clears the app database."
+            - "The warehouse keeps old rows."
+        -   - "{region|cap} rules need removal in {30/45} days."
+            - "Privacy asked for a monthly purge."
+        -   - "{/Also, /And /}health data needs extra care."
+            - "Workout and heart rate rows count."
+            - ""
+        -   - "{p_owner_ask}"
+      comments:
+        - "A nightly purge by user id."
+        - "Backups age out on their own."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        ver: ["{fa_ver}"]
+      title:
+        - "Event schema change in {ver} broke the load"
+        - "New build sends a renamed field"
+        - "Nightly load fails after build {ver}"
+      body:
+        -   - "Build {ver} renamed an event field."
+            - "The loader expects the old name."
+        -   - "Rows land in the reject table."
+            - "Dashboards show a gap since {day}."
+        -   - "{p_priority}"
+            - "{p_fix_soon}"
+      comments:
+        - "Accept both names for now."
+        - "Mobile should tell us before renames."
+        - "{b_cm_later}"
+  portal:
+    - labels: [enhancement]
+      let:
+        region: ["{fa_region}"]
+        ask: [export their data, delete their history, get a copy of their workouts, download their sleep data]
+      title:
+        - "Self-service data export"
+        - "Let users download their data"
+        - "Export my data from settings"
+        - "Data request form for {region} users"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+            - "Requests must be answered in {30/45} days."
+      comments:
+        - "Zip of workouts and sleep files."
+        - "Email the link, then expire it."
+        - "{b_cm_srv}"
+    - labels: [bug]
+      let:
+        browser: ["{b_browser}"]
+      title:
+        - "Checkout fails at 3-D Secure"
+        - "Card challenge loops in {browser}"
+        - "Checkout stuck after bank approval"
+        - "3-D Secure popup blocked in {browser}"
+      body:
+        -   - "Customers reach the bank challenge."
+            - "The bank page never returns."
+        -   - "It happens in {browser}."
+            - "Other browsers are fine."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "{b_cm_repro} with a test card."
+        - "The return url loses the session."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Deleted accounts keep billing"
+        - "Account deleted, store still billing"
+        - "Delete account leaves the plan active"
+        - "Users charged after account deletion"
+      body:
+        -   - "Deleting the account removes data."
+            - "The app deletes profile and workouts."
+        -   - "{/Also, /And /}the store subscription keeps renewing."
+            - "Billing keeps running at the store."
+            - ""
+        -   - "People think they are cancelled."
+            - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Warn them, link the store."
+        - "We cannot cancel for the store."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        why: ["{fa_why}"]
+        feature: ["{fa_feature}"]
+      title:
+        - "{feature|cap} reset after a timezone change"
+        - "Streak lost after {why}"
+        - "Day boundary wrong when travelling"
+        - "Users lose {feature} over {why}"
+      body:
+        -   - "A streak breaks at midnight."
+            - "Midnight uses the wrong zone."
+        -   - "It follows {why}."
+            - "Travellers report it most."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Store the zone with each workout."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Restore {2-9} streaks by hand."
+  infra:
+    - labels: [security, enhancement]
+      title:
+        - "Alert before the push certificate expires"
+        - "Push key rotation has no reminder"
+        - "Push signing key expires next quarter"
+        - "Who rotates the push credentials?"
+      body:
+        -   - "The key expires in {20-90} days."
+            - "Nobody owns the push credentials."
+        -   - "{/Also, /And /}A lapse stops all notifications."
+            - "Expiry silently stops pushes."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Add a calendar reminder."
+      comments:
+        - "I will add a {30/14}-day alert."
+        - "Rotate in staging first."
+        - "{b_cm_plan}"
+    - labels: [bug, performance]
+      let:
+        peak: ["{fa_peak}"]
+      title:
+        - "Sync API rate limits trip during {peak}"
+        - "Sync workers fall behind in {peak}"
+        - "Throttling too tight for {peak}"
+        - "Raise sync limits before {peak}"
+      body:
+        -   - "Sync requests spike in {peak}."
+            - "Traffic doubled during {peak}."
+        -   - "{/Also, /And /}clients get throttled and retry."
+            - "Retries then add more load."
+            - ""
+        -   - "{/Also, /And /}raise limits or add workers."
+            - "Backoff on the client helps too."
+            - ""
+      comments:
+        - "{b_cm_prof}"
+        - "Add jitter to the retry."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Firmware downloads slow in some regions"
+        - "Update bucket lacks a cache rule"
+        - "Firmware update stalls halfway"
+        - "CDN serves an old firmware file"
+      body:
+        -   - "Devices stall at {10-90} percent."
+            - "Updates time out in some regions."
+        -   - "{/Also, /And /}the cache keeps the old file."
+            - "The file is never cached."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "Purge the cache on each release."
+        - "Add a checksum to the manifest."
+        - "{b_cm_check}"
+  ops:
+    - labels: [question]
+      let:
+        script: ["backfill_steps.sh", "resend_receipts.sh", "purge_push_tokens.sh", "{p_script}"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+        - "Does anything call {script}?"
+        - "Retire {script}?"
+        - "{script}: anyone using this?"
+      body:
+        -   - "Found {script} while tidying."
+            - "{script|cap} has no recent changes."
+        -   - "{/Also, /And /}it predates the new pipeline."
+            - "Written for the old backend."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Will remove it next month."
+      comments:
+        - "Not used by us."
+        - "Check cron on {p_old_ref}."
+        - "Keep it until the migration ends."
+comments:
+  - "Support has {2-9} reviews about this."
+  - "Is this {fa_platform} only?"
+  - "Does it also happen on {fa_platform}?"
+  - "Seen it with {fa_device} too."
+  - "Matters most around {fa_peak}."
+  - "Checked the logs for {fa_fail}."
+  - "Behind {fa_flag} for now?"
+  - "{b_pwho|cap} has a user waiting."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: all hands {day} at {time}, {fa_peak} plan"
+        - "app store review is back, {c_thanks} {person}"
+        - "new release goes to {fa_store} {c_soon}"
+        - "company challenge starts {c_soon}, join up"
+        - "{c_hey}, steps challenge leaderboard is live"
+      replies:
+        -   - "can we join from the watch?"
+            - "does it count cycling?"
+            - "who is winning?"
+        -   - "{c_yes}, all sources count"
+            - "{c_idk}, ask {person}"
+            - "check the leaderboard"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_em}"
+    - root:
+        - "welcome {person} to the mobile team"
+        - "{c_hey}, new coach joining {c_soon}"
+        - "show and tell {day} at {time}, new sleep tab"
+        - "walkthrough of {fa_flag} {c_soon}, come along"
+      replies:
+        -   - "welcome!"
+            - "{c_em}"
+            - "nice, see you there"
+        -   - "recording afterwards?"
+            - ""
+    - root:
+        - "benefits enrolment closes {c_soon}"
+        - "{c_hey}, it patch for laptops {c_soon}"
+        - "office is closed {c_soon}, wfh"
+      replies:
+        -   - "{c_ack}"
+            - "{c_thanks}"
+        -   - ""
+            - "thanks for the reminder"
+  off-topic:
+    - root:
+        - "who is running the {5/10}k {c_soon}?"
+        - "{c_sport} {c_soon}, anyone in?"
+        - "my watch says i slept {4-9} hours, lies"
+        - "ring or band, which one?"
+        - "personal best on {fa_workout} today"
+      replies:
+        -   - "nice one"
+            - "i'm in"
+            - "{c_lol}"
+        -   - "my band said the same"
+            - "dogfooding is hard"
+            - ""
+        -   - "{c_em}"
+            - ""
+    - root:
+        - "lunch ideas, sick of {c_food}"
+        - "{c_place} is closed again"
+        - "coffee run, anyone?"
+        - "{c_weekend} {c_soon}, anyone?"
+      replies:
+        -   - "yes please"
+            - "{c_food}?"
+            - "i'm in"
+        -   - "{c_thanks}"
+            - ""
+  engineering:
+    - root:
+        - "build {fa_ver} is in review on {fa_store}"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "crash free rate dropped on {fa_platform}"
+        - "{c_ci_fail} is failing on main"
+        - "should we bump {c_dep}? new major is out"
+      replies:
+        -   - "i'll look {c_when_eng}"
+            - "which build?"
+            - "{c_idk}, checking"
+        -   - "rolled back the flag, watching"
+            - "it is the new sdk"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "design question for {c_eng_area}, async?"
+        - "who owns {c_eng_area}?"
+        - "heads up, flag {fa_flag} goes to {10-100} percent {c_soon}"
+        - "{c_hey}, anyone know why {fa_device} syncs twice?"
+      replies:
+        -   - "async, with a retry"
+            - "ask {person}"
+            - "i wrote it, happy to explain"
+        -   - "{c_ack}, thanks"
+            - "ok will watch dashboards"
+            - ""
+    - root:
+        - "local env broke after {pulling main/a rebase}"
+        - "is {c_tool} down for anyone else?"
+        - "who is on call this week?"
+        - "release train leaves {day} at {time}"
+      replies:
+        -   - "restart the dev container"
+            - "same here"
+            - "me, until {c_soon}"
+        -   - "{c_thanks}"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the paywall test, standup in {5-15} minutes"
+        - "who picks up {issue}?"
+        - "sprint planning {day} at {time}, bring estimates"
+        - "anyone free to pair on {issue}?"
+        - "retro: who owns store webhooks?"
+      replies:
+        -   - "me, after standup"
+            - "i can {c_when_eng}"
+            - "{c_pto}, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {c_customer} reports {fa_fail}"
+        - "support says {fa_fail} on {fa_platform}, {issue}?"
+        - "{c_hey}, {fa_fail} again, {2-9} reviews today"
+        - "store review mentions {fa_fail}"
+      replies:
+        -   - "which build?"
+            - "{issue} looks like it"
+            - "send me a user id"
+        -   - "{c_ack}, taking it"
+            - "checking logs"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers support rota?"
+      replies:
+        -   - "in the handbook"
+            - "i do"
+        -   - "{c_thanks}"
+            - ""
+  support:
+    - let:
+        who: ["{c_customer}"]
+        fail: ["{fa_fail}"]
+      root:
+        - "{who|cap} reports {fail}"
+        - "{s_hey}, {who}: {fail}, ticket {4100-4999}"
+        - "review on {fa_store}: {fail}"
+        - "{who} is angry, {fail}"
+        - "{fail} again, how do we fix it?"
+      replies:
+        -   - "ask for the app version"
+            - "known, see {issue}"
+            - "try reinstalling and restoring"
+            - "send me the user id?"
+        -   - "{s_ack}, will reply"
+            - "{s_thx}"
+            - "fixed on my side"
+            - ""
+    - let:
+        store: ["{fa_store}"]
+        why: [bought by mistake, did not want a renewal, price changed, never used it, a family member signed up]
+      root:
+        - "refund request: bought on {store}, {why}"
+        - "{s_hey}, refund via {store}, {why}"
+        - "user wants money back, {why}"
+        - "{store} refund asked, {why}, can we help?"
+      replies:
+        -   - "refunds go through the store"
+            - "we can only refund web purchases"
+            - "send them the store link"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - let:
+        device: ["{fa_device}"]
+        why: ["{fa_why}"]
+      root:
+        - "{device} will not sync after {why}"
+        - "{s_hey}, sync broken since {why}"
+        - "user says {device} lost data after {why}"
+        - "missing workouts after {why}"
+      replies:
+        -   - "have them force a sync"
+            - "check the firmware version"
+            - "bluetooth reset fixes most"
+        -   - "worked, {s_thx}"
+            - "still nothing, escalating"
+            - ""
+    - root:
+        - "corporate client asks for the {item_b} invoice"
+        - "a client wants seat counts for {item_b}"
+        - "{s_hey}, client disputes the {item_a} charge of {s_money}"
+        - "queue is at {20-90} open tickets"
+      replies:
+        -   - "usage export is in the admin"
+            - "i'll ask finance"
+            - "it is per active seat"
+        -   - "{s_thx}"
+            - ""
+  incidents:
+    - root:
+        - "sync errors are up on {fa_platform}"
+        - "push notifications delayed by {20-90} minutes"
+        - "store notifications are backing up"
+        - "{s_hey}, {fa_store} billing events not arriving"
+      replies:
+        -   - "all users or one region?"
+            - "{s_oncall} is looking"
+            - "rolling back the last deploy"
+        -   - "back to normal at {time}"
+            - "queue draining now"
+            - ""
+        -   - "{s_thx}, please file an issue"
+            - ""
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed"
+        - "review for the sync outage is {day} at {time}"
+        - "on-call handover: nothing open"
+      replies:
+        -   - "threshold is tight, raising it"
+            - "worth an issue"
+            - "works for me"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "sync api certificate expires in {2-9} days"
+        - "{s_al} crash free sessions below {95-99} percent"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "{s_al} push sender queue at {1-9},{100-900}"
+      replies:
+        -   - "renewing now"
+            - "i'll check the dashboard"
+            - "looks like the new build"
+        -   - "{s_ack}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you review {c_patch} when free?"
+        - "{s_hey}, can you cover the store review {s_soon}?"
+        - "which flag controls the paywall?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this review"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - ""
+    - root:
+        - "run after work? {fa_workout} at {time}"
+        - "lunch? {s_lunch} at {time}"
+        - "ugh, {fa_fail} on my own watch again"
+        - "survived {fa_peak}, finally"
+      replies:
+        -   - "yes, count me in"
+            - "can't today"
+            - "same, long week"
+        -   - "tomorrow?"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Receipt emails delayed
+      - Subscription receipts arriving late
+      - Renewal mail not sent
+    alert:
+      - "receipt emails delayed, oldest waited {20-90} min"
+      - "{s_al} receipt queue age {s_age}"
+      - "renewal mail not going out since {time}"
+    fix_message:
+      - "Queue receipt emails, not inline sends"
+      - "{s_q_verb|cap} receipts {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Store notification errors
+      - Elevated errors on store webhooks
+      - Store billing events failing
+    alert:
+      - "store webhooks failing, rate above {5-30} percent"
+      - "{s_al} store notifications erroring since {time}"
+      - "billing events piling up, retries growing"
+    fix_message:
+      - "Retry store webhooks on timeout"
+      - "Retry notifications that time out"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate subscription receipts
+      - Users got two receipts
+      - Receipt emails sent twice
+    alert:
+      - "users got receipts twice, {3-12} reports"
+      - "{s_al} duplicate receipts after a retry"
+      - "same receipt mailed twice since {day}"
+    fix_message:
+      - "Check the sent log first"
+      - "Skip receipts already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly events load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad event rows"
+      - "{s_al} warehouse load aborted, dashboards stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed event rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Events load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "events load ran twice, counts doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Web app timeouts for heavy users
+      - Workout history page times out
+      - History slow for long-time users
+    alert:
+      - "web app timeouts, p95 above {5-20}s"
+      - "{s_al} workout history 504s, heavy users only"
+      - "history page slow since {time}"
+    fix_message:
+      - "Page the workout history"
+      - "Add pagination to history"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Web login errors after deploy
+      - Users signed out after the release
+      - Login loop on the web app
+    alert:
+      - "web logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "users cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - Push gateway certificate expired
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}"
+      - "{s_al} tls errors on staging, no renewal"
+      - "push gateway certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - Sync alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "sync alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "seeing the same in reviews"
+    - "checking the sync dashboards now"
+    - "is it ios, android or both?"
+    - "might be the release from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the app backend, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the renewal rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} handles store refunds? {s_un_c}"
+    - "{s_un_a} why sync slowed down? {s_un_c}"

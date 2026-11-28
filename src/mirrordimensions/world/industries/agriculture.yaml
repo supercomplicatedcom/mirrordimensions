@@ -1,0 +1,1088 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Agriculture and agritech: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: agriculture
+name: Agriculture and agritech
+group: Industry and infrastructure
+aliases:
+  - agritech
+  - farming
+  - agribusiness
+  - crop production
+  - grain and inputs
+description: An agribusiness or agritech company that sells crop inputs and field services to growers, handles their grain, and bills members by season.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Farms
+  - Agri
+  - Cooperative
+  - Growers
+  - Agronomy
+  - Grain
+invoice_items:
+  - Crop inputs
+  - Field monitoring subscription
+organization:
+  head: Director of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Technology
+      title: Platform Engineer
+    billing:
+      department: Grower Billing Systems
+      title: Billing Systems Engineer
+    data:
+      department: Agronomic Data
+      title: Data Engineer
+    support:
+      department: Grower Services
+      title: Grower Services Representative
+    product:
+      department: Digital Agriculture
+      title: Product Manager
+    operations:
+      department: Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, grower-billing, input-billing, settlement-service]
+    platform-docs: [platform-docs, tech-handbook, harvest-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, field-data-loads, agronomy-etl, yield-warehouse]
+    infra-config: [infra-config, elevator-network-config, environments, platform-config]
+    customer-portal: [customer-portal, grower-portal, member-portal, field-portal]
+    ops-scripts: [ops-scripts, elevator-scripts, legacy-scripts, scale-scripts]
+  channels:
+    engineering: [engineering, dev, tech-chat]
+    incidents: [incidents, harvest-alerts, outages]
+    support: [support, grower-services, member-support]
+    data-team: [data-team, field-data, agronomy-data]
+    billing-team: [billing-team, settlements, grower-billing]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - sap s/4hana cloud
+    - esri arcgis online
+    - samsara
+    - servicenow
+    - salesforce
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - losant
+    - particle
+symbols:
+  b_doc:
+    - input invoice
+    - grain settlement
+    - seasonal statement
+    - credit memo
+    - finance charge notice
+  b_customer:
+    - row crop grower
+    - dairy producer
+    - orchard
+    - cattle operation
+    - greenhouse grower
+    - co-op member
+  b_who:
+    - the agronomy team
+    - the grain desk
+    - member services
+    - the credit department
+    - field sales
+  b_pwho:
+    - a grower
+    - an agronomist
+    - '{person}'
+    - the grain desk
+    - member services
+  b_region:
+    - Iowa
+    - Nebraska
+    - Saskatchewan
+    - Kansas
+    - Queensland
+    - the Central Valley
+    - Minnesota
+    - Illinois
+  b_taxkind:
+    - sales tax
+    - fertilizer fee
+    - GST
+    - VAT
+    - excise tax
+    - checkoff fee
+  b_page:
+    - invoices
+    - grain tickets
+    - field maps
+    - account settings
+    - the dashboard
+    - contracts
+    - prescriptions
+    - payment history
+  b_acct_size:
+    - '{40-300} fields'
+    - '{15-60} users'
+    - '{2-12} farm entities'
+    - '{200-900} delivery tickets'
+    - '{3-12} billing contacts'
+  b_provider_event:
+    - payment received
+    - ACH return
+    - check cleared
+    - payment failed
+    - lender draw posted
+    - chargeback opened
+  c_customer:
+    - a grower
+    - one of the larger farms
+    - a dairy producer
+    - a co-op member
+  s_plan:
+    - a seasonal input plan
+    - a forward grain contract
+    - a monitoring subscription
+    - a prepay program
+  p_source:
+    - the elevator scale tickets
+    - the weather station network
+    - the satellite imagery provider
+    - the yield monitor files
+    - the lab's soil results
+    - the equipment telematics feed
+  p_report:
+    - the harvest delivery report
+    - the grain position dashboard
+    - the input sales summary
+    - the yield by field report
+    - the member patronage report
+  p_table:
+    - field boundaries
+    - delivery tickets
+    - yield maps
+    - input orders
+    - weather readings
+    - bin sensors
+  p_finance_ask:
+    - the credit manager
+    - someone in grain accounting
+    - the controller
+    - the patronage accountant
+  c_eng_area:
+    - the settlement job
+    - the shrink calculation
+    - the acreage lookup
+    - the boundary import
+    - the prescription export
+    - the ticket parser
+  s_thing:
+    - the settlement run
+    - the ticket import
+    - the sensor feed
+    - the boundary sync
+    - the nightly load
+  p_alert_name:
+    - ticket import lag
+    - the settlement run finishing late
+    - elevator link loss
+    - failed backups of the grower database
+    - sensor gateway errors
+  p_cert_host:
+    - the grower portal certificate
+    - the scale gateway certificate
+    - the sensor gateway certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the weather provider API key
+    - the imagery provider token
+    - the payments provider token
+    - the scale gateway password
+  ag_crop:
+    - corn
+    - soybeans
+    - wheat
+    - canola
+    - barley
+    - sorghum
+    - apples
+    - grapes
+  ag_season:
+    - planting
+    - spraying
+    - harvest
+    - fall application
+    - spring prepay
+  ag_field:
+    - the north quarter
+    - the river bottom field
+    - field {10-99}
+    - the home farm
+    - the {Miller/Hansen/Ortega} place
+  ag_unit:
+    - bushels
+    - metric tonnes
+    - hundredweight
+    - pounds
+    - acres
+    - hectares
+  ag_site:
+    - the {Prairie/Riverside/Lakeview} elevator
+    - the north terminal
+    - the feed mill
+    - the seed plant
+    - the {east/west} grain bins
+  ag_weather:
+    - heavy rain
+    - frost
+    - a dry spell
+    - hail
+    - high wind
+  ag_note:
+    - Raised by the grain desk.
+    - Grower services hit it first.
+    - '{person} saw it at {ag_site}.'
+    - A grower asked about it.
+  ag_cm:
+    - Checked against the scale ticket.
+    - Same on the last delivery.
+    - Rerun after the fix looks right.
+    - Numbers match the elevator.
+  ag_when:
+    - before the harvest rush
+    - before settlements go out
+    - ahead of the planting window
+    - before year end patronage
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        field:
+          - '{ag_field}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Per acre fee uses wrong acres, {field}
+        - '{doc|cap} keeps old acreage after edits'
+        - Acres on {doc}s do not match the map
+        - Field monitoring billed on stale boundaries
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - '{ag_note}'
+          - A grower disputed the acre count.
+          - Finance noticed it on {field}.
+        - - Billing reads acres from a snapshot.
+          - The map edit never reaches billing.
+          - Two fields share one boundary.
+          - Acres are rounded to whole numbers.
+          - '{ag_note}'
+        - - The gap is about {2-9} percent.
+          - Over a season that adds up.
+          - Credits will be needed.
+          - '{ag_note}'
+        - - Needs a fix {ag_when}.
+          - '{p_owner_ask}'
+          - '{b_urgent}'
+          - '{ag_note}'
+      comments:
+        - '{ag_cm}'
+        - Acres come from the map service.
+        - '{b_cm_plan}'
+        - Credits may follow for earlier months.
+    - labels: [bug]
+      let:
+        crop:
+          - '{ag_crop}'
+        unit:
+          - '{ag_unit}'
+      title:
+        - Moisture shrink applied twice on {crop} settlements
+        - Shrink on {crop} uses wet {unit}
+        - Dockage is taken before the shrink
+        - '{crop|cap} settlement is {2-9} percent short'
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - A grower compared ticket and check.
+          - '{ag_note}'
+        - - Shrink is taken at the scale.
+          - Settlement takes it again.
+          - Dockage uses the wrong base.
+          - Wet and dry weights get mixed.
+          - '{ag_note}'
+        - - Net {unit} are lower than the ticket.
+          - The difference is large on {crop}.
+          - '{ag_note}'
+        - - '{b_urgent}'
+          - '{p_priority}'
+          - '{ag_note}'
+      comments:
+        - '{ag_cm}'
+        - Shrink factors come from the contract.
+        - Rerun the batch after the fix.
+        - '{b_cm_fix_up}'
+    - labels: [bug, needs-decision]
+      let:
+        season:
+          - '{ag_season}'
+        who:
+          - '{b_who}'
+        question:
+          - finance charge waivers
+          - deferred term exceptions
+          - prepay credit handling
+      title:
+        - Finance charges start before harvest due
+        - Interest begins early on deferred terms
+        - Deferred terms ignored for {season} orders
+        - Finance charge on prepay credits
+      body:
+        - - Growers on deferred terms got charges.
+          - '{b_raised}, {b_scope}.'
+          - '{ag_note}'
+        - - Terms say due after harvest.
+          - Billing uses the invoice date.
+          - The term code is not read.
+          - '{ag_note}'
+        - - Credit wants a rule.
+          - '{b_nd_a}'
+          - '{ag_note}'
+        - - Needs a ruling from {b_who}.
+          - '{b_nd_f}'
+          - '{ag_note}'
+      comments:
+        - Terms are on the contract record.
+        - Waive the charges, then fix.
+        - Legal should review the notice.
+    - labels: [bug]
+      let:
+        who:
+          - '{b_customer}'
+      title:
+        - Patronage allocations miss the pool total
+        - Rounding leaves cents on {who} allocations
+        - Member dividends differ from the ledger
+        - Allocation for {who} accounts is off
+      body:
+        - - Allocations add up to {2-9} dollars short.
+          - Each member share is rounded alone.
+          - '{b_raised}, {b_scope}.'
+          - '{ag_note}'
+        - - The pool is split by patronage.
+          - Last member should take the cent.
+          - '{ag_note}'
+        - - Year end is close.
+          - Auditors will ask.
+          - '{ag_note}'
+        - - '{p_owner_ask}'
+          - '{p_priority}'
+          - '{ag_note}'
+      comments:
+        - Give the remainder to the last.
+        - '{ag_cm}'
+        - Finance will review the totals.
+    - labels: [enhancement]
+      let:
+        thing:
+          - volume rebates
+          - early pay discounts
+          - loyalty tiers
+      title:
+        - Add {thing} to input invoices
+        - Growers ask for {thing} on statements
+        - Show {thing} as a separate line
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Field sales ask for {thing} yearly.
+          - '{ag_note}'
+        - - Today {thing} are credit memos by hand.
+          - The tiers live in a sheet.
+          - '{ag_note}'
+        - - It needs a rule table.
+          - A schema change and template edit.
+          - '{ag_note}'
+        - - '{b_fr_d}'
+          - '{ag_note}'
+      comments:
+        - Tiers reset each season.
+        - '{b_cm_plan}'
+        - Finance needs the same split.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - restricted use sales
+          - applicator licence checks
+          - label rate limits
+      title:
+        - Who checks {question} at order time?
+        - Policy for {question}
+        - Block orders when {question} fail?
+      body:
+        - - Some products need a licence.
+          - Orders go through without a check.
+          - '{ag_note}'
+        - - '{b_nd_a}'
+          - Rules differ by state.
+          - '{ag_note}'
+        - - Needs a ruling from {who}.
+          - '{b_nd_f}'
+          - '{ag_note}'
+      comments:
+        - Compliance should confirm the rules.
+        - Store the licence number and expiry.
+        - Hold the order, not the invoice.
+  portal:
+    - labels: [bug]
+      let:
+        field:
+          - '{ag_field}'
+      title:
+        - Boundary upload fails for large shapefiles
+        - Map edit for {field} does not save
+        - Field boundaries land in wrong place
+        - Upload times out on rural links
+        - Boundary upload hangs at {2-99} percent
+        - Shapefile for {field} is rejected
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Growers upload from the field.
+          - '{ag_note}'
+        - - Large files time out.
+          - The coordinate system is guessed.
+          - '{ag_note}'
+        - - Only some browsers fail.
+          - '{ag_note}'
+        - - '{b_urgent}'
+          - '{p_priority}'
+          - '{ag_note}'
+      comments:
+        - Compress before upload.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Ask for the projection first.
+    - labels: [bug]
+      let:
+        crop:
+          - '{ag_crop}'
+      title:
+        - Contract position for {crop} shows wrong bushels
+        - Delivered amount lags the elevator
+        - Open contract total ignores today's deliveries
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Growers watch the position daily.
+          - '{ag_note}'
+        - - The page caches for {2-15} minutes.
+          - Tickets post late at night.
+          - '{ag_note}'
+        - - The ticket list is right.
+          - Only the total differs.
+          - '{ag_note}'
+        - - '{b_cm_shot}'
+          - '{ag_note}'
+      comments:
+        - Refresh after the ticket import.
+        - '{ag_cm}'
+        - '{b_cm_plan}'
+    - labels: [bug, performance]
+      let:
+        what:
+          - yield maps
+          - prescriptions
+          - imagery layers
+      title:
+        - Download of {what} is slow on mobile
+        - '{what|cap} fail on weak signal'
+        - Maps never finish loading in cab
+      body:
+        - - Growers use the portal in cabs.
+          - '{b_raised}, {b_scope}.'
+          - '{ag_note}'
+        - - The files are large.
+          - The download restarts on drops.
+          - '{ag_note}'
+        - - Smaller tiles would help.
+          - '{ag_note}'
+        - - '{p_priority}'
+          - '{ag_note}'
+      comments:
+        - Resume partial downloads.
+        - Offer lower resolution first.
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        what:
+          - field maps
+          - yield data
+          - contracts
+      title:
+        - Advisors can open {what} of other growers
+        - '{what|cap} list ignores the farm entity'
+        - Wrong farm sees {what}
+      body:
+        - - A user saw {what} not theirs.
+          - '{b_raised}, {b_scope}.'
+          - '{ag_note}'
+        - - The list filters by user only.
+          - '{ag_note}'
+        - - '{b_dlk_c}'
+          - '{ag_note}'
+        - - '{b_dlk_e}'
+          - '{ag_note}'
+      comments:
+        - '{b_cm_repro}, no entity filter.'
+        - '{b_cm_fix_up} It adds an entity check.'
+        - Check the access log first.
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/units.md
+          - docs/shrink.md
+          - docs/seasons.md
+      title:
+        - '{Handbook/Docs}: {page} lists old shrink factors'
+        - '{page} disagrees with the settlement code'
+        - '{page|cap} misses the new crop year'
+      body:
+        - - '{page|cap} describes last year.'
+          - New crop terms are not listed.
+          - '{ag_note}'
+        - - A joiner used the old factor.
+          - '{p_noticed|cap}.'
+          - '{ag_note}'
+        - - Grain accounting owns the rules.
+          - The code is the truth.
+          - '{ag_note}'
+        - - '{p_owner_ask}'
+          - '{ag_note}'
+      comments:
+        - Grain accounting will send the factors.
+        - Will update it {ag_when}.
+        - Link the contract template.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - a scale gateway outage
+          - a stuck settlement run
+          - a ticket import failure
+          - an elevator link loss
+      title:
+        - Runbook for {thing}
+        - Harvest guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        - - The guide says nothing about {thing}.
+          - Last harvest {thing} cost {2-6} hours.
+          - '{ag_note}'
+        - - On call asks the elevator manager.
+          - Steps live in one person's notes.
+          - '{ag_note}'
+        - - A short page would help.
+          - Who to call, in what order.
+          - '{ag_note}'
+        - - '{p_priority}'
+          - '{ag_note}'
+      comments:
+        - Add the elevator phone numbers.
+        - Operations should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - unit conversions
+          - who approves settlement reversals
+          - the harvest change freeze
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: handbook and practice differ'
+        - Where should {topic} live?
+      body:
+        - - New people keep asking about {topic}.
+          - The answer depends who you ask.
+          - '{ag_note}'
+        - - Grain and finance disagree.
+          - Nothing is written down.
+          - '{ag_note}'
+        - - '{b_dc_c} {b_dc_e}'
+          - '{ag_note}'
+      comments:
+        - Ask {p_finance_ask} for the rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        weather:
+          - '{ag_weather}'
+      title:
+        - Weather station gaps after {weather}
+        - Stations report nothing for {2-30} hours
+        - Rainfall totals look low
+        - Station feed repeats old readings
+      body:
+        - - Several stations went quiet.
+          - Readings repeat the last value.
+          - '{ag_note}'
+        - - Power or links failed in {weather}.
+          - The vendor API rate limited us.
+          - '{ag_note}'
+        - - Spray advice used the stale data.
+          - Agronomists noticed.
+          - '{ag_note}'
+        - - '{ag_note}'
+          - '{p_priority}'
+      comments:
+        - Backfilled from the vendor archive.
+        - Gateway log shows a drop at {time}.
+        - Flag stale values, not zeros.
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - yield monitor files
+          - boundary files
+          - prescription maps
+      title:
+        - Import of {what} drops fields
+        - '{what|cap} from one vendor fail to parse'
+        - Units differ across {what}
+      body:
+        - - Some files load, some fail.
+          - Fields vanish after the import.
+          - '{ag_note}'
+        - - Vendors use different formats.
+          - Metric and imperial files mix.
+          - '{ag_note}'
+        - - Yield totals look off.
+          - Maps are shifted by a field.
+          - '{ag_note}'
+        - - '{p_priority}'
+          - '{p_owner_ask}'
+          - '{ag_note}'
+      comments:
+        - Added a unit column, nothing guessed.
+        - Log files that fail to parse.
+        - '{b_cm_plan}'
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Ticket load finished {delay} late on {day_name}
+        - Settlement waited on the {day_name} load
+        - Harvest tickets missing from morning run
+      body:
+        - - The load ended {delay} past the usual time.
+          - Ticket tables were empty.
+          - '{ag_note}'
+        - - The slowest step was {p_table}.
+          - Harvest volume doubled the files.
+          - '{ag_note}'
+        - - '{p_noticed|cap}.'
+          - Nothing was lost, only late.
+          - '{ag_note}'
+        - - We need the cause {ag_when}.
+          - '{ag_note}'
+      comments:
+        - Elevators sent files late again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - field ids
+          - farm entity ids
+          - bin ids
+      title:
+        - Duplicate {what} after the merger
+        - Same {what} on two accounts
+        - '{what|cap} collide between two systems'
+      body:
+        - - Found {2-60} duplicate {what}.
+          - A count shows extra rows.
+          - '{ag_note}'
+        - - The merge kept both records.
+          - Keys are not unique here.
+          - '{ag_note}'
+        - - Acres are counted twice.
+          - Invoices may reach the wrong farm.
+          - '{ag_note}'
+        - - '{p_priority}'
+          - '{ag_note}'
+      comments:
+        - Deduplicated by key, counts match.
+        - Add a uniqueness check to validate.
+        - '{b_cm_plan}'
+    - labels: [enhancement]
+      let:
+        who:
+          - the agronomists
+          - the grain desk
+          - the credit team
+      title:
+        - Load satellite imagery summaries for {who}
+        - '{who|cap} want field scores in the warehouse'
+        - Weekly field health data for {who}
+      body:
+        - - '{who|cap} ask for weekly scores.'
+          - They pull maps by hand.
+          - '{ag_note}'
+        - - Roughly {2-9} million rows a season.
+          - Storage rises a little.
+          - '{ag_note}'
+        - - Needs a new feed and table.
+          - Keep raw tiles for audit.
+          - '{ag_note}'
+        - - '{b_fr_d}'
+          - '{ag_note}'
+      comments:
+        - Keep raw files, parse later.
+        - '{b_cm_plan}'
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        - - '{cert|cap} is due in {days} days.'
+          - We nearly missed the last renewal.
+          - '{ag_note}'
+        - - Scales stop reporting if it lapses.
+          - Growers see a browser warning.
+          - '{ag_note}'
+        - - '{p_noticed|cap}.'
+          - '{ag_note}'
+        - - Needs a real alert and owner.
+          - '{p_owner_ask}'
+          - '{ag_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [bug, performance]
+      let:
+        site:
+          - '{ag_site}'
+      title:
+        - Link at {site} drops during harvest
+        - Elevator traffic stalls at {site}
+        - Tickets from {site} arrive in bursts
+      body:
+        - - The link drops every {2-9} hours.
+          - Rural lines saturate at harvest.
+          - '{ag_note}'
+        - - Buffers fill on the gateway.
+          - Tickets arrive in late bursts.
+          - '{ag_note}'
+        - - Scale operators call us.
+          - '{ag_note}'
+        - - '{p_priority}'
+          - '{ag_note}'
+      comments:
+        - Shortened keepalives on the gateway.
+        - A second link is quoted.
+        - Alert on flaps, not outages.
+    - labels: [security, bug]
+      let:
+        what:
+          - the sensor network
+          - the scale network
+          - the telematics gateway
+      title:
+        - Firewall rule into {what} is too wide
+        - Review vendor access to {what}
+        - Segmentation gap around {what}
+      body:
+        - - One rule allows more than needed.
+          - An audit flagged broad access.
+          - '{ag_note}'
+        - - Only a few ports are used.
+          - One source host would do.
+          - '{ag_note}'
+        - - Changes wait for a window.
+          - '{ag_note}'
+        - - '{p_owner_ask}'
+          - '{ag_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - application records
+          - delivery tickets
+          - settlement records
+      title:
+        - Backups of {what} keep fewer years than policy
+        - Retention for {what} is {2-6} years
+        - Restore of {what} was never tried
+      body:
+        - - Policy keeps {what} {7-10} years.
+          - The archive prunes after {2-6} years.
+          - '{ag_note}'
+        - - The last restore was never tried.
+          - Failures are logged, nobody paged.
+          - '{ag_note}'
+        - - Regulators can ask for old records.
+          - Growers dispute tickets later.
+          - '{ag_note}'
+        - - '{p_priority}'
+          - '{ag_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: the elevator opens early {c_soon}.'
+        - safety meeting {day} at {time}
+        - reminder, no phones near the pit
+        - '{c_hey}: the field day is {c_soon}'
+        - open enrolment closes {c_soon}
+      replies:
+        - - '{c_ack}'
+          - will be there
+          - is it mandatory?
+        - - '{c_thanks}'
+          - ''
+    - root:
+        - welcome {person}, joining from agronomy
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in grower services
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        - - welcome {person}!
+          - '{c_em}'
+        - - '{c_thanks}'
+          - ''
+    - root:
+        - '{ag_weather} forecast for {c_soon}, expect noise'
+        - harvest starts {c_soon}, change freeze from {day}
+        - the {ag_season} rush is on, replies are slow
+        - heads up, {ag_weather} at {ag_site}
+      replies:
+        - - noted
+          - '{c_ack}'
+        - - will the alerts page us?
+          - ''
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - county fair this weekend, who goes?
+        - best boots for a muddy yard?
+        - how is the {ag_crop} looking?
+      replies:
+        - - '{c_lol}'
+          - '{c_agree}'
+        - - ''
+          - same
+    - root:
+        - anyone selling a trailer?
+        - fishing this weekend, who is in?
+        - the cafeteria chili is back
+        - '{c_pet} ate my lunch again'
+      replies:
+        - - '{c_lol}'
+          - ha
+        - - ''
+          - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the grain price lookup
+          - the rebate tiers
+      root:
+        - '{thing} is wrong for wet {ag_crop}'
+        - should {thing} use dry weight?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        - - i think {person} wrote it, ask them
+          - '{c_idk}'
+          - predates the migration, check old scripts
+        - - will look {c_when_eng}
+          - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - the shrink tests fail on rounding
+        - flaky test in the boundary import
+        - '{c_ci_fail} keeps timing out on map tests'
+      replies:
+        - - same here
+          - rerunning
+          - seen it, date fixtures
+        - - fix is in {issue}
+          - '{c_ack}'
+    - root:
+        - does the import handle scale retries?
+        - what happens when an elevator resends?
+        - do we dedupe tickets?
+        - how late can a ticket arrive?
+        - are late tickets settled or held?
+      replies:
+        - - about a day, i think
+          - check the scale docs
+          - '{c_idk}'
+        - - should write that down
+          - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on settlement days
+        - harvest freeze starts {c_soon}
+        - deploys paused until {time} on {day}
+        - planting freeze starts {c_soon}
+      replies:
+        - - '{c_ack}'
+          - got it
+        - - is a hotfix ok?
+          - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, harvest week'
+        - skipping standup, at the elevator
+        - who is picking up {issue}?
+      replies:
+        - - i can take it
+          - '{c_ack}'
+          - on my list
+        - - ''
+          - thanks
+    - root:
+        - settlements run {c_soon}, billing freezes {day}
+        - input invoices go out {day}, blockers?
+        - harvest starts {c_soon}, who has the checklist?
+        - patronage close is {day}, who is on it?
+      replies:
+        - - i am on call
+          - checklist is in the handbook
+          - '{c_ack}'
+        - - ping me if the run stalls
+          - ''
+    - root:
+        - grower escalation, {c_customer} disputes the check
+        - grower says the shrink is wrong
+        - escalation from the grain desk, tickets
+      replies:
+        - - which account?
+          - i will check the logs
+        - - it is {issue}
+          - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says the settlement is short'
+        - '{who|cap} asks about the shrink'
+        - grower cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants last year tickets'
+        - the map will not load for {who}
+      replies:
+        - - check the shrink factors first
+          - dockage follows the contract, tell them
+          - try a fresh login
+          - checking the log now
+        - - '{s_ack}, will tell them'
+          - '{s_thx}'
+          - ''
+    - root:
+        - grower disputes the acre count
+        - member wants a statement copy
+        - '{s_cust|cap} cannot see contracts, {s_ticket}'
+        - escalating, wrong acres, filed as {issue}
+      replies:
+        - - sending the breakdown now
+          - copy attached to the ticket
+        - - '{s_thx}'
+          - '{c_ack}'
+    - root:
+        - queue is at {20-90} open tickets, mostly settlements
+        - 'harvest calls: {20-80} since morning'
+        - tickets doubled after checks went out
+      replies:
+        - - same, will help after lunch
+          - '{c_ack}'
+        - - any macro for the shrink question?
+          - ''
+  incidents:
+    - let:
+        what:
+          - the scale feed
+          - the ticket import
+          - the sensor feed
+      root:
+        - '{what} stopped at {time}'
+        - '{s_al} {what} silent since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - the elevator says {what} looks stale
+      replies:
+        - - looking
+          - restarted the poller, watching it
+          - gateway is up, upstream issue
+        - - fixed, backfilling
+          - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        - - '{c_ack}'
+          - will join
+        - - ''
+          - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the ticket server is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        - - on it
+          - '{c_ack}'
+        - - renewing today
+          - ''
+  direct:
+    - root:
+        - '{s_hey}, check the ticket import {s_soon}?'
+        - which unit does the report use?
+        - can you look at {issue} before the run?
+        - '{s_hey}, got a minute for the shrink?'
+        - handing over settlements, out {s_soon}
+      replies:
+        - - sure
+          - '{s_ack}'
+          - give me ten minutes
+        - - '{s_thx}'
+          - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived harvest, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        - - sounds good
+          - '{c_lol}'
+        - - ''
+          - same
+comments:
+  - Check the contract terms first.
+  - '{ag_cm}'
+  - Does this touch the settlement run?
+  - Ask grain accounting before changing it.
+  - The elevators would want to know.

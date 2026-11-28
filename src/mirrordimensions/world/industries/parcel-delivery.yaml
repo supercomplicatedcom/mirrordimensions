@@ -1,0 +1,1056 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Postal and parcel delivery: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: parcel-delivery
+name: Postal and parcel delivery
+group: Transport and logistics
+aliases:
+  - postal
+  - courier
+  - parcel
+  - last mile delivery
+  - mail and parcels
+description: A postal operator or parcel carrier that collects, sorts and delivers mail and parcels, and bills senders by weight, zone and service.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Post
+  - Courier
+  - Delivery
+  - Parcel Service
+  - Express
+  - Mail
+invoice_items:
+  - Parcel postage
+  - Address correction fee
+organization:
+  head: Director of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Technology
+      title: Platform Engineer
+    billing:
+      department: Revenue Assurance Systems
+      title: Billing Systems Engineer
+    data:
+      department: Network Data
+      title: Data Engineer
+    support:
+      department: Customer Care
+      title: Customer Care Representative
+    product:
+      department: Digital Delivery
+      title: Product Manager
+    operations:
+      department: Network Operations Technology
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, postage-billing, shipping-billing, rating-service]
+    platform-docs: [platform-docs, tech-handbook, hub-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, scan-event-loads, network-etl, parcel-warehouse]
+    infra-config: [infra-config, hub-network-config, environments, platform-config]
+    customer-portal: [customer-portal, sender-portal, tracking-portal, ship-online]
+    ops-scripts: [ops-scripts, hub-scripts, legacy-scripts, sortation-scripts]
+  channels:
+    engineering: [engineering, dev, tech-chat]
+    incidents: [incidents, network-alerts, outages]
+    support: [support, customer-care, sender-support]
+    data-team: [data-team, scan-data, network-data]
+    billing-team: [billing-team, revenue-assurance, rating-team]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - oracle netsuite
+    - samsara
+    - esri arcgis online
+    - servicenow
+    - zendesk
+    - manhattan wms
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - salesforce
+    - project44
+symbols:
+  b_doc:
+    - shipping invoice
+    - postage statement
+    - surcharge adjustment
+    - claims credit
+    - credit memo
+  b_customer:
+    - e-commerce sender
+    - bulk mailer
+    - business account
+    - marketplace seller
+    - government mailer
+    - consumer prepaid
+  b_who:
+    - revenue assurance
+    - customer care
+    - the sales team
+    - claims
+    - network operations
+  b_pwho:
+    - a sender
+    - customer care
+    - '{person}'
+    - revenue assurance
+    - claims
+  b_region:
+    - Ontario
+    - Texas
+    - California
+    - Queensland
+    - Bavaria
+    - Scotland
+    - Ohio
+    - Alberta
+  b_taxkind:
+    - VAT
+    - GST
+    - sales tax
+    - customs duty
+    - import duty
+    - fuel levy
+  b_currency:
+    - USD
+    - EUR
+    - GBP
+    - CAD
+    - AUD
+  b_page:
+    - shipments
+    - tracking
+    - invoices
+    - labels
+    - returns
+    - account settings
+    - the dashboard
+    - payment history
+  b_acct_size:
+    - '{200-900} parcels a day'
+    - '{15-60} users'
+    - '{3-12} billing contacts'
+    - '{40-300} return addresses'
+    - '{20-120} pickup sites'
+  b_provider_event:
+    - payment received
+    - payment failed
+    - card declined
+    - refund completed
+    - ACH return
+    - chargeback opened
+  c_customer:
+    - an e-commerce sender
+    - one of the larger mailers
+    - a marketplace seller
+    - a business account
+  s_plan:
+    - a volume contract
+    - a pay as you go account
+    - a prepaid postage plan
+    - a marketplace agreement
+  p_source:
+    - the handheld scanner events
+    - the sortation machine logs
+    - the route optimisation export
+    - the customs declaration feed
+    - the address validation service
+    - the returns portal export
+  p_report:
+    - the daily volume report
+    - the on-time delivery dashboard
+    - the revenue per parcel report
+    - the unbilled shipments list
+    - the claims summary
+  p_table:
+    - scan events
+    - parcels
+    - routes
+    - manifests
+    - address corrections
+    - claims
+  p_finance_ask:
+    - the revenue assurance lead
+    - someone in finance
+    - the controller
+    - the pricing manager
+  c_eng_area:
+    - the weight calculation
+    - the zone lookup
+    - the scan import
+    - the label generator
+    - the address check
+    - the claims credit job
+  s_thing:
+    - the rating run
+    - the scan import
+    - the manifest load
+    - the invoice run
+    - the nightly load
+  p_alert_name:
+    - scan event queue depth
+    - the invoice run finishing late
+    - sortation feed errors
+    - failed backups of the parcel database
+    - label service latency
+  p_cert_host:
+    - the sender portal certificate
+    - the handheld gateway certificate
+    - the label service certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the address service API key
+    - the handheld gateway password
+    - the payments provider token
+    - the customs feed credentials
+  pd_service:
+    - ground
+    - express
+    - economy
+    - same day
+    - international priority
+    - signature required
+  pd_surcharge:
+    - residential delivery
+    - delivery area
+    - oversize
+    - fuel
+    - peak
+    - address correction
+    - signature
+  pd_hub:
+    - the {north/south} sortation hub
+    - the {Elmwood/Harbor} depot
+    - the airport gateway
+    - the {Westfield/Riverside} delivery station
+  pd_event:
+    - a missed trunk
+    - a sorter jam
+    - bad weather
+    - a scanner outage
+    - a strike notice
+    - a system cutover
+  pd_peak:
+    - the holiday peak
+    - back to school
+    - Black Friday week
+    - month end
+  pd_note:
+    - Raised by revenue assurance.
+    - Customer care hit it first.
+    - '{person} saw it on a {pd_service} parcel.'
+    - A sender queried it.
+  pd_cm:
+    - Checked against the scan events.
+    - Same on the last manifest.
+    - Rerun after the fix looks right.
+    - Numbers match the scale reading.
+  pd_when:
+    - before the next invoice run
+    - before the peak season
+    - ahead of month end
+    - before the rate change
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        svc:
+          - '{pd_service}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Dimensional weight rounds down
+        - '{doc|cap} for {svc} uses actual weight'
+        - Billable weight ignores the volume divisor
+        - Parcels billed lighter than scale
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{pd_note}'
+            - Revenue assurance saw the shortfall.
+            - A sender disputed a reweigh.
+        -   - The tariff uses the larger weight.
+            - Billing keeps the declared weight.
+            - The divisor differs by service.
+            - Dimensions are rounded down.
+            - '{pd_note}'
+        -   - The gap is about {2-9} percent.
+            - Over a month that adds up.
+            - Credits will be needed.
+            - '{pd_note}'
+        -   - Needs a fix {pd_when}.
+            - '{p_owner_ask}'
+            - '{b_urgent}'
+            - '{pd_note}'
+      comments:
+        - '{pd_cm}'
+        - Round dimensions up first.
+        - '{b_cm_plan}'
+        - Credits may follow for earlier weeks.
+    - labels: [bug]
+      let:
+        what:
+          - zone changes
+          - postcode updates
+          - a new depot
+      title:
+        - Zone lookup is stale after {what}
+        - Parcels rated in the wrong zone
+        - Rates differ from the zone chart
+        - Zone table cached for a week
+        - Zone chart changed, {what} not applied
+        - Rates for {what} lag the chart by days
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Senders compare to the chart.
+            - '{pd_note}'
+        -   - The table loads at startup.
+            - A restart clears it.
+            - '{what|cap} never reached billing.'
+            - '{pd_note}'
+        -   - Some parcels cost {2-9} percent more.
+            - Others are billed too low.
+            - '{pd_note}'
+        -   - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{pd_note}'
+      comments:
+        - Reload zones nightly.
+        - '{pd_cm}'
+        - Add a test per zone edge.
+    - labels: [bug]
+      let:
+        sur:
+          - '{pd_surcharge}'
+      title:
+        - '{sur|cap} surcharge applied to valid addresses'
+        - Address correction fee charged in error
+        - Residential flag wrong for businesses
+        - Surcharge for {sur} appears twice
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Senders say the address was fine.
+            - '{pd_note}'
+        -   - The check runs after pickup.
+            - The service uses a stale file.
+            - The flag is copied from history.
+            - '{pd_note}'
+        -   - Fees are disputed by hand.
+            - Credits pile up at care.
+            - '{pd_note}'
+        -   - '{b_urgent}'
+            - '{p_priority}'
+            - '{pd_note}'
+      comments:
+        - Recheck the address before fees.
+        - '{pd_cm}'
+        - Credit the disputed fees.
+    - labels: [bug]
+      let:
+        peak:
+          - '{pd_peak}'
+      title:
+        - Peak surcharge applies before start
+        - Surcharge for {peak} ends a week late
+        - Peak dates are in server time
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Senders saw the fee early.
+            - '{pd_note}'
+        -   - The date range is hard coded.
+            - Time zones shift the cutoff.
+            - '{pd_note}'
+        -   - Contracts name exact dates.
+            - '{pd_note}'
+        -   - '{p_owner_ask}'
+            - '{p_priority}'
+            - '{pd_note}'
+      comments:
+        - Store dates per contract.
+        - '{pd_cm}'
+        - Credits for early fees may follow.
+    - labels: [bug]
+      let:
+        what:
+          - a lost parcel
+          - a damaged parcel
+          - a late delivery
+      title:
+        - Claims credit exceeds the declared value
+        - Credit for {what} paid twice
+        - Claim refunds postage and value
+        - Claims credit repeats on a retry
+        - Credit for {what} is above the cap
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Claims noticed larger credits.
+            - '{pd_note}'
+        -   - The credit job reads the claim.
+            - A retry creates a second credit.
+            - The cap is not checked.
+            - '{pd_note}'
+        -   - Revenue assurance reviews totals.
+            - '{pd_note}'
+        -   - '{p_owner_ask}'
+            - '{b_urgent}'
+            - '{pd_note}'
+      comments:
+        - Cap at the declared value.
+        - '{pd_cm}'
+        - Add a unique key per claim.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - reweigh disputes
+          - surcharge waivers
+          - claims over the limit
+      title:
+        - Who approves {question}?
+        - Policy for {question}
+        - Limits for {question}
+      body:
+        -   - '{b_nd_a}'
+            - Answers differ by person.
+            - '{pd_note}'
+        -   - '{b_raised}, {b_scope}.'
+            - '{pd_note}'
+        -   - Needs a ruling from {who}.
+            - '{b_nd_f}'
+            - '{pd_note}'
+      comments:
+        - Set a dollar limit per desk.
+        - Legal should check the terms.
+        - Track approvals in the ticket.
+  portal:
+    - labels: [bug]
+      let:
+        svc:
+          - '{pd_service}'
+      title:
+        - Tracking shows events out of order
+        - Delivered shows before out for delivery
+        - '{svc|cap} parcels stuck on in transit'
+        - Tracking page lags the scans
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Recipients call care.
+            - '{pd_note}'
+        -   - Scans arrive late from depots.
+            - The page sorts by arrival time.
+            - '{pd_note}'
+        -   - Time zones differ per hub.
+            - '{pd_note}'
+        -   - '{b_urgent}'
+            - '{pd_note}'
+      comments:
+        - Sort by scan time.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        what:
+          - shipping labels
+          - return labels
+          - customs forms
+      title:
+        - Download of {what} fails
+        - '{what|cap} print cut off on the edge'
+        - Blank PDF for {what} in {b_browser}
+        - '{what|cap} PDF is the wrong size'
+        - '{what|cap} will not print on thermal printers'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Thermal printers reject the file.
+            - '{pd_note}'
+        -   - The PDF page size is wrong.
+            - A long address wraps badly.
+            - '{pd_note}'
+        -   - Only some senders are affected.
+            - '{pd_note}'
+        -   - '{p_priority}'
+            - '{pd_note}'
+      comments:
+        - Use the printer's page size.
+        - '{b_cm_repro} on a fresh account.'
+        - Shorten the address lines.
+    - labels: [bug]
+      let:
+        what:
+          - address suggestions
+          - postcode checks
+          - apartment numbers
+      title:
+        - '{what|cap} reject valid addresses'
+        - Autocomplete drops the unit number
+        - Rural addresses fail the check
+        - Senders report bad {what}
+        - '{what|cap} fail on {2-9} percent of lookups'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Senders retype addresses.
+            - '{pd_note}'
+        -   - The service data is old.
+            - Unit numbers are cut off.
+            - '{pd_note}'
+        -   - Fees follow the bad address.
+            - '{pd_note}'
+        -   - '{p_priority}'
+            - '{pd_note}'
+      comments:
+        - Allow a manual override.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Refresh the address file.
+    - labels: [bug, security]
+      let:
+        what:
+          - tracking details
+          - labels
+          - invoices
+      title:
+        - Anyone with a number can see {what}
+        - '{what|cap} of other senders are reachable'
+        - Wrong account sees {what}
+      body:
+        -   - A user saw {what} not theirs.
+            - '{b_raised}, {b_scope}.'
+            - '{pd_note}'
+        -   - The link uses a guessable id.
+            - '{pd_note}'
+        -   - '{b_dlk_c}'
+            - '{pd_note}'
+        -   - '{b_dlk_e}'
+            - '{pd_note}'
+      comments:
+        - '{b_cm_repro}, no account filter.'
+        - '{b_cm_fix_up} It adds an owner check.'
+        - Use long random ids.
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/rating.md
+          - docs/surcharges.md
+          - docs/zones.md
+      title:
+        - '{Handbook/Docs}: {page} lists old surcharges'
+        - '{page} disagrees with the rating code'
+        - '{page|cap} misses the new tariff'
+      body:
+        -   - '{page|cap} describes last year.'
+            - New fees are not listed.
+            - '{pd_note}'
+        -   - A joiner used the old fee.
+            - '{p_noticed|cap}.'
+            - '{pd_note}'
+        -   - Pricing owns the rules.
+            - The code is the truth.
+            - '{pd_note}'
+        -   - '{p_owner_ask}'
+            - '{pd_note}'
+      comments:
+        - Pricing will send the fees.
+        - Will update it {pd_when}.
+        - Link the published tariff.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - a scan feed outage
+          - a stuck invoice run
+          - a label service failure
+          - a sorter feed loss
+      title:
+        - Runbook for {thing}
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        -   - The guide says nothing about {thing}.
+            - Last time {thing} cost {2-6} hours.
+            - '{pd_note}'
+        -   - On call asks the hub manager.
+            - Steps live in one person's notes.
+            - '{pd_note}'
+        -   - A short page would help.
+            - Who to call, in what order.
+            - '{pd_note}'
+        -   - '{p_priority}'
+            - '{pd_note}'
+      comments:
+        - Add the hub phone numbers.
+        - Network operations should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - the peak change freeze
+          - who approves fee waivers
+          - zone table versioning
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: handbook and practice differ'
+        - Where should {topic} live?
+      body:
+        -   - New people keep asking about {topic}.
+            - The answer depends who you ask.
+            - '{pd_note}'
+        -   - Care and pricing disagree.
+            - Nothing is written down.
+            - '{pd_note}'
+        -   - '{b_dc_c} {b_dc_e}'
+            - '{pd_note}'
+      comments:
+        - Ask {p_finance_ask} for the rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        event:
+          - '{pd_event}'
+      title:
+        - Scan events missing after {event}
+        - Handheld scans arrive in bursts
+        - Duplicate scans for the same parcel
+        - Scan times in the wrong zone
+      body:
+        -   - Scans stop at one hub.
+            - Some parcels show no movement.
+            - '{pd_note}'
+        -   - Handhelds buffer when offline.
+            - The gateway replays old scans.
+            - '{pd_note}'
+        -   - Tracking looks stuck.
+            - Dwell time looks too long.
+            - '{pd_note}'
+        -   - '{pd_note}'
+            - '{p_priority}'
+      comments:
+        - Dedupe on parcel plus scan time.
+        - Gateway log shows a drop at {time}.
+        - Flag gaps rather than guessing.
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Scan load finished {delay} late on {day_name}
+        - Invoice run waited on the {day_name} load
+        - Unbilled list empty on {day_name}
+      body:
+        -   - The load ended {delay} past the usual time.
+            - Parcel tables were empty.
+            - '{pd_note}'
+        -   - The slowest step was {p_table}.
+            - '{pd_peak|cap} doubled the files.'
+            - '{pd_note}'
+        -   - '{p_noticed|cap}.'
+            - Nothing was lost, only late.
+            - '{pd_note}'
+        -   - We need the cause {pd_when}.
+            - '{pd_note}'
+      comments:
+        - The hub files came late again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - parcel ids
+          - manifest numbers
+          - address ids
+      title:
+        - Duplicate {what} after the depot migration
+        - Same {what} on two parcels
+        - '{what|cap} collide between two systems'
+      body:
+        -   - Found {2-60} duplicate {what}.
+            - A count shows extra rows.
+            - '{pd_note}'
+        -   - The merge kept both records.
+            - Keys are not unique here.
+            - '{pd_note}'
+        -   - Parcels are billed twice.
+            - Reports count them twice.
+            - '{pd_note}'
+        -   - '{p_priority}'
+            - '{pd_note}'
+      comments:
+        - Deduplicated by key, counts match.
+        - Add a uniqueness check to validate.
+        - '{b_cm_plan}'
+    - labels: [question, data-quality]
+      let:
+        report:
+          - '{p_report}'
+        gap:
+          - '{p_dollars}'
+      title:
+        - '{report|cap} does not match billing, {gap} off'
+        - Parcel counts differ from billed parcels
+        - Weights in {report} disagree with invoices
+      body:
+        -   - The report and the ledger differ.
+            - The gap is {2-9} percent.
+            - '{pd_note}'
+        -   - Reweighs may explain part.
+            - Cutoff times differ per hub.
+            - '{pd_note}'
+        -   - '{p_owner_ask}'
+            - '{pd_note}'
+      comments:
+        - Reconcile on the manifests.
+        - '{pd_cm}'
+        - Check the cutoff times.
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        -   - '{cert|cap} is due in {days} days.'
+            - We nearly missed the last renewal.
+            - '{pd_note}'
+        -   - Handhelds stop syncing if it lapses.
+            - Senders see a browser warning.
+            - '{pd_note}'
+        -   - '{p_noticed|cap}.'
+            - '{pd_note}'
+        -   - Needs a real alert and owner.
+            - '{p_owner_ask}'
+            - '{pd_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [performance, enhancement]
+      let:
+        peak:
+          - '{pd_peak}'
+      title:
+        - Capacity for the label service in {peak}
+        - Scale tracking pages before {peak}
+        - Scan queue backs up in {peak}
+      body:
+        -   - Traffic hit {2-9} times normal.
+            - The queue grew past {20-90} thousand.
+            - '{pd_note}'
+        -   - Limits cap the workers too low.
+            - Autoscaling reacts too slowly.
+            - '{pd_note}'
+        -   - Senders could not print labels.
+            - '{pd_note}'
+        -   - '{p_priority}'
+            - Needs a plan {pd_when}.
+            - '{pd_note}'
+      comments:
+        - Raised the worker limits.
+        - Load test before the season.
+        - Alert on queue age, not depth.
+    - labels: [security, bug]
+      let:
+        what:
+          - the hub network
+          - the handheld gateway
+          - the sorter control network
+      title:
+        - Firewall rule into {what} is too wide
+        - Review vendor access to {what}
+        - Segmentation gap around {what}
+      body:
+        -   - One rule allows more than needed.
+            - An audit flagged broad access.
+            - '{pd_note}'
+        -   - Only a few ports are used.
+            - One source host would do.
+            - '{pd_note}'
+        -   - Changes wait for a window.
+            - '{pd_note}'
+        -   - '{p_owner_ask}'
+            - '{pd_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - scan events
+          - proof of delivery images
+          - customs declarations
+      title:
+        - Backups of {what} keep less than policy
+        - Retention for {what} is {2-6} months
+        - Restore of {what} was never tried
+      body:
+        -   - Policy keeps {what} {1-3} years.
+            - The archive prunes after {2-6} months.
+            - '{pd_note}'
+        -   - The last restore was never tried.
+            - Failures are logged, nobody paged.
+            - '{pd_note}'
+        -   - Claims reach back months.
+            - Customs can ask for old records.
+            - '{pd_note}'
+        -   - '{p_priority}'
+            - '{pd_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: the depot opens early {c_soon}.'
+        - safety briefing {day} at {time}
+        - reminder, high vis on the floor
+        - '{c_hey}: the hub open day is {c_soon}'
+        - open enrolment closes {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - will be there
+            - is it mandatory?
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - welcome {person}, joining from the depot
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in revenue assurance
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        -   - welcome {person}!
+            - '{c_em}'
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - '{pd_peak} starts {c_soon}, change freeze from {day}'
+        - '{pd_event} at {pd_hub}, expect late scans'
+        - heads up, volumes up {10-60} percent
+        - peak hiring is on, sign up
+      replies:
+        -   - noted
+            - '{c_ack}'
+        -   - will the alerts page us?
+            - ''
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - best coffee near the depot?
+        - dogs at the delivery station again
+        - how was the commute?
+      replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+        -   - ''
+            - same
+    - root:
+        - anyone selling a bike?
+        - hiking this weekend, who is in?
+        - the cafeteria soup is back
+        - '{c_pet} chased a delivery van'
+      replies:
+        -   - '{c_lol}'
+            - ha
+        -   - ''
+            - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the divisor lookup
+          - the surcharge rules
+      root:
+        - '{thing} is wrong for {pd_service}'
+        - should {thing} round dimensions up?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        -   - i think {person} wrote it, ask them
+            - '{c_idk}'
+            - predates the migration, check old scripts
+        -   - will look {c_when_eng}
+            - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - zone tests fail on postcode edges
+        - flaky test in the scan import
+        - '{c_ci_fail} keeps timing out on rating tests'
+      replies:
+        -   - same here
+            - rerunning
+            - seen it, date fixtures
+        -   - fix is in {issue}
+            - '{c_ack}'
+    - root:
+        - does the import handle handheld replays?
+        - what happens when a hub resends?
+        - do we dedupe scans?
+        - how late can a scan arrive?
+        - are late scans billed or dropped?
+      replies:
+        -   - about a day, i think
+            - check the gateway docs
+            - '{c_idk}'
+        -   - should write that down
+            - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on invoice run days
+        - freeze for {pd_peak} starts {day}
+        - deploys paused until {time} on {day}
+        - rate change freeze starts {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - got it
+        -   - is a hotfix ok?
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, invoice day'
+        - skipping standup, at the hub
+        - who is picking up {issue}?
+      replies:
+        -   - i can take it
+            - '{c_ack}'
+            - on my list
+        -   - ''
+            - thanks
+    - root:
+        - invoice run starts {c_soon}, billing freezes {day}
+        - new rates go live {c_soon}, any blockers?
+        - '{pd_peak} starts {c_soon}, who has the checklist?'
+        - revenue audit is {day}, who is on it?
+      replies:
+        -   - i am on call
+            - checklist is in the handbook
+            - '{c_ack}'
+        -   - ping me if the run stalls
+            - ''
+    - root:
+        - sender escalation, {c_customer} disputes the invoice
+        - a seller says surcharges are wrong
+        - escalation from care, reweighs
+        - big sender wants a call {c_soon}
+        - '{c_hey}: {c_customer} is unhappy about tracking'
+      replies:
+        -   - which account?
+            - i will check the logs
+        -   - it is {issue}
+            - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says the weight is wrong'
+        - '{who|cap} asks about the surcharge'
+        - sender cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants a refund for a label'
+        - tracking is stuck for {who}
+      replies:
+        -   - check the reweigh first
+            - surcharge follows the tariff, tell them
+            - try a fresh login
+            - checking the log now
+        -   - '{s_ack}, will tell them'
+            - '{s_thx}'
+            - ''
+    - root:
+        - sender disputes the address fee
+        - seller wants the invoice copy
+        - '{s_cust|cap} cannot print labels, {s_ticket}'
+        - escalating, wrong zone, filed as {issue}
+      replies:
+        -   - sending the breakdown now
+            - copy attached to the ticket
+        -   - '{s_thx}'
+            - '{c_ack}'
+    - root:
+        - queue is at {20-90} open tickets, mostly tracking
+        - 'peak calls: {50-300} since morning'
+        - tickets doubled after invoices went out
+      replies:
+        -   - same, will help after lunch
+            - '{c_ack}'
+        -   - any macro for the surcharge question?
+            - ''
+  incidents:
+    - let:
+        what:
+          - the scan feed
+          - the label service
+          - the invoice run
+      root:
+        - '{what} stopped at {time}'
+        - '{s_al} {what} silent since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - the hub says {what} looks stale
+      replies:
+        -   - looking
+            - restarted the poller, watching it
+            - gateway is up, upstream issue
+        -   - fixed, backfilling
+            - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        -   - '{c_ack}'
+            - will join
+        -   - ''
+            - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the scan server is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        -   - on it
+            - '{c_ack}'
+        -   - renewing today
+            - ''
+  direct:
+    - root:
+        - '{s_hey}, check the scan import {s_soon}?'
+        - which weight does the report use?
+        - can you look at {issue} before the run?
+        - '{s_hey}, got a minute for the zones?'
+        - handing over invoicing, out {s_soon}
+      replies:
+        -   - sure
+            - '{s_ack}'
+            - give me ten minutes
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived peak, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        -   - sounds good
+            - '{c_lol}'
+        -   - ''
+            - same
+comments:
+  - Check the published tariff first.
+  - '{pd_cm}'
+  - Does this touch the invoice run?
+  - Ask pricing before changing it.
+  - The hub would want to know.

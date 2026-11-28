@@ -1,0 +1,878 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Grocery and convenience: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: grocery
+name: Grocery and convenience
+group: Retail and commerce
+aliases:
+  - supermarket
+  - grocery chain
+  - convenience stores
+  - food retail
+  - grocer
+description: A chain of supermarkets and convenience stores that runs lanes, fresh departments, fuel and delivery, and invoices business accounts and catering orders.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Market
+  - Foods
+  - Grocers
+  - Supermarkets
+  - Fresh Market
+  - Corner Stores
+invoice_items:
+  - Catering orders
+  - Business account purchases
+organization:
+  head: Head of IT
+  it_admin: Store Systems Administrator
+  teams:
+    platform: {department: Information Technology, title: Platform Engineer}
+    billing: {department: Finance Systems, title: Systems Engineer}
+    data: {department: Merchandising Analytics, title: Data Engineer}
+    support: {department: Guest Services, title: Guest Services Associate, lead: Guest Services Manager}
+    product: {department: Digital, title: Product Manager}
+    operations: {department: Store Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [account-billing, catering-invoicing, billing-service, house-accounts]
+    platform-docs: [it-handbook, platform-docs, store-runbooks, team-docs]
+    data-pipeline: [sales-loads, merch-data-pipeline, data-pipeline, scan-etl]
+    infra-config: [infra-config, store-network-config, env-config, lane-config]
+    customer-portal: [account-portal, online-ordering, customer-portal, pickup-web]
+    ops-scripts: [ops-scripts, store-scripts, legacy-scripts, lane-tools]
+  channels:
+    engineering: [engineering, store-tech, dev, systems]
+    incidents: [incidents, store-outages, prod-incidents, lane-alerts]
+    releases: [releases, deploys, ad-changes, shipping]
+    billing-team: [billing-team, finance-systems, account-billing, billing-eng]
+    platform-team: [platform-team, store-platform, platform, infra]
+    data-team: [data-team, merch-analytics, data, reporting]
+    support: [guest-services, support, care-team, cs-team]
+    leads: [leads, tech-leads, managers, team-leads]
+systems:
+  typical: [github, slack, blue yonder, manhattan active, workday, ukg pro, salesforce, snowflake, square pos]
+  common: [square, kinaxis, tableau, zendesk, okta, pagerduty]
+symbols:
+  b_doc: [invoice, credit memo, catering invoice, statement, deposit receipt, delivery receipt]
+  b_customer: [restaurant account, caterer, school, church group, corporate account, delivery subscriber, loyalty member, nonprofit]
+  b_who: [guest services, the catering team, finance, store managers, the deli managers]
+  b_pwho: [guest services, a store manager, "{person}", the catering team, finance]
+  b_ticket_noun: [ticket, case, complaint, escalation]
+  b_page: [orders, pickup slots, statements, digital coupons, saved lists, substitutions, receipts]
+  b_acct_size: ["{30-200} saved items", "{5-40} users", "over {500-3000} order lines", "{3-20} delivery addresses"]
+  b_provider_event: [payment captured, payment declined, refund issued, chargeback opened, card settled, deposit received]
+  b_money_path: [billing/orders.py, billing/catering.py, billing/tax.py, billing/rounding.py]
+  b_check_path: [the order tests, the catering tests, the tax tests, the deposit tests]
+  b_taxkind: [sales tax, use tax, prepared food tax, bottle deposit, delivery fee tax, exemption certificate]
+  p_table: [transactions, items, stores, vendors, deliveries, markdowns, loyalty_members, coupons_redeemed, waste_logs]
+  p_report: [the daily sales by department report, the waste and shrink report, the vendor delivery report, the out of stock report, the coupon redemption report, the fresh department margin report]
+  p_source: [the register transaction files, the vendor delivery receipts, the shelf scanner counts, the loyalty platform export, the pump controller logs, the temperature sensor readings]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the retail controller]
+  p_alert_name: [lane offline rate, price file delivery, freezer temperature alarms, the nightly load finishing late, certificate expiry, error rate on online ordering, replication lag]
+  s_plan: [a house account, a catering order, the loyalty program, a delivery pass, a business account, a standing order]
+  c_customer: [a shopper, a caterer, a restaurant buyer, a store manager, a deli manager, a school buyer]
+  s_tool: [the order console, the guest services desk, the pricing admin, the store back office, the ticket queue]
+  s_thing: [the price update, the lane sync, the inventory job, the export, the cron, the scale feed, the coupon lookup, the webhook handler]
+  c_eng_area: [the weekly ad load, the lane sync, the substitution logic, the coupon engine, the pickup slots, the waste logging, the pump feed, the export endpoint]
+  gr_dept: [produce, dairy, the deli counter, the bakery, meat and seafood, frozen]
+  gr_fail: [an out of stock tag, a price mismatch, a failed EBT tap, a scale error, a wrong coupon, a missed delivery]
+  gr_peak: [Thanksgiving week, the weekly ad change, a storm run, summer cookouts, the holiday reset]
+  gr_reg: [SNAP and EBT rules, age checks for alcohol, FSMA traceability, tobacco age rules, lottery rules, pharmacy privacy]
+  gr_pos: [the lane, self-checkout, the scale, the fuel pump, the handheld, the price checker]
+  gr_store: [the Main Street store, the north store, the fuel station, the express store, the superstore, the corner market]
+  gr_vendor: [the dairy vendor, the bakery supplier, the produce distributor, the beverage distributor, the snack vendor]
+  gr_fix: [rebooted the lane, resent the ad file, restarted the sync, cleared the queue]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        tax: ["{b_taxkind}"]
+        doc: ["{b_doc}"]
+        path: ["{b_money_path}"]
+      title:
+        - "Resale exemption ignored on catering {doc}s"
+        - "{tax|cap} charged to exempt accounts"
+        - "Exempt business billed {tax}"
+        - "Tax exempt flag lost on reorder"
+        - "{doc|cap} taxed despite a certificate"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "{/Also, /And /}the account holds a certificate."
+            - "A buyer has an exemption."
+            - ""
+        -   - "{path|cap} never reads the flag."
+            - "Reorders copy the old tax."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with an exempt account."
+        - "{b_cm_check}, {path} skips the flag."
+        - "Finance owes {2-9} credits."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+      title:
+        - "Catering deposit not shown on the {doc}"
+        - "Deposit taken twice for one event"
+        - "Final invoice ignores the deposit"
+        - "Catering balance due is wrong"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "{/Also, /And /}A deposit is paid in store."
+            - "The client pays by phone."
+            - ""
+        -   - "The final {doc} shows the full price."
+            - "Billing never sees the deposit."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "The lane books a tender."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_plan}"
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+      title:
+        - "Missing items billed on the {doc}"
+        - "Substitution priced at the original item"
+        - "Short picked orders charged in full"
+        - "Credit missing for missed items"
+      body:
+        -   - "A picker swaps an item."
+            - "An item is missing."
+        -   - "The {doc} keeps the first price."
+            - "No credit is created."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Bill what was picked."
+        - "{b_cm_hand}"
+        - "{b_cm_later}"
+    - labels: [needs-decision]
+      let:
+        who: ["{b_who}"]
+        question: [substituting items without asking, charging delivery on small orders, credit for late pickup, holding a house account over limit]
+      title:
+        - "Policy for {question}?"
+        - "Who decides {question}?"
+        - "Delivery fee threshold"
+        - "Decide {question}"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} handles {question} {b_nd_b}."
+        -   - "{/Also, /And /}stores apply their own rule."
+            - "Answers differ by store."
+            - ""
+        -   - "{/Also, /And /}customers compare stores."
+            - "Complaints reach head office."
+            - ""
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who}."
+      comments:
+        - "A flat threshold is simplest."
+        - "{b_cm_lean} asking the shopper first."
+        - "Legal should check the wording."
+    - labels: [bug]
+      title:
+        - "Weekly statement lists orders twice"
+        - "House account statement double counts"
+        - "Statement balance is {2-9} dollars off"
+      body:
+        -   - "A split order appears twice."
+            - "Pickup and delivery both post."
+        -   - "{/Also, /And /}the total includes both."
+            - "Customers pay the doubled amount."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Dedupe on the order id."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [a weekly ad change, a product recall, a store opening, a lane upgrade, a storm closure]
+      title:
+        - "How-to: run {thing}"
+        - "Checklist for {thing}"
+        - "Write down the steps for {thing}"
+        - "Runbook: {thing}"
+      body:
+        -   - "Nobody keeps steps for {thing}."
+            - "{person} does {thing} from memory."
+        -   - "{gr_reg|cap} must be documented."
+            - "Stores call us when it breaks."
+        -   - "{b_dc_c} would be plenty."
+            - "One page with the contacts."
+      comments:
+        - "Notes from last time exist."
+        - "Add the vendor contacts."
+        - "Include who approves it."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/lane-offline.md", "docs/runbooks/ad-price-file.md", "docs/runbooks/recall-hold.md", "docs/runbooks/pump-controller.md"]
+        step: [switching lanes to offline mode, resending the price file, blocking the item at the lane, calling the card processor, telling the store managers]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "Lane runbook skips {step}"
+        - "{runbook}: {step} not listed"
+        - "Update {runbook} after the upgrade"
+      body:
+        -   - "Followed {runbook} in an outage."
+            - "It left out {step}."
+        -   - "{person} told us in chat only."
+            - "{step|cap} sits in one head."
+        -   - "{p_owner_ask}"
+            - "{p_reviewer_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Stores need a printed copy."
+        - "{b_cm_docs}"
+    - labels: [docs, enhancement]
+      let:
+        flow: [a price change reaching the lane, a recall block, a pickup order, cart to bag, a vendor delivery to the shelf]
+      title:
+        - "Explain how {flow} works"
+        - "Architecture note: {flow}"
+        - "One page on {flow}"
+        - "Describe {flow} end to end"
+      body:
+        -   - "New joiners ask how it works."
+            - "Only {person} knows the whole path."
+        -   - "{/Also, /And /}one diagram and a short page."
+            - "A simple picture would do."
+            - ""
+      comments:
+        - "I can draw it, someone check."
+        - "Include the offline case."
+        - "{b_cm_docs}"
+  data:
+    - labels: [bug, data-quality]
+      let:
+        dept: ["{gr_dept}"]
+        store: ["{gr_store}"]
+      title:
+        - "Waste logs missing for {dept} at {store}"
+        - "Shrink in {dept} looks too low"
+        - "Waste counted twice after a scan"
+        - "Stock report disagrees with shelves"
+      body:
+        -   - "Staff scan waste by hand."
+            - "Some stores skip the scan."
+        -   - "The report is {2-9} percent off."
+            - "Managers see another number."
+        -   - "{p_noticed|cap}."
+            - "The deli counted by hand."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Matched on item and store."
+        - "Count week will reset it."
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "{report|cap} does not match finance"
+        - "Coupon redemptions differ from the lanes"
+        - "Fresh margin ignores markdowns"
+        - "Daily sales differ from tenders"
+      body:
+        -   - "The report is {2-9} percent off."
+            - "Finance sees another total."
+        -   - "{/Also, /And /}markdowns land mid day."
+            - "Voids count as sales."
+            - ""
+        -   - "{b_ex_a}."
+            - "{who|cap} needs it before the review."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Use the effective time."
+        - "{b_cm_check}"
+        - "Keep the old number beside it."
+    - labels: [bug, incident]
+      let:
+        peak: ["{gr_peak}"]
+      title:
+        - "Lane files missing after {peak}"
+        - "Sales load late from {2-9} stores"
+        - "Offline stores delay the load"
+      body:
+        -   - "Stores upload after closing."
+            - "Some lanes stay offline."
+        -   - "{/Also, /And /}the load starts without them."
+            - "Totals look low until noon."
+            - ""
+        -   - "{p_noticed|cap}."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Wait for stores or a cutoff."
+        - "{b_cm_prof} {b_cm_prof2}"
+        - "{b_cm_plan}"
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the nightly load"
+        - "Add {source} to the pipeline"
+        - "Should planners get {source}?"
+      body:
+        -   - "Planners ask for {source} weekly."
+            - "{person} pulls {source} by hand."
+        -   - "{/Also, /And /}it would cut waste in fresh."
+            - "Ordering could use it."
+            - ""
+        -   - "{/Also, /And /}strip card data first."
+            - "Keep personal data out."
+            - ""
+      comments:
+        - "Which stores send {source}?"
+        - "Keep it for {2/3} years."
+        - "{b_cm_plan}"
+  portal:
+    - labels: [bug]
+      let:
+        browser: ["{b_browser}"]
+      title:
+        - "Pickup slots show full when open"
+        - "Slot picker freezes in {browser}"
+        - "Pickup time not saved at checkout"
+        - "Slots missing for the weekend"
+      body:
+        -   - "Shoppers see no free slots."
+            - "The picker shows old times."
+        -   - "It happens in {browser}."
+            - "Stores have free capacity."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "The cache holds old slots."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Digital coupon clips but never applies"
+        - "Clipped coupons vanish at the lane"
+        - "Coupon applies twice online"
+      body:
+        -   - "Shoppers clip an offer."
+            - "The lane never sees it."
+        -   - "Sync runs every {10/15/30} minutes."
+            - "Expiry dates differ."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Sync on clip, not timer."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Substitution choices ignored by the picker"
+        - "Do not substitute flag is lost"
+        - "Allergy notes missing for pickers"
+      body:
+        -   - "A shopper refuses substitutes."
+            - "The note never reaches the picker."
+        -   - "{/Also, /And /}pickers swap items anyway."
+            - "Complaints come the same day."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Show the note on pick lists."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_fix_up}"
+    - labels: [enhancement]
+      let:
+        ask: [download a statement, reorder a past catering menu, add a delivery address, upload an exemption certificate]
+      title:
+        - "Let business accounts {ask}"
+        - "Portal: {ask}"
+        - "Customers want to {ask}"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+      comments:
+        - "Guest services gets {2-9} calls daily."
+        - "Needs finance approval."
+        - "{b_cm_srv}"
+  infra:
+    - labels: [bug, incident]
+      let:
+        store: ["{gr_store}"]
+      title:
+        - "Lanes drop offline at {store}"
+        - "No failover line at {store}"
+        - "Store network fails at night"
+        - "Lanes lose the server each hour"
+      body:
+        -   - "The main line dropped {2-6} times."
+            - "Lanes fall back to offline mode."
+        -   - "{/Also, /And /}card payments need the link."
+            - "EBT cannot work offline."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "Add a cellular backup."
+        - "The carrier checks the line."
+        - "{b_cm_check}"
+    - labels: [bug, security]
+      title:
+        - "Freezer alarms page nobody"
+        - "Cooler temperature alerts go to email"
+        - "Sensor gateway offline for {2-9} stores"
+      body:
+        -   - "Alarms fire in the store."
+            - "Nobody gets a page."
+        -   - "{/Also, /And /}food safety needs a record."
+            - "Spoiled stock costs thousands."
+            - ""
+        -   - "{p_owner_ask}"
+      comments:
+        - "Route to the on-call phone."
+        - "Keep a log for inspectors."
+        - "{b_cm_plan}"
+    - labels: [bug]
+      title:
+        - "Ad price file reaches stores late"
+        - "Price file fails for {2-9} stores"
+        - "Shelf tags and lanes disagree"
+      body:
+        -   - "The file lands after opening."
+            - "Some stores get an old file."
+        -   - "{/Also, /And /}lanes show the old price."
+            - "Tags already show the new one."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "Push it before {5/6}am."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Add a version check."
+  ops:
+    - labels: [question]
+      let:
+        script: ["push_ad_prices.sh", "close_day.sh", "reprint_tags.sh", "{p_script}"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+        - "Does anything call {script}?"
+        - "Retire {script}?"
+        - "{script}: anyone using this?"
+      body:
+        -   - "Found {script} while tidying."
+            - "{script|cap} has no recent changes."
+        -   - "{/Also, /And /}written for the old lanes."
+            - "It predates the new POS."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Will remove it next month."
+      comments:
+        - "Not used by us."
+        - "Check cron on {p_old_ref}."
+        - "Keep it until the rollout ends."
+comments:
+  - "Stores logged {2-9} of these today."
+  - "{b_pwho|cap} has a shopper waiting."
+  - "Does it hit {gr_store} too?"
+  - "Only {gr_dept}, or everything?"
+  - "Matters most during {gr_peak}."
+  - "Checked the lane journal, same result."
+  - "Store ops wants to know."
+  - "Hold off until {gr_peak} ends."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: {gr_peak} planning {day} at {time}"
+        - "change freeze for {gr_peak} starts {c_soon}"
+        - "all hands {day} at {time} in {c_room}"
+        - "welcome {person} to the store systems team"
+        - "reminder: food safety audit is {c_soon}"
+      replies:
+        -   - "does it include the stores?"
+            - "who needs to attend?"
+            - "will it be recorded?"
+        -   - "{c_yes}, all of them"
+            - "leads only"
+            - "{c_idk}, ask {person}"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_em}"
+    - root:
+        - "{c_hey}: benefits enrolment closes {c_soon}"
+        - "office closed {c_soon}, stores open as usual"
+        - "it patching {c_soon}, restart please"
+        - "staff discount day {c_soon}"
+      replies:
+        -   - "{c_ack}"
+            - "{c_thanks}"
+        -   - ""
+            - "thanks for the heads up"
+    - root:
+        - "huge thanks to {person} for the storm run"
+        - "{c_hey}, record sales yesterday at {gr_store}"
+        - "the team won the regional award"
+      replies:
+        -   - "amazing"
+            - "{c_em}"
+            - "well deserved"
+        -   - ""
+            - "{c_thanks}"
+  off-topic:
+    - root:
+        - "anyone tried the new {gr_dept} range?"
+        - "who is working {gr_peak}?"
+        - "found a bargain in {gr_dept} today"
+        - "lunch ideas, sick of {c_food}"
+        - "best thing on the hot bar?"
+      replies:
+        -   - "love it"
+            - "queue was huge"
+            - "not for me"
+        -   - "{c_lol}"
+            - "save me one"
+            - ""
+    - root:
+        - "{c_sport} {c_soon}, anyone in?"
+        - "{c_weekend} {c_soon}, anyone?"
+        - "{c_pet} just did something silly"
+        - "reading anything good lately?"
+      replies:
+        -   - "i'm in"
+            - "nice"
+            - "can't, sorry"
+        -   - "{c_em}"
+            - ""
+  engineering:
+    - root:
+        - "ad price load slow this week"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "{c_ci_fail} is failing on main"
+        - "who owns the coupon engine?"
+        - "should we bump {c_dep}? new major is out"
+      replies:
+        -   - "i'll look {c_when_eng}"
+            - "which stores?"
+            - "{c_idk}, checking"
+        -   - "it is the new build"
+            - "rolled back, watching"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "design question for {c_eng_area}, async?"
+        - "heads up, freeze from {day} for {gr_peak}"
+        - "why does {c_eng_area} retry {2-9} times?"
+        - "who is on call this week?"
+      replies:
+        -   - "async, with a retry"
+            - "ask {person}"
+            - "it is in the handbook"
+        -   - "{c_ack}"
+            - "ok, thanks"
+            - ""
+    - root:
+        - "local env broke after {pulling main/a rebase}"
+        - "is {c_tool} down for anyone else?"
+        - "tiny pr: fix typo in {repo} readme"
+      replies:
+        -   - "restart the dev container"
+            - "same here"
+            - "merged"
+        -   - "{c_thanks}"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the coupon fixes, standup in {5-15} minutes"
+        - "who picks up {issue}?"
+        - "sprint planning {day} at {time}, bring estimates"
+        - "anyone free to pair on {issue}?"
+        - "retro: who owns the ad file?"
+      replies:
+        -   - "me, after standup"
+            - "i can {c_when_eng}"
+            - "{c_pto}, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {gr_store} reports {gr_fail}"
+        - "store ops says {gr_fail}, {issue} maybe?"
+        - "{c_hey}, {gr_fail} again, {2-9}th this week"
+        - "{c_customer} complains about {gr_fail}"
+      replies:
+        -   - "which lane?"
+            - "{issue} looks like it"
+            - "send me the store number"
+        -   - "{c_ack}, taking it"
+            - "checking the logs"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers store support?"
+      replies:
+        -   - "in the handbook"
+            - "i do"
+        -   - "{c_thanks}"
+            - ""
+  support:
+    - let:
+        who: ["{c_customer}"]
+        fail: ["{gr_fail}"]
+      root:
+        - "{who|cap} reports {fail}"
+        - "{s_hey}, {who}: {fail}, case {4100-4999}"
+        - "{who} is upset, {fail}"
+        - "{fail} at {gr_store}, what do we say?"
+        - "{fail} again, how do we fix it?"
+      replies:
+        -   - "ask for the receipt"
+            - "known, see {issue}"
+            - "i'll check the lane journal"
+            - "send me the store number"
+        -   - "{s_ack}, will reply"
+            - "{s_thx}"
+            - "done, refunded"
+            - ""
+    - let:
+        sum: ["{s_money}"]
+      root:
+        - "shopper charged {sum} twice at the lane"
+        - "{s_hey}, pickup order missing items, {sum}"
+        - "delivery arrived late, wants {sum} back"
+        - "price on the shelf differs, {sum}"
+      replies:
+        -   - "check the pick list"
+            - "refund up to the limit"
+            - "ask the store manager"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - let:
+        item: ["{item_a}", "{item_b}"]
+        sum: ["{s_money}"]
+      root:
+        - "{s_cust|cap} asks why {item} is {sum}"
+        - "buyer questions the {item} line"
+        - "can someone explain {item}? customer asks"
+        - "{item} went up, they noticed"
+      replies:
+        -   - "the menu price changed"
+            - "delivery follows the zone rate"
+            - "{s_look} at the order"
+        -   - "{s_thx}"
+            - ""
+    - root:
+        - "queue is at {20-90} open cases, mostly pickup"
+        - "{s_hey}, loyalty points missing after a trip"
+        - "business account cannot log in"
+        - "coupon will not scan at lane"
+      replies:
+        -   - "known, see {issue}"
+            - "i'll check the account"
+            - "send me the order number"
+        -   - "{s_ack}"
+            - "{s_thx}"
+  incidents:
+    - root:
+        - "lanes offline at {gr_store}"
+        - "card payments failing since {time}"
+        - "price file missing for {2-9} stores"
+        - "{s_hey}, the lane sync is {s_symptom}"
+      replies:
+        -   - "is it all stores?"
+            - "{s_oncall} is looking"
+            - "stores are on offline mode"
+        -   - "{gr_fix}, watching"
+            - "back at {time}"
+            - ""
+        -   - "{s_thx}, file an issue"
+            - ""
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed"
+        - "review of the lane outage is {day} at {time}"
+        - "on-call handover: nothing open"
+      replies:
+        -   - "threshold is tight, raising it"
+            - "worth an issue"
+            - "works for me"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "freezer alarm at {gr_store}, nobody paged"
+        - "{s_al} journal backlog at {1-9},{100-900}"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "{s_al} price file stale since {time}"
+      replies:
+        -   - "calling the store now"
+            - "i'll check the feed"
+            - "looks like the sensor gateway"
+        -   - "{s_ack}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you check the ad file {s_soon}?"
+        - "{s_hey}, can you cover store support {s_soon}?"
+        - "quick question: where do coupons land?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this photo of {gr_store}"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - ""
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "ugh, the scale feed broke again"
+        - "survived {gr_peak}, finally"
+        - "{s_hey}, got a minute for audit prep?"
+      replies:
+        -   - "yes, count me in"
+            - "can't today"
+            - "same, long week"
+        -   - "tomorrow?"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Order emails delayed
+      - Statement mail running late
+      - Catering confirmations not sent
+    alert:
+      - "order emails delayed, oldest waited {20-90} min"
+      - "{s_al} statement queue age {s_age}"
+      - "catering mail not going out since {time}"
+    fix_message:
+      - "Queue order emails, not inline sends"
+      - "{s_q_verb|cap} statements {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment processor callback errors
+      - Elevated errors on card callbacks
+      - Card settlement events failing
+    alert:
+      - "card callbacks failing, rate above {5-30} percent"
+      - "{s_al} settlement events erroring since {time}"
+      - "callback endpoint throwing 5xx errors"
+    fix_message:
+      - "Retry callbacks on timeout"
+      - "Retry callbacks that time out"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate statements sent
+      - Accounts got the statement twice
+      - Order receipt sent twice
+    alert:
+      - "accounts got statements twice, {3-12} reports"
+      - "{s_al} duplicate receipts after a retry"
+      - "same email sent twice since {day}"
+    fix_message:
+      - "Check the sent log first"
+      - "Skip emails already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly sales load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad lane rows"
+      - "{s_al} warehouse load aborted, dashboards stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed lane rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Sales load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "sales load ran twice, totals doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Online ordering timeouts for big accounts
+      - Order history times out
+      - Portal slow for large accounts
+    alert:
+      - "online ordering timeouts, p95 above {5-20}s"
+      - "{s_al} order history 504s, largest accounts only"
+      - "portal slow for big accounts since {time}"
+    fix_message:
+      - "Page the order history"
+      - "Add pagination to orders"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Online login errors after deploy
+      - Shoppers signed out after the release
+      - Login loop on online ordering
+    alert:
+      - "shopper logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "shoppers cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - Pump gateway certificate expired
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}"
+      - "{s_al} tls errors on staging, no renewal"
+      - "gateway certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - Lane alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "lane alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "seeing the same from the stores"
+    - "checking the lane dashboard now"
+    - "is it one store or all?"
+    - "might be the deploy from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the store systems, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the tax rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} handles exemptions? {s_un_c}"
+    - "{s_un_a} why the lane sync slowed? {s_un_c}"

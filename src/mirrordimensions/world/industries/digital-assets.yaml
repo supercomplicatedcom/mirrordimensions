@@ -1,0 +1,1337 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Cryptocurrency and digital assets: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+aliases:
+  - cryptocurrency
+  - crypto exchange
+  - digital assets
+  - crypto custody
+  - blockchain company
+chat:
+  direct:
+    - replies:
+        -   - '{s_ack}'
+            - sure, {s_soon}
+            - give me ten
+        -   - round down at eight decimals
+            - i will check the spec
+            - '{s_thx}'
+      root:
+        - '{s_hey}, review the fee tier change {s_soon}?'
+        - quick question on rounding
+        - move the cutover review to {time}?
+        - '{s_hey}, look at the ledger mismatch?'
+    - replies:
+        -   - '{s_ack}, thanks'
+            - send me the checklist
+            - good luck
+        -   - '{c_lol}'
+            - same here
+            - congrats
+      root:
+        - handing over the withdrawal queue, out {s_soon}
+        - ugh, audit wants last year's evidence
+        - survived the exam, finally
+  engineering:
+    - replies:
+        -   - '{c_ack}, looking {c_when_eng}'
+            - is there a reorg test?
+            - what is the precision rule here?
+        -   - eight decimals, round down
+            - yes, tx hash plus log index
+            - '{c_thanks}'
+      root:
+        - review my pr on {repo}? fee rounding
+        - '{c_ci_fail} fails on the indexer branch'
+        - should deposits key on log index?
+        - freeze for the listing from {day} {time}
+    - replies:
+        -   - check the last block first
+            - treasury has the checklist
+            - see the runbook, i think
+        -   - '{c_ack}'
+            - thanks, that helps
+            - i will write it up
+      root:
+        - how to replay a block range?
+        - why does the indexer take {40-90} minutes?
+        - is the rpc provider down?
+        - who owns the withdrawal limit config?
+    - replies:
+        -   - author left, see the old pr
+            - '{person} knows that area'
+            - compliance has the rules
+        -   - '{c_thanks}'
+            - good idea, will try
+      root:
+        - working on {issue}, who knows tier rules?
+        - eyes on the reorg fix, {issue}?
+        - tests on last month's trade data?
+    - replies:
+        -   - '{c_ack}'
+            - i am, until {day}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - check the change calendar
+            - ''
+      root:
+        - 'tiny pr: fix typo in {repo} readme'
+        - who is on call this week?
+        - '{service} is slow, anyone changed something?'
+        - local env broke after {pulling main/a rebase}
+  incidents:
+    - replies:
+        -   - seeing it too, since {time}
+            - '{c_ack}, looking'
+            - provider says they are checking
+        -   - no replay before the range
+            - opened {issue}
+            - i will post in the thread
+      root:
+        - withdrawal queue is backing up again
+        - 'handover: {s_oncall} is quiet, nothing open'
+        - anyone else seeing the matching engine {s_symptom}?
+        - the indexer is {p_delay} behind
+    - replies:
+        -   - '{c_ack}'
+            - are withdrawals affected?
+            - ok, keep us posted
+        -   - yes, a retry saved it
+            - who is renewing it?
+            - '{c_thanks}'
+      root:
+        - the rpc provider posted an incident
+        - custody api cert expires in {2-9} days
+        - rolled back {repo}, balances look right
+        - near miss, dedupe caught a repeat
+    - replies:
+        -   - seeing it too
+            - '{c_ack}, on it'
+            - paging the platform team
+        -   - root cause is a full queue
+            - restarted the worker, clearing
+            - '{c_thanks}, will post a review'
+      root:
+        - '{s_al} order matching latency is high'
+        - volume surge, scaling now
+        - logins failing since {time}
+        - alerts stopped firing, checking now
+  off-topic:
+    - replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+            - not touching it
+        -   - ''
+            - looks good
+            - count me in
+      root:
+        - did anyone watch the price today?
+        - lunch ideas? sick of {c_food}
+        - anyone want the charity run?
+        - what are you all reading?
+  support:
+    - replies:
+        -   - can you paste the tx hash?
+            - checking the ledger now
+            - looking, one sec
+        -   - waiting for confirmations, filed as {issue}
+            - '{c_ack}, refund and note the case'
+            - rebates need compliance
+        -   - '{c_thanks}'
+            - will tell the customer
+      root:
+        - customer says a deposit is missing, {s_ticket}
+        - '{s_cust|cap} asks why fees went up'
+        - a withdrawal shows pending since {time}
+        - '{s_cust} wants a fee rebate'
+    - replies:
+        -   - try a fresh browser
+            - known issue, {issue}
+            - '{c_ack}'
+        -   - the cooldown is the reason
+            - is the address whitelisted?
+            - escalate to compliance
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - customer stuck in a code loop, {s_ticket}
+        - withdrawal held after a new address, {s_ticket}
+        - queue is at {20-80} open cases
+        - heads up, {s_cust} waits {2-9} days
+    - replies:
+        -   - it is under reports, tax
+            - we can reissue, ask finance
+            - '{c_ack}'
+        -   - '{c_thanks}'
+            - ''
+      root:
+        - customer needs last year's tax report
+        - customer wants a statement copy
+        - closing my shift, {5-20} open cases
+  team:
+    - replies:
+        -   - '{c_ack}'
+            - i can cover
+            - on it
+        -   - '{c_thanks}'
+            - ping me if it slips
+      root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - i am {c_pto}, who covers withdrawals?
+        - planning {day} at {time}, bring estimates
+        - 'escalation: {c_customer} sees a wrong balance'
+    - replies:
+        -   - compliance approves
+            - i will update it {c_when_eng}
+            - '{c_idk}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+      root:
+        - 'retro action: who approves fee waivers?'
+        - who has the fee release checklist?
+        - is the board current?
+    - replies:
+        -   - i can take it
+            - '{person} has it'
+            - still waiting on compliance
+        -   - '{c_ack}'
+            - '{c_thanks}'
+            - ''
+      root:
+        - who is on the treasury rota?
+        - listing call at {time} {day}, who joins?
+        - 'release prep for {repo}: any blockers?'
+        - show and tell {day} {time}, volunteers?
+  town-square:
+    - replies:
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - does that include withdrawals?
+        -   - '{c_yes}, same as last time'
+            - ops has the schedule
+            - ''
+      root:
+        - '{c_hey}: markets never close, cover is posted'
+        - holiday {c_soon}, support rota is on the wiki
+        - '{c_hey}: all hands {day} at {time}'
+        - planned maintenance {c_soon}, trading pauses briefly
+    - replies:
+        -   - same course as last year?
+            - where is the link again?
+            - does the sanctions module count?
+        -   - new modules this year
+            - under learning in the hr portal
+            - '{c_idk}, ask {person}'
+      root:
+        - annual compliance training is due {c_soon}
+        - '{c_hey}: aml training closes {c_soon}'
+        - security awareness modules lock {c_soon}
+        - training overdue for {2-9} people
+    - replies:
+        -   - '{c_ack}'
+            - will there be a briefing?
+        -   - '{day} at {time}, in {c_room}'
+            - compliance will send a note
+            - ''
+      root:
+        - the regulator exam starts {c_soon}
+        - audit week {c_soon}, send requests to {person}
+        - '{c_hey}: soc 2 fieldwork starts {day}'
+        - auditors visit {day}, answer only what is asked
+    - replies:
+        -   - welcome!
+            - '{c_thanks}'
+            - where do they sit?
+        -   - second floor, by treasury
+            - '{c_idk}, ask {person}'
+            - ''
+      root:
+        - new hire on the platform team {c_soon}
+        - welcome {person} to customer support
+        - '{c_hey}: new analyst starts {c_soon}, say hi'
+comments:
+  - '{b_cm_check} the transaction hash.'
+  - Does it touch customer funds?
+  - Compliance should see this first.
+  - '{b_g_loop} treasury, they run the wallets.'
+  - What does the fee schedule say?
+description: A company that runs a trading venue, wallets or custody for digital assets, moves funds on chains and bills customers fees.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+extends: general
+group: Financial services
+incidents:
+  - alert:
+      - '{s_inv_late}, {s_inv_late_b}'
+      - '{s_al} {s_inv_late}'
+      - '{s_inv_late} - {s_inv_late_b}'
+    fix: billing/email_queue.py
+    fix_message:
+      - '{s_q_verb|cap} invoices {s_q_how}'
+      - Queue statement emails, not inline sends
+      - '{s_q_verb|cap} customer mail {s_q_how}'
+    role: billing
+    title:
+      - Fee invoices delayed
+      - Statement emails arriving late
+      - Withdrawal receipt delivery slow
+      - Customer mail running behind
+  - alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix: billing/callbacks.py
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle node timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+    role: billing
+    title:
+      - Chain event callback errors
+      - Elevated errors on deposit events
+      - Node callbacks failing
+      - Chain events not handled
+  - alert:
+      - '{s_dup_a}'
+      - '{s_dup_a}, {s_dup_b}'
+      - '{s_al} {s_dup_a}, {s_dup_b}'
+    fix: billing/sent_log.py
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - 'Dedupe emails: {s_dup_fix}'
+      - '{s_dup_fix|cap}, keep a sent log'
+    role: billing
+    title:
+      - Duplicate fee invoices
+      - Customers receiving statements twice
+      - Withdrawal receipts sent twice
+      - Repeated customer emails
+invoice_items:
+  - Trading fees
+  - Custody fee
+issues:
+  billing:
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{da_1} {da_2}'
+        -   - '{da_3} {da_4}'
+        -   - '{da_5} {da_6}'
+      comments:
+        - '{b_cm_hand} by {2-9} basis points.'
+        - '{b_cm_check} the window start.'
+        - '{b_cm_later}'
+      labels:
+        - bug
+      let:
+        tier:
+          - the 30-day window
+          - the volume tier
+          - the maker tier
+          - the fee tier
+      title:
+        - Customers land in wrong fee tier
+        - '{tier|cap} uses the wrong time zone'
+        - Volume for {tier} counts the wrong days
+        - Tier changes late after big trade
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{da_7} {da_8}'
+        -   - '{da_9} {da_10}'
+        -   - Use one rounding rule everywhere.
+      comments:
+        - '{b_cm_repro} with {2-9} small trades.'
+        - '{b_cm_check} the precision per asset.'
+      labels:
+        - bug
+      let:
+        asset:
+          - '{da_asset}'
+      title:
+        - Fee in {asset} rounds wrong at eight decimals
+        - Dust fees on {asset} trades vanish
+        - Fee token discount applied twice on {asset}
+        - '{asset} fee charged in the wrong asset'
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{da_11} {da_12}'
+        -   - '{da_13} {da_14}'
+        -   - '{da_15}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check} the quote cache.'
+      labels:
+        - bug
+        - needs-decision
+      let:
+        chain:
+          - '{da_chain}'
+      title:
+        - Network fee differs from quote on {chain}
+        - Withdrawal fee spikes when {chain} is busy
+        - Customers charged more than the quote
+        - Network fee refund missing after cancel
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{da_16} {da_17}'
+        -   - '{da_18} {da_19}'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_hand} by {2-9} dollars.'
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+      let:
+        kind:
+          - custody
+          - staking
+          - lending
+          - OTC
+      title:
+        - '{kind|cap} fee uses the wrong price source'
+        - Custody fee differs from estimate
+        - Month end price used for {kind} fees is stale
+        - '{kind|cap} fees computed on gross, not net'
+    - body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{da_20} {da_21}'
+        -   - '{da_22} {da_23}'
+        -   - Keep details in this issue.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_fix_up}'
+      labels:
+        - bug
+        - security
+      let:
+        step:
+          - sanctions screening
+          - compliance review
+          - a manual hold
+          - a limit check
+      title:
+        - Fee rebate paid despite {step}
+        - Rebate run ignores {step}
+        - Rebates paid to {2-9} flagged accounts
+        - Fee waiver granted without {step}
+  data:
+    - body:
+        -   - '{da_40} {da_41}'
+        -   - '{da_42} {da_43}'
+        -   - '{da_44}'
+      comments:
+        - '{b_cm_hand} on the {day} snapshot.'
+        - Reproduced with the {day} snapshot.
+      labels:
+        - bug
+        - data-quality
+      let:
+        asset:
+          - '{da_asset}'
+      title:
+        - Ledger and chain balance differ for {asset}
+        - Reconciliation break on {asset}, {p_dollars}
+        - '{asset|cap} balance off after a sweep'
+        - Hot wallet total off from ledger
+    - body:
+        -   - '{da_45} {da_46}'
+        -   - '{da_47} {da_48}'
+        -   - Key deposits on tx and log.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+        - incident
+      let:
+        chain:
+          - '{da_chain}'
+      title:
+        - Chain reorg double counted deposits on {chain}
+        - Indexer replayed blocks after a reorg
+        - Deposits credited twice on {chain}
+        - Missing deposits after the indexer restart
+    - body:
+        -   - '{da_49} {da_50}'
+        -   - '{da_51} {da_52}'
+        -   - '{da_53} {da_54}'
+        -   - Alert when the update is late.
+      comments:
+        - '{b_cm_check} the transfer log.'
+        - Re-screen the gap, document it.
+      labels:
+        - bug
+        - incident
+      let:
+        src:
+          - '{p_source}'
+      title:
+        - '{src|cap} arrived {p_delay} late'
+        - Screening used a stale list, {src}
+        - Missing rows in {src} on {day}
+        - Load stopped by bad data in {src}
+    - body:
+        -   - '{da_55} {da_56}'
+        -   - '{da_57} {da_58}'
+        -   - Rebuild lots, rerun the reports.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+      labels:
+        - data-quality
+      let:
+        kind:
+          - a fork
+          - an airdrop
+          - a token swap
+          - a migration
+      title:
+        - Cost basis wrong after {kind}
+        - Tax lots break after {kind}
+        - Tax report misses {kind} income
+        - '{2-400} lots wrong after {kind}'
+  docs:
+    - body:
+        -   - '{da_71} {da_72}'
+        -   - '{da_73} {da_74}'
+      comments:
+        - I will add it next week.
+        - '{b_cm_ask_who}'
+      labels:
+        - docs
+        - bug
+      let:
+        runbook:
+          - '{p_runbook}'
+        step:
+          - pause the withdrawal queue
+          - notify compliance
+          - freeze the hot wallet
+          - record the block height
+      title:
+        - '{runbook} misses a step: {step}'
+        - Withdrawal halt runbook skips how to {step}
+        - Incident notes skip when to {step}
+        - Runbook is silent on how to {step}
+    - body:
+        -   - '{da_75} {da_76}'
+        -   - '{da_77} {da_78}'
+        -   - Add an owner and review date.
+      comments:
+        - '{b_cm_draft} the control matrix.'
+        - Link the tickets, not screenshots.
+      labels:
+        - docs
+        - enhancement
+      let:
+        control:
+          - change approval
+          - key custody
+          - access reviews
+          - vendor onboarding
+      title:
+        - Write up evidence for {control} for the audit
+        - Document how {control} works for SOC 2
+        - Regulator asked about {control}
+        - Where is the proof for {control}?
+    - body:
+        -   - '{b_dc_a} {b_dc_b}'
+        -   - '{da_79} {da_80}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_up} {b_cm_read2}'
+      labels:
+        - docs
+        - task
+      let:
+        topic:
+          - how deposits are credited
+          - how withdrawals are signed
+          - how fees are tiered
+          - how proof of reserves works
+      title:
+        - Handbook needs an overview of {topic}
+        - Explain {topic} for new engineers
+        - New starters ask {topic}
+        - Write a page on {topic}
+  infra:
+    - body:
+        -   - '{da_59} {da_60}'
+        -   - '{da_61} {da_62}'
+        -   - Schedule the ceremony and log it.
+      comments:
+        - '{b_cm_plan}'
+        - '{b_cm_later}'
+      labels:
+        - security
+        - chore
+      let:
+        item:
+          - signing keys
+          - key shares
+          - the hot wallet
+          - the cold storage process
+      title:
+        - Rotate {item} before the audit
+        - Key ceremony for {item} is overdue
+        - Access to {item} was not reviewed
+        - Dual control missing on {item}
+    - body:
+        -   - '{da_63} {da_64}'
+        -   - '{da_65} {da_66}'
+        -   - Add a lag alert, a standby.
+      comments:
+        - '{b_cm_check} the last restart.'
+        - '{b_cm_later}'
+      labels:
+        - bug
+        - performance
+      let:
+        node:
+          - the Bitcoin node
+          - the Ethereum node
+          - the RPC provider
+          - the Solana node
+      title:
+        - '{node|cap} fell {2-90} minutes behind'
+        - Sync lag on {node} delays deposits
+        - Failover for {node} never triggers
+        - Alerts for {node} fire too late
+    - body:
+        -   - '{da_67} {da_68}'
+        -   - '{da_69} {da_70}'
+        -   - Warn {14-30} days ahead, then page.
+      comments:
+        - '{b_cm_plan}'
+        - Partners need {5-10} days notice.
+      labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - '{p_cert_host}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Renewal of {cert} is manual
+        - Add expiry monitoring for {cert}
+  ops:
+    - body:
+        -   - '{da_81} and it writes to {p_script_path}.'
+        -   - '{da_82}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+      labels:
+        - question
+        - chore
+      let:
+        script:
+          - '{p_script}'
+      title:
+        - Is {script} needed after the wallet migration?
+        - Retire {script} from the hosts?
+        - '{script} still runs from the old cron'
+        - Can we delete {script}?
+  portal:
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{da_24} {da_25}'
+        -   - '{da_26} {da_27}'
+        -   - Show the reason, time left.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+      labels:
+        - bug
+      let:
+        kind:
+          - whitelist
+          - cooldown
+          - address book
+          - new device
+      title:
+        - Withdrawal stuck after a {kind} change
+        - Withdrawal shows no reason after {kind} change
+        - The {kind} delay is not shown to customers
+        - Withdrawals blocked, {kind} rule unclear
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{da_28} {da_29}'
+        -   - '{da_30} {da_31}'
+        -   - Please keep details in this issue.
+      comments:
+        - '{b_cm_repro} on a fresh profile.'
+        - '{b_cm_ask_who}'
+      labels:
+        - bug
+        - security
+      let:
+        trigger:
+          - a device change
+          - a password reset
+          - an app update
+          - a new browser
+      title:
+        - Two factor code loops after {trigger}
+        - Stuck in a code loop after {trigger}
+        - Account locked after {trigger}
+        - Recovery flow fails after {trigger}
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{da_32} {da_33}'
+        -   - '{da_34} {da_35}'
+        -   - Show a stale banner.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_check} the reconnect logic.'
+      labels:
+        - bug
+        - performance
+      let:
+        device:
+          - '{da_device}'
+      title:
+        - Prices on {device} lag the order book
+        - Websocket drops every few minutes on {device}
+        - Order book freezes on {device}
+        - Stale quotes on the trade screen
+    - body:
+        -   - '{b_pscope}.'
+        -   - '{da_36} {da_37}'
+        -   - '{da_38} {da_39}'
+        -   - Please keep details in this issue.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Can change flush the cache?
+      labels:
+        - bug
+        - security
+      let:
+        perm:
+          - the withdraw permission
+          - the trade permission
+          - the read permission
+          - the IP allow list
+      title:
+        - API key still has {perm} after the change
+        - Changing {perm} does not take effect
+        - Revoked key works for {2-9} minutes
+        - Old key keeps {perm} on some servers
+name: Cryptocurrency and digital assets
+name_suffixes:
+  - Exchange
+  - Digital
+  - Custody
+  - Labs
+  - Markets
+  - Wallet
+  - Protocol
+names:
+  channels:
+    billing-team:
+      - fees-team
+      - billing-eng
+      - exchange-fees
+    data-team:
+      - data-compliance
+      - ledger-data
+      - data-team
+    engineering:
+      - engineering
+      - eng
+      - platform-dev
+    incidents:
+      - incidents
+      - prod-incidents
+      - oncall
+    releases:
+      - releases
+      - deploys
+      - shipping
+    support:
+      - customer-support
+      - support
+      - help-desk
+  repos:
+    billing-service:
+      - fee-engine
+      - trading-fees
+      - custody-billing
+      - fee-settlement
+    customer-portal:
+      - exchange-web
+      - wallet-portal
+      - trading-app
+      - customer-web
+    data-pipeline:
+      - ledger-warehouse
+      - chain-indexer-loads
+      - reconciliation-etl
+      - compliance-loads
+    infra-config:
+      - infra-config
+      - environment-config
+      - node-infra
+      - platform-config
+    ops-scripts:
+      - ops-scripts
+      - treasury-scripts
+      - legacy-jobs
+      - admin-tools
+    platform-docs:
+      - eng-handbook
+      - security-runbooks
+      - platform-handbook
+      - ops-docs
+organization:
+  head: Chief Technology Officer
+  it_admin: Security and IT Lead
+  teams:
+    billing:
+      department: Exchange and Fees Engineering
+      title: Software Engineer
+    data:
+      department: Data and Compliance Analytics
+      title: Data Engineer
+    operations:
+      department: Treasury and Operations
+      title: Operations Analyst
+    platform:
+      department: Platform Engineering
+      title: Platform Engineer
+    product:
+      department: Product
+      title: Product Manager
+    support:
+      department: Customer Support
+      title: Support Specialist
+slug: digital-assets
+symbols:
+  b_acct_size:
+    - '{3-12} wallets'
+    - '{200-900} addresses'
+    - '{15-60} sub-accounts'
+    - '{40-300} API keys'
+  b_cb_path:
+    - billing/chain_events.py
+    - billing/deposit_events.py
+    - billing/webhooks.py
+  b_check_path:
+    - the fee tests
+    - the email tests
+    - the rebate tests
+    - the chain event tests
+  b_cn_a:
+    - The guard in {b_credit_path}
+    - Validation in {b_credit_path}
+    - The check in {b_credit_path}
+  b_cn_b:
+    - only counts the first rebate
+    - ignores earlier rebates
+    - skips rebates paid together
+  b_cn_c:
+    - The total of all rebates
+    - Rebates added together
+    - The combined fee credit
+  b_credit_path:
+    - billing/fee_rebates.py
+    - billing/refunds.py
+    - billing/adjustments.py
+  b_currency:
+    - USD
+    - EUR
+    - GBP
+    - USDC
+    - BTC
+  b_customer:
+    - retail
+    - institutional
+    - market maker
+    - custody
+    - OTC desk
+    - API
+  b_doc:
+    - trading statement
+    - fee invoice
+    - custody invoice
+    - tax lot report
+    - withdrawal receipt
+    - account statement
+  b_mail_path:
+    - billing/emails.py
+    - billing/email_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_money_path:
+    - billing/trading_fees.py
+    - billing/maker_taker.py
+    - billing/custody_fees.py
+    - billing/rounding.py
+  b_page:
+    - balances
+    - trades
+    - deposits
+    - withdrawals
+    - API keys
+    - the dashboard
+  b_pay_path:
+    - portal/withdrawal_addresses.py
+    - portal/api_keys.py
+  b_provider_event:
+    - deposit confirmed
+    - withdrawal broadcast
+    - trade settled
+    - fee rebate paid
+    - staking reward credited
+  b_pwho:
+    - customer support
+    - an account manager
+    - '{person}'
+    - the compliance team
+    - treasury
+  b_region:
+    - Singapore
+    - Switzerland
+    - Malta
+    - Texas
+    - New York
+    - Ireland
+  b_taxkind:
+    - VAT
+    - sales tax
+    - withholding tax
+    - GST
+  b_ticket_noun:
+    - ticket
+    - case
+    - escalation
+    - report
+  b_who:
+    - trading ops
+    - compliance
+    - treasury
+    - finance
+    - customer support
+  c_customer:
+    - a customer
+    - one of the larger desks
+    - a custody client
+    - a market maker
+  c_dep:
+    - the pdf library
+    - the http client
+    - the orm
+    - the date library
+    - the websocket library
+  c_eng_area:
+    - the matching engine
+    - the withdrawal queue
+    - the chain indexer
+    - the fee calculation
+    - the deposit crediting
+    - the signing service
+  da_1:
+    - The window uses local time
+    - Volume is summed per day
+  da_10:
+    - by tiny amounts.
+    - on busy days.
+  da_11:
+    - The quote is cached
+    - The fee is quoted at request
+  da_12:
+    - and charged at broadcast.
+    - not at confirmation.
+  da_13:
+    - Customers dispute the difference
+    - Congestion makes the gap large
+  da_14:
+    - ', so more people notice.'
+    - on busy days.
+  da_15:
+    - Needs a decision from treasury.
+    - Who bears the gap?
+  da_16:
+    - The fee reads one price feed
+    - The base is priced at close
+  da_17:
+    - and the oracle was late.
+    - from a single source.
+  da_18:
+    - Clients check the maths
+    - Institutional clients recompute
+  da_19:
+    - and send questions.
+    - each month.
+  da_2:
+    - in server time.
+    - and the day boundary drifts.
+  da_20:
+    - The rebate run reads status
+    - The check looks at a flag
+  da_21:
+    - that is set late.
+    - after the payout.
+  da_22:
+    - Compliance must approve first
+    - Policy requires a review
+  da_23:
+    - ', so this is a control gap.'
+    - before any rebate.
+  da_24:
+    - A new address starts a cooldown
+    - The rule holds withdrawals
+  da_25:
+    - for a set time.
+    - for a day.
+  da_26:
+    - The page says only pending
+    - Customers see no reason
+  da_27:
+    - and open tickets.
+    - and no end time.
+  da_28:
+    - The device is marked trusted
+    - The trusted flag is saved
+  da_29:
+    - ', but the flag is lost.'
+    - and then ignored.
+  da_3:
+    - Customers pay a higher fee
+    - Market makers lose their rebate
+  da_30:
+    - Locked out customers call in
+    - People give up and phone support
+  da_31:
+    - and wait on hold.
+    - after each release.
+  da_32:
+    - The stream disconnects
+    - The socket closes without notice
+  da_33:
+    - and the app does not retry.
+    - for a while.
+  da_34:
+    - Traders act on stale prices
+    - Customers click on old quotes
+  da_35:
+    - ', and complain.'
+    - during volatile hours.
+  da_36:
+    - The gateway caches keys
+    - Keys are cached for an hour
+  da_37:
+    - so changes are delayed.
+    - across all regions.
+  da_38:
+    - This is a funds risk
+    - A key with withdraw access
+  da_39:
+    - ', so treat it as urgent.'
+    - is dangerous.
+  da_4:
+    - ', so they complain.'
+    - for a day.
+  da_40:
+    - Treasury found it
+    - The recon job flagged it
+  da_41:
+    - while closing the day.
+    - on a {day} run.
+  da_42:
+    - The break shows after sweeps
+    - Pending transfers are counted twice
+  da_43:
+    - ', so the days disagree.'
+    - and then it clears.
+  da_44:
+    - The attestation has a deadline.
+    - Which side do we trust?
+  da_45:
+    - The indexer replays a range
+    - A reorg moves a block
+  da_46:
+    - and deposits are credited twice.
+    - without a unique key.
+  da_47:
+    - Customers see extra funds
+    - Balances look too high
+  da_48:
+    - for {2-9} accounts.
+    - for an hour.
+  da_49:
+    - The screening waits for {src}
+    - Nothing starts until {src} lands
+  da_5:
+    - Finance wants the tier fixed
+    - Compliance wants a clean rule
+  da_50:
+    - ', and then it runs.'
+    - ', then goes on.'
+  da_51:
+    - Compliance reports were stale
+    - Addresses were checked late
+  da_52:
+    - by {1-3} hours.
+    - against the old list.
+  da_53:
+    - The source sent it late
+    - Their update ran long
+  da_54:
+    - on their side.
+    - and sent no notice.
+  da_55:
+    - The event is not modeled
+    - The lot is split wrongly
+  da_56:
+    - and the basis is lost.
+    - after the event.
+  da_57:
+    - Customers rely on the report
+    - Tax forms use these numbers
+  da_58:
+    - ', so errors matter.'
+    - each year.
+  da_59:
+    - The last rotation was long ago
+    - Policy requires rotation
+  da_6:
+    - and a refund plan.
+    - on the record.
+  da_60:
+    - and a witnessed record.
+    - each year.
+  da_61:
+    - Some access has no owner
+    - Two people hold too much
+  da_62:
+    - access to {item}.
+    - today.
+  da_63:
+    - The node lags after restarts
+    - It drifts under load
+  da_64:
+    - and deposits are late.
+    - after a peak.
+  da_65:
+    - Customers wait for credits
+    - Support got {3-12} reports
+  da_66:
+    - within the same hour.
+    - in the last week.
+  da_67:
+    - Spotted during a change review
+    - Noticed while checking an alert
+  da_68:
+    - ', and nobody owns renewal.'
+    - and the date is close.
+  da_69:
+    - Expiry would stop API traffic
+    - Expiry would break custody calls
+  da_7:
+    - Small fees round to zero
+    - The fee is rounded per trade
+  da_70:
+    - for institutions.
+    - until it is renewed.
+  da_71:
+    - Hit this during an incident
+    - The new on-call found it
+  da_72:
+    - ', and it cost time.'
+    - at night.
+  da_73:
+    - The page covers the happy path
+    - It predates the new chain
+  da_74:
+    - only.
+    - and nobody updated it.
+  da_75:
+    - '{da_reg|cap} asked for the process'
+    - The audit request lists it
+  da_76:
+    - and the last {2-4} cases.
+    - with recent examples.
+  da_77:
+    - We do the work
+    - The proof is in tickets
+  da_78:
+    - ', but evidence is scattered.'
+    - across several tools.
+  da_79:
+    - Treasury knows it
+    - Compliance knows it best
+  da_8:
+    - ', and the total drifts.'
+    - at a fixed precision.
+  da_80:
+    - ', so ask them to review.'
+    - and a diagram would help.
+  da_81:
+    - It was written for old wallets
+    - Nobody current has touched it
+  da_82:
+    - Its retention differs from policy.
+    - Check with treasury first.
+  da_9:
+    - Revenue is short
+    - The ledger and the invoice differ
+  da_asset:
+    - BTC
+    - ETH
+    - a stablecoin
+    - an ERC-20 token
+    - SOL
+  da_chain:
+    - the Bitcoin network
+    - the Ethereum network
+    - a layer two network
+    - the Solana network
+  da_device:
+    - an older Android phone
+    - an iPhone on the new OS
+    - a tablet
+    - a browser extension
+  da_reg:
+    - the travel rule
+    - AML rules
+    - sanctions rules
+    - a state license exam
+    - MiCA
+  p_alert_name:
+    - withdrawal queue depth
+    - node sync lag
+    - order matching latency
+    - failed backups
+    - disk usage on node hosts
+  p_cert_host:
+    - the exchange API certificate
+    - the custody API certificate
+    - the wallet portal certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - api.{domain}
+    - app.{domain}
+    - status.{domain}
+    - stream.{domain}
+  p_finance_ask:
+    - the controller
+    - treasury
+    - someone in finance
+    - the head of compliance
+  p_howto:
+    - restore a ledger snapshot into staging
+    - resync a chain node
+    - rotate a signing key share
+    - answer a regulator request
+  p_policy:
+    - the listing change freeze
+    - quarterly access reviews
+    - production key access
+    - on-call compensation
+  p_report:
+    - the ledger reconciliation report
+    - the proof of reserves report
+    - the fee revenue dashboard
+    - the withdrawal queue report
+  p_runbook:
+    - docs/runbooks/halt-withdrawals.md
+    - docs/runbooks/node-resync.md
+    - docs/runbooks/key-rotation.md
+    - docs/runbooks/dr-failover.md
+  p_script:
+    - sweep_hot_wallet.sh
+    - archive_chain_logs.sh
+    - purge_order_cache.sh
+    - rotate_logs.sh
+    - check_disk.sh
+  p_script_path:
+    - /srv/chain/logs
+    - /srv/ledger/archive
+    - /var/log/trading
+    - /mnt/backups/daily
+  p_secret_thing:
+    - the node RPC token
+    - the bank partner token
+    - the signing service credentials
+    - the warehouse service account key
+  p_source:
+    - the chain indexer export
+    - the sanctions list update
+    - the price oracle feed
+    - the bank partner statements
+  p_table:
+    - trades
+    - balances
+    - deposits
+    - withdrawals
+    - wallets
+    - ledger entries
+  s_cb_bad:
+    - elevated errors on chain event callbacks
+    - deposit events failing
+    - node callbacks erroring
+    - callback endpoint throwing 5xx
+  s_cb_fix:
+    - retry callbacks on timeout
+    - retry timed out chain events
+    - add a retry for callback timeouts
+    - retry events that time out
+  s_cust:
+    - a customer on {s_plan}
+    - someone on {s_plan}
+    - an account on {s_plan}
+    - a client with {s_plan}
+  s_dup_a:
+    - duplicate fee invoices going out
+    - customers got the statement twice
+    - same withdrawal receipt repeated
+    - emails sent twice
+  s_dup_fix:
+    - stop resending on retry
+    - skip emails already sent
+    - check the sent log first
+    - do not resend after a retry
+  s_inv_late:
+    - fee invoices delayed
+    - statement emails running late
+    - withdrawal receipts not going out
+    - email sends lagging
+  s_inv_late_b:
+    - oldest has waited {20-90} min
+    - nothing sent since {time}
+    - send lag keeps rising
+    - backlog growing fast
+  s_plan:
+    - the standard fee tier
+    - a market maker tier
+    - an institutional custody plan
+    - an API only plan
+  s_thing:
+    - the withdrawal queue
+    - the chain indexer
+    - the ledger job
+    - the fee run
+    - the export
+  s_tool:
+    - the admin console
+    - the support desk
+    - the compliance console
+    - the ticket queue
+systems:
+  common:
+    - salesforce
+    - zendesk
+    - splunk
+    - twilio
+    - docusign
+  typical:
+    - github
+    - slack
+    - jira
+    - okta
+    - datadog
+    - pagerduty
+    - snowflake
+    - hashicorp vault
+    - fireblocks
+    - chainalysis

@@ -1,0 +1,1704 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Manufacturing (discrete): extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: manufacturing-discrete
+name: Manufacturing (discrete)
+group: Industry and infrastructure
+aliases:
+  - discrete manufacturing
+  - industrial machinery
+  - metal fabrication
+  - equipment manufacturing
+  - contract machining
+description: A manufacturer that machines, fabricates and assembles parts and finished equipment, and bills OEMs, distributors and dealers for what ships.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Manufacturing
+  - Industries
+  - Machine Works
+  - Precision
+  - Fabrication
+  - Tooling
+  - Works
+  - Metalworks
+invoice_items:
+  - Fabricated assemblies
+  - Tooling and setup charge
+organization:
+  head: Director of Manufacturing Systems
+  it_admin: Plant IT Administrator
+  teams:
+    platform:
+      department: Manufacturing Systems
+      title: Systems Engineer
+    billing:
+      department: Order to Cash
+      title: ERP Developer
+    data:
+      department: Plant Analytics
+      title: Data Engineer
+    support:
+      department: Customer Service
+      title: Customer Service Representative
+      lead: Customer Service Supervisor
+    product:
+      department: Product Engineering
+      title: Product Manager
+    operations:
+      department: Plant Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - order-billing
+      - invoicing
+      - billing-service
+      - order-to-cash
+      - shipment-billing
+    platform-docs:
+      - plant-systems-docs
+      - systems-handbook
+      - runbooks
+      - mfg-systems-wiki
+    data-pipeline:
+      - plant-data-loads
+      - mes-warehouse
+      - production-reporting
+      - shopfloor-etl
+      - ops-analytics-etl
+    infra-config:
+      - plant-infra
+      - gateway-config
+      - site-environments
+      - shopfloor-infra
+    customer-portal:
+      - dealer-portal
+      - customer-orders-web
+      - order-status-portal
+      - distributor-portal
+      - parts-portal
+    ops-scripts:
+      - plant-scripts
+      - shopfloor-tools
+      - legacy-plant-scripts
+      - admin-tools
+  channels:
+    engineering:
+      - systems-engineering
+      - mfg-eng
+      - dev
+    incidents:
+      - plant-incidents
+      - line-down
+      - incidents
+    releases:
+      - releases
+      - go-lives
+      - deploys
+    billing-team:
+      - order-to-cash
+      - billing-team
+      - erp-billing
+    platform-team:
+      - shopfloor-systems
+      - platform-team
+      - mfg-systems
+    data-team:
+      - plant-analytics
+      - data-team
+      - reporting
+    support:
+      - customer-service
+      - order-desk
+      - support
+systems:
+  typical:
+    - SAP S/4HANA Cloud
+    - Siemens Teamcenter X
+    - PTC ThingWorx
+    - Gitea
+    - Mattermost
+    - Jira
+    - Microsoft Power BI
+    - Okta
+    - plex
+    - netsuite
+  common:
+    - Salesforce
+    - Microsoft Dynamics 365 Business Central
+    - ServiceNow
+    - Kinaxis
+    - Datadog
+symbols:
+  b_doc:
+    - invoice
+    - credit memo
+    - pro forma invoice
+    - milestone invoice
+    - '{monthly/quarterly} statement'
+    - freight invoice
+  b_customer:
+    - OEM
+    - distributor
+    - blanket-order
+    - contract
+    - aftermarket
+    - export
+    - spare-parts
+    - large-volume
+  b_who:
+    - the order desk
+    - customer service
+    - finance
+    - the plant controller
+    - the sales team
+    - a distributor
+  b_pwho:
+    - customer service
+    - a distributor
+    - '{person}'
+    - the order desk
+    - the sales team
+  b_ticket_noun:
+    - ticket
+    - case
+    - escalation
+    - order hold
+    - RMA
+  b_money_path:
+    - billing/invoice.py
+    - billing/pricing.py
+    - billing/surcharges.py
+    - billing/rounding.py
+  b_provider_event:
+    - payment succeeded
+    - payment failed
+    - remittance advice posted
+    - refund completed
+    - chargeback opened
+    - payout settled
+  b_taxkind:
+    - VAT
+    - sales tax
+    - GST
+    - customs duty
+    - reverse-charge VAT
+  b_region:
+    - Germany
+    - Mexico
+    - Canada
+    - Poland
+    - Ireland
+    - the UK
+    - Czechia
+    - Japan
+  b_page:
+    - open orders
+    - shipment tracking
+    - certificates of conformance
+    - the parts catalogue
+    - invoices
+    - RMA requests
+    - drawings
+    - the dashboard
+  b_acct_size:
+    - '{200-900} open order lines'
+    - '{15-60} users'
+    - '{3-12} ship-to addresses'
+    - '{40-300} part numbers on contract'
+    - over {1000-4000} order lines
+  p_table:
+    - shipments
+    - work_orders
+    - order_lines
+    - inventory_moves
+    - invoices
+    - scrap_events
+    - bom_lines
+    - quality_checks
+  p_source:
+    - the MES work order feed
+    - the ERP inventory snapshot
+    - the CMM inspection exports
+    - the carrier tracking feed
+    - the CRM account list
+    - the tool crib scanner log
+  p_report:
+    - the weekly OEE report
+    - the on-time delivery report
+    - the scrap by cell dashboard
+    - the open order backlog report
+    - the aging receivables report
+    - the margin by product line report
+  p_finance_ask:
+    - the plant controller
+    - someone in finance
+    - the cost accountant
+    - the controller
+    - the credit manager
+  p_service_name:
+    - billing-service
+    - customer-portal
+    - data-pipeline
+    - the EDI gateway
+    - the label print service
+  p_glossary_term:
+    - the MES
+    - the shop floor gateway
+    - the rota
+    - the reporting workers
+    - the ship notice queue
+    - the kanban board
+  p_alert_name:
+    - disk usage on the plant servers
+    - failed backups
+    - EDI queue depth
+    - the nightly ERP sync finishing late
+    - the label print queue
+  p_secret_thing:
+    - the MES database password
+    - the carrier API key
+    - the EDI provider credentials
+    - the warehouse service account key
+    - the payments provider token
+  p_limit_target:
+    - the reporting workers
+    - the invoice workers
+    - the portal pods
+    - the EDI gateway
+    - the MES connector
+  p_script:
+    - sync_bom.sh
+    - rotate_logs.sh
+    - check_disk.sh
+    - restart_gateway.sh
+    - purge_labels.sh
+    - rotate_backups.sh
+    - copy_drawings.sh
+    - reset_kiosks.sh
+  p_script_path:
+    - /var/log/app
+    - /opt/billing/exports
+    - /srv/portal/drawings
+    - /mnt/backups/daily
+    - /data/plant/labels
+  p_script_symptom:
+    - fails with no such file
+    - exits 0 but does nothing
+    - complains about a missing binary
+    - hangs on the second plant server
+    - copies zero files
+  p_old_ref:
+    - the old cron host
+    - the retired jump box
+    - the pre-migration plant servers
+    - the previous label server
+    - the old kiosk image
+  p_runbook:
+    - docs/runbooks/billing-workers.md
+    - docs/runbooks/nightly-load.md
+    - docs/runbooks/edi-gateway.md
+    - docs/runbooks/label-printing.md
+    - docs/runbooks/erp-downtime.md
+  p_pipeline_file:
+    - pipeline/load.py
+    - pipeline/clean.py
+    - pipeline/validate.py
+    - pipeline/lock.py
+    - pipeline/mes_feed.py
+  s_plan:
+    - a blanket order
+    - net 60 terms
+    - the distributor price list
+    - a consignment agreement
+    - a stocking program
+  s_tool:
+    - the order desk screen
+    - the ERP admin console
+    - the support desk
+    - the quality system
+    - the shipping console
+  s_docs:
+    - the wiki
+    - the shared drive
+    - the handbook
+    - the plant runbook
+  s_lunch:
+    - the canteen
+    - the deli across the road
+    - the taco truck
+    - the noodle place
+    - the lunch van
+  c_customer:
+    - a customer
+    - one of the larger OEMs
+    - a distributor
+    - a tier one account
+    - a dealer
+  c_eng_area:
+    - the invoice job
+    - the EDI mapping
+    - the ship notice export
+    - the BOM sync
+    - the label template service
+    - the pricing lookup
+    - the export endpoint
+    - the login flow
+    - the retry logic
+    - the CoC generator
+  c_blocker:
+    - waiting on review
+    - blocked on plant access
+    - waiting on the ERP vendor
+    - stuck on a flaky job
+    - waiting on a shutdown window
+  c_team_topic:
+    - the sprint
+    - the release
+    - the backlog
+    - the board
+    - the shutdown week
+  c_floor:
+    - office block
+    - ground floor
+    - mezzanine
+    - the front office
+  c_room:
+    - the canteen
+    - the training room
+    - the meeting room
+    - the front office
+  md_edi_path:
+    - billing/edi_810.py
+    - billing/edi_map.py
+    - billing/x12.py
+  b_slow:
+    - about {20-90} seconds
+    - over a minute
+    - '{3-12} minutes'
+    - nearly {2-4} minutes
+  md_item:
+    - hydraulic manifolds
+    - gearbox housings
+    - bearing blocks
+    - sheet metal enclosures
+    - weld assemblies
+    - spindle cartridges
+    - valve bodies
+    - control cabinets
+  md_cell:
+    - the CNC cell
+    - the laser cutting cell
+    - the weld cell
+    - the paint line
+    - the assembly line
+    - the press brake cell
+    - the final test bay
+    - the deburr station
+  md_machine:
+    - lathe
+    - machining center
+    - press brake
+    - fiber laser
+    - robotic welder
+    - coordinate measuring machine
+  md_plant:
+    - the north plant
+    - the west plant
+    - plant 2
+    - the tooling shop
+    - the main plant
+  md_shipdoc:
+    - packing list
+    - bill of lading
+    - commercial invoice
+    - certificate of conformance
+    - ship notice
+    - material test report
+    - first article report
+  md_edi:
+    - 850 purchase order
+    - 855 acknowledgment
+    - 856 ship notice
+    - 810 invoice
+    - 997 acknowledgement
+    - 860 change order
+  md_order:
+    - sales order
+    - work order
+    - production order
+    - blanket release
+    - service order
+  md_lot:
+    - heat lot
+    - serial range
+    - production lot
+    - batch
+    - lot code
+  md_erp:
+    - the ERP
+    - the MES
+    - the PLM
+    - the quality system
+    - the shop floor system
+  md_partner:
+    - a distributor
+    - an OEM customer
+    - a tier one account
+    - a dealer
+    - a contract buyer
+  md_shift:
+    - first
+    - second
+    - third
+    - weekend
+  md_ref:
+    - '{md_order} {4100-9900}'
+    - SO-{10000-99999}
+    - WO-{10000-99999}
+    - PO {400000-499999}
+  md_raised:
+    - '{Raised/Flagged/Reported} by {b_who}'
+    - '{b_who|cap} {raised/flagged/mentioned} it'
+    - Came up on a call with {b_who}
+    - This landed with us via {b_who}
+  md_urgent:
+    - Shipments are not blocked.
+    - '{b_who|cap} is holding trucks for this.'
+    - Not urgent, {but/though} it keeps coming up.
+    - A truck is waiting on this {day}.
+    - Nothing is stuck yet.
+    - Needs fixing before month end close.
+  md_cm_ack:
+    - '{b_cm_repro}.'
+    - '{b_cm_check} the logs first.'
+    - '{b_cm_plan}'
+    - '{b_cm_ask_who}'
+    - '{b_cm_fix_up}'
+    - '{b_cm_later}'
+  md_scope:
+    - '{3-30} orders {b_since}'
+    - '{2-12} {b_customer} accounts {b_since}'
+    - about {5-40} shipments {b_since}
+    - so far {2-9} {b_ticket_noun}s
+    - '{3-25} order lines on one plant'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        surcharge:
+          - fuel surcharge
+          - freight surcharge
+          - expedite fee
+          - pallet charge
+          - crating charge
+          - hazmat fee
+        path:
+          - billing/surcharges.py
+          - billing/freight.py
+          - billing/pricing.py
+      title:
+        - '{surcharge|cap} missing from {doc}s for {customer} orders'
+        - Why is the {surcharge} zero on {customer} {doc}s?
+        - '{surcharge|cap} not added {after/since} the carrier rate update'
+        - '{customer|cap} {doc}s are short the {surcharge}'
+        - '{doc|cap} for {customer} shipments leaves out the {surcharge}'
+      body:
+        -   - '{md_raised}, {md_scope}.'
+            - '{md_raised} on {customer} orders, {md_scope}.'
+        -   - '{surcharge|cap} comes from {path}, which {skips/ignores} orders with {a split/a partial} shipment.'
+            - The rate lookup in {path} {skips/ignores/misses} {surcharge} {for/on} {customer} orders.
+        -   - '{md_urgent}'
+            - '{md_urgent} {b_offer}'
+      comments:
+        - '{b_cm_repro} with {one/the} {customer} order split over two trucks.'
+        - "{b_cm_check}, I think {path} reads last year's table."
+        - Finance wants the {surcharge} backfilled on open {doc}s.
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        edi:
+          - 810 invoice
+          - 810 credit memo
+          - 810 invoice batch
+        partner:
+          - a distributor
+          - an OEM customer
+          - a tier one account
+          - a dealer
+        reason:
+          - unit of measure not recognised
+          - ship-to code missing
+          - duplicate invoice number
+          - tax total does not match lines
+          - PO line not found
+          - wrong currency code
+        field:
+          - unit of measure
+          - ship-to code
+          - PO line number
+          - tax total
+          - currency code
+          - packing slip reference
+      title:
+        - '{edi} rejected by {partner}: {reason}'
+        - Invoices keep failing at {partner} with {reason}
+        - '{edi|cap} errors, {reason}'
+        - 'Rejected {edi}: {reason}'
+        - '{partner|cap} bounces our {edi}, {reason}'
+      body:
+        -   - '{md_raised}, {md_scope}.'
+            - '{partner|cap} sent back {2-40} documents {b_since}.'
+        -   - The mapping in {md_edi_path} {drops/mangles/misreads} the {field}.
+            - Our mapping handles the {field} in a way {partner} does not accept.
+        -   - The {997/824} says {reason}.
+            - Rejects arrive as {997/824} messages in the {inbox/outbound folder}.
+        -   - '{b_urgent}'
+            - Their payables team {will not/cannot} pay a rejected invoice.
+      comments:
+        - "{b_cm_repro} using last week's {edi} file."
+        - '{b_cm_ask_who}'
+        - Their spec says {field} is mandatory since January.
+        - '{b_cm_fix_up} It adds {a/one} validation {step/check} {before/prior to} send.'
+    - labels:
+        - bug
+      let:
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        item:
+          - '{md_item}'
+        uom:
+          - per hundred
+          - per thousand
+          - per foot
+          - per kilogram
+          - per set
+          - per pallet
+        path:
+          - billing/pricing.py
+          - billing/uom.py
+          - billing/lines.py
+      title:
+        - '{doc|cap} line totals {off/wrong} by a factor on {uom} parts'
+        - Pricing treats {uom} as per each
+        - Parts sold {uom} come out wrong on {doc}s
+        - '{uom|cap} pricing: line total is {off/wrong/out}'
+        - Extended price wrong for parts priced {uom}
+      body:
+        -   - '{md_raised}, {md_scope}.'
+            - Seen on {item} for {customer} accounts, {md_scope}.
+        -   - Conversion in {path} {ignores/drops} the price basis.
+            - The price table stores {uom} but {path} {multiplies/reads} it as per each.
+        -   - Divide by the {price basis/pricing unit} first.
+            - Unit price comes after that.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} with {item}, quantity {50-900}.'
+        - Which {doc}s went out? I can {run/write} one.
+        - '{b_cm_fix_up}'
+        - Credit notes {will be/are} needed for {the ones/those} that shipped.
+    - labels:
+        - needs-decision
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - tooling charges on repeat orders
+          - partial shipments against a blanket order
+          - milestone invoices before final acceptance
+          - freight on rush orders
+          - returns of non-conforming parts
+          - price changes on open blanket releases
+        option_a:
+          - bill it once up front
+          - invoice each shipment as it leaves
+          - invoice at the agreed milestone
+          - follow each contract
+          - bill at cost
+          - apply the current price
+        option_b:
+          - spread it {over/across} the first orders
+          - invoice once at the last shipment
+          - invoice on factory acceptance
+          - charge a flat rate
+          - decide per account
+          - keep the order date price
+      title:
+        - '{question|cap}: who decides?'
+        - Decide how we bill {question}
+        - 'Open question: {question}'
+        - Policy for {question}?
+      body:
+        -   - '{b_nd_a}, {b_nd_b} {b_nd_c}'
+            - '{b_who|cap} handles this {b_nd_b} {b_nd_c}'
+        -   - '{option_a}, or {option_b}.'
+            - 'Options: {option_a}; {option_b}; or leave it as is.'
+        -   - '{b_nd_f}'
+            - Finance should {sign off/decide} before anyone codes it.
+      comments:
+        - '{b_cm_lean} {option_a}.'
+        - '{b_cm_ask_who}'
+        - Needs a ruling from {b_who}.
+  portal:
+    - labels:
+        - bug
+      let:
+        item:
+          - '{md_item}'
+        field:
+          - heat number
+          - lot code
+          - revision letter
+          - inspection date
+          - material grade
+          - serial range
+        path:
+          - portal/certs.py
+          - portal/lots.py
+          - portal/documents.py
+      title:
+        - '{field|cap} blank on {item} certificates'
+        - CoC PDF for {item} has no {field}
+        - Customer says the CoC lacks a {field}
+        - Certificate of conformance for {item} is missing the {field}
+      body:
+        -   - '{md_raised}, {md_scope}.'
+            - '{b_who|cap} {raised/reported} it for {item} shipped {b_since}.'
+        -   - '{field|cap} is filled by {path} and falls back to blank.'
+            - The template in {path} reads the {field} {from/off} the ship record.
+        -   - Orders with mixed lots {lose/drop} the value.
+            - It fails for orders with {two/several} {md_lot}s.
+        -   - '{b_urgent}'
+            - Quality needs the fix {before/ahead of} the next audit.
+      comments:
+        - '{b_cm_repro}, two lots on one order.'
+        - '{b_cm_ask_who}'
+        - Regenerate old certificates, or {skip/leave} them?
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+        - performance
+      let:
+        size:
+          - '{b_acct_size}'
+        page:
+          - open orders
+          - the shipment list
+          - the order history page
+          - the backorder view
+        pages:
+          - open orders
+          - the shipment list
+          - order history
+          - the backorder view
+      title:
+        - '{page|cap} times out for big distributors'
+        - Order status timeouts for accounts with {size}
+        - Portal {page} takes {b_slow} to load for large accounts
+        - '{page|cap} hangs on large dealer accounts'
+        - Open orders page is {very slow/painfully slow/unusable} for accounts with {size}
+      body:
+        -   - '{md_raised}, {md_scope}.'
+            - Support has {2-9} {b_ticket_noun}s about it {b_since}.
+        -   - '{b_sl_a} {b_sl_b}.'
+            - Accounts with {size} {wait/sit through} {b_slow}.
+        -   - '{b_sl_c} {b_sl_d}'
+            - '{b_sl_e}'
+        -   - '{b_sl_f}'
+      comments:
+        - '{b_cm_repro} with a copy of {a large/one big} account.'
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_pg} {b_cm_pg2}'
+    - labels:
+        - bug
+        - security
+      let:
+        kind:
+          - drawings
+          - price lists
+          - quotes
+          - packing lists
+          - test reports
+          - RMA documents
+        path:
+          - portal/drawings.py
+          - portal/downloads.py
+          - portal/files.py
+      title:
+        - '{kind|cap} downloads skip the account check'
+        - Can one dealer open another account's {kind} by editing the URL?
+        - Guessable ids on customer {kind}
+        - Drawing download shows another dealer's {kind}
+      body:
+        -   - '{md_raised}, noticed while checking a ticket.'
+            - Found while helping {b_pwho}, so {md_scope}.
+        -   - '{kind|cap} routes {look up/query} by id only.'
+            - Changing the id {in/inside} the URL {opens/shows} another account's {kind}.
+        -   - These files {can/may} carry customer-specific pricing.
+            - Some are export controlled, so {this/it} matters beyond pricing.
+        -   - '{b_dlk_e}'
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_fix_up} It adds an owner check to {path}.'
+        - Check the access log for the {kind} route.
+    - labels:
+        - bug
+      let:
+        carrier:
+          - parcel
+          - LTL
+          - freight
+          - air freight
+          - courier
+        problem:
+          - opens the wrong carrier page
+          - has a trailing space
+          - is missing for split shipments
+          - points at an old shipment
+        state:
+          - delivered
+          - out for delivery
+          - shipped
+      title:
+        - '{carrier|cap} tracking number {problem}'
+        - Shipment tracking shows {state} before the carrier scan
+        - Portal says delivered, {carrier/courier} says in transit
+        - Tracking link for {carrier} shipments {problem}
+      body:
+        -   - '{md_raised}, {md_scope}.'
+            - '{b_who|cap} {raised/reported} {2-9} cases {b_since}.'
+        -   - Status comes from {the nightly/our} ship feed, {not/rather than} the carrier.
+            - The tracking number is {copied/read} from the ship notice record.
+        -   - '{b_urgent}'
+            - Dealers phone the order desk.
+      comments:
+        - '{b_cm_repro} with {3-9} recent shipments.'
+        - Our feed marks it delivered {when/once} the pickup closes.
+        - '{b_cm_fix_up}'
+    - labels:
+        - enhancement
+      let:
+        path:
+          - portal/rma.py
+          - portal/returns.py
+          - portal/forms.py
+        field:
+          - the serial number
+          - the heat lot
+          - the original order number
+          - the failure mode
+        extra:
+          - photos
+          - inspection reports
+          - a short video
+          - the packing slip
+      title:
+        - Let customers attach {extra} to an RMA
+        - RMA form should ask for {field}
+        - 'RMA request form: require {field}'
+      body:
+        -   - '{md_raised}. {b_g_asking}'
+            - Customer service retypes the {field} from emails {every few weeks/again/most days}.
+        -   - '{It/The form} takes free text only.'
+            - The form lives in {path} and has {2-5} fields today.
+        -   - Needs a schema change {and/plus} a template edit.
+            - About a week with the validation.
+      comments:
+        - Quality wants {field} so they can trace the {md_lot}.
+        - '{b_cm_small} {b_cm_start}'
+  docs:
+    - labels:
+        - docs
+        - enhancement
+      let:
+        flow:
+          - how engineering changes reach the portal
+          - the shipped-not-invoiced cutoff
+          - the BOM sync from the PLM
+          - onboarding an EDI trading partner
+          - how certificates of conformance are built
+          - month-end close for plant billing
+        erp:
+          - '{md_erp}'
+      title:
+        - '{flow|cap}: needs a page in the handbook'
+        - Write up {flow} for new engineers
+        - Nobody has written down {flow}
+        - Document {flow}
+      body:
+        -   - "{flow|cap} is only in {person}'s head today."
+            - New joiners keep asking about {flow}.
+        -   - One page with {a diagram/the steps} is enough.
+            - A page with the steps {and/plus} the usual failures would do.
+        -   - It touches {erp} and the ship notice export.
+            - Include who to call {on site/at plant} {when/if} it stalls.
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - bug
+      let:
+        page:
+          - docs/oncall.md
+          - docs/access.md
+          - docs/releases.md
+          - docs/runbooks/label-printing.md
+          - docs/runbooks/edi-gateway.md
+        stale:
+          - the old label server
+          - the retired plant VPN
+          - last year's shutdown calendar
+          - the former ERP test client
+          - the previous EDI provider
+        old:
+          - a dead host
+          - an empty share
+          - a retired printer queue
+      title:
+        - '{Handbook/Docs}: {page} still names {stale}'
+        - '{page|cap} lists {stale} that no longer exist'
+        - Stale references to {stale} in {page}
+      body:
+        -   - '{page|cap} still mentions {stale}.'
+            - The page was last edited {before/ahead of} the plant move.
+        -   - Someone followed it and {ended up/landed} on {old}.
+            - A new hire hit this on {day}.
+        -   - A read-through by someone at {md_plant} would help.
+      comments:
+        - '{b_cm_check}'
+        - '{Updated/Fixed/Corrected} the first two sections, {more/some} to do.'
+    - labels:
+        - docs
+        - task
+      let:
+        howto:
+          - reprint a certificate of conformance
+          - add a new EDI trading partner
+          - resend a failed ship notice
+          - rebuild a label template
+          - reissue an invoice {after/following} a price correction
+          - reset a kiosk {after/following} a shop floor update
+        screen:
+          - the ERP
+          - the label designer
+          - the EDI console
+      title:
+        - 'How-to: {howto}'
+        - Write up how to {howto}
+        - 'Add a how-to: {howto}'
+      body:
+        -   - '{b_who|cap} does this by hand.'
+            - Support {asks/hears} about this {every few weeks/each month/most weeks}.
+        -   - Steps, the usual errors, {and/plus} who owns the approval.
+            - Short and with screenshots of {screen}.
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - bug
+      let:
+        step:
+          - pause the ship notice queue
+          - hold the label printers
+          - tell the order desk
+          - snapshot the work order table
+          - stop the nightly sync
+        page:
+          - docs/runbooks/erp-downtime.md
+          - the downtime page
+      title:
+        - '{page|cap} never says to {step}'
+        - ERP downtime runbook never says to {step}
+        - 'Runbook for {md_erp} downtime misses a step: {step}'
+      body:
+        -   - We skipped it on {day} and shipping noticed.
+            - During the last planned outage {nobody/no one} did this.
+        -   - It belongs after the freeze {and/but} before the restart.
+            - Put it before the plant restarts.
+      comments:
+        - Added the step, {please/can you} check the order.
+        - '{b_cm_check}'
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        cell:
+          - '{md_cell}'
+        table:
+          - scrap_events
+          - quality_checks
+          - work_orders
+        event:
+          - a rework
+          - a reopened operation
+          - a work order split
+          - a count correction
+      title:
+        - '{event|cap} produces two scrap rows'
+        - Scrap quantity doubles in {table} after {event}
+        - Scrap totals for {cell} are inflated
+        - Scrap counted twice after {event}
+      body:
+        -   - Scrap for {cell} is {5-35} percent above what the line reports.
+            - Quality noticed scrap for {cell} is high {b_since}.
+        -   - '{table|cap} {gets/holds} two rows per {part/operation}.'
+            - '{event|cap} {writes/creates} {two/2} records, {ids differ/different ids}.'
+        -   - Dedupe on work order {and/plus} operation should fix it.
+            - Needs a key on {work order/job} and {operation/step}.
+        -   - The weekly scrap report {goes/is sent} to plant management on {day}.
+      comments:
+        - '{b_cm_repro}.'
+        - Which cells use the rework step? {person}, do you know?
+        - '{b_cm_prof} {b_cm_prof2}'
+    - labels:
+        - bug
+      let:
+        cell:
+          - '{md_cell}'
+        n:
+          - '{2-9}'
+          - '{10-20}'
+        report:
+          - the weekly OEE report
+          - the OEE dashboard
+          - the line OEE report
+      title:
+        - '{cell|cap}: availability looks wrong in {report}'
+        - OEE for {cell} is {n} points off the MES screen
+        - Why does {report} differ from the line display for {cell}?
+        - OEE report {disagrees/differs} with the MES for {cell}
+      body:
+        -   - '{md_raised}, {md_scope}.'
+            - '{person} compared {report} to the line display and found {n} points off.'
+        -   - Planned downtime is {counted/handled} differently in the load.
+            - The load counts planned stops {as/like} lost time.
+        -   - '{b_cm_hand} the weekly total.'
+            - Cycle time comes from {the routing/the standard}, {not/instead of} the actual run.
+      comments:
+        - '{b_cm_check} the downtime codes first.'
+        - Quality owns the codes, {I/i} {will ask/can ask}.
+        - '{b_cm_prof} {b_cm_prof2}'
+    - labels:
+        - bug
+        - incident
+      let:
+        event:
+          - month-end close
+          - the cost roll
+          - a physical inventory count
+          - an ERP patch
+          - the MRP run
+        delay:
+          - '{p_delay}'
+      title:
+        - '{event|cap} pushes the nightly load back by {delay}'
+        - Nightly ERP sync late after {event}
+        - Warehouse load blocked by {event}
+        - Inventory snapshot load {delay} late after {event}
+      body:
+        -   - The plants saw yesterday's stock until {time}.
+            - Planning looked at stale inventory until {time}.
+        -   - '{event|cap} held a lock on {p_table} for most of the night.'
+            - The extract waited behind {event}.
+        -   - A lock timeout {and/plus} a retry would help.
+            - Extract from the replica, {or/and} move the close to {time}.
+      comments:
+        - '{b_cm_check} the lock log from that night.'
+        - Planning starts at 6, {so/and} the slot is tight.
+        - '{b_cm_fix_up}'
+    - labels:
+        - enhancement
+      let:
+        source:
+          - CMM inspection results
+          - tool wear readings
+          - energy meter data
+          - the carrier tracking feed
+          - gauge calibration records
+        who:
+          - quality
+          - the plant manager
+          - maintenance
+          - finance
+        report:
+          - '{p_report}'
+        format:
+          - CSV
+          - XML
+          - JSON lines
+          - a flat file
+      title:
+        - '{source|cap} should land in the warehouse'
+        - Bring {source} into the warehouse
+        - Load {source} into the warehouse
+      body:
+        -   - '{who|cap} wants it next to {report}.'
+            - Today someone copies it {into/to} a spreadsheet by hand.
+        -   - It arrives as {format} {every hour/each night/after every shift}.
+            - The file lands {on/in} the plant server.
+        -   - A rough size is {2-6} days with validation.
+      comments:
+        - '{b_cm_ask_who}'
+        - Keep the raw files for {30-90} days.
+    - labels:
+        - bug
+        - data-quality
+      let:
+        shift:
+          - second
+          - third
+          - night
+      title:
+        - '{shift|cap} shift output splits across two days'
+        - Shift totals for the {shift} shift land on the wrong day
+        - Timezone problem in the {shift} shift feed
+      body:
+        -   - The {shift} shift crosses midnight, {and/but} loads cut by UTC.
+            - Output after midnight is {credited/booked} to the next day.
+        -   - '{md_raised}.'
+            - Plant managers see {2-9} percent swings between days.
+        -   - '{Shift calendars/Calendars} live in the MES.'
+      comments:
+        - "{b_cm_repro} on last {day}'s numbers."
+        - Key on shift date or clock?
+    - labels:
+        - question
+        - data-quality
+      let:
+        report:
+          - the on-time delivery report
+          - the backlog report
+          - the late shipments dashboard
+        gap:
+          - '{2-9}'
+          - '{12-30}'
+      title:
+        - '{report|cap} does not match the order desk ({gap} off)'
+        - '{report|cap}: {gap} gap against the ERP'
+        - On-time delivery {differs from/disagrees with} what customer service sees
+      body:
+        -   - The load measures {against/from} the {original/first} request date.
+            - Customer service counts late {from/after} the promise date.
+        -   - It is {gap} orders this month.
+            - The gap is about {gap} points {b_since}.
+        -   - Needs a date rule {first/now}.
+      comments:
+        - '{b_cm_hand} the late count.'
+        - '{b_cm_ask_who}'
+  infra:
+    - labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - AS2 certificate
+          - EDI gateway certificate
+          - plant VPN certificate
+          - label server certificate
+      title:
+        - '{cert|cap} expiry should page someone'
+        - Alert before the {cert} expires
+        - No warning for the {cert}
+      body:
+        -   - The {cert} expired on {day} and {nothing/no one} was warned.
+            - Partners could not connect for about {2-9} hours.
+        -   - Add a warning {14/21/30} days ahead.
+            - A nightly job check {would be/is} enough.
+        -   - The EDI gateway holds several, {one/each} per partner.
+      comments:
+        - '{b_cm_fix_up}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - security
+        - bug
+      let:
+        machine:
+          - '{md_machine}'
+          - robotic welder
+          - paint line
+      title:
+        - '{machine|cap} vendor VPN left open'
+        - Remote support account for the {machine} is still active
+        - Vendor remote access to the {machine} controller never expires
+      body:
+        -   - The {machine} account was never {closed/removed} after service.
+            - Access was granted for repairs {and/but} never removed.
+        -   - It reaches the {shop floor/plant} network.
+            - It is not on the {quarterly/yearly} access review.
+        -   - Use time limited accounts, {requested/issued} per visit.
+      comments:
+        - '{b_cm_check}'
+        - I will disable it now {and/then} note it in the log.
+    - labels:
+        - bug
+        - performance
+      let:
+        target:
+          - MES connector
+          - label print service
+          - EDI gateway
+          - portal workers
+        key:
+          - memory
+          - connection pool
+          - CPU
+          - request timeout
+        shift:
+          - '{md_shift}'
+        env_file:
+          - environments/production.yaml
+          - environments/plant.yaml
+          - config/limits.yaml
+      title:
+        - '{target|cap} has no {key} limit'
+        - '{key|cap} runs out on the {target}'
+        - Set {key} limits for the {target}
+      body:
+        -   - During the {shift} shift the {target} {hits/reaches} its {key} ceiling.
+            - Restarts happen about {2-9} times a week.
+        -   - '{Limits/They} are not set in {env_file}.'
+            - Staging has them, production does not.
+      comments:
+        - '{b_cm_check}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - chore
+        - security
+      let:
+        target:
+          - shop floor gateway image
+          - plant file server
+          - label server
+          - kiosk operating system
+      title:
+        - '{target|cap} is out of support'
+        - Plan the move off the old {target}
+        - Upgrade the {target}
+      body:
+        -   - The vendor ends support in {2-9} months.
+            - The vendor no longer patches {it/this}.
+        -   - Needs a shutdown window, {check/see} the plant calendar.
+            - Do it during the shutdown week.
+      comments:
+        - '{b_cm_ask_who}'
+        - Plant IT needs {2-6} weeks notice.
+  ops:
+    - labels:
+        - bug
+      let:
+        script:
+          - sync_bom.sh
+          - purge_labels.sh
+          - copy_drawings.sh
+        days:
+          - '{7-90}'
+        kind:
+          - label files
+          - exports
+          - drawings
+        symptom:
+          - '{p_script_symptom}'
+        host:
+          - the plant server
+          - the label server
+        old:
+          - '{p_old_ref}'
+      title:
+        - '{Scripts/Ops}: {script} keeps {days} days of {kind}, docs say something else'
+        - '{script} {symptom}'
+      body:
+        -   - It was written for {old}.
+            - Nobody has touched it {since/after} the plant move.
+      comments:
+        - '{b_cm_check}'
+comments:
+  - '{b_g_ask} the {md_order} number?'
+  - Which plant was this on, {md_plant}?
+  - '{b_cm_repro} with a {md_order}.'
+  - The plant manager {asked/enquired} about this on {day}.
+  - Quality wants to be told {if/when} it affects {md_lot}s.
+  - '{b_g_loop} {person}, they know the shop floor side.'
+  - Shipping is not blocked, {but/though} it is close.
+  - Can we see a real {md_shipdoc} for this?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: safety briefing moves to {time} {c_soon}.'
+        - '{c_hey}, safety walk at {time} {c_soon}, front office included.'
+        - 'reminder: plant safety briefing at {time} on {day}'
+      replies:
+        -   - '{c_ack}'
+            - does that include the office staff?
+            - '{c_thanks}'
+        -   - '{c_yes}, everyone'
+            - '{c_yes}{c_sep} hard hats in the walkway'
+            - ''
+    - root:
+        - tour for {md_partner} on {day} at {time}, keep walkways clear.
+        - '{c_hey}: customer visit {day}, please tidy {c_room}.'
+        - visitors from {md_partner} on {day}, badges at the gate
+      replies:
+        -   - '{c_ack}'
+            - what time do they arrive?
+            - '{c_thanks}'
+        -   - around {time}
+            - '{c_idk}, ask {person}'
+            - ''
+    - root:
+        - gate {2-4} badge readers are being swapped {c_soon}.
+        - '{c_hey}{c_sep} badge readers {at the/on the} north gate {change/switch} {c_soon}'
+        - badge readers are down at gate {2-4} {c_soon} for the swap
+      replies:
+        -   - '{c_ack}'
+            - can we use the main gate?
+            - '{c_thanks}'
+        -   - '{c_yes}, use the main gate'
+            - security will walk people in
+            - ''
+  off-topic:
+    - root:
+        - anyone want to carpool, the {2-9} road is closed near the plant
+        - road works near the gate again{c_sep} leave early
+        - who is up for {c_sport} after work {day}?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_no}, sorry'
+            - which gate?
+        -   - '{c_ack}'
+            - '{c_lol}'
+            - ''
+  engineering:
+    - root:
+        - '{c_ci_fail} fails on the BOM sync branch'
+        - BOM sync branch is red, {c_ci_fail} failed again
+        - '{c_ci_fail} is failing in {repo}, only on the BOM change'
+      replies:
+        -   - same here, {c_when_eng} it passed
+            - which test exactly?
+            - '{c_blocker} on my side'
+        -   - the unit of measure one
+            - looks like a missing fixture
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - i'll rerun it
+            - ''
+    - let:
+        item:
+          - '{md_item}'
+        printer:
+          - the dock printer
+          - the zebra at dock {1-6}
+          - the thermal printer in shipping
+        plant:
+          - '{md_plant}'
+      root:
+        - label change for {item} is merged, {can someone/could somebody} check print on {printer}?
+        - new {item} label is in {repo}, needs a test print at {plant}
+        - label change merged, shipping please check {item} on {printer}
+      replies:
+        -   - will do after lunch
+            - which printer is it?
+            - '{c_ack}'
+        -   - '{printer} in {plant}'
+            - the one by dock {1-6}
+            - ''
+        -   - printed fine, barcode scans
+            - barcode is too small {on the/on} narrow stock
+            - scans ok on the {2-4} scanners i tried
+    - root:
+        - ERP patch window is {day} {time}, do we freeze deploys?
+        - ERP patch window {day} at {time}{c_sep} deploy freeze?
+        - '{c_hey}: ERP patching {day} {time}, do we hold releases?'
+      replies:
+        -   - '{c_yes}, from {time} until it is signed off'
+            - freeze till {c_soon}
+            - '{c_idk}, ask {person}'
+        -   - '{c_ack}'
+            - i'll tell the order desk
+            - ''
+    - let:
+        edi:
+          - '{md_edi}'
+        partner:
+          - '{md_partner}'
+        err:
+          - a missing ship-to code
+          - an unknown unit of measure
+          - a duplicate document number
+          - a bad tax total
+      root:
+        - '{edi} mapping for {partner} fails on {err}'
+        - '{partner} rejects our {edi}, {err}'
+        - anyone touched the {edi} mapping? {partner} sends back {err}
+      replies:
+        -   - '{c_idk}, which file?'
+            - i {changed/touched} the unit of measure.
+            - reproduced it locally
+        -   - file from {day} morning
+            - '{c_ack}'
+            - attaching it to {issue}
+    - root:
+        - 'certificate timing: build at {ship time/request time/pick time}?'
+        - 'CoC generation: at {shipment/dispatch} or on request?'
+        - 'design call: {CoC/certificate} at {ship/pick} time or lazily?'
+      replies:
+        -   - ship time, quality wants a record
+            - lazily is cheaper {but/though} the data changes
+            - '{c_idk}'
+        -   - the data does change, {rework/repairs} change lots
+            - '{c_agree}'
+            - ''
+  team:
+    - let:
+        report:
+          - '{p_report}'
+      root:
+        - second shift supervisors want {a change/an edit} on {report}
+        - '{c_hey}: supervisors asked for a change to {report}'
+        - 'request from the floor: tweak {report}'
+      replies:
+        -   - what do they need?
+            - is it a quick one?
+            - '{c_ack}'
+        -   - split by cell {instead of/not} by line
+            - an extra column for downtime reason
+            - '{c_idk}, asking'
+        -   - '{c_ack}, will look {c_soon}'
+            - put it on the board
+            - ''
+    - root:
+        - who is covering plant kiosks {while/when} {person} {is/will be} out?
+        - kiosk problems {on the floor/in the plant}, who {is on/has} it {c_soon}?
+        - '{person} is {c_pto}, who takes kiosk tickets?'
+      replies:
+        -   - i can take them
+            - '{c_idk}'
+            - ask {person}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - root:
+        - 'shutdown week: what do we {need/want} from site?'
+        - shutdown week in {2-6} weeks, what is on our list?
+        - planning for the shutdown, who {owns/has} the ERP upgrade steps?
+      replies:
+        -   - ERP patch and the gateway image
+            - i'll write the list
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - add the label server
+            - put it on the board
+    - root:
+        - 'customer escalation: {c_customer} says the ship notice never arrived'
+        - '{c_customer} missed a ship notice for {md_ref}'
+        - ship notice problem for {c_customer}, {md_ref}
+      replies:
+        -   - checking the EDI log
+            - was it an 856?
+            - '{c_ack}'
+        -   - yes an 856
+            - sent, no 997 back
+            - '{c_idk}'
+        -   - i'll resend it
+            - '{c_thanks}'
+            - ''
+  support:
+    - let:
+        doc:
+          - '{md_shipdoc}'
+        ref:
+          - '{md_ref}'
+      root:
+        - '{s_cust|cap} says the {doc} for {ref} never arrived'
+        - '{s_cust|cap} cannot find the {doc} for {ref} on the portal'
+        - '{doc} for {ref} is missing, {s_cust} is asking'
+      replies:
+        -   - did they check the shipping {contact/mail} address?
+            - i see it {in/on} the sent log
+            - looking now
+        -   - it went to a shared mailbox
+            - '{c_ack}, resending'
+            - it was generated {c_soon}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - let:
+        ref:
+          - '{md_ref}'
+      root:
+        - dealer cannot see {ref} on the portal
+        - '{ref} is not on the portal for {s_cust}'
+        - portal does not list {ref}, {s_cust} is waiting
+      replies:
+        -   - which account is it on?
+            - is it a blanket release?
+            - '{c_idk}, checking'
+        -   - blanket release
+            - ship-to differs from the account
+            - '{c_yes}'
+        -   - that explains it, it {hangs/sits} off a different ship-to
+            - escalating to eng, filed as {issue}
+            - ''
+    - let:
+        item:
+          - '{md_item}'
+        n:
+          - '{1000-9999}-{1000-9999}'
+      root:
+        - RMA for {item}, serial range {n}, can we log it?
+        - '{s_cust|cap} wants an RMA for {item}, how do i log it?'
+        - need an RMA for {item}, customer cannot find the form
+      replies:
+        -   - is the serial on the label?
+            - use the portal form
+            - '{c_idk}'
+        -   - '{c_yes}'
+            - the form has no serial {field/box} yet
+            - they sent photos
+        -   - log it by hand {and/then} note the lot
+            - '{c_ack}'
+            - ''
+    - root:
+        - customer asks for a {CoC/certificate} for {md_lot} {1000-9999} from {2-5} years ago
+        - can we pull an old CoC? {md_lot} {1000-9999} from {2-5} years back
+        - 'old certificate request: {md_lot} {1000-9999}, shipped {2-5} years ago'
+      replies:
+        -   - quality keeps those, ask them
+            - the portal only has {2-3} years
+            - '{c_idk}'
+        -   - '{c_ack}, asking quality'
+            - '{c_thanks}'
+            - ''
+    - let:
+        mood:
+          - '{s_mood}'
+          - furious
+          - patient but worried
+      root:
+        - heads up, {s_cust} is {mood}, order is {2-9} days late
+        - '{s_cust|cap} is unhappy, {md_ref} is {2-9} days late'
+        - 'late order alert: {md_ref}, {s_cust} calling daily'
+      replies:
+        -   - do we have {a new/another} ship date?
+            - who owns the expedite?
+            - '{c_ack}'
+        -   - planning says {day}
+            - '{c_idk}, asking planning'
+            - expedited, leaves {day}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+  incidents:
+    - let:
+        cell:
+          - '{md_cell}'
+        cell2:
+          - '{md_cell}'
+        s_cell_b:
+          - '{s_symptom} since {time}'
+          - no counts since {time}
+          - operators are on manual counts
+      root:
+        - '{cell} stopped, the gateway lost its connection'
+        - '{cell} went down, {s_cell_b}'
+        - gateway dropped and {cell} stopped reporting
+      replies:
+        -   - is it the whole plant {or/and} one cell?
+            - seeing the same on {cell2}
+            - checking the gateway now
+        -   - just {cell}
+            - '{c_idk}, looking'
+            - restarted the service, still down
+        -   - back up after a restart
+            - network switch, plant IT {is on/has} it
+            - '{c_ack}'
+    - let:
+        plant:
+          - '{md_plant}'
+      root:
+        - label printing is down in {plant}
+        - labels not printing at {plant}{c_sep} shipping is waiting
+        - '{plant} cannot print shipping labels'
+      replies:
+        -   - is the print service up?
+            - trucks are waiting
+            - '{c_ack}, checking'
+        -   - service is up, queue is stuck
+            - restarting the print service
+            - '{c_idk}'
+        -   - labels are printing again
+            - queue cleared
+            - '{c_thanks}'
+    - let:
+        n:
+          - '{200-4000}'
+      root:
+        - ship notices are not leaving, {queue/backlog} at {n}
+        - 856 queue backed up to {n} messages
+        - the ship notice queue {is stuck/sits} at {n}
+      replies:
+        -   - '{c_ack}, looking'
+            - last one went at {time}
+            - partner side or ours?
+        -   - ours, the AS2 session dropped
+            - certificate? checking
+            - '{c_idk}'
+        -   - reconnected, draining
+            - queue is draining
+            - '{c_thanks}'
+    - let:
+        plant:
+          - '{md_plant}'
+      root:
+        - ERP sync running long, {plant} cannot see tomorrow's work orders
+        - work orders not showing at {plant}, ERP sync is still running
+        - '{plant} has no work orders for {c_soon}, sync is late'
+      replies:
+        -   - '{c_ack}, checking the job'
+            - is it the extract {or/and} the load?
+            - '{c_idk}'
+        -   - extract finished, load is at {2-9}0 percent
+            - waiting on a lock
+            - '{c_ack}'
+        -   - done, they can see them now
+            - released the lock
+            - '{c_thanks}'
+    - let:
+        what:
+          - the ship notice export
+          - the nightly ERP sync
+          - the invoice run
+          - the label service
+      root:
+        - 'near miss: {what} almost failed, a retry saved it'
+        - '{what} nearly missed the cutoff, retried fine'
+        - close call with {what} last night
+      replies:
+        -   - what was the cause?
+            - '{c_ack}'
+            - add it to the review
+        -   - a lock timeout
+            - '{c_idk}'
+            - a carrier API hiccup
+        -   - '{c_thanks}'
+            - ''
+  direct:
+    - let:
+        ref:
+          - '{md_ref}'
+      root:
+        - '{s_hey}, can you reprint the CoC for {ref}? the printer in shipping jammed'
+        - '{s_hey}, need a CoC reprint for {ref} {s_soon}'
+        - could you regenerate the certificate for {ref}? {s_soon}
+      replies:
+        -   - '{c_ack}, give me {5-15} minutes'
+            - which lot?
+            - sure
+        -   - the second lot
+            - '{ref} line {1-9}'
+            - '{c_thanks}'
+        -   - done, check your inbox
+            - sent
+            - ''
+    - let:
+        item:
+          - '{md_item}'
+      root:
+        - 'quick question: which plant owns {item}?'
+        - '{s_hey}, do you know which plant builds {item}?'
+        - who owns {item}, the north plant or plant 2?
+      replies:
+        -   - '{c_idk}, ask {person}'
+            - plant 2 since last year
+            - the north plant
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - let:
+        uom:
+          - per thousand
+          - per hundred
+          - per foot
+          - per set
+      root:
+        - got a minute for pricing? {something/it} {is/looks} off on {uom} parts
+        - '{s_hey}, can we look at {uom} pricing together?'
+        - pricing question, {uom} parts, {s_soon}?
+      replies:
+        -   - '{c_ack}, in {5-20} min'
+            - sure, call me
+            - '{c_idk}, which table?'
+        -   - the one in billing/pricing.py
+            - '{c_thanks}'
+            - ''
+incidents:
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment remittance callbacks failing
+      - Remittance callbacks {from/via} the payments provider erroring
+      - Errors on remittance callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} remittance callbacks failing, {s_cb_b}'
+      - '{s_cb_bad} - {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle provider timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Invoice and ship notice emails delayed
+      - Delayed invoice mail to customers
+      - Invoice emails arriving late
+      - Customer invoice emails slow
+    alert:
+      - '{s_inv_late}, {s_inv_late_b}'
+      - '{s_al} {s_inv_late}'
+      - '{s_inv_late}, dock paperwork waiting'
+    fix_message:
+      - '{s_q_verb|cap} invoice emails {s_q_how}'
+      - Queue invoice emails, not inline sends
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Portal order list timeouts {for/on} large accounts
+      - Open orders page {times out/hangs} for distributors
+      - Large dealer accounts see portal 504s
+      - Portal slow on open orders
+    alert:
+      - '{s_portal_slow}, {s_portal_b}'
+      - '{s_al} {s_portal_slow}'
+      - open orders page timing out {for/on} big accounts, {s_portal_b}
+    fix_message:
+      - '{s_page_fix|cap}'
+      - Page the open orders list
+      - Add pagination to open orders
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly ERP load failed
+      - Overnight MES load failed
+      - Warehouse load aborted on bad rows
+      - Nightly load did not finish
+    alert:
+      - '{s_load_a}, {s_load_b}'
+      - '{s_al} {s_load_a}'
+      - '{s_load_a} - plants see stale numbers'
+    fix_message:
+      - '{s_load_fix|cap}'
+      - Skip bad work order rows {and/then} log them

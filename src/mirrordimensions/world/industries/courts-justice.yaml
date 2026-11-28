@@ -1,0 +1,1297 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Courts and justice: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: courts-justice
+name: Courts and justice
+group: Government and public sector
+aliases:
+  - court system
+  - judiciary
+  - trial courts
+  - court clerk
+  - justice system
+description: A court system that manages cases, e-filing, hearings and the fines, fees and restitution it collects, under strict privacy rules.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Superior Court
+  - County Courts
+  - Circuit Court
+  - Court Services
+  - Justice Center
+  - Clerk of Courts
+invoice_items:
+  - Filing fee
+  - Fine and court costs
+organization:
+  head: Court Technology Director
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Court Technology
+      title: Platform Engineer
+    billing:
+      department: Fines and Fees Systems
+      title: Software Engineer
+      lead: Fines and Fees Lead
+    data:
+      department: Court Statistics
+      title: Data Engineer
+    support:
+      department: Clerk Services Help Desk
+      title: Help Desk Analyst
+    product:
+      department: Case Management Program
+      title: Business Analyst
+    operations:
+      department: Infrastructure
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - billing-service
+      - fines-fees
+      - court-collections
+      - payments-core
+    platform-docs:
+      - platform-docs
+      - court-handbook
+      - tech-handbook
+      - procedures
+    data-pipeline:
+      - data-pipeline
+      - court-statistics
+      - docket-loads
+      - reporting-loads
+    infra-config:
+      - infra-config
+      - courthouse-config
+      - hosting-config
+      - env-baselines
+    customer-portal:
+      - customer-portal
+      - public-access
+      - efiling-portal
+      - party-portal
+    ops-scripts:
+      - ops-scripts
+      - legacy-scripts
+      - batch-jobs
+      - old-extracts
+  channels:
+    engineering:
+      - engineering
+      - app-dev
+      - dev-chat
+    incidents:
+      - incidents
+      - courtroom-alerts
+      - incident-response
+    releases:
+      - releases
+      - change-notices
+      - release-notes
+    billing-team:
+      - billing-team
+      - fines-fees-eng
+      - collections-dev
+    support:
+      - support
+      - clerk-help
+      - service-desk
+    leads:
+      - leads
+      - section-leads
+      - eng-leads
+systems:
+  typical:
+    - gitlab
+    - microsoft teams
+    - jira
+    - confluence
+    - servicenow
+    - okta
+    - splunk
+    - tyler technologies
+    - tyler odyssey
+    - hyland onbase
+  common:
+    - zoom
+    - docusign
+    - microsoft sharepoint
+    - twilio
+    - relativity
+symbols:
+  b_doc:
+    - fine notice
+    - fee statement
+    - payment plan agreement
+    - restitution statement
+    - '{monthly/quarterly} account statement'
+  b_customer:
+    - defendant
+    - attorney
+    - litigant
+    - juror
+    - bail agent
+    - self-represented party
+    - probation client
+    - law firm
+  b_who:
+    - the clerk's office
+    - the fines and fees unit
+    - the court administrator
+    - the help desk
+    - the judge's staff
+  b_pwho:
+    - the help desk
+    - an attorney
+    - '{person}'
+    - the clerk's office
+    - the fines and fees unit
+  b_money_path:
+    - billing/fines.py
+    - billing/assessments.py
+    - billing/totals.py
+    - billing/rounding.py
+  b_mail_path:
+    - billing/notices.py
+    - billing/notice_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_cb_path:
+    - billing/payment_events.py
+    - billing/callbacks.py
+    - billing/receipt_events.py
+  b_credit_path:
+    - billing/waivers.py
+    - billing/refunds.py
+    - billing/adjustments.py
+  b_check_path:
+    - the fine tests
+    - the notice tests
+    - the waiver tests
+    - the callback tests
+  b_provider_event:
+    - payment posted
+    - payment returned
+    - bond posted
+    - refund issued
+    - settlement file received
+  b_currency:
+    - zero-dollar
+    - negative
+    - partial
+    - restitution-only
+  b_taxkind:
+    - court cost
+    - filing fee
+    - late fee
+    - surcharge
+  b_region:
+    - another county
+    - a different division
+    - an out-of-state court
+    - a transferred case
+  b_page:
+    - payments
+    - my cases
+    - payment plans
+    - hearings
+    - account settings
+    - receipts
+    - documents
+    - jury service
+  b_acct_size:
+    - '{200-900} case records'
+    - '{15-60} users'
+    - '{3-12} attorneys of record'
+    - '{40-300} filings'
+  c_customer:
+    - an attorney
+    - one of the larger firms
+    - a self-represented litigant
+    - a bail agent
+    - a juror
+  s_plan:
+    - a payment plan
+    - a fee waiver
+    - community service credit
+    - a hardship order
+  s_cust:
+    - a litigant on {s_plan}
+    - a caller on {s_plan}
+    - an attorney on {s_plan}
+    - someone on {s_plan}
+    - a juror on {s_plan}
+  p_table:
+    - cases
+    - filings
+    - payments
+    - hearings
+    - parties
+    - dockets
+    - fines
+    - orders
+  p_report:
+    - the monthly collections report
+    - the case clearance dashboard
+    - the aging fines report
+    - the filing volume summary
+    - the restitution disbursement report
+  p_source:
+    - the bank's lockbox files
+    - the help desk's ticket export
+    - the notice vendor's delivery events
+    - the e-filing provider's feed
+    - the jail system's booking list
+  p_finance_ask:
+    - the court administrator
+    - someone in the clerk's office
+    - the finance manager
+    - the fiscal officer
+  gv_note:
+    - 'Note:'
+    - 'Also:'
+    - 'Detail:'
+    - 'Context:'
+    - 'Aside:'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        who:
+          - a defendant
+          - an attorney
+          - a probation client
+          - a self-represented party
+        thing:
+          - case
+          - fine
+          - count
+      title:
+        - Payment lands on the wrong case
+        - Installment posts to the wrong {thing}
+        - '{who|cap} with several cases: payment misapplied'
+        - Plan payment for {who} goes to an old case
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_pwho|cap} heard from {2-9} parties.'
+        -   - '{gv_note} The payment picks the oldest case.'
+            - The payment picks the oldest case.
+            - Matching uses the party id only.
+        -   - '{gv_note} Balances then look wrong.'
+            - Balances then look wrong.
+            - Fines stay open past the order.
+        -   - '{b_offer}'
+            - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} with a two-case party.'
+        - '{b_cm_check}, the allocation rule is old.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+        - data-quality
+      let:
+        n:
+          - '{2-30}'
+      title:
+        - Restitution paid out before funds clear
+        - Disbursement runs before the payment settles
+        - Restitution paid on a returned payment
+        - '{n} restitution payments went out early'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Finance found it at reconciliation.
+        -   - '{gv_note} Settlement takes {2-5} days.'
+            - The job runs at {time} daily.
+            - Settlement takes {2-5} days.
+        -   - '{gv_note} Victims must be contacted.'
+            - The court is out the money.
+            - Victims must be contacted.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} with a returned payment.'
+        - Wait for the settled status.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        event:
+          - an appeal
+          - a transfer
+          - a refiling
+          - an amended order
+      title:
+        - Fee waiver ignored when {event}
+        - Indigent waiver not honored after {event}
+        - Waiver flag lost on {event}
+        - Filings charged after a granted waiver
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Attorneys sent {2-9} complaints.
+        -   - '{gv_note} The waiver is stored per case.'
+            - The waiver is stored per case.
+            - It does not carry to refilings.
+        -   - '{gv_note} Refunds are manual.'
+            - Parties pay fees not owed.
+            - Refunds are manual.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - The order is on the docket.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - needs-decision
+      let:
+        thing:
+          - holiday
+          - weekend
+          - weather closure
+          - system outage
+      title:
+        - Plan late fee on court closures
+        - Plan payments due on a {thing}?
+        - Rule for payments due on a {thing}
+        - Late fees after a {thing} closure
+      body:
+        -   - '{b_who|cap} decides case by case.'
+            - No written rule exists.
+        -   - '{gv_note} The local rule is silent.'
+            - 'Options: {extend a day/waive the fee/use the old rule}.'
+            - The local rule is silent.
+        -   - '{gv_note} Notices depend on it.'
+            - A judge should confirm the policy.
+            - Notices depend on it.
+        -   - '{b_cm_later}'
+            - Needs a decision before the run.
+      comments:
+        - '{b_cm_ask_who}'
+        - I lean towards extending a day.
+        - Write it in {p_docpage}.
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        thing:
+          - fine notices
+          - receipts
+          - payment plans
+          - statements
+      title:
+        - Old amount on notice after amendment
+        - Fine changes on docket, not notice
+        - Amended fine not reflected in {thing}
+        - Old amount on {thing} after the order
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Judges' staff caught {2-9} cases.
+        -   - '{gv_note} Amendments update the docket only.'
+            - The notice reads a cached amount.
+            - Amendments update the docket only.
+        -   - '{gv_note} Parties pay the wrong sum.'
+            - Parties pay the wrong sum.
+            - Some call the clerk, upset.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} with an amended case.'
+        - Add the order id.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+  portal:
+    - labels:
+        - bug
+        - security
+      let:
+        thing:
+          - juvenile
+          - expunged
+          - sealed
+          - protective order
+      title:
+        - Sealed case shows in public search
+        - Public search shows a {thing} record
+        - Sealed {thing} still listed in search
+        - Search returns a {thing} after the seal order
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - A clerk noticed it on {day}.
+        -   - The index updates once nightly.
+            - The seal flag is not checked.
+        -   - '{gv_note} Court leadership was told.'
+            - This is a privacy breach.
+            - Court leadership was told.
+        -   - '{b_pm_e}'
+            - Keep details out of open channels.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Pulled the record from the index.
+        - '{b_cm_fix_up}'
+        - Counsel was told.
+    - labels:
+        - bug
+      let:
+        doc:
+          - a motion
+          - a complaint
+          - a petition
+          - a response
+        code:
+          - MTN
+          - CMP
+          - PET
+          - RSP
+      title:
+        - E-filing rejects {doc} as the wrong type
+        - Filings bounce after the code update
+        - '{doc|cap} rejected: document type not found'
+        - E-filing code {code} no longer maps
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Attorneys wrote in {2-30} times.
+        -   - '{gv_note} Old codes remain in forms.'
+            - The code table changed on {day}.
+            - Old codes remain in forms.
+        -   - '{gv_note} Filers miss their deadline.'
+            - Filers miss their deadline.
+            - The clerk accepts them by hand.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} with the old code.'
+        - The mapping needs both versions.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - enhancement
+      let:
+        channel:
+          - text
+          - email
+          - phone
+        thing:
+          - hearings
+          - payment due dates
+          - jury service
+        county:
+          - a nearby county
+          - a pilot court
+      title:
+        - Text reminders for hearings
+        - Send hearing reminders by {channel}
+        - Reminder messages cut missed hearings
+        - Add {channel} reminders for {thing}
+      body:
+        -   - Missed hearings cost the court money.
+            - A pilot in {county} showed results.
+        -   - '{gv_note} Opt-in is required.'
+            - Opt-in is required.
+            - Messages carry no case details.
+        -   - '{b_offer}'
+            - 'Rough size: {two/three} sprints.'
+      comments:
+        - Agree, small texts work well.
+        - '{b_cm_plan}'
+        - Privacy should review the text.
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        thing:
+          - hearing
+          - arraignment
+          - status call
+        n:
+          - '{2-30}'
+      title:
+        - Remote hearing link shows wrong time
+        - Video link expires before the {thing}
+        - Hearing link opens in wrong zone
+        - Remote {thing} link is dead for {n} cases
+      body:
+        -   - '{b_pwho|cap} gets calls before hearings.'
+            - '{b_raised}, {b_scope}.'
+        -   - The link uses server time.
+            - It expires {30/60} minutes early.
+        -   - '{gv_note} Parties miss the hearing.'
+            - Parties miss the hearing.
+            - Judges wait and then reschedule.
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Store the zone with the hearing.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - enhancement
+        - docs
+      let:
+        language:
+          - Spanish
+          - Vietnamese
+          - Somali
+          - Hmong
+          - Arabic
+          - Mandarin
+        thing:
+          - interpreter form
+          - jury summons
+          - payment page
+          - hearing notice
+      title:
+        - 'Language access: {thing} for {language}'
+        - Add {language} to the {thing}
+        - Interpreter requests need a {language} option
+        - '{thing|cap} lacks {language} text'
+      body:
+        -   - '{b_pwho|cap} gets calls in {language}.'
+            - The court's access plan lists {language}.
+        -   - Only the web form is translated.
+            - Notices are English only.
+        -   - '{gv_note} A vendor reviews translations.'
+            - A vendor reviews translations.
+            - Cost is about {200-2000} dollars.
+        -   - '{b_cp_c}'
+      comments:
+        - '{b_cm_plan}'
+        - Who reviews the translated text?
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+  docs:
+    - labels:
+        - docs
+        - security
+      let:
+        page:
+          - docs/security.md
+          - docs/access.md
+          - docs/hosting.md
+          - docs/backup.md
+        thing:
+          - background checks
+          - advanced authentication
+          - media disposal
+          - audit logging
+      title:
+        - '{page|cap} lacks the criminal justice data rules'
+        - 'Security policy page: {thing} missing'
+        - Update {page} for the new {thing}
+        - '{page|cap} disagrees with the state policy'
+      body:
+        -   - The audit asked on {day}.
+            - The state sent a new version.
+        -   - '{gv_note} Rules for {thing} are not listed.'
+            - Rules for {thing} are not listed.
+            - Links point to a dead page.
+        -   - '{b_urgent}'
+            - Auditors read this page.
+        -   - '{p_fix_soon}'
+      comments:
+        - I can take the update.
+        - Needs a review from {person}.
+        - '{b_cm_later}'
+    - labels:
+        - docs
+        - enhancement
+      let:
+        action:
+          - sealing
+          - expungement
+          - name change
+          - protective order
+          - record correction
+      title:
+        - Write up how we handle {action} orders
+        - Document the {action} procedure
+        - '{action|cap} handling: add a short guide'
+      body:
+        -   - New joiners keep asking about it.
+            - Only {person} knows the steps.
+        -   - '{gv_note} List who signs and when.'
+            - List who signs and when.
+            - Say what to remove first.
+        -   - '{b_dc_e}'
+            - A handbook page is plenty.
+      comments:
+        - Will draft it after the release.
+        - '{b_cm_ask_who}'
+        - Please link the court rule.
+    - labels:
+        - docs
+        - chore
+      let:
+        n:
+          - '{2-90}'
+        thing:
+          - filing deadlines
+          - fee schedule
+          - service rules
+          - form list
+      title:
+        - Local rule {n} changed, docs are stale
+        - 'Court rule update: {thing} page is stale'
+        - Update {thing} for the new local rule
+      body:
+        -   - The rule took effect on {day}.
+            - Clerks follow the new text.
+        -   - '{gv_note} Forms still show the old fee.'
+            - Forms still show the old fee.
+            - Deadlines in the docs are off.
+        -   - '{b_urgent}'
+      comments:
+        - I can take the rewrite.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        report:
+          - the case clearance report
+          - the monthly filing report
+          - the aging cases summary
+          - the jury yield report
+        n:
+          - '{3-90}'
+          - '{100-900}'
+        kind:
+          - reopened cases
+          - transferred cases
+          - amended filings
+      title:
+        - '{report|cap} differs from the case system by {n}'
+        - Clearance rate is {n} cases off
+        - '{report|cap} omits {kind} filed late'
+        - Reconcile {report} against the docket
+      body:
+        -   - '{b_who|cap} spotted it before the report.'
+            - The state office asked on {day}.
+        -   - Rows with {kind} drop in cleaning.
+            - The cutoff is midnight UTC.
+        -   - '{gv_note} The state reads this report.'
+            - The state reads this report.
+            - A correction needs sign-off.
+        -   - '{b_offer}'
+      comments:
+        - "{b_cm_repro} on last month's data."
+        - '{b_cm_check} the timezone first.'
+        - '{b_cm_prof}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        table:
+          - '{p_table}'
+        event:
+          - a continuance
+          - a move
+          - a judge change
+      title:
+        - Docket sync duplicates rescheduled hearings
+        - Rescheduled hearings appear twice in {table}
+        - Duplicate hearing rows after {event}
+        - '{table|cap} keeps the old hearing'
+      body:
+        -   - '{b_who|cap} noticed on {day}.'
+            - Judges' calendars show both.
+        -   - '{gv_note} The feed sends a new row.'
+            - The feed sends a new row.
+            - The old row is not closed.
+        -   - '{b_urgent}'
+            - Reports count it twice.
+        -   - '{b_offer}'
+      comments:
+        - '{b_cm_repro} with a moved hearing.'
+        - Key on the hearing id.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - needs-decision
+        - chore
+      let:
+        records:
+          - expunged cases
+          - sealed cases
+          - juvenile cases
+          - closed dockets
+      title:
+        - Purge expunged cases from the warehouse?
+        - Retention for {records} in the warehouse
+        - Expungement orders and the reporting copy
+      body:
+        -   - The order says destroy all records.
+            - The warehouse keeps history.
+        -   - '{gv_note} Counsel has not ruled.'
+            - Statistics need counts, not names.
+            - Counsel has not ruled.
+        -   - '{gv_note} Needs a decision before purging.'
+            - Needs a decision before purging.
+      comments:
+        - Asking counsel about it.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+  infra:
+    - labels:
+        - security
+        - enhancement
+      let:
+        target:
+          - the database consoles
+          - the admin portal
+          - the build system
+          - the log platform
+      title:
+        - Advanced authentication for {target}
+        - CJIS policy requires MFA on {target}
+        - Turn on multi-factor for {target}
+      body:
+        -   - The audit noted it on {day}.
+            - The state set a due date.
+        -   - '{gv_note} Shared logins must go.'
+            - Service accounts need an exception.
+            - Shared logins must go.
+        -   - '{gv_note} Staff need a short guide.'
+            - Staff need a short guide.
+      comments:
+        - '{b_cm_plan}'
+        - Which token type do we use?
+        - '{b_cm_later}'
+    - labels:
+        - bug
+        - incident
+      let:
+        thing:
+          - audio
+          - video
+          - recording
+          - microphone
+        n:
+          - '{1-9}'
+        site:
+          - main
+          - annex
+          - east
+      title:
+        - Courtroom {thing} drops during hearings
+        - '{thing|cap} in courtroom {n} fails mid-session'
+        - Remote hearing {thing} is choppy
+        - Fix {thing} in the {site} courtrooms
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Judges stopped some hearings.
+        -   - '{gv_note} The network shows packet loss.'
+            - The network shows packet loss.
+            - It started after the {thing} update.
+        -   - '{b_urgent}'
+            - The clerk uses a backup recorder.
+        -   - '{b_ask_logs}'
+      comments:
+        - Swapped the switch, no change.
+        - '{b_cm_ask_who}'
+        - Opened a ticket with the vendor.
+        - '{b_cm_later}'
+    - labels:
+        - security
+        - chore
+      let:
+        target:
+          - the case database
+          - the e-filing portal
+          - the payment service
+      title:
+        - Case system failover never exercised
+        - Recovery drill for {target} is overdue
+        - Schedule a failover drill for {target}
+      body:
+        -   - The plan promises a yearly drill.
+            - The auditor asked on {day}.
+        -   - Steps mention retired hosts.
+            - Court hours limit windows.
+        -   - '{b_urgent}'
+      comments:
+        - I can run it Saturday.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+  ops:
+    - labels:
+        - question
+        - chore
+      let:
+        script:
+          - export_batch.sh
+          - tape_copy.sh
+          - nightly_extract.sh
+          - print_notices.sh
+        legacy:
+          - mainframe job
+          - overnight file transfer
+          - old docket export
+          - paper notice feed
+      title:
+        - Is {script} for the {legacy} still used?
+        - Can we retire {script}? It feeds {legacy}
+        - '{script|cap} runs nightly, nobody owns {legacy}'
+      body:
+        -   - It writes to a folder {legacy} reads.
+            - The {legacy} was retired in {2015-2021}.
+        -   - Nobody remembers who asked for it.
+            - Old cron host still runs it.
+        -   - "{gv_note} Retiring it needs the clerk's okay."
+            - Retiring it needs the clerk's okay.
+      comments:
+        - Not used since {2019-2023}, I think.
+        - '{b_cm_ask_who}'
+        - Check the access log first.
+comments:
+  - '{b_cm_check}, the rule is local.'
+  - Keep case details out of here.
+  - Needs a note in the handbook.
+  - Counsel should read the wording first.
+chat:
+  support:
+    - let:
+        thing:
+          - fine
+          - court cost
+          - payment plan balance
+          - restitution amount
+      root:
+        - '{s_cust|cap} says the {thing} shows the wrong amount, {s_ticket}'
+        - '{s_cust} paid the {thing} but it shows open'
+        - '{s_cust|cap} asks why the {thing} is {s_money} dollars'
+      replies:
+        -   - checking the docket
+            - '{s_look}, one sec'
+            - '{s_ack}, looking'
+        -   - the order was amended
+            - payment is pending, not posted
+            - it went to another case
+        -   - can you send them the receipt?
+            - '{s_thx}, i will tell them'
+    - root:
+        - attorney cannot e-file, type error, {s_ticket}
+        - '{s_cust|cap} says the case search finds nothing'
+        - filing stuck at payment for {s_cust}
+      replies:
+        -   - which document type did they pick?
+            - did they get an error?
+            - '{s_look}'
+        -   - it just spins
+            - same code as the last case
+            - no idea, asking
+        -   - send them the paper form
+            - escalating to tier two
+            - '{s_thx}'
+    - let:
+        what:
+          - e-filing rejecting motions
+          - the hearing link time
+          - the payment page timing out
+          - the receipt not showing
+      root:
+        - 'escalating to eng: {what}, filed as {issue}'
+        - '{what} again today, {issue} has details, {s_since}'
+      replies:
+        -   - thanks, adding it to the board
+            - '{s_ack}, will take a look'
+            - ''
+        -   - any workaround for the clerks?
+            - should i tell them to wait?
+        -   - accept it at the counter
+            - wait for the fix, on it
+    - let:
+        shift:
+          - morning
+          - afternoon
+          - evening
+      root:
+        - '{shift} handover: {5-30} open tickets, {2-6} waiting on the clerk'
+        - call spike, summons went out {c_soon}
+      replies:
+        -   - probably the summons
+            - it is the new fee
+            - '{c_idk}'
+        -   - can we add a banner?
+            - should i post an update?
+        -   - yes please, text is below
+            - talking to the jury office
+  team:
+    - let:
+        thing:
+          - fee schedule
+          - e-filing
+          - payment plan
+          - hearing reminder
+      root:
+        - the judges meet {c_soon}, anything for us on the agenda?
+        - rule change for {thing} starts {c_soon}, who owns the update?
+        - bench wants a walkthrough of {thing} {c_soon}
+      replies:
+        -   - read the order, two changes
+            - '{c_idk}, asking {person}'
+            - i can summarize it {c_soon}
+        -   - put notes in the shared folder
+            - link it in the ticket
+            - ''
+        -   - '{c_ack}'
+            - thanks, ticking it off
+    - root:
+        - budget hearing {day} at {time}, need numbers for the cut
+        - budget due, anything to add by {c_soon}?
+        - hiring freeze again, backfill status?
+      replies:
+        -   - i have the hosting numbers
+            - i will ask {person}, they track it
+            - '{c_idk}'
+        -   - assume flat funding
+            - heard it could last a year
+            - let's plan for the worst case
+        -   - ok i will send a draft
+            - '{c_ack}'
+    - let:
+        topic:
+          - the new fee
+          - the e-filing codes
+          - the reminder texts
+          - retiring the old docket system
+        office:
+          - clerk's office
+          - jury office
+          - administrator's staff
+      root:
+        - '{person} and i meet the {office} about {topic}, join?'
+        - intake meeting with the {office} on {day}, agenda is in the doc
+      replies:
+        -   - i can come if after {time}
+            - who is driving, you?
+            - which room?
+        -   - call, no room
+            - '{c_room}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+  engineering:
+    - let:
+        change:
+          - the portal release
+          - the database patch
+          - the fee table update
+          - the docket sync change
+        event:
+          - trial week
+          - month end
+          - jury selection
+      root:
+        - release freeze for {event} on {day}, ok?
+        - who presents {change} at the change review?
+        - '{change} bounced, needs a rollback plan'
+      replies:
+        -   - i have the rollback steps
+            - not yet, writing it now
+            - '{c_idk}'
+        -   - put it in the ticket please
+            - can you review the plan?
+        -   - done, linked
+            - '{c_thanks}'
+    - let:
+        scan:
+          - weekly scan
+          - container scan
+          - dependency check
+      root:
+        - '{c_dep} has an advisory, we are affected'
+        - the {scan} flagged a new high in {c_dep}
+        - 'alert for {c_dep}: patch now or wait?'
+      replies:
+        -   - i can bump it {c_when_eng}
+            - '{c_ack}, taking it'
+            - only the build image has it
+        -   - we need an exception if late
+            - we log it if late
+        -   - '{c_ack}'
+    - let:
+        thing:
+          - code
+          - docket
+          - fee
+          - party
+      root:
+        - vendor pushed a patch, release notes?
+        - vendor says the {thing} table changes in the next version
+        - who talks to the vendor about {thing}?
+      replies:
+        -   - '{c_idk}, ask {person}'
+            - i have their contact
+            - i can read the notes
+        -   - did they send notice?
+            - it has no version number
+            - we should pin it
+        -   - opened a ticket
+            - '{c_ack}'
+  incidents:
+    - let:
+        thing:
+          - the portal
+          - case search
+          - the payment page
+      root:
+        - the e-filing portal is erroring, {s_since}
+        - '{thing} is slow for attorneys, {s_since}'
+        - paged for {thing}, looks like the vendor
+      replies:
+        -   - clerks are getting calls
+            - checking the logs now
+            - i see it too
+        -   - it is the vendor, not us
+            - restarting the pool
+            - looks like it cleared
+        -   - posting an update
+            - will write it up later
+    - let:
+        thing:
+          - e-filing
+          - the payment page
+          - case search
+      root:
+        - filing deadline traffic, {thing} at {70-99} percent
+        - '{thing} is slow, deadline is midnight'
+        - traffic is {3-5}x normal, scaling up
+      replies:
+        -   - added {2-4} more instances
+            - database connections are the limit
+            - '{c_ack}'
+        -   - can we hold the batch jobs?
+            - pausing the nightly load tonight
+        -   - deadline extended
+            - '{c_thanks}'
+    - let:
+        job:
+          - the fine posting job
+          - the disbursement run
+          - the docket sync
+          - the notice run
+      root:
+        - the batch window overran, {job} still running at {time}
+        - overnight {job} failed, nothing posted
+        - '{job} is {3-5} hours late, the clerk is asking'
+      replies:
+        -   - rerunning from the checkpoint
+            - looking at the lock
+            - '{c_ack}'
+        -   - it should finish by {time}
+            - records are fine, just late
+        -   - i will tell the clerk
+            - '{c_thanks}'
+    - let:
+        n:
+          - '{1-9}'
+        site:
+          - main
+          - annex
+          - east
+      root:
+        - courtroom {n} has no audio, hearing is paused
+        - recording system down in {site}, {s_since}
+        - remote hearing dropped for the {site} judge
+      replies:
+        -   - sending a tech now
+            - is the backup recorder running?
+            - '{c_ack}'
+        -   - yes, the clerk has it
+            - back up in ten minutes
+            - it was the switch
+        -   - thanks, adding it to the notes
+  town-square:
+    - let:
+        training:
+          - security awareness training
+          - ethics training
+          - records training
+          - harassment prevention training
+      root:
+        - 'reminder: annual {training} due {c_soon}, about {20-60} minutes'
+        - the {training} course is open, finish by {c_soon}
+        - '{c_hey}: mandatory {training}, link in the email'
+      replies:
+        -   - same course as last year?
+            - do contractors need it too?
+            - '{c_thanks}'
+        -   - yes contractors too
+            - new this year, the phishing part
+            - '{c_yes}'
+    - root:
+        - courthouse closed {c_soon} for the holiday
+        - '{c_hey}: jury assembly room is closed {c_soon}'
+        - security screening line is long today
+      replies:
+        -   - do we have call coverage?
+            - who is on the rota?
+            - '{c_thanks}'
+        -   - yes, the clerk rota
+            - see the calendar
+            - '{c_idk}, ask hr'
+    - let:
+        team:
+          - platform
+          - billing
+          - data
+          - clerk help desk
+        years:
+          - '10'
+          - '15'
+          - '20'
+          - '25'
+      root:
+        - welcome {person} to the {team} team, starting {c_soon}
+        - '{c_hey}: the break room fridge gets cleaned {c_soon}'
+        - congrats to {person} on {years} years with the court!
+      replies:
+        -   - welcome!
+            - '{c_em}'
+            - '{c_agree}'
+        -   - thanks all
+            - '{c_thanks}'
+  direct:
+    - let:
+        form:
+          - access request
+          - change request
+          - training certificate
+        doc:
+          - fee table
+          - rollback plan
+          - notice template
+        duty:
+          - pager shift
+          - help desk shift
+          - courtroom slot
+      root:
+        - '{s_hey}, can you sign the {form} before {day}?'
+        - '{s_hey}, got a minute for the {doc}?'
+        - can you cover my {duty} {c_soon}?
+      replies:
+        -   - '{s_ack}'
+            - sure, send it over
+            - will do after lunch
+        -   - '{s_thx}'
+            - '{s_sorry}, forgot'
+    - let:
+        item:
+          - access request
+          - hiring approval
+          - contract extension
+          - laptop order
+        office:
+          - security office
+          - procurement office
+          - budget office
+      root:
+        - did you hear back about the {item}?
+        - my {item} has not come through, nudge them?
+        - '{s_hey}, any news on the {item}?'
+      replies:
+        -   - not yet, still with the {office}
+            - approved yesterday
+            - '{s_no}'
+        -   - '{s_thx}'
+            - ok i will wait
+  off-topic:
+    - let:
+        event:
+          - retirement party
+          - potluck
+          - farewell lunch
+          - birthday celebration
+      root:
+        - anyone going to the {event} at lunch {c_soon}?
+        - '{c_food} in {c_room} for the {event}, help yourselves'
+      replies:
+        -   - what time?
+            - i will be there
+            - bringing a dessert
+        -   - '{c_thanks}'
+            - '{c_em}'
+    - root:
+        - the parking garage is full again
+        - traffic is wild, anyone wfh today?
+        - '{c_sport} after work {c_soon}, anyone in?'
+      replies:
+        -   - same, {c_lol}
+            - i am at home today
+            - '{c_idk}'
+        -   - stay safe
+            - '{c_em}'
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Fine notice emails delayed
+      - Delayed fine notice emails
+      - Fine notice emails arriving late
+      - Fine notice mail delivery slow
+    alert:
+      - fine notice emails delayed, {s_inv_late_b}
+      - '{s_al} fine notice mail running late'
+      - fine notice emails delayed, queue age {s_age}
+      - fine notice emails not going out, {s_inv_late_b}
+    fix_message:
+      - '{s_q_verb|cap} fine notice emails {s_q_how}'
+      - '{s_q_verb|cap} fine notice mail {s_q_how}'
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment processor callback errors
+      - Elevated errors on payment processor callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - '{s_cb_fix|cap}, log each attempt'
+      - 'Handle timeouts: {s_cb_fix}'
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate fine notice emails
+      - Fine notice mailed twice
+      - Repeated fine notice emails
+    alert:
+      - duplicate fine notice emails going out, {s_dup_b}
+      - '{s_al} fine notice mailed twice, {s_dup_b}'
+      - fine notice emails sent twice, {s_dup_b}
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - '{s_dup_fix|cap}, log each skip'
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Portal timeouts for large firms
+      - Slow portal for large firms
+      - Large firms see portal 504s
+    alert:
+      - portal timeouts for large firms, {s_portal_b}
+      - '{s_al} portal slow for large firms, {s_portal_b}'
+      - large firms see 504s, {s_portal_b}
+    fix_message:
+      - Paginate the case history list
+      - Page the case history list
+      - Load case history in pages
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Portal sign-in errors after deploy
+      - Sign-in failures since the release
+      - Litigants cannot sign in after deploy
+    alert:
+      - portal sign-in errors after deploy, {s_login_b}
+      - '{s_al} sign-in failures since the release, {s_login_b}'
+      - litigants cannot sign in, {s_login_b}
+    fix_message:
+      - '{s_sess_fix|cap}'
+      - '{s_sess_fix|cap}, check the domain'
+      - Put the cookie domain back

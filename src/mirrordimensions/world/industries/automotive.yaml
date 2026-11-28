@@ -1,0 +1,1488 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Automotive: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: automotive
+name: Automotive
+group: Industry and infrastructure
+aliases:
+  - automotive industry
+  - auto parts
+  - vehicle manufacturing
+  - auto supplier
+  - car manufacturing
+description: An automotive supplier or manufacturer that ships components to vehicle plants and dealers against release schedules, with warranty claims and recall campaigns.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Automotive
+  - Motors
+  - Components
+  - Industries
+  - Systems
+  - Auto Parts
+  - Mobility
+  - Manufacturing
+invoice_items:
+  - Vehicle components
+  - Packaging and freight charges
+organization:
+  head: Director of Manufacturing IT
+  it_admin: Plant IT Administrator
+  teams:
+    platform:
+      department: Plant Systems
+      title: Systems Engineer
+    billing:
+      department: Order to Cash
+      title: ERP Developer
+    data:
+      department: Quality Analytics
+      title: Data Engineer
+    support:
+      department: Customer Service
+      title: Customer Service Representative
+      lead: Customer Service Supervisor
+    product:
+      department: Program Management
+      title: Program Manager
+    operations:
+      department: Plant Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - order-billing
+      - release-billing
+      - billing-service
+      - order-to-cash
+      - shipment-invoicing
+    platform-docs:
+      - plant-systems-docs
+      - systems-handbook
+      - runbooks
+      - mfg-systems-wiki
+    data-pipeline:
+      - quality-data-loads
+      - mes-warehouse
+      - plant-reporting
+      - line-etl
+      - ops-analytics-etl
+    infra-config:
+      - plant-infra
+      - gateway-config
+      - site-environments
+      - line-infra
+    customer-portal:
+      - dealer-portal
+      - customer-orders-web
+      - parts-portal
+      - warranty-portal
+      - fleet-portal
+    ops-scripts:
+      - plant-scripts
+      - line-tools
+      - legacy-plant-scripts
+      - admin-tools
+  channels:
+    engineering:
+      - systems-engineering
+      - plant-eng
+      - dev
+    incidents:
+      - line-down
+      - plant-incidents
+      - incidents
+    releases:
+      - releases
+      - go-lives
+      - deploys
+    billing-team:
+      - order-to-cash
+      - billing-team
+      - erp-billing
+    platform-team:
+      - plant-systems
+      - platform-team
+      - line-systems
+    data-team:
+      - quality-analytics
+      - data-team
+      - reporting
+    support:
+      - customer-service
+      - order-desk
+      - support
+systems:
+  typical:
+    - SAP S/4HANA Cloud
+    - Siemens Teamcenter X
+    - PTC ThingWorx
+    - Gitea
+    - Mattermost
+    - Jira
+    - Microsoft Power BI
+    - Okta
+    - plex
+  common:
+    - Salesforce
+    - Blue Yonder
+    - ServiceNow
+    - Kinaxis
+    - Datadog
+symbols:
+  b_doc:
+    - invoice
+    - credit memo
+    - debit memo
+    - price adjustment invoice
+    - '{monthly/quarterly} statement'
+    - packaging invoice
+  b_customer:
+    - OEM plant
+    - tier-one
+    - aftermarket
+    - dealer
+    - fleet
+    - service parts
+    - export
+  b_who:
+    - the order desk
+    - customer service
+    - finance
+    - the program manager
+    - the logistics desk
+    - quality
+  b_pwho:
+    - customer service
+    - a dealer
+    - '{person}'
+    - the order desk
+    - the program manager
+  b_ticket_noun:
+    - ticket
+    - case
+    - chargeback
+    - escalation
+    - claim
+  b_money_path:
+    - billing/invoice.py
+    - billing/pricing.py
+    - billing/price_down.py
+    - billing/rounding.py
+  b_provider_event:
+    - payment succeeded
+    - payment failed
+    - remittance advice posted
+    - refund completed
+    - chargeback opened
+    - payout settled
+  b_taxkind:
+    - VAT
+    - sales tax
+    - GST
+    - customs duty
+    - reverse-charge VAT
+  b_region:
+    - Germany
+    - Mexico
+    - Canada
+    - Spain
+    - Hungary
+    - the UK
+    - Czechia
+    - Japan
+  b_page:
+    - order status
+    - parts search
+    - warranty claims
+    - recall lookup
+    - invoices
+    - the parts catalogue
+    - VIN lookup
+    - the dashboard
+  b_acct_size:
+    - '{200-900} open order lines'
+    - '{15-60} users'
+    - '{3-12} ship-to sites'
+    - '{40-300} part numbers on contract'
+    - over {1000-4000} order lines
+  b_slow:
+    - about {20-90} seconds
+    - over a minute
+    - '{3-12} minutes'
+    - nearly {2-4} minutes
+  p_table:
+    - shipments
+    - work_orders
+    - order_lines
+    - asn_lines
+    - invoices
+    - scrap_events
+    - warranty_claims
+    - inspections
+  p_source:
+    - the end-of-line test results
+    - the torque tool log
+    - the carrier tracking feed
+    - the supplier quality notices
+    - the CRM account list
+    - the line side scan log
+  p_report:
+    - the first pass yield report
+    - the on-time delivery report
+    - the scrap by line dashboard
+    - the open order backlog report
+    - the warranty cost report
+    - the aging receivables report
+  p_finance_ask:
+    - the plant controller
+    - someone in finance
+    - the cost accountant
+    - the controller
+    - the credit manager
+  p_service_name:
+    - billing-service
+    - customer-portal
+    - data-pipeline
+    - the EDI gateway
+    - the label print service
+  p_glossary_term:
+    - the MES
+    - the line gateway
+    - the rota
+    - the reporting workers
+    - the ASN queue
+    - the andon board
+  p_alert_name:
+    - disk usage on the plant servers
+    - failed backups
+    - EDI queue depth
+    - the nightly ERP sync finishing late
+    - the label print queue
+  p_secret_thing:
+    - the MES database password
+    - the carrier API key
+    - the EDI provider credentials
+    - the warehouse service account key
+    - the payments provider token
+  p_limit_target:
+    - the reporting workers
+    - the invoice workers
+    - the portal pods
+    - the EDI gateway
+    - the MES connector
+  p_script:
+    - sync_releases.sh
+    - rotate_logs.sh
+    - check_disk.sh
+    - restart_gateway.sh
+    - purge_labels.sh
+    - rotate_backups.sh
+    - copy_asn.sh
+    - reset_stations.sh
+  p_script_path:
+    - /var/log/app
+    - /opt/billing/exports
+    - /srv/portal/catalogue
+    - /mnt/backups/daily
+    - /data/plant/labels
+  p_script_symptom:
+    - fails with no such file
+    - exits 0 but does nothing
+    - complains about a missing binary
+    - hangs on the second plant server
+    - copies zero files
+  p_old_ref:
+    - the old cron host
+    - the retired jump box
+    - the pre-migration plant servers
+    - the previous label server
+    - the old station image
+  p_runbook:
+    - docs/runbooks/billing-workers.md
+    - docs/runbooks/nightly-load.md
+    - docs/runbooks/edi-gateway.md
+    - docs/runbooks/label-printing.md
+    - docs/runbooks/line-down.md
+  p_pipeline_file:
+    - pipeline/load.py
+    - pipeline/clean.py
+    - pipeline/validate.py
+    - pipeline/lock.py
+    - pipeline/mes_feed.py
+  s_plan:
+    - a long-term agreement
+    - net 60 terms
+    - the dealer price list
+    - a consignment agreement
+    - a sourcing award
+  s_tool:
+    - the order desk screen
+    - the ERP admin console
+    - the support desk
+    - the quality system
+    - the shipping console
+  s_docs:
+    - the wiki
+    - the shared drive
+    - the handbook
+    - the plant runbook
+  s_lunch:
+    - the canteen
+    - the deli across the road
+    - the taco truck
+    - the noodle place
+    - the lunch van
+  c_customer:
+    - a customer
+    - one of the OEMs
+    - a dealer
+    - a tier one account
+    - a fleet buyer
+  c_eng_area:
+    - the invoice job
+    - the EDI mapping
+    - the ASN export
+    - the release import
+    - the label template service
+    - the price-down lookup
+    - the export endpoint
+    - the login flow
+    - the retry logic
+    - the VIN decoder
+  c_blocker:
+    - waiting on review
+    - blocked on plant access
+    - waiting on the ERP vendor
+    - stuck on a flaky job
+    - waiting on a downtime window
+  c_team_topic:
+    - the sprint
+    - the release
+    - the backlog
+    - the board
+    - the launch
+  c_room:
+    - the canteen
+    - the training room
+    - the meeting room
+    - the front office
+  au_part:
+    - brake calipers
+    - wiring harnesses
+    - seat frames
+    - door modules
+    - exhaust assemblies
+    - steering columns
+    - sensor housings
+    - battery trays
+  au_prog:
+    - the pickup program
+    - the sedan refresh
+    - the EV platform
+    - the van program
+    - the crossover launch
+  au_line:
+    - the stamping line
+    - the weld line
+    - the assembly line
+    - the paint shop
+    - the harness line
+    - the final test station
+    - the press line
+  au_plant:
+    - the stamping plant
+    - the harness plant
+    - the assembly plant
+    - the trim plant
+    - the distribution centre
+  au_edi:
+    - 830 planning schedule
+    - 862 shipping schedule
+    - 856 ship notice
+    - 810 invoice
+    - 860 change order
+  au_label:
+    - AIAG label
+    - pallet label
+    - serial label
+    - rack label
+  au_pack:
+    - returnable rack
+    - steel bin
+    - pallet
+    - sequence rack
+    - tote
+  au_ref:
+    - PO {4500000000-4599999999}
+    - release {100000-999999}
+    - ASN {1000000-9999999}
+    - part {10000000-99999999}
+  au_raised:
+    - '{Raised/Flagged/Reported} by {b_who}'
+    - '{b_who|cap} {raised/flagged/mentioned} it'
+    - Came up on a call with {b_who}
+    - This landed with us via {b_who}
+  au_urgent:
+    - Shipments are not blocked.
+    - A line is waiting on this {day}.
+    - Not urgent, {but/though} it keeps coming up.
+    - Nothing is stuck yet.
+    - Needs fixing before the next release.
+    - The customer may escalate.
+  au_scope:
+    - '{3-30} releases {b_since}'
+    - '{2-12} {b_customer} accounts {b_since}'
+    - about {5-40} shipments {b_since}
+    - so far {2-9} {b_ticket_noun}s
+    - '{3-25} order lines at one plant'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        pct:
+          - '{1-3}.5'
+          - '{2-4}'
+          - '{1-2}.25'
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        event:
+          - a program change
+          - a contract renewal
+          - a part revision
+          - a new release
+        path:
+          - billing/price_down.py
+          - billing/pricing.py
+          - billing/contracts.py
+      title:
+        - '{customer|cap} {doc}s skip the annual price-down'
+        - Price-down of {pct} percent missing on {customer} releases
+        - Why is price-down zero on {customer} {doc}s?
+        - Price-down gets applied twice on {doc}s
+        - Annual price reduction not applied after {event}
+      body:
+        -   - '{au_raised}, {au_scope}.'
+            - '{au_raised} on {customer} accounts, {au_scope}.'
+        -   - '{path} loads the table {once/each} year.'
+            - The lookup in {path} is {stale/keyed} by part.
+        -   - Contract says {pct} percent, effective at January.
+            - The agreement sets {pct} percent from {the/each} release date.
+        -   - '{au_urgent}'
+      comments:
+        - '{b_cm_repro} with a {customer} order.'
+        - '{b_cm_check}, the effective date may be wrong.'
+        - Finance wants the open {doc}s corrected.
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        reason:
+          - quantity differs from receipt
+          - ASN number missing
+          - part number not found
+          - duplicate invoice number
+          - release number mismatch
+      title:
+        - '{customer|cap} rejects {doc}: no matching receipt'
+        - '{doc|cap} bounced, receipt differs from ASN'
+        - '{customer|cap} portal refuses our {doc}: {reason}'
+        - Invoice rejected, {reason}
+      body:
+        -   - '{au_raised}, {au_scope}.'
+            - Their payables team sent back {2-40} documents.
+        -   - The ASN says {2-9}0 pieces but we bill {2-9}5.
+            - We bill the {order/booked qty}, not the ASN.
+        -   - Their system matches {ASN numbers/on ASN} first.
+            - Three way match needs {the ASN/the receipt} to agree.
+        -   - '{au_urgent}'
+      comments:
+        - "{b_cm_repro} using last week's ASN."
+        - '{b_cm_ask_who}'
+        - Their spec requires an ASN number.
+        - '{b_cm_fix_up} It bills from shipped quantity.'
+    - labels:
+        - bug
+      let:
+        pack:
+          - '{au_pack}'
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        days:
+          - '{3-9}'
+          - '{10-30}'
+        path:
+          - billing/packaging.py
+          - billing/racks.py
+          - billing/returns.py
+      title:
+        - '{pack|cap} charges missing on {doc}s'
+        - Returnable {pack}s not billed after shipment
+        - '{pack|cap} deposit never credited on return'
+        - Packaging line missing from {customer} {doc}s
+      body:
+        -   - '{au_raised}, {au_scope}.'
+            - Logistics counted {2-9}0 {pack}s unbilled.
+        -   - '{path} reads racks {at/after} shipment.'
+            - The rack count comes from {path}, not the ASN.
+        -   - Returns post {days} days late.
+            - Credits arrive after the statement closes.
+      comments:
+        - '{b_cm_repro} with a {pack} shipment.'
+        - '{b_cm_ask_who}'
+        - How long do deposits stay open?
+    - labels:
+        - needs-decision
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - warranty chargebacks
+          - price changes on open releases
+          - expedite freight
+          - customer-owned tooling
+          - recall campaign parts
+          - scrap at the customer line
+        a:
+          - pass the cost on
+          - credit the full amount
+          - split the cost
+          - bill at actual cost
+          - apply the new price
+          - dispute it in writing
+        b:
+          - absorb it
+          - credit only the parts
+          - agree a flat fee
+          - bill at standard cost
+          - keep the old price
+          - accept the claim
+      title:
+        - '{question|cap}: who rules?'
+        - Decide how to handle {question}
+        - Open question on {question}
+        - Policy for {question}?
+      body:
+        -   - '{b_nd_a}, {b_nd_b} {b_nd_c}'
+            - '{b_who|cap} handles {question} {b_nd_b} {b_nd_c}'
+        -   - 'Options: {a}, or {b}.'
+            - We could {a}; or {b}; or keep it as is.
+        -   - '{b_nd_f}'
+            - Quality and finance should {sign off/agree} first.
+      comments:
+        - '{b_cm_lean} {a}.'
+        - '{b_cm_ask_who}'
+        - Needs a ruling from {b_who}.
+  portal:
+    - labels:
+        - bug
+      let:
+        kind:
+          - early build
+          - late build
+          - export
+          - fleet
+          - recalled
+        problem:
+          - expired coverage
+          - the wrong model year
+          - a missing option code
+          - no recall flag
+        path:
+          - portal/vin.py
+          - portal/decoder.py
+          - portal/coverage.py
+      title:
+        - '{kind|cap} VINs decode with {problem}'
+        - Warranty status wrong for {kind} VINs
+        - VIN lookup shows {problem} for {kind} vehicles
+      body:
+        -   - '{au_raised}, {au_scope}.'
+            - Dealers called about it {b_since}.
+        -   - '{path} maps {plant codes/the plant code} wrongly.'
+            - The decoder in {path} reads the model year {wrongly/late}.
+        -   - Coverage follows {the build/the sale} date.
+            - Dealers need {the right/correct} coverage at the counter.
+      comments:
+        - '{b_cm_repro} with {au_ref}.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+        - security
+      let:
+        path:
+          - portal/claims.py
+          - portal/warranty.py
+          - portal/files.py
+      title:
+        - Dealers can open other dealers' claims
+        - Warranty claim route skips dealer check
+        - Claim ids are guessable by URL
+      body:
+        -   - '{au_raised}, noticed while helping a dealer.'
+            - Found while checking a ticket, {au_scope}.
+        -   - '{path} looks up by id only.'
+            - Changing the claim id opens {another/a different} dealer's claim.
+        -   - Claims {can/may} hold names and VINs.
+            - Some claims include {photos/customer details}.
+        -   - '{b_dlk_e}'
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_fix_up} It adds an owner check to {path}.'
+        - Check the access log for {that/the claim} route.
+    - labels:
+        - bug
+      let:
+        kind:
+          - '{au_part}'
+        year:
+          - '{2018-2026}'
+        path:
+          - portal/fitment.py
+          - portal/catalogue.py
+          - portal/search.py
+      title:
+        - '{kind|cap} not found when searching {year} models'
+        - Fitment missing for {kind} on {year} models
+        - Parts search lacks {kind} for {year}
+      body:
+        -   - '{au_raised}, {au_scope}.'
+            - Dealers phone the order desk instead.
+        -   - '{path} loads fitment {nightly/weekly}.'
+            - The fitment table in {path} stops at {year}.
+        -   - The engineering change was released on {day}.
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_ask_who}'
+    - labels:
+        - enhancement
+      let:
+        extra:
+          - photos
+          - inspection reports
+          - a short video
+          - repair orders
+        path:
+          - portal/claims.py
+          - portal/forms.py
+          - portal/uploads.py
+      title:
+        - Photo upload on claims
+        - Let dealers attach photos to claims
+        - Dealers want to add {extra} to a claim
+      body:
+        -   - '{au_raised}. {b_g_asking}'
+            - Dealers email {extra} {every few weeks/each month}.
+        -   - '{Today/Right now} claims hold text only.'
+            - The claim form in {path} has no uploads.
+        -   - Needs {storage/space} and a size limit.
+      comments:
+        - Quality wants photos for {au_part}.
+        - '{b_cm_small} {b_cm_start}'
+  docs:
+    - labels:
+        - docs
+        - enhancement
+      let:
+        flow:
+          - how releases reach the ERP
+          - the ASN send flow
+          - PPAP document handling
+          - a recall campaign step by step
+          - label printing at the dock
+          - plant month-end close
+      title:
+        - '{flow|cap} needs a page in the handbook'
+        - Write up {flow} for new engineers
+        - Nobody has written down {flow}
+        - Document {flow}
+      body:
+        -   - "{flow|cap} lives in {person}'s head today."
+            - New joiners keep asking about {flow}.
+        -   - One page with {a diagram/the steps}.
+            - A page of steps and failures.
+        -   - '{Add/List} the plant contact {if/when} it stalls.'
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - bug
+      let:
+        page:
+          - docs/oncall.md
+          - docs/access.md
+          - docs/releases.md
+          - docs/runbooks/edi-gateway.md
+          - docs/runbooks/line-down.md
+        stale:
+          - the old label server
+          - the retired plant VPN
+          - last year's shutdown dates
+          - the previous EDI provider
+          - the former station image
+      title:
+        - '{Handbook/Docs}: {page} lists {stale}'
+        - Stale reference to {stale} in {page}
+        - '{page|cap} still names {stale}'
+      body:
+        -   - '{page|cap} still mentions {stale}.'
+            - '{page|cap} was last edited before the launch.'
+        -   - '{A new hire/Someone} hit a wall.'
+            - '{person} hit this on {day}.'
+        -   - Someone from {au_plant} should read it through.
+      comments:
+        - '{b_cm_check}'
+        - '{Fixed/Updated} the first sections, {more/some} to go.'
+    - labels:
+        - docs
+        - task
+      let:
+        howto:
+          - resend a failed ASN
+          - add a new EDI customer
+          - reprint a pallet label
+          - reissue a price-down invoice
+          - close a recall campaign
+          - reset an end-of-line station
+        screen:
+          - the ERP
+          - the label designer
+          - the EDI console
+      title:
+        - 'How-to: {howto}'
+        - Write up how to {howto}
+        - 'Add a how-to: {howto}'
+      body:
+        -   - '{Support/Service} asks about this {often/monthly/weekly}.'
+            - '{The order desk/Support} does this by hand.'
+        -   - Steps, common errors, {and/plus} who approves.
+            - Short, with screenshots of {screen}.
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - needs-decision
+      let:
+        change:
+          - customer requirement updates
+          - IATF audit findings
+          - a PPAP resubmission
+          - a customer part revision
+          - a supplier change notice
+        who:
+          - '{b_who}'
+      title:
+        - '{change|cap}: where in the handbook?'
+        - How do we document {change}?
+        - Decide how to record {change}
+      body:
+        -   - '{change|cap} touches {the portal/billing/the data loads}.'
+            - Quality sends notices, nobody files.
+        -   - One log {is/might be} easier to keep.
+            - 'Options: a page per change, {or/versus} a running log.'
+        -   - '{b_nd_f}'
+      comments:
+        - '{b_cm_lean} a running log.'
+        - '{b_cm_ask_who}'
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        line:
+          - '{au_line}'
+        n:
+          - '{2-9}'
+          - '{10-15}'
+        report:
+          - the first pass yield report
+          - the line dashboard
+      title:
+        - '{line|cap} yield looks wrong in {report}'
+        - First pass yield differs from quality
+        - Yield for {line} is {n} points off the quality system
+      body:
+        -   - '{line|cap} shows {n} points more than quality {b_since}.'
+            - '{report|cap} disagrees with quality by {n} points.'
+        -   - The load counts {reworked/repaired} parts as good.
+            - Rework counts as {good/first pass}.
+        -   - Quality reports to the customer {monthly/each quarter}.
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - bug
+        - incident
+      let:
+        event:
+          - a resend
+          - a gateway restart
+          - a retry
+          - a replay from the EDI provider
+        report:
+          - the on-time delivery report
+          - the shipments dashboard
+      title:
+        - '{event|cap} loads every ASN twice'
+        - Duplicate ship notices after {event}
+        - ASN counts doubled after {event}
+      body:
+        -   - The warehouse shows {2-9}0 percent more shipments.
+            - Shipped totals are doubled for {1-3} days.
+        -   - '{event|cap} resends the file, same ids.'
+            - The load has no {ASN/ship notice} key.
+        -   - Logistics noticed it on {day}.
+            - Finance saw it in {report}.
+      comments:
+        - '{b_cm_check} the load log from that night.'
+        - '{b_cm_fix_up}'
+    - labels:
+        - enhancement
+      let:
+        source:
+          - end-of-line test results
+          - torque tool readings
+          - supplier quality notices
+          - warranty claim exports
+          - line side scan logs
+        who:
+          - quality
+          - the plant manager
+          - the launch team
+          - finance
+        report:
+          - the first pass yield report
+          - the scrap by line dashboard
+          - the warranty cost report
+        format:
+          - CSV
+          - XML
+          - JSON lines
+          - a flat file
+      title:
+        - '{source|cap} should land in the warehouse'
+        - Bring {source} into the warehouse
+        - Load {source} into the warehouse
+      body:
+        -   - '{who|cap} wants it next to {report}.'
+            - Today {someone/a clerk} copies it by hand.
+        -   - It arrives as {format} {every hour/each night/after each shift}.
+            - Files land on {the plant server/a plant share}.
+        -   - A rough size is {2-6} days with checks.
+      comments:
+        - '{b_cm_ask_who}'
+        - Keep the raw files {30-90} days.
+    - labels:
+        - question
+        - data-quality
+      let:
+        report:
+          - the warranty cost report
+          - the claims dashboard
+        gap:
+          - '{2-9}'
+          - '{10-20}'
+      title:
+        - '{report|cap} does not match the ERP ({gap} off)'
+        - '{report|cap}: {gap} gap against the ledger'
+        - Warranty cost differs from finance by {gap} percent
+      body:
+        -   - The load counts claims {when filed/at filing}.
+            - Finance books claims when approved.
+        -   - It was {gap} percent last quarter.
+            - The gap is about {gap} percent {b_since}.
+        -   - Need a date rule {first/now}.
+      comments:
+        - '{b_cm_hand} the monthly total.'
+        - '{b_cm_ask_who}'
+  infra:
+    - labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - AS2 certificate
+          - EDI gateway certificate
+          - plant VPN certificate
+          - label server certificate
+      title:
+        - '{cert|cap} expiry should page someone'
+        - Alert before the {cert} expires
+        - No warning for the {cert}
+      body:
+        -   - The {cert} expired on {day} and {nothing/no one} warned us.
+            - Customers could not reach us for {2-9} hours.
+        -   - Add a warning {14/21/30} days ahead.
+            - A nightly job check {would be/is} enough.
+        -   - The EDI gateway holds several, {one/each} per customer.
+      comments:
+        - '{b_cm_fix_up}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - security
+        - bug
+      let:
+        target:
+          - end-of-line station
+          - line gateway
+          - label printer server
+          - kiosk image
+      title:
+        - '{target|cap} uses a shared local account'
+        - Station image shares an admin password
+        - Shared admin login on the {target}
+      body:
+        -   - '{person} found a shared login on the {target}.'
+            - The same password is on {2-9} stations.
+        -   - It never changed {after/since} the launch.
+            - It is not in the {vault/password manager}.
+        -   - Use per-station accounts, {log/record} access.
+      comments:
+        - '{b_cm_check}'
+        - I will rotate it {c_soon}.
+    - labels:
+        - bug
+        - performance
+      let:
+        target:
+          - MES connector
+          - label print service
+          - EDI gateway
+          - portal worker pool
+        key:
+          - memory
+          - connection pool
+          - CPU
+          - request timeout
+        shift:
+          - first
+          - second
+          - third
+        env_file:
+          - environments/production.yaml
+          - environments/plant.yaml
+          - config/limits.yaml
+      title:
+        - '{target|cap} has no {key} limit'
+        - '{key|cap} runs out on the {target}'
+        - Set {key} limits for the {target}
+      body:
+        -   - During the {shift} shift the {target} {hits/reaches} the ceiling.
+            - Restarts happen about {2-9} times a week.
+        -   - '{Limits/They} are not set in {env_file}.'
+            - Staging has them, production does not.
+      comments:
+        - '{b_cm_check}'
+        - '{b_cm_fix_up}'
+  ops:
+    - labels:
+        - bug
+      let:
+        script:
+          - sync_releases.sh
+          - purge_labels.sh
+          - copy_asn.sh
+        days:
+          - '{7-90}'
+        kind:
+          - label files
+          - exports
+          - ASN files
+        symptom:
+          - '{p_script_symptom}'
+        old:
+          - '{p_old_ref}'
+      title:
+        - '{Scripts/Ops}: {script} keeps {days} days of {kind}, docs say something else'
+        - '{script} {symptom}'
+      body:
+        -   - It was written for {old}.
+            - Nobody has touched it {since/after} the move.
+      comments:
+        - '{b_cm_check}'
+comments:
+  - '{b_g_ask} the part number?'
+  - Which plant was this, {au_plant}?
+  - '{b_cm_repro}.'
+  - The plant manager {asked/enquired} about this on {day}.
+  - Quality wants to know {if/when} it affects {au_part}.
+  - '{b_g_loop} {person}, they know the line side.'
+  - Shipping is not blocked, {but/though} it is close.
+  - Can we see the customer's {au_edi} for this?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: safety stand-down at {time} {c_soon}, all shifts.'
+        - safety talk at {time} on {day}, please attend.
+        - 'reminder: plant safety walk at {time} {c_soon}'
+      replies:
+        -   - '{c_ack}'
+            - does that include the office?
+            - '{c_thanks}'
+        -   - '{c_yes}, everyone'
+            - '{c_yes}{c_sep} safety glasses please'
+            - ''
+    - let:
+        prog:
+          - '{au_prog}'
+      root:
+        - launch day for {prog} is {c_soon}, extra badges at the gate.
+        - '{c_hey}: {prog} launch {c_soon}, expect visitors'
+        - customer visit for {prog} on {day}, please tidy {c_room}
+      replies:
+        -   - '{c_ack}'
+            - what time do they arrive?
+            - '{c_thanks}'
+        -   - around {time}
+            - '{c_idk}, ask {person}'
+            - ''
+    - root:
+        - shift change moves to {time} {c_soon}, the bus times shift too.
+        - '{c_hey}, shuttle times change {c_soon} with the new shift'
+        - new shift times from {day}, check the board
+      replies:
+        -   - '{c_ack}'
+            - does the weekend change too?
+            - '{c_thanks}'
+        -   - '{c_yes}, all shifts'
+            - '{c_idk}, ask {person}'
+            - ''
+  off-topic:
+    - root:
+        - anyone want to carpool, route {2-9} is closed
+        - road works near the plant again{c_sep} leave early
+        - who is up for {c_sport} after work {day}?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_no}, sorry'
+            - which gate?
+        -   - '{c_ack}'
+            - '{c_lol}'
+            - ''
+  engineering:
+    - root:
+        - '{c_ci_fail} is failing on the ASN branch'
+        - ASN branch is red, {c_ci_fail} failed again
+        - '{c_ci_fail} fails in {repo}, only on the ASN change'
+      replies:
+        -   - same here after lunch
+            - which test exactly?
+            - '{c_blocker} on my side'
+        -   - the quantity one
+            - looks like a missing fixture
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - i'll rerun it
+            - ''
+    - let:
+        edi:
+          - '{au_edi}'
+        cust:
+          - '{b_customer}'
+        err:
+          - a missing part number
+          - an unknown unit of measure
+          - a duplicate document number
+          - a bad release number
+      root:
+        - '{edi} mapping for {cust} fails on {err}'
+        - '{cust} rejects our {edi}, {err}'
+        - anyone touched the {edi} mapping? {cust} sends back {err}
+      replies:
+        -   - '{c_idk}, which file?'
+            - i changed the part lookup
+            - reproduced it locally
+        -   - file from {day} morning
+            - '{c_ack}'
+            - attaching it to {issue}
+    - let:
+        part:
+          - '{au_part}'
+        label:
+          - '{au_label}'
+        printer:
+          - the dock printer
+          - the zebra at dock {1-6}
+          - the printer in shipping
+      root:
+        - label change for {part} is merged, {can someone/could somebody} check print on {printer}?
+        - new {label} for {part} is in {repo}, needs a print check
+        - '{label} change merged, shipping please check {part}'
+      replies:
+        -   - will do after lunch
+            - which printer is it?
+            - '{c_ack}'
+        -   - '{printer} at dock {1-6}'
+            - the one by the press line
+            - ''
+        -   - printed fine, barcode scans
+            - barcode too small on narrow stock
+            - scans ok on the {2-4} scanners i tried
+    - root:
+        - 'ASN question: resend when quantities {change/shift}?'
+        - resend the ASN on changes?
+        - 'quick call: resend ASNs or {issue/send} new?'
+      replies:
+        -   - new one, customer matches on number
+            - resend is simpler, they reject it
+            - '{c_idk}'
+        -   - their spec says new number
+            - '{c_agree}'
+            - ''
+    - let:
+        cust:
+          - '{b_customer}'
+      root:
+        - price-down table for {cust} is wrong, who changed it?
+        - '{cust} price-down shows zero on staging'
+        - '{c_hey}, price-down lookup returns nothing for {cust}'
+      replies:
+        -   - not me
+            - i reloaded the table {c_soon}
+            - '{c_idk}'
+        -   - that could be it
+            - '{c_ack}'
+            - checking the load
+  team:
+    - let:
+        report:
+          - the first pass yield report
+          - the scrap by line dashboard
+          - the on-time delivery report
+      root:
+        - launch team wants a change to {report}
+        - '{c_hey}: request from the launch team for {report}'
+        - plant managers want {a tweak/a change} {to/on} {report}
+      replies:
+        -   - what do they need?
+            - is it quick?
+            - '{c_ack}'
+        -   - split by line
+            - a column for the scrap reason
+            - '{c_idk}, asking'
+        -   - '{c_ack}, will look {c_soon}'
+            - put it on the board
+            - ''
+    - root:
+        - who covers the line gateways while {person} is out?
+        - line gateway issues, who has them {c_soon}?
+        - '{person} is {c_pto}, who takes gateway tickets?'
+      replies:
+        -   - i can take them
+            - '{c_idk}'
+            - ask {person}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - root:
+        - 'shutdown plan: what do we {need/want}?'
+        - summer shutdown in {2-6} weeks, what is on our list?
+        - shutdown planning, who owns {the ERP/the gateway} steps?
+      replies:
+        -   - the ERP patch, gateway image
+            - i'll write the list
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - add the label server
+            - put it on the board
+    - root:
+        - 'customer escalation: {c_customer} says the ASN never arrived'
+        - '{c_customer} missed an ASN for {au_ref}'
+        - ASN problem for {c_customer}, {au_ref}
+      replies:
+        -   - checking the EDI log
+            - was it an 856?
+            - '{c_ack}'
+        -   - yes an 856
+            - sent, no ack back
+            - '{c_idk}'
+        -   - i'll resend it
+            - '{c_thanks}'
+            - ''
+  support:
+    - let:
+        doc:
+          - invoice
+          - credit memo
+          - debit memo
+        ref:
+          - '{au_ref}'
+      root:
+        - '{s_cust|cap} says the {doc} for {ref} is wrong'
+        - '{doc} for {ref} does not match, {s_cust} is asking'
+        - '{s_cust|cap} disputes the {doc} on {ref}'
+      replies:
+        -   - which line is off?
+            - i see it in the log
+            - looking now
+        -   - the price-down line
+            - quantity differs from the ASN
+            - '{c_idk}'
+        -   - credit memo coming
+            - '{c_ack}, resending'
+            - ''
+    - let:
+        part:
+          - '{au_part}'
+        year:
+          - '{2018-2026}'
+      root:
+        - dealer cannot find {part} for a {year} model
+        - '{s_cust|cap} wants {part} for {year}, search shows nothing'
+        - fitment missing for {part}, {year} model
+      replies:
+        -   - is it a new part number?
+            - try the old part number
+            - '{c_idk}'
+        -   - new number
+            - '{c_yes}'
+            - not in the catalogue yet
+        -   - escalating to eng, filed as {issue}
+            - '{c_ack}'
+            - ''
+    - let:
+        n:
+          - '{1000-9999}'
+      root:
+        - warranty claim for VIN ending {n} shows expired, dealer says covered
+        - '{s_cust|cap} says the VIN ending {n} is covered, portal says no'
+        - coverage wrong for VIN ending {n}
+      replies:
+        -   - what is the build date?
+            - checking the decoder
+            - '{c_idk}'
+        -   - built last year
+            - '{c_yes}'
+            - export build
+        -   - looks like the model year bug
+            - '{c_ack}'
+            - ''
+    - let:
+        ref:
+          - '{au_ref}'
+      root:
+        - late delivery on {ref}, {s_cust} is calling
+        - '{s_cust|cap} asks where the truck for {ref} is'
+        - line down risk, {ref} is {2-9} hours late
+      replies:
+        -   - logistics says {c_soon}
+            - carrier has it
+            - '{c_ack}'
+        -   - left at {time}
+            - '{c_idk}, asking'
+            - stuck at the border
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - let:
+        pack:
+          - '{au_pack}'
+      root:
+        - rack deposit credit missing for {s_cust}, returns logged {c_soon}
+        - '{s_cust|cap} asks about the {pack} charge'
+        - '{pack} charge still open after return'
+      replies:
+        -   - is the return scanned?
+            - i see the receipt
+            - '{c_idk}'
+        -   - '{c_yes}'
+            - scanned {c_soon}
+            - no return scan yet
+        -   - escalating to eng, filed as {issue}
+            - '{c_ack}'
+            - ''
+  incidents:
+    - let:
+        line:
+          - '{au_line}'
+        line2:
+          - '{au_line}'
+        sym:
+          - no counts since {time}
+          - operators are on paper
+          - '{s_symptom} since {time}'
+      root:
+        - '{line} stopped, the gateway lost its connection'
+        - '{line} went down, {sym}'
+        - gateway dropped and {line} stopped reporting
+      replies:
+        -   - whole plant or one line?
+            - seeing the same on {line2}
+            - checking the gateway now
+        -   - just {line}
+            - '{c_idk}, looking'
+            - restarted the service, still down
+        -   - back up after a restart
+            - network switch, plant IT has it
+            - '{c_ack}'
+    - let:
+        plant:
+          - '{au_plant}'
+      root:
+        - labels not printing at {plant}, shipping is waiting
+        - '{plant} cannot print dock labels'
+        - dock label printing is down at {plant}
+      replies:
+        -   - is the print service up?
+            - trucks are waiting
+            - '{c_ack}, checking'
+        -   - service is up, queue is stuck
+            - restarting the print service
+            - '{c_idk}'
+        -   - labels are printing again
+            - queue cleared
+            - '{c_thanks}'
+    - let:
+        n:
+          - '{200-4000}'
+      root:
+        - ASNs not leaving, queue at {n}
+        - 856 queue backed up to {n} messages
+        - the ASN queue is stuck at {n}
+      replies:
+        -   - '{c_ack}, looking'
+            - last one went at {time}
+            - customer side or ours?
+        -   - ours, the AS2 session dropped
+            - certificate? checking
+            - '{c_idk}'
+        -   - reconnected, draining
+            - queue is draining
+            - '{c_thanks}'
+    - let:
+        plant:
+          - '{au_plant}'
+      root:
+        - release import failed, {plant} has no schedule for {c_soon}
+        - '{plant} cannot see releases, the import errors'
+        - no new releases at {plant}, import is stuck
+      replies:
+        -   - '{c_ack}, checking the job'
+            - file or load?
+            - '{c_idk}'
+        -   - file is fine, load fails
+            - waiting on a lock
+            - '{c_ack}'
+        -   - done, they see them now
+            - fixed the mapping
+            - '{c_thanks}'
+    - let:
+        what:
+          - the ASN export
+          - the nightly ERP sync
+          - the invoice run
+          - the release import
+      root:
+        - 'near miss: {what} almost failed, a retry saved it'
+        - '{what} nearly missed the cutoff, retried fine'
+        - close call with {what} last night
+      replies:
+        -   - what was the cause?
+            - '{c_ack}'
+            - add it to the review
+        -   - a lock timeout
+            - '{c_idk}'
+            - a customer portal hiccup
+        -   - '{c_thanks}'
+            - ''
+  direct:
+    - let:
+        ref:
+          - '{au_ref}'
+      root:
+        - '{s_hey}, can you resend the ASN for {ref}? the customer says it never arrived'
+        - '{s_hey}, need an ASN resend for {ref} {s_soon}'
+        - could you resend the ASN for {ref}? {s_soon}
+      replies:
+        -   - '{c_ack}, give me {5-15} minutes'
+            - which release?
+            - sure
+        -   - the second one
+            - '{ref}'
+            - '{c_thanks}'
+        -   - done, check the log
+            - sent
+            - ''
+    - let:
+        part:
+          - '{au_part}'
+      root:
+        - 'quick question: which plant makes {part}?'
+        - '{s_hey}, do you know which plant builds {part}?'
+        - who owns {part}, stamping or harness?
+      replies:
+        -   - '{c_idk}, ask {person}'
+            - the harness plant since last year
+            - the stamping plant
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - root:
+        - got a minute? {price-downs/the table} look off
+        - '{s_hey}, can we look at price-downs?'
+        - price-down question, {s_soon}?
+      replies:
+        -   - '{c_ack}, in {5-20} min'
+            - sure, call me
+            - '{c_idk}, which table?'
+        -   - the one in {the price table/the billing code}
+            - '{c_thanks}'
+            - ''
+incidents:
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment remittance callbacks failing
+      - Remittance callbacks {from/via} the payments provider erroring
+      - Errors on remittance callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} remittance callbacks failing, {s_cb_b}'
+      - '{s_cb_bad} - {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle provider timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Parts search timeouts for large dealers
+      - Parts search times out {for/on} big dealers
+      - Large dealer accounts see portal 504s
+      - Portal slow on parts search
+    alert:
+      - '{s_portal_slow}, {s_portal_b}'
+      - '{s_al} {s_portal_slow}'
+      - parts search timing out {for/on} big dealers, {s_portal_b}
+    fix_message:
+      - '{s_page_fix|cap}'
+      - Page the parts search results
+      - Add pagination to parts search
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly MES load failed
+      - Overnight plant load failed
+      - Warehouse load aborted on bad rows
+      - Nightly load did not finish
+    alert:
+      - '{s_load_a}, {s_load_b}'
+      - '{s_al} {s_load_a}'
+      - '{s_load_a} - plant dashboards are stale'
+    fix_message:
+      - '{s_load_fix|cap}'
+      - Skip bad station rows, log them

@@ -1,0 +1,1364 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Federal government (civilian agencies): extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: federal-government
+name: Federal government (civilian agencies)
+group: Government and public sector
+aliases:
+  - federal agency
+  - civilian agency
+  - us federal government
+  - federal civilian
+  - federal agencies
+description: A civilian federal agency that runs public-facing programs, collects fees and debts, and reports to oversight bodies.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Bureau
+  - Administration
+  - Commission
+  - Service
+  - Authority
+  - Office of Programs
+invoice_items:
+  - Filing fee
+  - Expedited processing fee
+organization:
+  head: Deputy Chief Information Officer
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Office of the CIO
+      title: Platform Engineer
+    billing:
+      department: Financial Systems
+      title: Software Engineer
+      lead: Financial Systems Lead
+    data:
+      department: Data and Analytics
+      title: Data Engineer
+    support:
+      department: Service Desk
+      title: Service Desk Analyst
+    product:
+      department: Program Delivery
+      title: Product Owner
+    operations:
+      department: IT Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - billing-service
+      - fee-collections
+      - receivables
+      - user-fees
+    platform-docs:
+      - platform-docs
+      - ato-handbook
+      - eng-handbook
+      - system-docs
+    data-pipeline:
+      - data-pipeline
+      - reporting-loads
+      - oversight-reporting
+      - program-data
+    infra-config:
+      - infra-config
+      - enclave-config
+      - env-baselines
+      - hosting-config
+    customer-portal:
+      - customer-portal
+      - public-portal
+      - filer-portal
+      - applicant-services
+    ops-scripts:
+      - ops-scripts
+      - legacy-scripts
+      - batch-jobs
+      - mainframe-extras
+  channels:
+    engineering:
+      - engineering
+      - eng-team
+      - dev-chat
+    incidents:
+      - incidents
+      - incident-response
+      - ops-alerts
+    releases:
+      - releases
+      - change-board
+      - deploy-notices
+    billing-team:
+      - billing-team
+      - fin-systems
+      - collections-eng
+    support:
+      - support
+      - service-desk
+      - tier-two
+    leads:
+      - leads
+      - branch-chiefs
+      - eng-leads
+systems:
+  typical:
+    - gitlab
+    - mattermost
+    - jira
+    - confluence
+    - servicenow
+    - microsoft entra id
+    - splunk
+    - microsoft sharepoint
+    - login.gov
+    - microsoft sentinel
+  common:
+    - microsoft 365
+    - tenable
+    - pagerduty
+    - oracle fusion cloud erp
+    - tableau
+symbols:
+  b_doc:
+    - fee notice
+    - debt notice
+    - payment receipt
+    - determination letter
+    - '{monthly/quarterly} account statement'
+  b_customer:
+    - small business
+    - state agency
+    - nonprofit grantee
+    - individual filer
+    - tribal government
+    - university
+    - contractor
+    - foreign-based
+  b_who:
+    - the program office
+    - the finance office
+    - the contracting officer
+    - the service desk
+    - the oversight office
+  b_pwho:
+    - the service desk
+    - a filer
+    - '{person}'
+    - the program office
+    - the finance office
+  b_money_path:
+    - billing/fees.py
+    - billing/assessments.py
+    - billing/totals.py
+    - billing/rounding.py
+  b_mail_path:
+    - billing/notices.py
+    - billing/notice_queue.py
+    - billing/templates.py
+    - billing/sent_log.py
+  b_cb_path:
+    - billing/collection_events.py
+    - billing/callbacks.py
+    - billing/deposit_events.py
+  b_credit_path:
+    - billing/refunds.py
+    - billing/adjustments.py
+    - billing/waivers.py
+  b_check_path:
+    - the fee tests
+    - the notice tests
+    - the refund tests
+    - the callback tests
+  b_provider_event:
+    - deposit posted
+    - payment returned
+    - refund issued
+    - payment reversed
+    - settlement file received
+  b_currency:
+    - zero-dollar
+    - negative
+    - six-figure
+    - partial-payment
+  b_taxkind:
+    - user fee
+    - filing fee
+    - late-payment interest
+    - administrative fee
+  b_region:
+    - another state
+    - a US territory
+    - a different fee tier
+    - the foreign filer category
+  b_page:
+    - payments
+    - my filings
+    - account settings
+    - the dashboard
+    - case status
+    - receipts
+    - correspondence
+    - saved payment methods
+  b_acct_size:
+    - '{200-900} filings'
+    - '{15-60} users'
+    - '{3-12} agency contacts'
+    - '{40-300} saved addresses'
+  c_customer:
+    - a filer
+    - one of the larger grantees
+    - a state agency contact
+    - a tribal government account
+    - a contractor
+  s_plan:
+    - a payment plan
+    - an installment agreement
+    - a fee waiver
+    - a hardship hold
+  s_cust:
+    - a filer on {s_plan}
+    - a caller on {s_plan}
+    - an applicant on {s_plan}
+    - someone on {s_plan}
+    - a grantee on {s_plan}
+  p_table:
+    - filings
+    - payments
+    - debts
+    - grants
+    - applications
+    - requests
+    - accounts
+    - waivers
+    - correspondence
+  p_report:
+    - the quarterly collections report
+    - the monthly receivables aging
+    - the fee revenue dashboard
+    - the debt referral summary
+    - the grant obligations report
+  p_source:
+    - the payment collection service's deposit files
+    - the service desk's ticket export
+    - the notice mail vendor's delivery events
+    - the grants system's award list
+    - the case system's status feed
+  p_finance_ask:
+    - the budget officer
+    - someone in the finance office
+    - the chief financial officer's staff
+    - the comptroller's office
+  gv_note:
+    - 'Note:'
+    - 'Also:'
+    - 'Detail:'
+    - 'Context:'
+    - 'Aside:'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        debt:
+          - delinquent fee
+          - overpayment
+          - civil penalty
+          - unpaid user fee
+        referral:
+          - the offset referral
+          - the cross-servicing file
+          - the monthly referral batch
+        path:
+          - billing/collection_events.py
+          - billing/assessments.py
+      title:
+        - '{referral|cap} includes {debt} accounts already paid'
+        - Paid {debt} accounts still in {referral}
+        - '{referral|cap} lists accounts paid in full'
+        - Why does {referral} hold {debt} accounts we collected?
+        - '{debt|cap} referred after payment posted'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Found reconciling {referral}, {b_pscope}.
+        -   - Payments after the {day} cutoff are missed.
+            - The file is built before {day} deposits post.
+            - Balances come from the nightly snapshot.
+        -   - '{gv_note} Every error means a correction.'
+            - Each wrong referral costs a call.
+            - Filers get a letter in error.
+            - Every error means a correction.
+        -   - '{b_offer}'
+            - Needs a cutoff ruling from {b_who}.
+            - '{b_urgent}'
+      comments:
+        - '{b_cm_repro} with a {debt} paid yesterday.'
+        - '{b_cm_check}, I think {path} reads old balances.'
+        - '{b_cm_later}'
+        - '{b_cm_plan}'
+    - labels:
+        - bug
+      let:
+        fee:
+          - user fee
+          - filing fee
+          - expedited fee
+          - license fee
+        state:
+          - in-flight
+          - pending
+          - resubmitted
+        date:
+          - October 1
+          - the quarter start
+          - the new fiscal year
+          - the effective date
+      title:
+        - New {fee} schedule skipped for {state} filings
+        - '{fee|cap} still old for filings before {date}'
+        - Fiscal year change keeps the old {fee}
+        - Wrong {fee} on {state} applications
+        - '{fee|cap} schedule from {date} missed'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_pwho|cap} flagged it on {day}.'
+        -   - The published schedule took effect {date}.
+            - Rates load at startup only.
+            - The lookup uses the received date.
+        -   - '{gv_note} Some filers paid the old amount.'
+            - Some filers paid the old amount.
+            - Real money is involved for {2-40} filings.
+            - Under and over charges both appear.
+        -   - '{b_offer}'
+            - Need guidance on refunds from {b_who}.
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Rates are cached, a restart helps.
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+        - data-quality
+      let:
+        file:
+          - settlement file
+          - deposit file
+          - return file
+          - reconciliation file
+        case:
+          - split payments
+          - foreign bank payments
+          - returned payments
+          - same-day corrections
+      title:
+        - Unmatched deposits in the daily {file}
+        - '{file|cap} leaves {2-60} deposits unmatched'
+        - Deposit matching breaks on {case}
+        - '{file|cap} is {3-90} dollars off the ledger'
+        - Why do {2-40} deposits lack an account?
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Reconciliation flagged it on {day}.
+        -   - Trace numbers are missing for {case}.
+            - Matching needs a reference {case} lacks.
+            - The reference is truncated for {case}.
+        -   - Money sits in a suspense account.
+            - Finance carries it by hand.
+            - Unmatched amounts wait for close.
+        -   - '{b_offer}'
+            - '{b_urgent}'
+      comments:
+        - "{b_cm_repro} with last {day}'s file."
+        - '{b_cm_check}, the parser drops a field.'
+        - Auditors will ask about suspense.
+    - labels:
+        - needs-decision
+        - enhancement
+      let:
+        debt:
+          - delinquent debt
+          - overpayment
+          - civil penalty
+          - grant overpayment
+      title:
+        - 'Interest and penalties on {debt} balances: which rule?'
+        - Policy for charging interest on {debt} balances
+        - Decide how {debt} balances age
+        - '{debt|cap} interest: daily or monthly?'
+      body:
+        -   - '{b_who|cap} handles this {case by case/by hand}.'
+            - No written rule exists today.
+        -   - '{gv_note} The regulation allows more than one.'
+            - 'Options: {daily interest/monthly interest/a flat penalty}.'
+            - The regulation allows more than one.
+        -   - '{gv_note} Collection rules need a written demand.'
+            - Collection rules need a written demand.
+            - Counsel should review the notice wording.
+        -   - '{b_cm_later}'
+            - Needs a decision before anyone starts.
+      comments:
+        - '{b_cm_lean} daily, it matches the ledger.'
+        - '{b_cm_ask_who}'
+        - Counsel replied, summary in the thread.
+        - Let's record the decision in {p_docpage}.
+    - labels:
+        - enhancement
+      let:
+        kind:
+          - hardship
+          - small business
+          - first-time late
+          - disaster-area
+          - nonprofit
+        who:
+          - program staff
+          - the finance office
+          - branch chiefs
+      title:
+        - Support fee waivers for {kind} filers
+        - Let {who} approve {kind} waivers
+        - Track {kind} waivers with an approver
+        - 'Waivers for {kind}: record the approver'
+      body:
+        -   - '{who|cap} grants waivers outside the system.'
+            - Waivers live in email today.
+        -   - '{gv_note} A waiver keeps the original amount.'
+            - A waiver keeps the original amount.
+            - Record the approver and authority cited.
+            - We need a date and reason.
+        -   - '{gv_note} It feeds the quarterly report.'
+            - Auditors asked for the list twice.
+            - It feeds the quarterly report.
+        -   - '{b_offer}'
+            - 'Rough size: {two/three} sprints.'
+      comments:
+        - Agreed, a spreadsheet is a finding.
+        - '{b_cm_plan}'
+        - Dual approval above {200-5000} dollars?
+        - '{b_cm_later}'
+  portal:
+    - labels:
+        - bug
+        - security
+      let:
+        case:
+          - a hyphenated surname
+          - a recent name change
+          - a thin credit file
+          - a non-US address
+          - an expired ID
+      title:
+        - Identity check fails for applicants with {case}
+        - '{case|cap}: identity proofing step loops'
+        - Applicants with {case} cannot sign in
+        - Sign-up stalls at proofing for {case}
+      body:
+        -   - '{b_pwho|cap} sees {2-9} cases {a week/this month}.'
+            - '{b_raised}, {b_scope}.'
+        -   - Sign-in service returns a failure.
+            - Our callback drops the state parameter.
+        -   - '{gv_note} People give up and phone in.'
+            - People give up and phone in.
+            - Staff review each case by hand.
+        -   - '{b_ask_logs}'
+            - Keep personal details out of here.
+      comments:
+        - '{b_cm_repro} with a staging identity account.'
+        - Please paste no real identifiers.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - enhancement
+        - docs
+      let:
+        area:
+          - the application form
+          - the status page
+          - the upload step
+          - the payment form
+          - the help page
+        issue_kind:
+          - missing labels
+          - no visible focus ring
+          - low contrast
+          - inaccessible error messages
+          - a keyboard trap
+      title:
+        - 'Section 508: {issue_kind} on {area}'
+        - 'Accessibility audit finding: {issue_kind} on {area}'
+        - '{area|cap}: {issue_kind}, from the annual 508 review'
+        - Fix {issue_kind} on {area} before retest
+      body:
+        -   - Found by the 508 coordinator.
+            - A screen reader user reported it {day}.
+        -   - Affects {2-30} pages from one template.
+            - The fix is mostly markup.
+        -   - '{gv_note} It is on the remediation plan.'
+            - It is on the remediation plan.
+            - The date is in our statement.
+        -   - '{b_ac_d}'
+      comments:
+        - Retest with two screen readers afterwards.
+        - '{b_cm_sr} {b_cm_sr2}'
+        - '{b_cm_fix_up}'
+        - Keyboard walkthrough is {clean/still failing} on {area}.
+    - labels:
+        - bug
+      let:
+        document:
+          - proof of identity
+          - tax transcript
+          - signed form
+          - supporting letter
+          - bank statement
+        reason:
+          - size
+          - file type
+          - a virus scan timeout
+          - a page count check
+        browser:
+          - '{b_browser}'
+      title:
+        - Upload of {document} rejected for {reason}
+        - '{document|cap} upload fails under the limit'
+        - Supporting {document} will not attach in {browser}
+        - '{document|cap} upload times out on slow lines'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_pwho|cap} saw it on {2-15} applications.'
+        -   - '{gv_note} The type check is stricter.'
+            - The page says {5-25} MB.
+            - The proxy allows less than that.
+            - The type check is stricter.
+        -   - '{b_urgent}'
+            - Applicants resubmit and lose their place.
+        -   - '{b_ask_logs}'
+      comments:
+        - '{b_cm_repro} with a {6-20} MB scan.'
+        - The proxy limit is lower.
+        - '{b_cm_fix_up}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        status:
+          - received
+          - under review
+          - pending documents
+          - awaiting payment
+        event:
+          - a decision was issued
+          - the fee was paid
+          - documents were uploaded
+          - an officer was assigned
+      title:
+        - Status tracker shows {status} after {event}
+        - Case status stuck on {status} for {2-30} filings
+        - Applicants see {status} although {event}
+        - '{status|cap} never clears after {event}'
+      body:
+        -   - '{b_pwho|cap} fields calls about it {daily/weekly}.'
+            - '{b_raised}, {b_scope}.'
+        -   - The tracker reads a stale cache.
+            - Status arrives in overnight batches.
+            - Cache refresh runs {2-15} minutes late.
+        -   - '{b_urgent}'
+            - People file again and create duplicates.
+        -   - '{b_offer}'
+      comments:
+        - The case system event is published.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_fix_up}'
+        - '{b_cm_ask_who}'
+  docs:
+    - labels:
+        - docs
+        - bug
+      let:
+        page:
+          - docs/ssp.md
+          - docs/boundary.md
+          - docs/ato-package.md
+          - docs/contingency-plan.md
+        control:
+          - AC-2
+          - AU-6
+          - CM-3
+          - CP-9
+          - IA-5
+          - SC-8
+        thing:
+          - load balancer
+          - log forwarder
+          - backup job
+          - admin bastion
+      title:
+        - 'Authorization package: {page} out of date for {control}'
+        - 'ATO documentation: {control} text disagrees with {page}'
+        - Update {page} for the {control} control
+        - '{page|cap} still describes the old {thing}'
+      body:
+        -   - The assessor asked about it.
+            - Noticed preparing the annual package.
+        -   - '{gv_note} The diagram shows a retired {thing}.'
+            - The text is from the {2021/2022/2023} baseline.
+            - The diagram shows a retired {thing}.
+        -   - '{b_urgent}'
+            - The package is due {soon/in {2-6} weeks}.
+        -   - '{p_fix_soon}'
+      comments:
+        - I can take the {control} text.
+        - Needs a fresh diagram from {person}.
+        - Review before it reaches the assessor.
+        - '{b_cm_later}'
+    - labels:
+        - docs
+        - chore
+      let:
+        finding:
+          - an unsupported library
+          - weak password rules
+          - missing log retention
+          - an expired scan credential
+          - an unpatched host
+      title:
+        - POA&M item for {finding} has no owner
+        - Close the POA&M entry for {finding}
+        - 'POA&M: {finding} is past due'
+        - Add a milestone for {finding}
+      body:
+        -   - The item has been open {2-9} months.
+            - Found in the monthly review.
+        -   - '{gv_note} Fix shipped, evidence is missing.'
+            - Fix shipped, evidence is missing.
+            - The owner left the team.
+        -   - '{b_urgent}'
+            - Oversight reads this list.
+            - Late items look bad.
+        -   - '{gv_note} Attach the scan or the ticket.'
+            - Attach the scan or the ticket.
+      comments:
+        - Mine, evidence is in the ticket.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+        - Moved the due date, noted why.
+    - labels:
+        - docs
+        - enhancement
+      let:
+        request:
+          - FOIA request
+          - Privacy Act request
+          - records hold
+          - congressional inquiry
+          - audit data request
+      title:
+        - Write up the {request} process
+        - '{request|cap} handling: add a short guide'
+        - Document the {request} process end to end
+      body:
+        -   - New joiners keep asking about {request}.
+            - Only {person} knows the process well.
+        -   - '{gv_note} Statutory deadlines make timing matter.'
+            - List the steps and who signs.
+            - Statutory deadlines make timing matter.
+        -   - '{b_dc_c} {b_dc_e}'
+      comments:
+        - Will draft it after the release.
+        - '{b_cm_ask_who}'
+        - Link the records schedule please.
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        report:
+          - the quarterly obligations report
+          - the annual workforce report
+          - the monthly performance report
+          - the grants spending report
+          - the improper payments report
+        n:
+          - '{3-90}'
+          - '{100-900}'
+        kind:
+          - amended filings
+          - late filings
+          - corrected records
+          - withdrawn requests
+      title:
+        - '{report|cap} missing {n} records'
+        - '{report|cap} is {n} short of the case system'
+        - '{report|cap} omits {kind} filed after cutoff'
+        - 'Reconcile {report}: {n} short'
+      body:
+        -   - '{b_who|cap} spotted it before submission.'
+            - The oversight office queried totals on {day}.
+        -   - Rows with {kind} drop in cleaning.
+            - The window ends at midnight UTC.
+        -   - '{gv_note} The report is statutory.'
+            - The report is statutory.
+            - A correction needs sign-off.
+        -   - '{b_offer}'
+      comments:
+        - "{b_cm_repro} on last quarter's data."
+        - '{b_cm_check} the timezone first.'
+        - '{b_cm_prof}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        table:
+          - '{p_table}'
+        period:
+          - '01'
+          - '13'
+          - adjustment
+      title:
+        - Fiscal year rollover breaks the {table} load
+        - 'Load fails on night one: no {table} partition'
+        - Fiscal period {period} missing from {table}
+        - '{table|cap} partitions not made for new year'
+      body:
+        -   - It broke on day one.
+            - Same thing happened {last year/two years ago}.
+        -   - Someone creates partitions by hand.
+            - The period table stops in {September/the old year}.
+        -   - '{b_urgent}'
+            - Reports show zeros until fixed.
+        -   - '{gv_note} Add a check and a reminder.'
+            - Add a check and a reminder.
+      comments:
+        - Made partitions by hand, loads resumed.
+        - '{b_cm_fix_up}'
+        - Let's generate periods years ahead.
+        - '{b_cm_later}'
+    - labels:
+        - needs-decision
+        - chore
+      let:
+        records:
+          - case files
+          - call recordings
+          - audit logs
+          - correspondence
+          - form submissions
+        n:
+          - '3'
+          - '6'
+          - '7'
+          - '10'
+      title:
+        - 'Records schedule: how long keep {records}?'
+        - Purge job for {records} needs a ruling
+        - 'Retention for {records}: {n} years or longer?'
+      body:
+        -   - The records officer says {n} years.
+            - The warehouse keeps everything forever.
+            - The warehouse holds data since {2012-2019}.
+        -   - A legal hold may still apply.
+            - Deleting early could breach a hold.
+        -   - '{gv_note} Needs a decision from counsel first.'
+            - Needs a decision from counsel first.
+      comments:
+        - Asking counsel about the hold.
+        - '{b_cm_ask_who}'
+        - I can draft the purge only.
+        - '{b_cm_later}'
+  infra:
+    - labels:
+        - security
+        - bug
+      let:
+        finding:
+          - an outdated TLS library
+          - a kernel advisory
+          - a vulnerable proxy version
+          - weak cipher suites
+          - an unpatched database
+        target:
+          - the web tier
+          - the job hosts
+          - the staging cluster
+          - the reporting servers
+        n:
+          - '{3-40}'
+      title:
+        - '{finding|cap} on {target} past its window'
+        - 'Vulnerability scan: {finding} on {target} still open'
+        - Patch {target} for {finding} before deadline
+        - '{target|cap}: {finding}, {n} days over'
+      body:
+        -   - The scan flagged it on {day}.
+            - It is rated {high/critical} in the weekly scan.
+        -   - '{gv_note} The patch needs a reboot.'
+            - The patch needs a reboot.
+            - Fix is in the base image.
+        -   - '{b_urgent}'
+            - It shows in the compliance report.
+      comments:
+        - Scheduling it for the next window.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+        - Still open, no risk acceptance yet.
+    - labels:
+        - security
+        - chore
+      let:
+        target:
+          - the portal proxy
+          - the file transfer host
+          - the database links
+          - the log forwarder
+        thing:
+          - crypto library
+          - OpenSSL build
+          - hash setting
+          - key exchange
+      title:
+        - Require FIPS-validated crypto on {target}
+        - '{target|cap} uses a non-approved cipher'
+        - Switch {target} to a FIPS-mode {thing}
+      body:
+        -   - The control assessment noted it on {day}.
+            - Policy says validated modules only.
+        -   - '{gv_note} The current {thing} is not validated.'
+            - The current {thing} is not validated.
+            - FIPS mode narrows the cipher list.
+        -   - '{gv_note} Try staging first.'
+            - Check clients before the switch.
+            - Try staging first.
+      comments:
+        - '{b_cm_check}, the runtime supports it.'
+        - Some older clients will break.
+        - '{b_cm_plan}'
+        - '{b_cm_later}'
+    - labels:
+        - bug
+      let:
+        target:
+          - the portal hosts
+          - the batch servers
+          - the database tier
+          - the bastion
+        thing:
+          - the certificate change
+          - a firewall change
+          - the agent upgrade
+      title:
+        - Logs from {target} not reaching the SIEM
+        - 'Monitoring gap: {target} stopped forwarding logs'
+        - SIEM shows nothing from {target} since {day}
+        - Forwarder on {target} dropped after {thing}
+      body:
+        -   - '{b_pwho|cap} noticed a flat dashboard.'
+            - The log review came up empty.
+        -   - '{gv_note} The forwarder fails after renewals.'
+            - The forwarder fails after renewals.
+            - The allow list excludes the collector.
+        -   - '{b_urgent}'
+            - Audit logging is a required control.
+        -   - '{b_ask_logs}'
+      comments:
+        - Restarted the forwarder, events flow again.
+        - Backfilled {3-14} days from local logs.
+        - '{b_cm_fix_up}'
+        - Add an alert for silence.
+  ops:
+    - labels:
+        - question
+        - chore
+      let:
+        script:
+          - export_batch.sh
+          - ftp_push.sh
+          - nightly_extract.sh
+          - archive_forms.sh
+        legacy:
+          - mainframe job
+          - overnight file transfer
+          - legacy case export
+          - paper scan feed
+      title:
+        - Is {script} for the {legacy} still used?
+        - Can we retire {script}? It feeds {legacy}
+        - '{script|cap} runs nightly, nobody owns {legacy}'
+      body:
+        -   - It writes to a folder {legacy} reads.
+            - The {legacy} was retired in {2018-2022}.
+        -   - Nobody remembers who asked for it.
+            - Old cron host still runs it.
+        -   - '{gv_note} Retiring it needs a records check.'
+            - Retiring it needs a records check.
+      comments:
+        - Not used since {2019-2023}, I think.
+        - '{b_cm_ask_who}'
+        - Check the access log first.
+comments:
+  - '{b_cm_check}, the rule is in the regulation.'
+  - Keep personal details out of here.
+  - Needs a note in the package.
+  - Counsel should read the wording first.
+chat:
+  support:
+    - let:
+        fee:
+          - filing fee
+          - user fee
+          - license fee
+          - late fee
+        notice:
+          - debt notice
+          - past due letter
+          - collection letter
+      root:
+        - '{s_cust|cap} says the {fee} shows pending for {2-9} days'
+        - caller paid the {fee}, no receipt yet. {s_ticket}
+        - '{s_cust} got a {notice} but already paid'
+      replies:
+        -   - checking the deposit file
+            - payments settle in {2-4} business days
+            - '{s_ack}, looking'
+        -   - it settled {yesterday/this morning}, not matched yet
+            - i see it in the report
+            - ''
+        -   - can you send them the receipt?
+            - '{s_thx}, i will tell them'
+    - let:
+        topic:
+          - application
+          - appeal
+          - renewal
+          - fee waiver request
+          - records request
+        status:
+          - received
+          - under review
+          - pending documents
+      root:
+        - caller wants to know if their {topic} arrived. status says {status}
+        - '{s_cust|cap} asks how long {topic} takes'
+        - 'refund request: {s_cust}, {s_money} dollars, charged twice'
+      replies:
+        -   - is it in the case system?
+            - '{s_look}, one sec'
+            - what does the tracker show?
+        -   - received {day}, still in the queue
+            - assigned to an officer yesterday
+            - two entries, one is a duplicate
+        -   - tell them to wait for it
+            - escalating to the program office
+            - '{s_thx}'
+    - let:
+        what:
+          - the upload page rejects scans
+          - the sign-in loop
+          - the status page showing old data
+          - payment confirmation not appearing
+      root:
+        - 'escalating to eng: {what}, filed as {issue}'
+        - '{what} again today. {issue} has the details, {s_since}'
+      replies:
+        -   - thanks, adding it to the board
+            - '{s_ack}, will take a look'
+            - ''
+        -   - any workaround for callers?
+            - should i say to use paper?
+        -   - paper form for now
+            - wait for the fix, on it
+    - let:
+        shift:
+          - morning
+          - afternoon
+          - evening
+        topic:
+          - the new form
+          - the fee change
+          - the letter
+          - the deadline
+      root:
+        - '{shift} handover: {5-30} open tickets, {2-6} waiting on the program office'
+        - call volume spike about {topic}, anyone know why?
+      replies:
+        -   - it is the mailing from {yesterday/last week}
+            - probably the notice, wrong phone number
+            - '{c_idk}'
+        -   - can we add a site banner?
+            - should i post an update?
+        -   - yes please, text is below
+            - talking to comms about it now
+  team:
+    - let:
+        evidence:
+          - scan
+          - backup
+          - access review
+          - change record
+          - training
+      root:
+        - authorization review is {c_soon}, who owns the {evidence} evidence?
+        - assessor wants the {evidence} evidence by {day}
+        - 'reminder: continuous monitoring package due {c_soon}'
+      replies:
+        -   - i have scans, need config exports
+            - '{c_idk}, asking {person}'
+            - i can pull it {c_soon}
+        -   - put it in the shared folder
+            - link it in the ticket
+            - ''
+        -   - '{c_ack}'
+            - thanks, ticking it off
+    - root:
+        - budget call {day} at {time}, need numbers for next fiscal year
+        - year end close, commit anything by {c_soon}?
+        - continuing resolution again, hosting renewal?
+      replies:
+        -   - i have the hosting numbers
+            - i will ask {person}, they track it
+            - '{c_idk}'
+        -   - assume flat funding
+            - heard it could last all year
+            - let's plan for the worst case
+        -   - ok i will send a draft
+            - '{c_ack}'
+    - let:
+        topic:
+          - the new form
+          - the fee schedule
+          - the upload limits
+          - retiring the old portal
+        office:
+          - program office
+          - finance office
+          - oversight team
+      root:
+        - '{person} and i meet the office about {topic}, join?'
+        - intake meeting with the {office} on {day}, agenda is in the doc
+      replies:
+        -   - i can come if after {time}
+            - who is driving, you?
+            - which room?
+        -   - call, no room
+            - '{c_room}'
+        -   - '{c_thanks}'
+            - '{c_ack}'
+  engineering:
+    - let:
+        change:
+          - the portal release
+          - the database patch
+          - the certificate swap
+          - the nightly load change
+      root:
+        - change board is {day} at {time}, is {change} ready?
+        - who presents {change} at the change board?
+        - change request for {change} bounced, needs a rollback plan
+      replies:
+        -   - i have the rollback steps
+            - not yet, writing it now
+            - '{c_idk}'
+        -   - put it in the ticket please
+            - can you review the plan?
+        -   - done, linked
+            - '{c_thanks}'
+    - let:
+        scan:
+          - weekly scan
+          - container scan
+          - dependency check
+      root:
+        - the {scan} flagged a new high in {c_dep}, who upgrades?
+        - '{c_dep} has an advisory, we are affected'
+        - 'alert for {c_dep}: patch now or wait?'
+      replies:
+        -   - i can bump it {c_when_eng}
+            - '{c_ack}, taking it'
+            - only the test image has it
+        -   - we need an exception if late
+            - we log it if late
+        -   - '{c_ack}'
+    - let:
+        env:
+          - staging
+          - dev
+          - build
+        thing:
+          - the artifact store
+          - the internal cache
+          - the scanner
+      root:
+        - the {env} enclave cannot reach the package proxy
+        - package proxy down, builds failing since {time}
+        - build agent cannot route to {thing}, times out
+      replies:
+        -   - only the internal cache is allowed
+            - yes through the proxy
+            - checking the allow list
+        -   - ticket is with the network team
+            - they say a firewall rule
+            - fixed, try again
+        -   - works now
+            - '{c_thanks}'
+  incidents:
+    - let:
+        payment:
+          - fee payment
+          - refund
+          - installment
+        provider:
+          - the payment service
+          - the identity service
+          - the card processor
+      root:
+        - '{payment} confirmation page errors, no receipts'
+        - '{provider|cap} reports an incident, payments failing'
+        - payment service errored for {5-40} minutes around {time}
+      replies:
+        -   - support is getting calls
+            - checking the logs now
+            - i see it too
+        -   - it is the provider, not us
+            - we sent {2-30} retries
+            - looks like it cleared
+        -   - posting an update in the queue
+            - will write it up later
+    - root:
+        - filing rush, portal is at {70-99} percent capacity
+        - portal is slow, deadline is tomorrow
+        - traffic is {3-5}x normal, scaling up
+      replies:
+        -   - added {2-4} more instances
+            - database connections are the limit
+            - '{c_ack}'
+        -   - can we hold the batch jobs?
+            - pausing the nightly load tonight
+        -   - deadline extended, traffic should drop
+            - '{c_thanks}'
+    - let:
+        job:
+          - the payment posting job
+          - the debt referral job
+          - the interest calculation
+          - the statement run
+      root:
+        - the batch window overran, {job} still running at {time}
+        - overnight {job} failed, nothing posted to the ledger
+        - '{job} is {3-5} hours late, finance is asking'
+      replies:
+        -   - rerunning from the checkpoint
+            - looking at the lock
+            - '{c_ack}'
+        -   - it should finish by {time}
+            - records are fine, just late
+        -   - i will tell finance
+            - '{c_thanks}'
+    - let:
+        alert:
+          - disk on the web tier
+          - certificate expiry
+          - queue depth
+          - the replica lag
+      root:
+        - pager went off for {alert}, probably the patch window
+        - after the maintenance window {alert} is red
+        - monitoring says {alert} but the site looks fine
+      replies:
+        -   - the check, not the site
+            - restarting the agent
+            - '{c_ack}'
+        -   - cleared
+            - false alarm, silencing for an hour
+        -   - thanks, adding it to the notes
+  town-square:
+    - let:
+        training:
+          - security awareness training
+          - privacy training
+          - records management training
+          - ethics training
+      root:
+        - 'reminder: annual {training} due {c_soon}, about {20-60} minutes'
+        - the {training} course is open, finish by {c_soon}
+        - '{c_hey}: mandatory {training}, link in the email'
+      replies:
+        -   - same course as last year?
+            - do contractors need it too?
+            - '{c_thanks}'
+        -   - yes contractors too
+            - new this year, the phishing part
+            - '{c_yes}'
+    - root:
+        - badge office is closed {c_soon}, bring visitor forms early
+        - '{c_hey}: shutdown plans email went out'
+        - telework agreement renewals are due {c_soon}
+      replies:
+        -   - do we need to sign again?
+            - who approves it?
+            - '{c_thanks}'
+        -   - your supervisor
+            - yes, new form this year
+            - '{c_idk}, ask hr'
+    - let:
+        team:
+          - platform
+          - billing
+          - data
+          - service desk
+      root:
+        - welcome {person} to the {team} team, starting {c_soon}
+        - '{c_hey}: the cafeteria is closed {c_soon}, bring lunch'
+        - congrats to {person} on the work anniversary!
+      replies:
+        -   - welcome!
+            - '{c_em}'
+            - '{c_agree}'
+        -   - thanks all
+            - '{c_thanks}'
+  direct:
+    - let:
+        form:
+          - access request
+          - change request
+          - training certificate
+        doc:
+          - boundary diagram
+          - control write-up
+          - rollback plan
+        duty:
+          - pager shift
+          - support shift
+          - change board slot
+      root:
+        - '{s_hey}, can you sign the {form} before {day}?'
+        - '{s_hey}, got a minute for the {doc}?'
+        - can you cover my {duty} {c_soon}?
+      replies:
+        -   - '{s_ack}'
+            - sure, send it over
+            - will do after lunch
+        -   - '{s_thx}'
+            - '{s_sorry}, forgot'
+    - let:
+        item:
+          - access request
+          - hiring approval
+          - contract extension
+          - laptop order
+        office:
+          - security office
+          - contracting office
+          - budget office
+      root:
+        - did you hear back about the {item}?
+        - my {item} has not come through, nudge them?
+        - '{s_hey}, any news on the {item}?'
+      replies:
+        -   - not yet, still with the {office}
+            - approved yesterday
+            - '{s_no}'
+        -   - '{s_thx}'
+            - ok i will wait
+  off-topic:
+    - let:
+        event:
+          - retirement party
+          - potluck
+          - farewell lunch
+          - birthday celebration
+      root:
+        - anyone going to the {event} at lunch {c_soon}?
+        - '{c_food} in {c_room} for the {event}, help yourselves'
+      replies:
+        -   - what time?
+            - i will be there
+            - bringing a dessert
+        -   - '{c_thanks}'
+            - '{c_em}'
+    - let:
+        line:
+          - metro
+          - train
+          - bridge
+          - highway
+      root:
+        - the commute was awful, the {line} was {delayed/closed} again
+        - traffic is wild, anyone wfh today?
+      replies:
+        -   - same, {c_lol}
+            - i am at home today
+            - '{c_idk}'
+        -   - stay safe
+            - '{c_em}'
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Fee notice emails delayed
+      - Delayed fee notice emails
+      - Fee notice emails arriving late
+      - Fee notice mail delivery slow
+    alert:
+      - fee notice emails delayed, {s_inv_late_b}
+      - '{s_al} fee notice mail running late'
+      - fee notice emails delayed, queue age {s_age}
+      - fee notice emails not going out, {s_inv_late_b}
+    fix_message:
+      - '{s_q_verb|cap} fee notice emails {s_q_how}'
+      - '{s_q_verb|cap} fee notice mail {s_q_how}'
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment service callback errors
+      - Elevated errors on payment service callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}'
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} {s_cb_bad}, {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - '{s_cb_fix|cap}, log each attempt'
+      - 'Handle timeouts: {s_cb_fix}'
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate fee notice emails
+      - Fee notice mailed twice
+      - Repeated fee notice emails
+    alert:
+      - duplicate fee notice emails going out, {s_dup_b}
+      - '{s_al} fee notice mailed twice, {s_dup_b}'
+      - fee notice emails sent twice, {s_dup_b}
+    fix_message:
+      - '{s_dup_fix|cap}'
+      - '{s_dup_fix|cap}, log each skip'
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Portal timeouts for large grantees
+      - Slow portal for large grantees
+      - Large grantees see portal 504s
+    alert:
+      - portal timeouts for large grantees, {s_portal_b}
+      - '{s_al} portal slow for large grantees, {s_portal_b}'
+      - large grantees see 504s, {s_portal_b}
+    fix_message:
+      - Paginate the award history list
+      - Page the award history list
+      - Load award history in pages
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Portal sign-in errors after deploy
+      - Sign-in failures since the release
+      - Applicants cannot sign in after deploy
+    alert:
+      - portal sign-in errors after deploy, {s_login_b}
+      - '{s_al} sign-in failures since the release, {s_login_b}'
+      - applicants cannot sign in, {s_login_b}
+    fix_message:
+      - '{s_sess_fix|cap}'
+      - '{s_sess_fix|cap}, check the domain'
+      - Put the cookie domain back

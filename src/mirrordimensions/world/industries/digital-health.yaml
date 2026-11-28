@@ -1,0 +1,585 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Digital health and telehealth: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: digital-health
+name: Digital health and telehealth
+group: Health and life sciences
+aliases: [telehealth, telemedicine, virtual care, remote patient monitoring]
+description: A virtual care company that connects patients and clinicians by video, messaging and connected devices, and bills members, employers and plans.
+name_suffixes: [Health, Virtual Care, Digital Health, Telehealth, Care, Wellness]
+invoice_items: [Monthly membership, Virtual visit fee]
+organization:
+  head: VP of Engineering
+  it_admin: IT and Security Administrator
+  teams:
+    platform: {department: Engineering, title: Platform Engineer}
+    billing: {department: Revenue Cycle Systems, title: Software Engineer}
+    data: {department: Data and Analytics, title: Data Engineer}
+    support: {department: Member Support, title: Member Support Specialist}
+    product: {department: Product, title: Product Manager}
+    operations: {department: Clinical Operations, title: Clinical Operations Analyst}
+names:
+  repos:
+    billing-service: [revenue-cycle, billing-service, member-billing, claims-billing]
+    platform-docs: [platform-docs, eng-handbook, privacy-handbook, runbooks]
+    data-pipeline: [care-data-pipeline, data-pipeline, warehouse-loads, fhir-loads]
+    infra-config: [infra-config, cloud-config, platform-config, deploy-config]
+    customer-portal: [patient-portal, member-portal, patient-app-web, care-portal]
+    ops-scripts: [ops-scripts, legacy-scripts, tool-scripts, cron-scripts]
+  channels:
+    engineering: [engineering, eng, dev, product-eng]
+    incidents: [incidents, prod-incidents, incident-response, outages]
+    releases: [releases, app-releases, shipping, release-notes]
+    billing-team: [billing-team, revenue-cycle, rcm-eng]
+    platform-team: [platform-team, platform, platform-eng]
+    data-team: [data-team, data, analytics-eng]
+    support: [member-support, support, care-support, patient-support]
+    leads: [leads, eng-leads, clinical-leads]
+systems:
+  typical: [github, slack, jira, okta, athenahealth, twilio, stripe, zendesk, surescripts, availity]
+  common: [salesforce, datadog, pagerduty, sentry, vanta, hubspot]
+
+symbols:
+  b_doc: [patient statement, group invoice, visit receipt, superbill, credit memo, refund receipt]
+  b_customer: [employer group, health plan partner, self-pay member, clinic partner, enterprise client, family plan]
+  b_who: [member support, the clinical operations team, finance, the partnerships team, compliance]
+  b_pwho: [member support, a patient, "{person}", the clinical operations team]
+  b_taxkind: [sales tax, VAT, GST, state tax, digital services tax]
+  b_region: [Texas, Florida, Ontario, Ireland, Germany, Australia, New York, California]
+  b_currency: [USD, CAD, GBP, EUR, AUD]
+  b_provider_event: [payment succeeded, payment failed, refund completed, dispute opened, copay declined, card expired]
+  b_page: [visits, appointments, prescriptions, the dashboard, payment methods, messages, health records, account settings]
+  b_acct_size: ["{200-900} visits", "{15-60} family members", "{3-12} linked devices", "{40-300} messages"]
+  b_money_path: [billing/charges.py, billing/copays.py, billing/claims.py, billing/rounding.py]
+  b_credit_path: [billing/refunds.py, billing/credits.py, billing/adjustments.py]
+  b_check_path: [the charge tests, the claim tests, the refund tests, the callback tests]
+  p_table: [visits, patients, appointments, prescriptions, claims, devices, readings, consents]
+  p_source: [the video provider usage logs, the eligibility clearinghouse reports, the e-prescribing network logs, the CRM account list, the device vendor reading feeds, the app store analytics export]
+  p_report: [the monthly visit volume dashboard, the clinician utilization report, the claims aging report, the no-show rate dashboard, the engagement report]
+  p_finance_ask: [the finance lead, someone in finance, the revenue cycle manager, the controller]
+  c_customer: [a patient, a partner clinic, an employer client, a health plan partner, a member]
+  s_plan: [the monthly plan, a family plan, an employer plan, pay per visit]
+  s_tool: [the admin console, the support desk, the clinician scheduler, the billing admin]
+  s_docs: [the wiki, the shared drive, the handbook, the compliance site]
+  s_inv_late: [visit receipt emails delayed, statement mail running late, billing emails not going out, receipt sends lagging behind]
+  dh_visit: [video visit, phone visit, chat visit, follow up visit, intake visit]
+  dh_device: [blood pressure cuff, glucose meter, pulse oximeter, weight scale, sleep tracker]
+  dh_vendor: [the video provider, the SMS provider, the eligibility clearinghouse, the e-prescribing network, the identity check service]
+  dh_state: [Texas, Florida, New York, California, Ohio, Georgia, Washington]
+  dh_app: [the iOS app, the Android app, the web app, the patient app]
+  dh_msg: [appointment reminder, prescription ready alert, lab result notice, visit summary email]
+  dh_role: [nurse practitioner, physician, therapist, dietitian, coach]
+  dh_topic: [privacy, HIPAA basics, phishing, secure messaging, incident reporting]
+  dh_flag: [the new intake flow, state licensing checks, the family accounts page, the device pairing screen]
+
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        visit: ['{dh_visit}']
+        cause: [a dropped call, a retry, a double tap, a timeout]
+        path: ['{b_money_path}']
+      title:
+        - 'Copay charged twice after {cause} on a {visit}'
+        - 'Members charged twice for one {visit}'
+        - 'Duplicate copay when {cause} happens at checkout'
+        - '{cause|cap} creates a second charge for the {visit}'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Member support saw {2-9} cases {b_since}.']
+        - ['Both charges {share/carry} the same visit id.', 'The second charge {has/carries} the same visit id.']
+        - ['The charge in {path} has no key.', 'No idempotency key is sent from {path}.']
+        - ['Refunds are {done by hand/manual} {for now/today}.', '{b_urgent}']
+      comments:
+        - '{b_cm_repro} with {cause}.'
+        - 'Add a key {made from/built on} the visit id.'
+        - '{b_cm_fix_up}'
+    - labels: [bug, data-quality]
+      let:
+        group: ['{b_customer}']
+        n: ['{3-90}']
+      title:
+        - 'Group invoice counts {n} members already terminated'
+        - 'Per member count is off for {group} accounts'
+        - 'Eligibility updates {never reach/miss} the invoice'
+        - '{group|cap} invoice bills members {after/past} their end date'
+      body:
+        - ['{b_raised}, {b_scope}.', 'A {group} asked why the count looks high.']
+        - ['Terminations arrive in a weekly file.', 'The employer file lands {weekly/monthly}.']
+        - ['Counts are frozen on the {1st/15th} of the month.', 'The invoice uses {last/the first} file of the month.']
+        - ['Finance wants a credit for {n} members.', '{b_urgent}']
+      comments:
+        - 'Checked {2-9} groups, same gap.'
+        - 'Does the file arrive {before/after} invoice day?'
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        miss: [the telehealth modifier, the place of service code, the rendering provider id, the diagnosis pointer]
+        path: ['{b_money_path}']
+      title:
+        - 'Claims rejected for missing {miss}'
+        - 'Clearinghouse bounces superbills without {miss}'
+        - '{miss|cap} is empty on some claims'
+        - '{2-60} claims denied: no {miss}'
+      body:
+        - ['The clearinghouse sent back {2-60} claims {b_since}.', 'Rejections started {b_since}.']
+        - ['The claim is built in {path}.', 'Claims are assembled in {path}.']
+        - ['It skips the field {when/if} the {visit/note} is {old/imported}.', 'The field is empty for {imported/older} visits.']
+        - ['Revenue cycle needs a resubmit run.', '{b_offer}']
+      comments:
+        - '{b_cm_repro} with an imported visit.'
+        - 'The payer list {says/states} it is required.'
+        - '{b_cm_plan}'
+    - labels: [needs-decision]
+      let:
+        minutes: ['{2-12}']
+        event: [the call drops, the clinician no shows, the video fails, the member leaves early]
+      title:
+        - 'Refund policy when {event} after {minutes} minutes'
+        - 'Do we charge when {event}?'
+        - 'Policy question: {event}'
+      body:
+        - ['Support decides {case by case/by feel} today.', '{b_who|cap} {decides/handles it} {by hand/ad hoc}.']
+        - ['We could {refund all/charge half/refund after review}.', 'One option: {refund all/charge half/refund after review}.']
+        - ['Answers differ between agents.', 'Members get different answers.']
+        - ['Needs a ruling from {b_who}.']
+      comments:
+        - '{b_g_blocked}'
+        - Plans differ on this too.
+        - '{b_g_who}'
+    - labels: [bug]
+      let:
+        card: [HSA cards, FSA cards, prepaid cards, corporate cards]
+      title:
+        - '{card|cap} declined at checkout for eligible visits'
+        - 'Eligible visits rejected on {card}'
+        - 'Members with {card} cannot pay copays'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Support has {2-12} {b_ticket_noun}s about it.']
+        - ['The merchant category {on the charge/on charges} {looks wrong/is generic}.', 'Issuers reject the merchant code.']
+        - ['Members pay by another card meanwhile.', 'Workaround: a different card.']
+      comments:
+        - Which processor setting sets the category?
+        - '{b_cm_check} with the payments provider.'
+        - '{b_cm_later}'
+  portal:
+    - labels: [bug]
+      let:
+        browser: ['{b_browser}']
+        step: [the camera check, joining the waiting room, sharing the screen, the audio test]
+      title:
+        - 'Visit will not start in {browser}'
+        - '{step|cap} fails in {browser}'
+        - 'Members stuck at {step} on {browser}'
+        - 'Video visit blank after {step}'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Support saw {2-30} cases {b_since}.']
+        - ['The browser asks, {then stalls/never continues}.', 'Permissions are asked twice.']
+        - ['Others on {browser} are fine.', 'Works on the phone app.']
+        - ['Phone calls are {the fallback/the workaround} for now.']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Console shows a permission error.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        thing: [appointment times, reminders, visit history, clinician hours]
+        zone: [the member zone, the clinic zone, UTC]
+      title:
+        - '{thing|cap} shown in {zone}, not local time'
+        - 'Wrong timezone on {thing} after a daylight change'
+        - 'Members miss visits: {thing} off by an hour'
+      body:
+        - ['{b_raised}, {b_scope}.', 'It showed up {around/after} the clock change.']
+        - ['The page formats times with {zone}.', 'The server sends {zone}, the page assumes local.']
+        - ['No shows rose {2-9} percent {b_since}.', 'Clinicians {ask/wonder} about no shows.']
+      comments:
+        - Reproduced by changing the device timezone.
+        - '{b_cm_check} the API response.'
+        - '{b_cm_fix_up}'
+    - labels: [bug, security]
+      let:
+        thing: [messages, visit notes, test results, prescriptions]
+      title:
+        - 'Proxy access shows {thing} of another family member'
+        - 'Switching profiles keeps {thing} from the last one'
+        - 'Caregiver sees {thing} they should not'
+      body:
+        - ['A parent {switched/moved} to a child profile.', 'A caregiver switched profile.']
+        - ['The page still held {thing} from the first profile.', 'Cached {thing} stayed on screen.']
+        - ['{b_dlk_e}', '{b_pm_e}']
+        - ['Compliance needs to know {how many/who}.']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - 'Check cache headers {on the API/in responses}.'
+        - Privacy office should be told today.
+    - labels: [enhancement]
+      let:
+        ask: [reschedule a visit, cancel a visit, upload an insurance card, change a pharmacy, update a phone number]
+      title:
+        - 'Let members {ask} in the app'
+        - 'Self service to {ask}'
+        - 'Members call support to {ask}'
+      body:
+        - ['Member support gets {10-80} calls a week.', 'About {10-80} calls a week are for this.']
+        - ['A form with {an identity check/a password check} would work.', 'Add it to account settings.']
+        - ['Every change needs an audit entry.']
+      comments:
+        - '{b_g_est}'
+        - Clinical ops should weigh in.
+        - '{b_cm_try}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        step: [switching visits to phone, notifying clinicians, posting on the status page, pausing reminders]
+      title:
+        - 'Handbook: video outage runbook skips {step}'
+        - 'Runbook for video provider outage lacks {step}'
+        - '{step|cap} missing from the outage page'
+      body:
+        - ['Last outage {nobody/few} knew about {step}.', 'We forgot {step} in the last incident.']
+        - ['The page {dates from/is from} {before the switch/an earlier vendor}.']
+        - ['Clinical operations should review it.']
+      comments:
+        - '{b_cm_docs}'
+        - Add who calls the clinicians.
+        - '{b_cm_ask_who}'
+    - labels: [docs, enhancement]
+      let:
+        what: [onboarding a vendor with a BAA, handling a patient access request, reporting a possible breach, adding a state to our coverage]
+      title:
+        - 'Write up {what}'
+        - 'Document the steps for {what}'
+        - 'Nobody can say how we handle {what}'
+      body:
+        - ['A member asked {how this works/what we do}, and nobody knew.']
+        - ['Only {person} knows the order of steps.', 'The steps {live in/sit in} an old thread.']
+        - ['A one page checklist would do.']
+      comments:
+        - '{b_cm_draft} next week.'
+        - Legal should read it.
+        - '{b_cm_up}'
+    - labels: [docs, needs-decision]
+      let:
+        what: [visit recordings, chat transcripts, visit notes, device readings]
+      title:
+        - 'Decide how long to keep {what}'
+        - 'Retention for {what} is written two ways'
+        - 'Docs: {what} retention disagrees with policy'
+      body:
+        - ['The handbook says {2-10} years.', 'One page says {2-10} years.']
+        - ['The privacy policy gives another figure.', 'State rules differ {a lot/by state}.']
+        - ['Needs a ruling from compliance.', 'Legal must decide before edits.']
+      comments:
+        - '{b_g_blocked}'
+        - Minors have longer rules.
+        - '{b_cm_ask_who}'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        source: [billing, the scheduler, the video provider]
+      title:
+        - 'Visit counts differ between {the warehouse/reports} and {source}'
+        - '{source|cap} and the {warehouse/reports} disagree on completed visits'
+        - 'Completed visits are {2-9} percent off in reports'
+      body:
+        - ['The gap is {12-480} visits for last month.', '{b_raised}, the gap is {12-480} visits.']
+        - ['Visits that start late {count twice/are missed}.', 'Visits crossing midnight are the problem.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_check} the status mapping.'
+        - 'Compare by visit id, {not/never} by date.'
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        vendor: [the device vendor, the lab partner, the partner clinic]
+        thing: [readings, observations, results]
+      title:
+        - 'Duplicate {thing} from {vendor} in the FHIR load'
+        - '{vendor|cap} sends {thing} twice'
+        - 'Same {thing} appear {2-4} times for a patient'
+      body:
+        - ['Clinicians see repeated {thing} on the chart.', 'Charts show each {thing} twice.']
+        - ['The feed resends on {every/each} sync.', 'The load {has no key/lacks a key} on {the source/vendor} id.']
+        - ['Dedupe needs the vendor id {plus/and} the time.']
+      comments:
+        - '{b_cm_repro} with last night data.'
+        - 'Backfill needed for {2-9} days.'
+        - '{b_cm_fix_up}'
+    - labels: [security, data-quality]
+      let:
+        field: [full birth dates, zip codes, device ids, free text notes]
+      title:
+        - 'Research extract still contains {field}'
+        - 'De-identified export leaks {field}'
+        - 'Check the de-identification of {field}'
+      body:
+        - ['A reviewer found {field} in the file.', '{field|cap} appear in the extract.']
+        - ['The export job {drops/removes} columns by name.', 'The rules list was never updated.']
+        - ['Do not {share/send} the file until fixed.', 'Privacy office should be told.']
+      comments:
+        - Who received the last export?
+        - '{b_cm_check} the list of removed fields.'
+        - '{b_g_blocked}'
+  infra:
+    - labels: [security, bug]
+      let:
+        days: ['{30-180}']
+        log: [the access log, the audit trail, the admin activity log]
+      title:
+        - '{log|cap} for patient data kept {days} days'
+        - 'Audit logs rotate after {days} days, policy says more'
+        - 'Retention for {log} is too short'
+      body:
+        - ['Security found it during a review.', 'Noticed while preparing for the {audit/assessment}.']
+        - ['Policy needs {six/seven} years of audit records.', 'The policy gives a longer period.']
+        - ['It was set low {for/because of} cost.']
+      comments:
+        - '{b_cm_check} the storage cost.'
+        - Archive tier could be enough.
+        - '{b_g_who}'
+    - labels: [bug, incident]
+      let:
+        host: [the video relay, the SMS gateway, the app API, the member site]
+      title:
+        - 'Certificate for {host} expires in {2-14} days'
+        - 'Alert before {host} certificate expiry'
+        - '{host|cap} certificate renewal has no owner'
+      body:
+        - ['Expiry is {2-14} days out.', 'Nobody has started the renewal.']
+        - ['Members cannot join visits {if/when} it lapses.', 'Calls fail when it lapses.']
+        - ['Renewal needs the platform team.']
+      comments:
+        - 'Add it {to the rota/to the calendar}.'
+        - '{b_g_own}'
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        target: [the patient database, the message store, the recordings bucket]
+      title:
+        - 'Restore of {target} has never been tried'
+        - 'Backups of {target} untested'
+        - 'Nobody has restored {target} from a backup'
+      body:
+        - ['Backups run nightly.', 'Backups exist and look healthy.']
+        - ['The last drill was {long ago/never}.', 'No restore has been tried.']
+        - ['The security plan {requires/wants} a yearly drill.']
+      comments:
+        - '{b_cm_plan}'
+        - Schedule it outside clinic hours.
+        - '{b_g_own}'
+    - labels: [performance]
+      let:
+        what: [text reminders, push alerts, email receipts]
+      title:
+        - '{what|cap} hit the rate limit at peak'
+        - 'Reminder sends slow down at {6-9}pm'
+        - '{what|cap} arrive late on busy evenings'
+      body:
+        - ['Peak is the evening after work.', 'Volume peaks around {6-9}pm.']
+        - ['The provider limits us to {10-50} a second.', 'We hit the sending limit.']
+        - ['Spread the sends, {or/and} ask for more.']
+      comments:
+        - '{b_cm_check} the limit with the provider.'
+        - Batching helps a little.
+        - '{b_cm_try}'
+  ops:
+    - labels: [question]
+      let:
+        script: [sync_licenses.sh, purge_recordings.sh, check_queues.sh, rotate_exports.sh]
+      title:
+        - 'Is {script} still needed?'
+        - 'Who still runs {script}?'
+      body:
+        - ['It was {written for/made for} the old video host.', 'It is {called from/run by} an old cron job.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Not sure, ask clinical ops.
+
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: {dh_topic} training is due {c_soon}'
+        - 'mandatory training on {dh_topic} closes {c_soon}'
+        - 'reminder, {dh_topic} course ends {c_soon}'
+        - '{c_hey}, compliance needs everyone done with {dh_topic}'
+        - '{3-15} people have not finished {dh_topic} training'
+      replies:
+        - ['how long does it take?', 'is it {the same/different} this year?', 'does it count for contractors?']
+        - ['about {20-45} minutes', '{c_no}, they updated it', '{c_yes}, contractors too']
+        - ['{c_thanks}', '']
+    - root:
+        - 'we launch in {dh_state} {c_soon}, clinicians are licensed'
+        - '{c_hey}: coverage in {dh_state} goes live {c_soon}'
+        - 'new state launch {c_soon}, {dh_state}, support briefing at {time}'
+        - '{dh_state} opens to members {c_soon}'
+      replies:
+        - ['is the scheduler ready for it?', 'who covers the pharmacy list?', 'any eligibility changes?']
+        - ['{c_yes}, flag is on in staging', 'not yet, waiting on a file', '{c_idk}, ask {person}']
+        - ['{c_ack}', '']
+    - root:
+        - 'app release goes to the stores {c_soon}'
+        - '{c_hey}: store review takes {a day/two days}'
+        - 'release candidate for {dh_app} is ready {c_soon}'
+      replies:
+        - ['what is in it?', 'does it include the new intake?', 'any known issues?']
+        - ['notes are in the release channel', 'the intake is behind a flag', 'one small one, tracked']
+        - ['{c_thanks}', '']
+  off-topic:
+    - root:
+        - anyone tried a walking desk?
+        - '{c_hey}, who wants a step challenge?'
+        - which sleep tracker do you use?
+        - 'anyone want a spare {c_pet} sitter this weekend?'
+        - best podcast for long drives?
+      replies:
+        - ['{c_yes}, it is fine', 'not me', 'been using one for a year']
+        - ['battery life is the issue', 'try the cheaper one', '{c_lol}']
+        - ['']
+    - root:
+        - 'flu shot clinic in {c_room} {c_soon}'
+        - 'dentist by the office is {great/good}'
+        - 'anyone running a {half/full} marathon?'
+        - 'coffee order goes out at {time}'
+      replies:
+        - ['count me in', '{c_ack}', 'what time?']
+        - ['{time} works', 'sign up on the sheet', '{c_lol}']
+  engineering:
+    - root:
+        - 'need a privacy review for {repo}'
+        - 'pr for {repo} touches consent, who reviews?'
+        - '{c_patch} for {repo}, no patient data involved'
+        - '{c_hey}, anyone free to review {repo}?'
+      replies:
+        - ['does it log any patient ids?', 'is there a new phi field?', 'what data does it read?']
+        - ['{c_no}, only the visit id', 'yes, an email field, encrypted', 'nothing new']
+        - ['approved', 'one comment, see the pr', '']
+    - root:
+        - 'fhir mapping for {dh_device} readings is wrong again'
+        - 'who knows the hl7 feed from {dh_vendor}?'
+        - 'how do we map {visit status/status codes} to ehr?'
+        - 'the partner ehr rejects our {dh_msg}'
+      replies:
+        - ['which resource?', 'what does the error say?', 'is it every message?']
+        - ['observation, units are off', 'status code is unknown', 'only on {dh_state} patients']
+        - ['{c_ack}', 'i will look {c_when_eng}']
+    - root:
+        - 'store rejected our build, {privacy label/metadata} issue'
+        - '{dh_app} crashes on launch for older phones'
+        - 'build for {dh_app} is stuck in review'
+        - push notifications broke after the update
+      replies:
+        - ['which phones?', 'did it pass the beta?', 'what did the reviewer say?']
+        - ['{2-4} year old models', 'the label for health data', 'resubmitting today']
+        - ['{c_thanks}', '']
+    - root:
+        - 'feature flag for {dh_flag} is stuck at {2-50} percent'
+        - 'should {dh_flag} go behind a flag?'
+        - 'who owns the flag for {dh_flag}?'
+      replies:
+        - ['product wants {c_soon}', 'i can flip it after standup', '{c_idk}']
+        - ['{c_ack}', '{c_thanks}']
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - '{c_tool} will not start since the update'
+        - 'migration check fails for {a table/the visits table} change'
+        - 'security scan flags {c_dep}, is it used in the app?'
+      replies:
+        - ['same here', 'rerun it first', '{c_idk}']
+        - ['fixed in {repo}', 'it is a dev only package', 'still red']
+  team:
+    - root:
+        - 'on call clinician rota has gaps {c_soon}'
+        - who covers the evening visit queue?
+        - 'clinical ops needs engineers at {time}'
+      replies:
+        - ['i can take {c_soon}', 'check the rota page', 'i am out']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - 'sprint planning at {time} on {day}, bring estimates'
+        - 'standup in {5-15} minutes, {c_status} on my side'
+        - 'who picks up {issue}?'
+      replies:
+        - ['i can take it', 'busy with the release', '{c_ack}']
+        - ['{c_thanks}', '']
+    - root:
+        - 'support queue has {10-80} open, who can help triage?'
+        - 'member support is swamped after the {dh_msg} bug'
+        - '{c_hey}, who can chat {for an hour/this afternoon}?'
+      replies:
+        - ['i can do an hour', 'what is the macro for it?', 'busy sorry']
+        - ['{c_thanks}', '{c_ack}']
+  support:
+    - root:
+        - 'patient cannot join, camera blocked, {dh_app}'
+        - '{c_customer} cannot hear the clinician, tried twice'
+        - 'member says waiting room is empty{c_sep} visit in {2-9} min'
+        - '{b_pwho} says the video froze at {time}'
+      replies:
+        - ['try the phone link', 'ask them to reload', 'check the browser']
+        - ['phone worked', 'still stuck, escalating', '{c_thanks}']
+    - root:
+        - 'refund request: {c_customer}, call dropped after {2-9} min'
+        - '{c_customer} was charged twice for one visit'
+        - 'member wants a receipt for the {dh_visit}'
+        - 'employer asks why counts {rose/went up}'
+      replies:
+        - ['is the visit id {attached/in it}?', 'did they get a receipt?', 'check the charges page']
+        - ['yes, #{4100-4999}', 'refunded', 'sent it']
+    - root:
+        - prescription missing at pharmacy, member waiting
+        - patient wants the visit summary again
+        - '{c_customer} wants to change the pharmacy'
+        - 'member cannot message the {dh_role}'
+      replies:
+        - ['clinical ops handles that one', 'try the e-prescribing log', 'ask them for the pharmacy name']
+        - ['sent to the wrong pharmacy', 'fixed', 'escalated to {person}']
+  incidents:
+    - root:
+        - 'video visits failing to connect, {s_since}'
+        - '{dh_vendor} status page shows an incident'
+        - 'visits dropping after {2-9} minutes, {s_since}'
+      replies:
+        - ['seeing it too', 'switching clinicians to phone', 'checking the relay']
+        - ['provider says {it is theirs/the fault is theirs}', 'recovering now', 'all clear']
+        - ['{c_thanks}', '']
+    - root:
+        - 'texts not going out, queue is {s_age} behind'
+        - '{dh_msg} delayed since {time}'
+        - SMS provider is rate limiting us
+      replies:
+        - ['is it all messages?', 'looking now', 'how many members?']
+        - ['reminders only', 'about {200-900} waiting', 'raised the limit']
+        - ['{c_ack}', '']
+    - root:
+        - 'eligibility checks timing out, {s_since}'
+        - '{dh_vendor} is slow, members stuck at checkout'
+        - the clearinghouse is returning errors
+      replies:
+        - ['can we skip the check?', 'is it everyone?', 'paging platform']
+        - ['no, claims need it', 'only one payer', 'cleared']
+  direct:
+    - root:
+        - '{s_hey}, could you review {repo} when you can?'
+        - 'could you check access for me? {s_soon}'
+        - '{s_hey}, got a minute for consent?'
+        - 'can you read the privacy note?'
+      replies:
+        - ['{s_ack}', 'sure, send it', 'after lunch ok?']
+        - ['done', 'a few comments', 'looks good']
+    - root:
+        - 'need your sign off, {please/when free}'
+        - '{s_hey}, can we move {the call/the sync/standup} to {time}?'
+        - 'handing over {the queue/my tickets/the rota} while out {s_soon}'
+        - 'got a minute for {intake/the bug}?'
+      replies:
+        - ['{s_ack}', 'give me ten minutes', 'sure']
+        - ['thanks', '{c_ack}']
+
+comments:
+  - Does this involve patient data?
+  - 'Keep patient details {out of chat/private}.'
+  - '{b_cm_check} with the privacy office.'
+  - Clinical operations can confirm.
+  - A state rule may apply here.
+  - 'Add the visit id, {not/never} the name.'

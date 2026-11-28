@@ -1,0 +1,547 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Semiconductors and electronics: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: semiconductors
+name: Semiconductors and electronics
+group: Technology and media
+aliases: [chips, chip design, electronics manufacturing, fabless, integrated circuits, electronic components]
+description: A chip designer and electronics supplier that sells components to manufacturers and distributors and runs design, test and supply chain systems.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Semiconductor, Microsystems, Devices, Silicon, Electronics, Micro, Circuits]
+invoice_items: [Component orders, Engineering services]
+organization:
+  head: Director of IT and Design Systems
+  it_admin: IT Systems Administrator
+  teams:
+    platform: {department: Design Infrastructure, title: Infrastructure Engineer}
+    billing: {department: Order to Cash Systems, title: Business Systems Engineer}
+    data: {department: Test and Yield Data, title: Data Engineer}
+    support: {department: Customer Applications Support, title: Applications Support Engineer}
+    product: {department: Customer Digital Experience, title: Software Engineer}
+    operations: {department: Supply Chain Systems, title: Operations Systems Analyst}
+names:
+  repos:
+    billing-service: [order-to-cash, order-billing, distributor-billing, invoicing-service]
+    platform-docs: [design-systems-handbook, infra-runbooks, tapeout-playbooks, it-handbook]
+    data-pipeline: [yield-loads, test-data-warehouse, lot-etl, supply-data-loads]
+    infra-config: [design-infra, farm-config, licence-config, deploy-config]
+    customer-portal: [customer-portal, partner-hub, order-portal, parts-portal]
+    ops-scripts: [ops-scripts, farm-tools, legacy-scripts, licence-scripts]
+  channels:
+    engineering: [engineering, systems-eng, tools-eng, builders]
+    incidents: [incidents, farm-incidents, infra-incidents, outages]
+    support: [apps-support, support, customer-support]
+    leads: [leads, systems-leads, managers]
+systems:
+  typical: [github, gitlab, slack, jira, okta, salesforce, confluence, sap]
+  common: [pagerduty, datadog, sentry, microsoft 365, docusign, tableau]
+symbols:
+  b_doc: [invoice, credit note, NRE invoice, pro forma invoice, rebate statement]
+  b_customer: [OEM, distributor, design-in customer, contract manufacturer, automotive tier one, research lab]
+  b_who: [sales operations, field applications, finance, the distributor team, supply chain]
+  b_pwho: [sales operations, a customer, '{person}', field applications, the distributor team]
+  b_ticket_noun: [ticket, case, request, escalation]
+  b_page: [orders, quotes, datasheets, product change notices, RMA requests, shipment tracking, the part search, price lists]
+  b_acct_size: ['{200-900} part numbers', '{15-60} users', '{3-12} ship-to sites', '{40-300} open orders']
+  s_plan: [the volume agreement, an NRE contract, a distributor agreement, a consignment programme, the support plan]
+  p_table: [customers, orders, shipments, wafer_lots, test_results, rma_cases, part_numbers, price_breaks]
+  p_source: [the foundry shipment notices, the test floor result files, the distributor point of sale reports, the ERP shipment export, the assembly house yield reports]
+  p_report: [the yield trend report, the backlog report, the distributor sell-through report, the RMA rate report, the lead time report]
+  p_glossary_term: [the lot, the farm, the rota, the tapeout checklist, the price break]
+  p_alert_name: [licence server availability, farm queue depth, failed backups, test data ingest lag, the nightly yield load finishing late]
+  c_customer: [a customer, one of the larger OEMs, a distributor, a contract manufacturer]
+  c_eng_area: [the price break lookup, the rebate job, the lot trace, the order sync, the export check, the RMA flow]
+  c_dep: [the pdf library, the http client, the orm, the EDI parser, the date library]
+  s_thing: [the rebate run, the yield load, the order sync, the cron, the shipment export, the licence check]
+  s_tool: [the order console, the ERP admin, the RMA tool, the case queue]
+  p_delay: ['{2-4} hours', 'about {40-90} minutes', 'nearly {2-3} hours', '{2-5} hours']
+  sc_part: [a power management chip, a microcontroller, a sensor, a motor driver, a wireless module, a memory part, a display driver]
+  sc_stage: [wafer probe, final test, burn in, assembly, packaging, qualification]
+  sc_event: [a tapeout, a product launch, an allocation period, a quarter end, a foundry shutdown, a trade show]
+  sc_site: [the test floor, the fab partner, the assembly house, the design centre, the distribution hub, the lab]
+  sc_reg: [export control, RoHS, REACH, conflict minerals reporting, automotive quality rules, customs rules]
+  sc_ask: [who owns it, can someone take it, is anyone on it, do we have an owner]
+  sc_tool: [the layout tool, the simulator, the timing tool, the verification suite, the place and route tool]
+  sc_unit: ['{200-900} units', 'about {2-9} thousand units', '{1-9} full reels', '{10-60} trays']
+  sc_lot: [a wafer lot, a production lot, a date code, a reel, a tray]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ['{b_doc}']
+        part: ['{sc_part}']
+      title:
+        - Price break not applied to {part}
+        - '{doc|cap} uses the wrong volume tier'
+        - Quantity break ignored on {part} orders
+        - '{doc|cap} for {part} shows list price'
+        - Why did {part} drop to the lower tier?
+      body:
+        - ['{b_raised}, {b_scope}.', '{b_raised} on {b_customer} orders, {b_scope}.']
+        - ['The tier uses order quantity.', 'Tiers key on each line.']
+        - ['Contracts count the whole year.', 'Contracts use annual volume.']
+        - ['{b_urgent}', '{b_urgent} {b_offer}']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_check}{c_sep} tiers live in {b_money_path}.'
+        - Sales operations holds the contract terms.
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        thing: [ship and debit claims, distributor rebates, price protection credits, stock rotation credits]
+      title:
+        - '{thing|cap} calculated on the wrong date'
+        - Rebate statement misses {thing}
+        - '{thing|cap} paid twice'
+        - Distributor disputes {thing}
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The claim uses the ship date.', 'It uses ship date.']
+        - ['Contracts use the invoice date.', 'The contract date differs.']
+        - ['Finance needs a rerun.', '']
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_check}'
+        - Issued statements must not change.
+    - labels: [needs-decision]
+      let:
+        case: [an NRE milestone, a failed qualification, a lot rejected at incoming test, an allocation shortfall, a customer cancellation]
+      title:
+        - How do we bill {case}?
+        - Policy for {case}
+        - Who signs off {case}?
+        - Credit rules after {case}
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Practice differs by region.', 'Regions do it differently.']
+        - ['Contracts disagree on terms.', 'Terms vary by contract.']
+        - ['Needs a decision from finance.', 'Finance has to decide.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Check the master agreement first.
+        - '{b_cm_keep}'
+    - labels: [bug, security]
+      let:
+        rule: ['{sc_reg}']
+      title:
+        - Orders ship before the {rule} check clears
+        - '{rule|cap} hold not applied to {b_customer} orders'
+        - Invoice created while on {rule} hold
+        - Hold list for {rule} out of date
+      body:
+        - ['Raised by {b_who}, {b_scope}.']
+        - ['Holds are checked at entry.', 'Holds run once.']
+        - ['Lists change after that.', 'Later changes are missed.']
+        - ['Keep details out of chat.']
+      comments:
+        - '{b_cm_repro}'
+        - Check again at ship time.
+        - '{b_cm_tell}'
+    - labels: [bug]
+      let:
+        currency: ['{b_currency}']
+      title:
+        - Conversion wrong on {currency} invoices
+        - '{currency} price list uses an old rate'
+        - Rounding differs on {currency} orders
+        - '{currency|cap} credit does not match the invoice'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Rates refresh monthly.', 'The rate is monthly.']
+        - ['Prices carry four decimals.', 'Unit prices are tiny.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_hand}'
+        - Round on the line total.
+        - '{b_cm_fix_up}'
+  portal:
+    - labels: [bug, security]
+      let:
+        thing: [datasheets under NDA, pricing for other customers, design files, errata, product change notices]
+      title:
+        - Customers can download {thing}
+        - '{thing|cap} open to logged out users'
+        - NDA gate skipped for {thing}
+        - '{thing|cap} still visible after the NDA ends'
+      body:
+        - ['Found by {b_who}, {b_pscope}.']
+        - ['Access checks the company only.', 'It checks the company.']
+        - ['No check on the NDA date.', 'Dates are never checked.']
+        - ['Keep details out of chat please.']
+      comments:
+        - '{b_cm_repro} with two accounts.'
+        - Check the NDA on download.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        thing: [order status, ship dates, tracking numbers, backlog quantities]
+      title:
+        - '{thing|cap} differs from the ERP'
+        - Portal shows old {thing}
+        - '{thing|cap} wrong for split shipments'
+        - '{thing|cap} stale for {b_acct_size}'
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['The sync runs twice a day.', 'Sync runs a few times daily.']
+        - ['Split lines confuse the match.', 'Splits break the match.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_repro}'
+        - '{b_cm_clr2}'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        form: [the RMA request, the quote request, the dev kit request, the PCN subscription]
+      title:
+        - '{form|cap} fails with {b_browser}'
+        - '{form|cap} loses the part number'
+        - '{form|cap} sends no confirmation'
+        - Duplicate cases from {form}
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Part numbers contain dashes.', 'Dashes break the form.']
+        - ['No error is shown.', 'It fails quietly.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_repro}'
+        - '{b_ask_logs}'
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        ask: [see lot traceability, subscribe to change notices, download test reports, track an RMA, reorder from history]
+      title:
+        - Let customers {ask}
+        - Customers want to {ask}
+        - 'Feature request from {b_who}: {ask}'
+        - '{ask|cap}, asked for again'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Today they email applications.', 'Email handles it now.']
+        - ['Quality audits ask for it.', 'Auditors ask for it.']
+        - ['It needs a new screen.', '']
+      comments:
+        - '{b_cm_try}'
+        - '{b_cm_plan}'
+        - Needs a rule for who may.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        thing: [retest results, duplicate lot records, wrong die counts, unit conversions, shifted date codes]
+      title:
+        - Yield skewed by {thing}
+        - '{thing|cap} in the test data'
+        - Lot trace broken by {thing}
+        - '{p_report|cap} differs from the floor, {thing}'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Retests append rows.', 'A retest adds a row.']
+        - ['Nothing marks the final one.', 'No final flag exists.']
+        - ['Quality quotes these numbers.']
+      comments:
+        - '{b_cm_prof}'
+        - Keep the last result per unit.
+        - '{b_cm_turn}'
+    - labels: [bug, incident]
+      let:
+        load: [the yield load, the test result load, the shipment load, the lot genealogy load]
+      title:
+        - '{load|cap} finished {p_delay} late'
+        - '{load|cap} aborted on a bad file'
+        - Dashboards stale after {load} failed
+        - '{load|cap} missed the quality review'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['A tester sent a bad file.', 'One tester sent bad rows.']
+        - ['The load stops at errors.', 'It halts at bad rows.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - Skip bad files and log them.
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        table: [wafer probe results, final test results, RMA outcomes, shipment lots]
+        range: [the last 12 months, last quarter, since the tester migration, the last two years]
+      title:
+        - Backfill {table} for {range}
+        - Warehouse lacks {table} for {range}
+        - Quality wants {table}, {range}
+        - '{table|cap} gap in {range}'
+      body:
+        - ['Asked for by {b_who}.', '{b_raised}.']
+        - ['It feeds a customer audit.', 'They need it for a review.']
+        - ['Raw files are archived.', 'Old files are in cold storage.']
+      comments:
+        - '{b_cm_turn}'
+        - '{b_cm_plan}'
+        - Run it off peak hours.
+  infra:
+    - labels: [performance, bug]
+      let:
+        target: [the licence server, the compute farm, the build servers, the file share]
+      title:
+        - '{target|cap} overloaded before {sc_event}'
+        - Queue times high on {target}
+        - Scale {target} before {sc_event}
+        - Limits for {target} too low
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Jobs wait for licences.', 'Licences run out first.']
+        - ['Engineers lose a day.', 'Runs slip by days.']
+        - ['{b_offer}']
+      comments:
+        - '{b_cm_prof}'
+        - Check the licence usage report.
+        - '{b_cm_plan}'
+    - labels: [security, bug]
+      let:
+        cert: [the licence server certificate, the foundry portal login, the file transfer key, the vendor VPN certificate]
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Rotate {cert} before {sc_event}
+        - Nobody owns {cert}
+      body:
+        - ['Found while checking the calendar.', '{b_raised}.']
+        - ['Partners pin the current one.', 'Partners need notice.']
+        - ['A lapse blocks the flow.', 'A miss stops releases.']
+      comments:
+        - '{b_cm_plan}'
+        - Needs two approvers.
+        - Put it on the oncall calendar.
+    - labels: [needs-decision, question]
+      let:
+        access: [read access to layout files, the file transfer account, the licence admin role, the test data warehouse]
+        who: [contractors, new hires, a partner team, an overseas site]
+      title:
+        - 'Access request: {access} for {who}'
+        - Should {who} get {access}?
+        - '{access|cap}: review who has it'
+        - '{sc_reg|cap} limits {access} for {who}'
+      body:
+        - ['{b_raised}.']
+        - ['It needs approval and a ticket.', 'Needs a ticket and approval.']
+        - ['Export rules may apply.', 'Trade rules may apply.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Legal checks the {sc_reg} angle.
+        - '{b_cm_keep}'
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: [the tapeout checklist, a design release, licence renewal, the RMA flow, incoming inspection]
+      title:
+        - Runbook for {thing}
+        - Write up {thing} for new engineers
+        - Handbook lacks {thing}
+        - '{thing|cap} lives in one head'
+      body:
+        - ['{b_raised}.', 'Raised after {sc_event}.']
+        - ['It needs owners and contacts.', 'List owners and steps.']
+        - ['{person} did it last.', '']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_cm_list} {b_cm_def}'
+        - '{b_cm_up}'
+    - labels: [docs, bug]
+      let:
+        stale: [the old licence contact, last year's release checklist, the retired farm queue, the previous foundry portal]
+      title:
+        - Handbook still lists {stale}
+        - '{Docs/Handbook}: {stale} in the escalation page'
+        - Pages mention {stale}
+      body:
+        - ['{b_raised}.', 'Spotted by a new hire.']
+        - ['The page is out of date.', 'Nobody revised it.']
+        - ['A search finds {2-9} pages.']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_g_note}'
+        - I will fix them this week.
+  ops:
+    - labels: [bug]
+      let:
+        script: [check_licences.sh, clean_farm_scratch.sh, sync_part_numbers.py, archive_test_logs.sh]
+      title:
+        - '{Scripts/Ops}: {script} skips new product lines'
+        - Is {script} still used?
+        - '{script} fails on the new file share'
+      body:
+        - ['Found during a licence audit.', '{b_raised}.']
+        - ['It predates the new farm.', 'Written for the old cluster.']
+        - ['Nobody owns it now.', '']
+      comments:
+        - '{b_cm_check}'
+        - '{b_g_who}'
+        - Can we retire it?
+chat:
+  support:
+    - root:
+        - '{s_cust|cap} asks why {sc_part} shipped at the list price'
+        - customer cannot download the datasheet{c_sep} {s_ticket}
+        - '{s_cust|cap} wants the lot trace for {sc_lot}'
+        - escalating to eng{c_sep} order status stale{c_sep} {s_ticket}
+        - customer asks for the RMA status
+      replies:
+        - ['which part number?', 'which order?', 'do we have the lot?']
+        - ['same on two orders', '{c_idk}{c_sep} asking them', 'order is in the case']
+        - ['filing it now', 'linking {s_ticket}', 'i will check the price break']
+    - root:
+        - credit request{c_sep} {s_cust}{c_sep} {s_money}{c_sep} says {sc_unit} failed
+        - distributor disputes the rebate for {sc_part}
+        - customer wants a revised invoice for {day}
+      replies:
+        - ['do we have the failure report?', 'what do the terms say?']
+        - ['sending the report', 'checking the lot']
+        - ['apply it and note the case', 'finance approves over {s_money}']
+    - root:
+        - queue is at {20-90} open cases{c_sep} {sc_event} is busy
+        - evening handover{c_sep} portal login issue open
+        - heads up{c_sep} {s_cust} is angry{c_sep} waiting {2-5} days
+      replies:
+        - ['is there a known issue?', 'who updates the customer?']
+        - ['eng has it{c_sep} update at {time}', 'banner is live']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - standup in {5-15} minutes{c_sep} {c_status} on my side
+        - who is picking up {issue}?
+        - '{person} is {c_pto}{c_sep} who covers the order sync?'
+        - freeze for {sc_event}{c_sep} who has the checklist?
+        - anyone free to pair on {issue}?
+      replies:
+        - ['i can take it', 'on it after lunch']
+        - ['{person} knows the erp', 'i did last time{c_sep} someone else']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - quarter close is {c_soon}{c_sep} orders and rebates please
+        - allocation list goes out {day}{c_sep} who checks the holds?
+        - tapeout is {day}{c_sep} farm capacity ready?
+      replies:
+        - ['is the price list frozen?', 'what about distributors?']
+        - ['{c_yes}{c_sep} from {time}', 'not yet']
+        - ['{c_ack}']
+    - root:
+        - retro notes are in the handbook{c_sep} add yours
+        - post incident review for {issue_title} is {day} at {time}
+        - owners needed for review actions
+      replies:
+        - ['added mine', 'after the call']
+        - ['{c_agree}', '{c_thanks}']
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - the order sync is failing{c_sep} anyone changed the edi map?
+        - '{c_ci_fail} fails on main after prices'
+        - price breaks{c_sep} per line or per order?
+        - yield load is slow{c_sep} anyone changed the parser?
+      replies:
+        - ['on it', 'looking now', 'give me ten']
+        - ['no changes here', 'map changed {c_soon}']
+        - ['per line{c_sep} contracts say so', 'per order{c_sep} simpler']
+    - root:
+        - how do we version price lists?
+        - does the sync retry bad edi?
+        - heads up{c_sep} freeze from {day}{c_sep} for {sc_event}
+        - licence server is slow{c_sep} anyone else seeing it?
+      replies:
+        - ['by effective date', 'pin them per contract']
+        - ['yes{c_sep} three times then parks it', '{c_no}{c_sep} it rejects the file']
+        - ['{c_ack}', '{c_thanks}']
+    - root:
+        - local env broke after parser update
+        - how do i replay orders locally?
+        - is {c_tool} broken for anyone else?
+      replies:
+        - ['pin the old version', 'same here{c_sep} clear the cache']
+        - ['replay script is in tools', 'ask {person}{c_sep} they wrote it']
+  incidents:
+    - root:
+        - licence server down{c_sep} {2-9} teams blocked
+        - farm queue is {2-5} hours long{c_sep} {sc_event} soon
+        - alert{c_sep} test data ingest lag above {1-4} hours
+        - the {p_alert_name} alert is flapping again
+        - the file share is slow {s_since}
+      replies:
+        - ['who is incident lead?', '{sc_ask}?']
+        - ['i have it{c_sep} comms at {time}', '{person} is on the bridge']
+        - ['update at {time}', 'resolved{c_sep} watching']
+    - root:
+        - review for the licence outage is {day} at {time}
+        - near miss{c_sep} wrong price list almost went live
+        - quality asked for a root cause {day}
+      replies:
+        - ['i will draft it', 'who writes the customer note?']
+        - ['apps lead{c_sep} by {day}', '{c_ack}']
+    - root:
+        - the foundry portal is down{c_sep} status page is red
+        - the edi provider is flaky{c_sep} orders stuck
+        - vendor vpn is down{c_sep} partner files stuck
+      replies:
+        - ['anything we can do?', 'any eta?']
+        - ['no eta{c_sep} telling sales', 'failing over now']
+  town-square:
+    - root:
+        - '{c_hey}: all hands {day} at {time}{c_sep} roadmap and results'
+        - security training is due {c_soon}
+        - welcome {person}{c_sep} joining design systems {c_soon}
+      replies:
+        - ['will it be recorded?', 'welcome!']
+        - ['{c_yes}{c_sep} link after', '{c_thanks}']
+    - root:
+        - tapeout party is {c_soon}{c_sep} all welcome
+        - site is closed {c_soon}{c_sep} on call rota unchanged
+      replies:
+        - ['is there food?', '{c_ack}']
+        - ['{c_yes}', '{c_thanks}']
+  off-topic:
+    - root:
+        - anyone watching the {match/game/race} {last night/tonight}?
+        - lunch ideas? sick of {c_food}
+        - '{c_pet} learned a new trick'
+        - best book on {chip/hardware} history?
+      replies:
+        - ['{c_lol}', '{c_agree}']
+        - ['the thai place', 'try the bakery']
+    - root:
+        - '{c_weekend} for me{c_sep} anyone else?'
+        - best podcast for the commute?
+        - cold in the lab again
+      replies:
+        - ['{c_lol}', 'send a photo']
+        - ['{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}{c_sep} can you review my price change {s_soon}?'
+        - quick question{c_sep} who owns the rebate job?
+        - can you cover my on call {day} night?
+        - got a minute{c_sep} order sync question?
+      replies:
+        - ['sure', 'in a call{c_sep} back at {time}']
+        - ['{person} does', 'platform team']
+        - ['{c_thanks}']
+    - root:
+        - handing over the rebate run{c_sep} out {s_soon}
+        - did the customer note go out?
+        - can you read the contract terms {c_sep} {day}?
+      replies:
+        - ['send me the notes', '{c_ack}']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - can you cover customer escalations {day}?
+        - did the status banner go live?
+        - '{s_hey}{c_sep} can you join the distributor call?'
+      replies:
+        - ['sure', 'on it']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - new portal release is {c_soon}{c_sep} checks done?
+        - who has the allocation list for {day}?
+      replies:
+        - ['not yet', '{c_yes}']
+        - ['in the handbook', 'ask {person}']
+comments:
+  - '{b_cm_check}{c_sep} the price table may be it.'
+  - Which part number was this?
+  - '{b_g_ask} the order number?'

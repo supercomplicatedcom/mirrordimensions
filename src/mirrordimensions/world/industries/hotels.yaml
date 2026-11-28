@@ -1,0 +1,615 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Hotels and resorts: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: hotels
+name: Hotels and resorts
+group: Travel, hospitality and leisure
+aliases: [hotel, hotel group, resort, lodging, hospitality group]
+description: A hotel and resort operator that takes reservations, runs front desk and billing at its properties, and sells through direct and partner channels.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Hotels, Resorts, Hotel Group, Hospitality, Lodges, Suites]
+invoice_items: [Group room block deposit, Meeting and events package]
+organization:
+  head: VP of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform: {department: Technology Services, title: Platform Engineer}
+    billing: {department: Revenue and Finance Systems, title: Software Engineer}
+    data: {department: Revenue Management Analytics, title: Data Engineer}
+    support: {department: Guest Services, title: Guest Services Agent}
+    product: {department: Digital Experience, title: Product Manager}
+    operations: {department: Property Operations, title: Duty Manager, lead: Director of Property Operations}
+names:
+  repos:
+    billing-service: [folio-billing, guest-billing, ledger-service, stay-invoicing]
+    platform-docs: [tech-handbook, property-tech-docs, runbooks-hotels, platform-notes]
+    data-pipeline: [revenue-loads, stay-warehouse, booking-etl, pickup-pipeline]
+    infra-config: [hotel-infra, env-config-stay, platform-environments, cloud-config]
+    customer-portal: [guest-portal, manage-stay, direct-booking-web, guest-web]
+    ops-scripts: [property-scripts, night-audit-tools, legacy-batch, front-desk-utils]
+  channels:
+    engineering: [hotel-eng, property-tech, engineering-stay]
+    incidents: [property-incidents, tech-incidents, live-issues]
+    releases: [release-train, go-live, weekly-releases]
+    support: [guest-services, guest-escalations, reservations-desk]
+    leads: [tech-leads, property-tech-leads]
+systems:
+  typical: [github, slack, jira, okta, google workspace, confluence, salesforce, opera]
+  common: [pagerduty, datadog, zendesk, snowflake, servicenow]
+symbols:
+  b_doc: [guest folio, group invoice, deposit receipt, city ledger statement, "{monthly/quarterly} master account statement"]
+  b_customer: [corporate account, wedding group, tour operator, conference group, travel agent, long-stay, loyalty member, government rate]
+  b_who: [the front office, revenue management, the night audit team, finance, group sales, the reservations desk]
+  b_pwho: [guest services, a guest, "{person}", the front office, group sales]
+  b_ticket_noun: [case, ticket, guest complaint, escalation]
+  b_taxkind: [city tax, tourism levy, VAT, occupancy tax, resort fee]
+  b_page: [reservations, stay history, payment methods, loyalty points, folios, saved guests, upcoming stays, receipts]
+  b_provider_event: [deposit captured, payment declined, refund completed, chargeback opened, pre-authorisation released, card token updated]
+  b_acct_size: ["{200-900} reservations", "{15-60} room nights", "{3-12} billing contacts", "{40-300} saved guests", "over {1000-4000} folio lines"]
+  b_check_path: [the folio tests, the confirmation email tests, the deposit tests, the callback tests]
+  b_money_path: [billing/folios.py, billing/room_rates.py, billing/taxes.py, billing/packages.py]
+  b_mail_path: [billing/confirmations.py, billing/confirmation_queue.py, billing/templates.py, billing/sent_log.py]
+  b_cb_path: [billing/payment_events.py, billing/psp_callbacks.py, billing/gateway_events.py]
+  b_credit_path: [billing/refunds.py, billing/adjustments.py, billing/deposits.py]
+  b_dl_path: [billing/folio_download.py, billing/documents.py]
+  b_export_path: [billing/jobs/ledger_export.py, billing/export.py]
+  b_pay_path: [portal/payment_methods.py, portal/saved_cards.py]
+  s_plan: [a flexible rate, a non-refundable rate, a corporate rate, a wedding block, a package stay, a loyalty award night]
+  s_cust: ["a guest on {s_plan}", "someone on {s_plan}", "a guest with {s_plan}", "a booker on {s_plan}", "a customer on {s_plan}"]
+  c_customer: [a guest, a corporate travel manager, a wedding planner, a travel agent, a conference organiser, a long standing corporate account]
+  p_table: [reservations, folios, guests, payments, folio_lines, deposits, room_nights, rate_plans, loyalty_members]
+  p_source: ["the payment gateway's settlement files", "the channel manager's booking feed", "the mail provider's delivery events", "the loyalty programme's member list", "the travel agencies' commission statements", "the property night audit exports", "the card disputes feed"]
+  p_report: [the daily flash report, the weekly pickup report, the revenue per room dashboard, the city ledger ageing report, the commission reconciliation report, the monthly owners' pack]
+  p_secret_thing: [the channel manager API key, the payments provider token, the property system credentials, the warehouse service account key, the signing key for folio links, the mail provider API key]
+  p_limit_target: [the confirmation workers, the booking engine pods, the portal pods, the mail relay, the warehouse loader]
+  s_thing: [the confirmation job, the ledger export, the rate cache, the cron, the deploy script, the migration, the retry logic, the mail template, the availability sync, the booking flow, the webhook handler]
+  c_eng_area: [the confirmation job, the retry logic, the rate lookup, the booking flow, the nightly batch, the webhook handler, the availability sync, the folio renderer, the tax lookup, the audit log, the reports page, the queue consumer]
+  s_tool: [the admin console, the reservations desk, the guest lookup, the case queue, the refund tool]
+  p_alert_name: [disk usage on the web hosts, failed backups, confirmation queue depth, the nightly load finishing late, certificate expiry, error rate on the booking engine, replication lag]
+  p_runbook: [docs/runbooks/confirmation-workers.md, docs/runbooks/nightly-load.md, docs/runbooks/portal-restarts.md, docs/runbooks/warehouse-restore.md, docs/runbooks/pms-failover.md]
+  ht_rate: [a flexible rate, a non-refundable rate, a corporate rate, a package rate, a long-stay rate, a members rate]
+  ht_extra: [breakfast, late checkout, airport transfer, spa credit, parking, an extra bed]
+  ht_flow: [the booking engine, online check-in, the digital key, the guest portal, modify booking, deposit payment, loyalty sign-in]
+  ht_when: [during the summer peak, over the long weekend, around the trade fair, on arrival day, after the rate change, during festival week]
+  ht_prop: [a resort property, the flagship hotel, a city property, an airport hotel, the mountain lodge]
+  ht_feed: [the channel manager feed, the rate plan export, the night audit file, the housekeeping status feed, the availability feed, the loyalty accrual file]
+  ht_cert: [the booking engine certificate, the payment terminal certificate, the digital key service certificate, the guest wifi portal certificate]
+  ht_irrops: [a sold out weekend, a double booked room, an overbooking walk, a power outage at a property, a channel outage]
+  ht_who: [the front office, revenue management, group sales, the reservations desk, guest services, finance]
+  ht_room: [a suite, a family room, an accessible room, a sea view room, a connecting room]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        tax: ["{b_taxkind}"]
+        room: ["{ht_room}"]
+      title:
+        - "{doc|cap} total is a cent out with {tax}"
+        - "{tax|cap} rounded per night on {doc}s"
+        - "{doc|cap} does not add up for {room}"
+        - "{tax|cap} on long stays {disagrees with/does not match} the {doc}"
+        - "{doc|cap}: {tax} differs from the property ledger"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {room} stays, {b_scope}."]
+        - ["{tax|cap} is rounded per night in {b_money_path}.", "{b_money_path} rounds {tax} on each night alone.", "Each night's {tax} is rounded before summing."]
+        - ["{doc|cap} lines sum to another figure.", "Night audit shows another total."]
+        - ["{Finance/Audit} wants one rounding step.", "Round once per stay, like audit."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a three night {room} stay."
+        - "Audit rounds once, so the {doc} should too."
+        - "{b_cm_check}, {tax} is rounded in {b_money_path}."
+    - labels: [bug, needs-decision]
+      let:
+        extra: ["{ht_extra}"]
+        who: ["{ht_who}"]
+      title:
+        - "Refund of {extra} when a stay is cut short"
+        - "Who decides refunds for {extra} on early departures?"
+        - "{extra|cap} charges differ between channels"
+        - "Policy for {extra} after a room move"
+        - "{extra|cap} charged twice after a modification"
+      body:
+        - ["{extra|cap} stays on the folio after checkout.", "Front desk removes {extra}; the website does not."]
+        - ["{b_credit_path} has no rule for it.", "{b_credit_path} treats {extra} as part of the rate."]
+        - ["{who|cap} should write the rule down first.", "Needs an answer from {who}, then code."]
+        - ["{b_since|cap}, guest services logged {2-12} complaints.", "Reservations has {2-9} cases open on it."]
+      comments:
+        - "Properties handle it differently today."
+        - "I will ask the {front office/duty manager}."
+        - "{b_cm_ask_who}"
+    - labels: [bug]
+      let:
+        event: ["{b_provider_event}"]
+        flow: ["{ht_flow}"]
+      title:
+        - "Reservation stays unpaid after {event} callback"
+        - "Deposit taken twice when the {event} callback repeats"
+        - "Callback for {event} lost during {flow}"
+        - "{event|cap} arrives after the booking expires"
+        - "Room held without a deposit after {event}"
+      body:
+        - ["{b_cb_a} {b_cb_b}.", "The handler keeps no gateway reference."]
+        - ["{event|cap} repeating {charges a second deposit/releases the room/leaves the stay half paid}.", "The booking lapses when {event} arrives late."]
+        - ["{b_db_c}", "Guests pay, then lose the room."]
+        - ["{b_cb_e} {b_cb_f}", "Check the hold time before cancelling."]
+      comments:
+        - "Seen on {2-9} reservations {b_since}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Rooms are held {10-30} minutes only."
+  portal:
+    - labels: [bug]
+      let:
+        flow: ["{ht_flow}"]
+        browser: ["{b_browser}"]
+      title:
+        - "{flow|cap} fails in {browser}"
+        - "{flow|cap} shows a blank page on {browser}"
+        - "Guests cannot finish {flow} in {browser}"
+        - "{browser}: {flow} {hangs/spins forever/errors out}"
+      body:
+        - ["{b_pscope}.", "{b_raised}, {b_pscope}."]
+        - ["{browser|cap} is the only one affected.", "Other browsers are fine."]
+        - ["{b_cm_syn} {b_cm_syn2}", "A cached script breaks {flow} after releases."]
+        - ["{b_urgent}", "Volume is high on arrival day."]
+      comments:
+        - "Same in {b_browser}, so not only {browser}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "The mobile app is fine."
+    - labels: [bug, performance]
+      let:
+        when: ["{ht_when}"]
+        size: ["{b_acct_size}"]
+      title:
+        - "Availability search is slow {when}"
+        - "Stay history takes {b_slow} for accounts with {size}"
+        - "Timeouts on the booking page {when}"
+        - "Rate calendar loads slowly {when}"
+      body:
+        - ["{b_sl_a} wait {b_slow}.", "Guests report {b_slow} to see prices."]
+        - ["{b_sl_c}", "Each night triggers a rate lookup."]
+        - ["{b_pf_a} availability checks.", "The slow call is {the rate/the inventory} service."]
+        - ["{ht_who|cap} see the delay too.", "Front desks see it as well."]
+      comments:
+        - "Profiling points at rate lookups."
+        - "Cache rates for {1-5} minutes?"
+        - "{b_cm_priv}, so not the browser."
+    - labels: [enhancement, needs-decision]
+      let:
+        extra: ["{ht_extra}"]
+        who: ["{ht_who}"]
+      title:
+        - "Let guests add {extra} after booking"
+        - "Self-service change of {extra}"
+        - "Feature request from {who}: {extra} in the app"
+        - "Offer {extra} during online check-in"
+      body:
+        - ["{extra|cap} needs a phone call today.", "Only front desks can add {extra}."]
+        - ["{b_ss_c} {b_ss_d} {b_ss_e}", "A short form would do."]
+        - ["{who|cap} says it would cut calls.", "Revenue wants it before the peak."]
+        - ["{extra|cap} prices differ by property.", "Prices come from the property system."]
+      comments:
+        - "How many calls is that weekly?"
+        - "Check resort fee rules too."
+        - "{b_cm_try}"
+    - labels: [bug, security]
+      let:
+        flow: ["{ht_flow}"]
+      title:
+        - "Number plus surname exposes stays in {flow}"
+        - "Card details shown in full on {flow}"
+        - "Digital key link works after checkout"
+        - "Booking lookup in {flow} has no rate limit"
+      body:
+        - ["{flow|cap}: anyone guessing a number reads stays.", "{flow|cap} prints whole card numbers."]
+        - ["{b_dlk_d}", "Limit lookups per address."]
+        - ["{b_cm_legal} Guest {data/records} fall under privacy law."]
+        - ["{b_dlk_e}"]
+      comments:
+        - "{b_cm_rolefix}"
+        - "{b_cm_tell}"
+        - "I can limit it {there/at the edge}."
+  data:
+    - labels: [bug, incident]
+      let:
+        feed: ["{ht_feed}"]
+        delay: ["{p_delay}"]
+      title:
+        - "Nightly load finished {delay} late after {feed} arrived late"
+        - "{feed|cap} missing, daily flash empty"
+        - "Load waited for {feed} and timed out"
+        - "{feed|cap} came in twice, rows duplicated"
+      body:
+        - ["{Revenue management/Finance} saw {yesterday's/Monday's/weekend} figures late.", "The morning flash report was stale."]
+        - ["{feed|cap} is never checked for completeness.", "The load starts at fixed hours."]
+        - ["{feed|cap}: {wait for/look for} a done marker.", "Alert when the file is missing."]
+        - ["{b_g_ships}"]
+      comments:
+        - "The property resends after {1-3} hours."
+        - "Compare row counts with audit totals."
+        - "{b_g_oneoff}"
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+      title:
+        - "Room revenue in the warehouse is {2-9} percent off for {ht_prop}"
+        - "Duplicate reservations in {table}"
+        - "Deposit liability misses the ledger"
+        - "{table|cap} lost rows after a modification"
+        - "Cancelled stays count twice in {table}"
+      body:
+        - ["{b_g_checked} about {20-900} rows.", "Finance spotted it while reconciling."]
+        - ["{table|cap}: a modification creates a new row.", "The old row stays open."]
+        - ["{Cancelled/Unused} stays still count as sold.", "Cancelled nights stay flagged sold."]
+        - ["{Join/Match} on the reservation number.", "Follow the booking's last status."]
+      comments:
+        - "This explains the pickup report gap."
+        - "Does it hold for no-shows?"
+        - "I can backfill {1-6} weeks."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        who: ["{ht_who}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the revenue model"
+        - "Should {who} get {source} in the warehouse?"
+        - "Add {source} for pickup reporting"
+      body:
+        - ["{who|cap} reads {source} by hand today.", "It arrives as email attachments."]
+        - ["{A nightly/An hourly} load would do.", "We need it by working day {1-4}."]
+        - ["{Times/Dates} are local to the property.", "Convert times to UTC on load."]
+      comments:
+        - "Which property code format is it?"
+        - "Check timezones across properties."
+        - "{b_cm_plan}"
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{ht_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} runs out in {2-9} days"
+        - "Renew {cert} before the peak season"
+        - "Nobody owns {cert}"
+      body:
+        - ["{cert|cap} is renewed by hand yearly.", "A leaver did the last renewal."]
+        - ["{Expiry/A lapse} would block {check-in/payments/booking}.", "Lobby kiosks stop when it lapses."]
+        - ["{Warn/Alert} {14/21/30} days before expiry."]
+      comments:
+        - "Put the renewal in the calendar."
+        - "Which properties use that tunnel?"
+        - "{b_cm_plan}"
+    - labels: [bug, incident]
+      let:
+        irr: ["{ht_irrops}"]
+        flow: ["{ht_flow}"]
+      title:
+        - "Autoscaling too slow for {irr}"
+        - "Rebooking traffic overloads {flow} after {irr}"
+        - "Rate limits hit during {irr}"
+        - "Capacity for {flow} during {irr}"
+      body:
+        - ["After {irr}, traffic jumps {5-20} times.", "Guests all open the app together."]
+        - ["{p_limit_target|cap} take {2-6} minutes to start."]
+        - ["{Raise/Lift} the minimum before peak season.", "Scale on queue depth, not CPU."]
+      comments:
+        - "The reservations desk spikes then too."
+        - "Let's agree a pre-scale checklist."
+        - "{b_cm_later}"
+    - labels: [chore, security]
+      let:
+        thing: ["{p_secret_thing}"]
+        item: ["{thing}"]
+        place: [the config file, a log line, a stack trace, the deploy output]
+      title:
+        - "Rotate {thing}"
+        - "{thing|cap} is overdue for rotation"
+        - "{thing|cap} is shared across environments"
+        - "Move {thing} into the secret store"
+      body:
+        - ["{b_sc_a} {b_sc_b}", "{b_sc_c}"]
+        - ["{b_sc_d} {b_sc_e}"]
+        - ["{The vendor/Our partner} wants {3-10} days notice."]
+      comments:
+        - "Schedule it outside arrival peaks."
+        - "Who at the vendor switches it?"
+        - "{b_cm_docs}"
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: ["{ht_irrops}"]
+      title:
+        - "Runbook for {thing}"
+        - "Write up what tech does during {thing}"
+        - "On-call guide lacks steps for {thing}"
+        - "Document the freeze rules around {thing}"
+      body:
+        - ["{thing|cap}: new engineers ask what to do.", "Nobody new knows who to call."]
+        - ["{Cover/List} who to page.", "List the flags to flip."]
+        - ["{ht_who|cap} has a plan of their own.", "Link to the property plan."]
+      comments:
+        - "Ask the duty manager {about it/for input}."
+        - "{b_cm_up} {b_cm_read2}"
+        - "{b_cm_docs}"
+    - labels: [docs, bug]
+      let:
+        flow: ["{ht_flow}"]
+      title:
+        - "Handbook page on {flow} is out of date"
+        - "{flow|cap} runbook names the old gateway"
+        - "Docs for {flow} disagree with production"
+        - "Broken link in the {flow} page"
+      body:
+        - ["{flow|cap}: the page lists old {escalation/rota/vendor} contacts."]
+        - ["{b_cm_disc} {b_cm_when}."]
+        - ["{Fix/Update} the page and date it."]
+      comments:
+        - "Updated the contacts."
+        - "{b_cm_merged}"
+  ops:
+    - labels: [question, chore]
+      let:
+        prop: ["{ht_prop}"]
+      title:
+        - "Is the night audit script for {prop} still used?"
+        - "Can we delete the {prop} room export?"
+        - "Key card export for {prop} fails silently"
+      body:
+        - ["Last run was {1-9} months ago.", "Nobody here knows who calls it."]
+        - ["{ht_who|cap} may still use it."]
+      comments:
+        - "Ask the property manager."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        prop: ["{ht_prop}"]
+      title:
+        - "Arrivals list export misses names at {prop}"
+        - "Cron on the {prop} server exits with no output"
+      body:
+        - ["{prop|cap}: names with accents come out garbled.", "The job skips bookings after cutoff."]
+        - ["{prop|cap} server is {unmanaged/an old host}."]
+      comments:
+        - "Probably encoding. I will check."
+        - "Move it to the scheduler."
+comments:
+  - "Is this {ht_who} or us?"
+  - "Does the front desk see it?"
+  - "Check the resort properties too."
+  - "That matches the guest services report."
+chat:
+  support:
+    - let:
+        amt: ["{s_money}"]
+        why: ["charged twice", "left early", "room was not ready", "wrong rate applied", "never arrived"]
+      root:
+        - "refund request: {s_cust}, {amt}, {why}"
+        - "{s_hey}, refund for {amt}? {why}"
+        - "{s_ticket}: {why}, {amt} back"
+        - "guest wants {amt} back, reason: {why}"
+        - "can i refund {amt}? says {why}"
+      replies:
+        - ["check the rate rules first", "{why} counts, full refund", "over {200-500} needs finance approval"]
+        - ["rules allow it, refunding now", "already refunded last week", "{s_ack}, they get it in {3-7} days"]
+        - ["{s_thx}", ""]
+    - let:
+        what: ["confirmation not arriving", "date change refused", "room type lost", "folio missing taxes", "points not credited"]
+      root:
+        - "escalating to tech: {what}, filed as {issue}"
+        - "{s_hey}, can tech look at {issue}? {what}"
+        - "more cases on {what}, adding to {issue}"
+        - "third complaint about {what} today"
+        - "{what} again. {issue} has the details"
+      replies:
+        - ["looking now", "we have it, {person} is on it", "can you send {me/over} the reservation numbers?"]
+        - ["numbers are in the issue", "{s_ack}, pasting them"]
+    - let:
+        who: ["a corporate booker", "a travel agent", "a wedding planner", "a loyalty member"]
+      root:
+        - "{who} says the folio total is wrong"
+        - "{who} wants a folio with taxes split"
+        - "{s_hey}, {who} needs folios for {1-9} stays"
+        - "{who} cannot download folios"
+        - "agent says commission is short {s_money}"
+      replies:
+        - ["can you send the reservation numbers?", "which month is that?"]
+        - ["the {b_page} page, they say", "the statement from last month"]
+        - ["pulling it from {s_tool}", "finance has the full list"]
+    - let:
+        shift: ["morning", "evening", "weekend", "night"]
+      root:
+        - "{shift} handover: {5-30} open cases, none urgent"
+        - "queue is {20-90} deep after the overbooking"
+        - "handover for {shift}: arrival day cases mostly"
+        - "{shift} shift: {2-9} complaints about the app"
+      replies:
+        - ["{s_ack}, taking the oldest first", "i will triage the arrival ones"]
+        - ["tag the app ones for tech", ""]
+  team:
+    - let:
+        what: ["release notes", "the weekly report", "the capacity plan", "the rate change checklist"]
+      root:
+        - "who owns {what} this week?"
+        - "can someone pick up {what}?"
+        - "{what} needs an owner before {day}"
+        - "{s_hey}, who is writing {what}?"
+        - "still no owner for {what}"
+      replies:
+        - ["i can take it", "{person} did it last time"]
+        - ["{s_ack}, thanks", ""]
+    - let:
+        launch: ["the summer rates", "the new property launch", "the loyalty relaunch", "the channel manager switch"]
+      root:
+        - "heads up: {launch} loads on {day}"
+        - "{launch} goes live {c_soon}, anything blocking?"
+        - "freeze starts {day} for {launch}"
+        - "who is on call for {launch}?"
+        - "prep for {launch}: please check your tickets"
+      replies:
+        - ["rate plans are loaded here", "nothing from billing"]
+        - ["on call from {time}", "check the availability sync once more"]
+    - let:
+        x: ["the front office", "the reservations desk", "revenue management", "group sales"]
+      root:
+        - "{x} asked about the booking fix, status?"
+        - "meeting with {x} on {day}, who joins?"
+        - "{x} wants a walkthrough {c_soon}"
+        - "{x} is waiting on us for {issue}"
+      replies:
+        - ["i will join", "can someone brief me first?"]
+        - ["it ships {day}", "waiting on review"]
+  engineering:
+    - let:
+        thing: ["the rate cache", "the availability sync", "the channel connector", "the folio renderer", "the loyalty accrual job"]
+      root:
+        - "{thing} is slow, anyone changed something?"
+        - "is {thing} failing for anyone else?"
+        - "design question for {thing}, async or batch?"
+        - "who knows {thing} best?"
+        - "pr up for {thing}, {c_patch}"
+      replies:
+        - ["not me, check the deploys", "{person} touched it {c_when_eng}"]
+        - ["it is the channel partner again", "looks fine from here"]
+        - ["{s_thx}", ""]
+    - let:
+        fmt: ["the rate plan export", "the night audit file", "the housekeeping feed", "the loyalty accrual file"]
+      root:
+        - "{fmt} format changed again, who knows why?"
+        - "property sent {fmt} with a new column"
+        - "parser breaks on {fmt} from the {1-9}th"
+        - "{fmt} has local times, no zone"
+      replies:
+        - ["pin the parser to old format", "ask the vendor for a spec"]
+        - ["added a test with their file", "will fix it {c_when_eng}"]
+    - let:
+        dep: ["the pdf library", "the date library", "the http client", "the payment sdk"]
+      root:
+        - "should we upgrade {dep}? new major is out"
+        - "upgrading {dep} after the peak?"
+        - "{dep} needs the security patch"
+        - "who is upgrading {dep}?"
+      replies:
+        - ["not before the summer peak", "after the freeze"]
+        - ["doing it in staging first", "{s_ack}"]
+    - let:
+        thing: ["a flaky test", "the build cache", "the staging data", "the build agent"]
+      root:
+        - "{thing} is blocking main again"
+        - "main is red because of {thing}"
+        - "help with {thing}? {c_patch}"
+        - "{thing} again, anyone?"
+      replies:
+        - ["rerun it", "known issue, being fixed"]
+        - ["{s_ack}", "will look {c_when_eng}"]
+  incidents:
+    - let:
+        what: ["online booking", "check-in", "the digital key service", "the payment terminals", "the rate sync"]
+      root:
+        - "{what} is {s_symptom} {s_since}"
+        - "is {what} down for anyone?"
+        - "alert: {what} error rate above {3-20} percent"
+        - "reservations says {what} is failing"
+        - "{what} {s_symptom}, properties are calling"
+      replies:
+        - ["checking now", "looking at dashboards", "i see it too"]
+        - ["rolled back the last release, watching", "vendor side issue, they confirmed"]
+        - ["recovering", "all clear at {time}"]
+    - let:
+        irr: ["{ht_irrops}"]
+      root:
+        - "{irr}: booking queue is {2-9},{100-900} deep"
+        - "heads up, {irr}, expect traffic"
+        - "front office flagged {irr}, scale up?"
+        - "{irr} at a property, we need capacity"
+      replies:
+        - ["scaling now", "raised the minimum pods"]
+        - ["the app is holding", "watch the payment callbacks"]
+        - ["{s_ack}", ""]
+    - let:
+        thing: ["the property system", "the payment gateway", "the channel manager", "the loyalty system"]
+      root:
+        - "{thing} sync lag is {5-40} minutes"
+        - "{thing} has been quiet since {time}"
+        - "{thing} status page shows an incident"
+        - "vendor says {thing} is degraded"
+      replies:
+        - ["opened a case with them", "failing over to the backup"]
+        - ["guests are affected at {ht_prop}", "none seen yet"]
+    - let:
+        what: ["the night audit job", "the folio export", "the ledger export", "the confirmation queue"]
+      root:
+        - "near miss: {what} almost failed, a retry saved it"
+        - "post-incident review for {what} is {day} at {time}"
+        - "{what} woke me up at {time}"
+        - "{what} backed up to {1-9},{100-900}"
+      replies:
+        - ["noted, adding to the review", "{c_agree}"]
+        - ["can you write it up?", ""]
+  town-square:
+    - let:
+        what: ["the property open day", "the staff stay programme", "the uniform fitting", "the new property opening party"]
+      root:
+        - "{what} is {c_soon}, sign up in the portal"
+        - "reminder: {what} {c_soon}"
+        - "{c_hey}: {what} is {c_soon} at {time}"
+        - "who is going to {what}?"
+        - "{what}, details in the newsletter"
+      replies:
+        - ["i am in", "count me in"]
+        - ["{c_thanks}", ""]
+    - let:
+        what: ["the new property", "the summer rates", "the loyalty relaunch", "the renovation of the flagship"]
+      root:
+        - "{what} has been announced, congrats all"
+        - "{c_hey}, {what} is public from {day}"
+        - "thanks to everyone on {what}"
+        - "{what}: all hands {day} at {time}"
+      replies:
+        - ["great news", "{c_em}"]
+        - ["{c_thanks}", ""]
+  direct:
+    - let:
+        q: ["the rate rules", "the booking hold time", "the modification logic", "the refund tax split"]
+      root:
+        - "quick question about {q}"
+        - "{s_hey}, do you know how {q} works?"
+        - "got a minute for {q}?"
+        - "can you explain {q}?"
+        - "who wrote {q}?"
+      replies:
+        - ["sure, call in {s_soon}", "ask {person}, they know it"]
+        - ["{s_thx}", "{s_ack}"]
+    - let:
+        when: ["on friday", "next week", "tomorrow", "{day}"]
+      root:
+        - "i am off {when}, can you cover the pager?"
+        - "swap on-call {when}?"
+        - "can we move our 1:1 {when}?"
+        - "{s_hey}, can you cover {when}?"
+      replies:
+        - ["yes, no problem", "{day} is hard, {day} works"]
+        - ["{s_thx}", ""]
+  off-topic:
+    - let:
+        what: ["hotel breakfast buffets", "the new lobby design", "that terrible hotel stay", "room service"]
+      root:
+        - "anyone into {what}?"
+        - "did you see {what}?"
+        - "best story about {what}?"
+        - "thoughts on {what}?"
+      replies:
+        - ["haha yes", "{c_agree}"]
+        - ["send photos", ""]
+    - let:
+        food: ["the canteen", "the hotel restaurant", "the staff cafe", "the cafe near the lobby"]
+      root:
+        - "lunch at {food}?"
+        - "is {food} open today?"
+        - "{food} menu looks good today"
+        - "{s_lunch} or {food}?"
+      replies:
+        - ["i am in", "give me ten minutes"]
+        - ["see you there", ""]

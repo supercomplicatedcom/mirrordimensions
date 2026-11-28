@@ -1,0 +1,614 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Car rental and mobility: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: car-rental-mobility
+name: Car rental and mobility
+group: Travel, hospitality and leisure
+aliases: [car rental, car hire, vehicle rental, ride and car sharing, fleet rental]
+description: A car rental and mobility operator that rents vehicles at branches and online, bills rental agreements and damage, and runs a connected fleet.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Car Rental, Rentals, Car Hire, Mobility, Drive, Fleet Services]
+invoice_items: [Vehicle rental agreement, Damage and fuel charges]
+organization:
+  head: VP of Technology
+  it_admin: IT Operations Lead
+  teams:
+    platform: {department: Platform Engineering, title: Platform Engineer}
+    billing: {department: Rental Revenue Systems, title: Software Engineer}
+    data: {department: Fleet and Pricing Analytics, title: Data Engineer}
+    support: {department: Customer Service, title: Customer Service Agent}
+    product: {department: Digital Product, title: Product Manager}
+    operations: {department: Fleet and Branch Operations, title: Fleet Coordinator, lead: Director of Fleet Operations}
+names:
+  repos:
+    billing-service: [rental-billing, agreement-invoicing, rental-ledger, closeout-billing]
+    platform-docs: [tech-handbook, fleet-tech-docs, runbooks-rental, platform-notes]
+    data-pipeline: [fleet-loads, rental-warehouse, utilization-etl, pricing-pipeline]
+    infra-config: [rental-infra, env-config-fleet, platform-environments, cloud-config]
+    customer-portal: [rent-online, driver-portal, reservation-web, my-rentals]
+    ops-scripts: [branch-scripts, fleet-ops-tools, legacy-batch, counter-utils]
+  channels:
+    engineering: [rental-eng, fleet-tech, mobility-engineering]
+    incidents: [counter-incidents, fleet-incidents, tech-incidents]
+    releases: [release-train, go-live, weekly-releases]
+    support: [customer-service, service-escalations, reservations-desk]
+    leads: [tech-leads, rental-tech-leads]
+systems:
+  typical: [github, slack, jira, okta, microsoft 365, confluence, salesforce]
+  common: [pagerduty, datadog, zendesk, snowflake, geotab, samsara]
+symbols:
+  b_doc: [rental invoice, damage charge notice, deposit receipt, corporate account statement, "{monthly/quarterly} fleet statement"]
+  b_customer: [corporate account, leisure renter, insurance replacement, one-way renter, subscription driver, airport renter, long-term lease, car share member]
+  b_who: [the branch network, finance, customer service, the corporate sales team, the claims team, fleet operations]
+  b_pwho: [customer service, a renter, "{person}", the claims team, the branch network]
+  b_ticket_noun: [case, ticket, complaint, escalation]
+  b_taxkind: [airport concession fee, vehicle licensing fee, tourism surcharge, sales tax, tyre and battery levy]
+  b_page: [rentals, reservations, payment methods, driver profile, receipts, subscription, saved drivers, invoices]
+  b_provider_event: [deposit pre-authorised, deposit released, payment declined, refund completed, chargeback opened, toll charge posted]
+  b_acct_size: ["{200-900} rentals", "{15-60} drivers", "{3-12} billing contacts", "{40-300} saved vehicles", "over {1000-4000} rental days"]
+  b_check_path: [the rental total tests, the receipt email tests, the damage charge tests, the callback tests]
+  b_money_path: [billing/rental_totals.py, billing/daily_rates.py, billing/fees.py, billing/extras.py]
+  b_mail_path: [billing/receipts.py, billing/receipt_queue.py, billing/templates.py, billing/sent_log.py]
+  b_cb_path: [billing/payment_events.py, billing/psp_callbacks.py, billing/toll_events.py]
+  b_credit_path: [billing/refunds.py, billing/damage_adjustments.py, billing/goodwill.py]
+  b_dl_path: [billing/receipt_download.py, billing/documents.py]
+  b_export_path: [billing/jobs/ledger_export.py, billing/export.py]
+  b_pay_path: [portal/payment_methods.py, portal/saved_cards.py]
+  s_plan: [a daily rate, a weekend special, a corporate agreement, a monthly subscription, a one-way booking, an insurance replacement]
+  s_cust: ["a renter on {s_plan}", "someone on {s_plan}", "a driver with {s_plan}", "a booker on {s_plan}", "a customer on {s_plan}"]
+  c_customer: [a renter, a corporate fleet manager, an insurance partner, a subscription driver, an airport renter, a long standing corporate account]
+  p_table: [rentals, vehicles, drivers, payments, rental_lines, damage_claims, deposits, toll_charges, subscriptions]
+  p_source: ["the payment processor's settlement files", "the telematics provider's trip data", "the mail provider's delivery events", "the toll operators' charge files", "the insurers' claim statements", "the fines and penalties feed", "the card disputes feed"]
+  p_report: [the daily rentals report, the weekly utilization report, the revenue per vehicle dashboard, the damage recovery report, the corporate account ageing report, the monthly board pack]
+  p_secret_thing: [the telematics API key, the payments provider token, the driver licence check credentials, the warehouse service account key, the signing key for receipt links, the mail provider API key]
+  p_limit_target: [the receipt workers, the reservation API pods, the portal pods, the mail relay, the warehouse loader]
+  s_thing: [the receipt job, the ledger export, the rate cache, the cron, the deploy script, the migration, the retry logic, the mail template, the availability sync, the return flow, the webhook handler]
+  c_eng_area: [the receipt job, the retry logic, the rate lookup, the return flow, the nightly batch, the webhook handler, the availability sync, the agreement renderer, the tax lookup, the audit log, the reports page, the queue consumer]
+  s_tool: [the admin console, the counter system, the renter lookup, the case queue, the refund tool]
+  p_alert_name: [disk usage on the web hosts, failed backups, receipt queue depth, the nightly load finishing late, certificate expiry, error rate on reservations, replication lag]
+  p_runbook: [docs/runbooks/receipt-workers.md, docs/runbooks/nightly-load.md, docs/runbooks/portal-restarts.md, docs/runbooks/warehouse-restore.md, docs/runbooks/counter-outage.md]
+  cr_vehicle: [an economy car, an SUV, a van, an electric car, a premium sedan, a subscription car]
+  cr_branch: [an airport branch, a downtown branch, a rail station branch, a one-way drop-off site, a long-term lot]
+  cr_extra: [a child seat, an additional driver, collision cover, a toll pass, prepaid fuel, roadside assistance]
+  cr_flow: [online check-in, the reservation flow, digital key unlock, the extension request, the return flow, driver licence upload]
+  cr_when: [during the summer peak, over the holiday weekend, at the airport return rush, after a recall, during a snowstorm, on Monday morning pickups]
+  cr_feed: [the telematics feed, the fleet status export, the toll provider file, the damage claim export, the pricing feed, the utilization report]
+  cr_cert: [the telematics gateway certificate, the key unlock service certificate, the kiosk certificate, the toll provider tunnel certificate]
+  cr_incident: [a recall grounding, a fleet-wide key fault, a telematics outage, a counter system outage, a snowstorm surge]
+  cr_who: [the branch network, finance, customer service, the corporate sales team, the claims team, fleet operations]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        fee: ["{b_taxkind}"]
+        veh: ["{cr_vehicle}"]
+      title:
+        - "{doc|cap} total is a cent out with {fee}"
+        - "{fee|cap} charged per day on {veh}"
+        - "{doc|cap} does not add up for {veh}"
+        - "{fee|cap} on long rentals {disagrees with/does not match} the {doc}"
+        - "{veh|cap}: {fee} differs from the agreement"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {veh} rentals, {b_scope}."]
+        - ["{fee|cap} is rounded per day in {b_money_path}.", "{b_money_path} rounds {fee} on each day alone.", "Each day's {fee} is rounded before summing."]
+        - ["{doc|cap} lines sum to another figure.", "The agreement shows another total."]
+        - ["{veh|cap}: {finance/the counter} wants one rounding step.", "Round once per rental, as quoted."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a three day {veh} rental."
+        - "The agreement rounds once, so the {doc} should too."
+        - "{b_cm_check}, {fee} is rounded in {b_money_path}."
+    - labels: [bug, needs-decision]
+      let:
+        extra: ["{cr_extra}"]
+        who: ["{cr_who}"]
+      title:
+        - "Refund of {extra} on an early return"
+        - "Who decides refunds for {extra} when a car is swapped?"
+        - "{extra|cap} charges differ between branches"
+        - "Policy for {extra} after a breakdown"
+        - "{extra|cap} charged twice after an extension"
+      body:
+        - ["{extra|cap} stays on the bill after return.", "Counters remove {extra}; the website does not."]
+        - ["{b_credit_path} has no rule for it.", "{b_credit_path} treats {extra} as part of the rate."]
+        - ["{who|cap} should write the rule down first.", "Needs an answer from {who}, then code."]
+        - ["{b_since|cap}, customer service logged {2-12} complaints.", "The branches have {2-9} cases open on it."]
+      comments:
+        - "Branches handle it differently today."
+        - "I will ask the {branch/claims} team."
+        - "{b_cm_ask_who}"
+    - labels: [bug]
+      let:
+        event: ["{b_provider_event}"]
+        flow: ["{cr_flow}"]
+      title:
+        - "Deposit stays held after {event} callback"
+        - "Renter charged twice when the {event} callback repeats"
+        - "Callback for {event} lost during {flow}"
+        - "{event|cap} arrives after the rental closes"
+        - "Contract closed without charges after {event}"
+      body:
+        - ["{b_cb_a} {b_cb_b}.", "The handler keeps no processor reference."]
+        - ["{event|cap} repeating {charges the deposit twice/releases the hold/leaves the rental half billed}.", "The rental closes when {event} arrives late."]
+        - ["{b_db_c}", "Renters pay, then see two holds."]
+        - ["{b_cb_e} {b_cb_f}", "Check the closing time before billing."]
+      comments:
+        - "Seen on {2-9} rentals {b_since}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Holds expire after {5-14} days."
+  portal:
+    - labels: [bug]
+      let:
+        flow: ["{cr_flow}"]
+        browser: ["{b_browser}"]
+      title:
+        - "{flow|cap} fails in {browser}"
+        - "{flow|cap} shows a blank page on {browser}"
+        - "Renters cannot finish {flow} in {browser}"
+        - "{browser}: {flow} {hangs/spins forever/errors out}"
+      body:
+        - ["{b_pscope}.", "{b_raised}, {b_pscope}."]
+        - ["{browser|cap} is the only one affected.", "Other browsers are fine."]
+        - ["{b_cm_syn} {b_cm_syn2}", "A cached script breaks {flow} after releases."]
+        - ["{b_urgent}", "Volume is high at pickup time."]
+      comments:
+        - "Same in {b_browser}, so not only {browser}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "The mobile app is fine."
+    - labels: [bug, performance]
+      let:
+        when: ["{cr_when}"]
+        size: ["{b_acct_size}"]
+      title:
+        - "Availability search is slow {when}"
+        - "Rental history takes {b_slow} for accounts with {size}"
+        - "Timeouts on the reservation page {when}"
+        - "Rate calendar loads slowly {when}"
+      body:
+        - ["{b_sl_a} wait {b_slow}.", "Renters report {b_slow} to see prices."]
+        - ["{b_sl_c}", "Each vehicle class triggers a lookup."]
+        - ["{b_pf_a} availability checks.", "The slow call is {the fleet/the pricing} service."]
+        - ["{cr_who|cap} see the delay too.", "Counter staff see it as well."]
+      comments:
+        - "Profiling points at fleet availability."
+        - "Cache availability for {1-5} minutes?"
+        - "{b_cm_priv}, so not the browser."
+    - labels: [enhancement, needs-decision]
+      let:
+        extra: ["{cr_extra}"]
+        who: ["{cr_who}"]
+      title:
+        - "Let renters add {extra} after booking"
+        - "Self-service change of {extra}"
+        - "Feature request from {who}: {extra} in the app"
+        - "Offer {extra} during online check-in"
+      body:
+        - ["{extra|cap} needs a phone call today.", "Only counters can add {extra}."]
+        - ["{b_ss_c} {b_ss_d} {b_ss_e}", "A short form would do."]
+        - ["{who|cap} says it would cut calls.", "Revenue wants it before the peak."]
+        - ["{extra|cap} prices differ per branch.", "Prices come from the counter system."]
+      comments:
+        - "How many calls is that weekly?"
+        - "Check insurance rules too."
+        - "{b_cm_try}"
+    - labels: [bug, security]
+      let:
+        flow: ["{cr_flow}"]
+      title:
+        - "Number plus surname exposes rentals in {flow}"
+        - "Licence images shown in full on {flow}"
+        - "Digital key link works after return"
+        - "Booking lookup in {flow} has no rate limit"
+      body:
+        - ["{flow|cap}: anyone guessing a number reads rentals.", "{flow|cap} shows whole licence numbers."]
+        - ["{b_dlk_d}", "Limit lookups per address."]
+        - ["{b_cm_legal} Driver {data/records} fall under privacy law."]
+        - ["{b_dlk_e}"]
+      comments:
+        - "{b_cm_rolefix}"
+        - "{b_cm_tell}"
+        - "I can limit it {there/at the edge}."
+  data:
+    - labels: [bug, incident]
+      let:
+        feed: ["{cr_feed}"]
+        delay: ["{p_delay}"]
+      title:
+        - "Nightly load finished {delay} late after {feed} arrived late"
+        - "{feed|cap} missing, utilization report empty"
+        - "Load waited for {feed} and timed out"
+        - "{feed|cap} came in twice, rows duplicated"
+      body:
+        - ["{Finance/The fleet team} saw {yesterday's/Monday's/weekend} figures late.", "The morning utilization report was stale."]
+        - ["{feed|cap} is never checked for completeness.", "The load starts at fixed hours."]
+        - ["{feed|cap}: {wait for/look for} a done marker.", "Alert when the file is missing."]
+        - ["{b_g_ships}"]
+      comments:
+        - "The provider resends after {1-3} hours."
+        - "Compare row counts with the manifest."
+        - "{b_g_oneoff}"
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+      title:
+        - "Revenue per vehicle is {2-9} percent off for {cr_branch}"
+        - "Duplicate rentals in {table}"
+        - "Deposit liability misses the ledger"
+        - "{table|cap} lost rows after an extension"
+        - "Extended rentals count twice in {table}"
+      body:
+        - ["{b_g_checked} about {20-900} rows.", "Finance spotted it while reconciling."]
+        - ["{table|cap}: an extension creates a new row.", "The old row stays open."]
+        - ["{Cancelled/Swapped} rentals still count as billed.", "Closed days stay flagged billable."]
+        - ["{Join/Match} on the agreement number.", "Follow the rental's last status."]
+      comments:
+        - "This explains the utilization gap."
+        - "Does it hold for one-ways?"
+        - "I can backfill {1-6} weeks."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        who: ["{cr_who}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the fleet model"
+        - "Should {who} get {source} in the warehouse?"
+        - "Add {source} for utilization reporting"
+      body:
+        - ["{who|cap} reads {source} by hand today.", "It arrives as email attachments."]
+        - ["{A nightly/An hourly} load would do.", "We need it by working day {1-4}."]
+        - ["{Times/Dates} are local to the branch.", "Convert times to UTC on load."]
+      comments:
+        - "Which branch code format is it?"
+        - "Check timezones on one-way rentals."
+        - "{b_cm_plan}"
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{cr_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} runs out in {2-9} days"
+        - "Renew {cert} before the summer peak"
+        - "Nobody owns {cert}"
+      body:
+        - ["{cert|cap} is renewed by hand yearly.", "A leaver did the last renewal."]
+        - ["{Expiry/A lapse} would block {unlock/payments/returns}.", "Branch kiosks stop when it lapses."]
+        - ["{Warn/Alert} {14/21/30} days before expiry."]
+      comments:
+        - "Put the renewal in the calendar."
+        - "Which branches use that tunnel?"
+        - "{b_cm_plan}"
+    - labels: [bug, incident]
+      let:
+        inc: ["{cr_incident}"]
+        flow: ["{cr_flow}"]
+      title:
+        - "Autoscaling too slow for {inc}"
+        - "Rebooking traffic overloads {flow} after {inc}"
+        - "Rate limits hit during {inc}"
+        - "Capacity for {flow} during {inc}"
+      body:
+        - ["After {inc}, traffic jumps {5-20} times.", "Renters all open the app together."]
+        - ["{p_limit_target|cap} take {2-6} minutes to start."]
+        - ["{Raise/Lift} the minimum before the peak.", "Scale on queue depth, not CPU."]
+      comments:
+        - "The branches spike then too."
+        - "Let's agree a pre-scale checklist."
+        - "{b_cm_later}"
+    - labels: [chore, security]
+      let:
+        thing: ["{p_secret_thing}"]
+        item: ["{thing}"]
+        place: [the config file, a log line, a stack trace, the deploy output]
+      title:
+        - "Rotate {thing}"
+        - "{thing|cap} is overdue for rotation"
+        - "{thing|cap} is shared across environments"
+        - "Move {thing} into the secret store"
+      body:
+        - ["{b_sc_a} {b_sc_b}", "{b_sc_c}"]
+        - ["{b_sc_d} {b_sc_e}"]
+        - ["{The vendor/Our partner} wants {3-10} days notice."]
+      comments:
+        - "Schedule it outside pickup peaks."
+        - "Who at the vendor switches it?"
+        - "{b_cm_docs}"
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: ["{cr_incident}"]
+      title:
+        - "Runbook for {thing}"
+        - "Write up what tech does during {thing}"
+        - "On-call guide lacks steps for {thing}"
+        - "Document the freeze rules around {thing}"
+      body:
+        - ["{thing|cap}: new engineers ask what to do.", "Nobody new knows who to call."]
+        - ["{Cover/List} who to page.", "List the flags to flip."]
+        - ["{cr_who|cap} has a plan of their own.", "Link to the branch plan."]
+      comments:
+        - "Ask the fleet coordinator {about it/for input}."
+        - "{b_cm_up} {b_cm_read2}"
+        - "{b_cm_docs}"
+    - labels: [docs, bug]
+      let:
+        flow: ["{cr_flow}"]
+      title:
+        - "Handbook page on {flow} is out of date"
+        - "{flow|cap} runbook names the old gateway"
+        - "Docs for {flow} disagree with production"
+        - "Broken link in the {flow} page"
+      body:
+        - ["{flow|cap}: the page lists old {escalation/rota/vendor} contacts."]
+        - ["{b_cm_disc} {b_cm_when}."]
+        - ["{Fix/Update} the page and date it."]
+      comments:
+        - "Updated the contacts."
+        - "{b_cm_merged}"
+  ops:
+    - labels: [question, chore]
+      let:
+        branch: ["{cr_branch}"]
+      title:
+        - "Is the nightly sync for {branch} still used?"
+        - "Can we delete the {branch} key export?"
+        - "Fuel report for {branch} fails silently"
+      body:
+        - ["Last run was {1-9} months ago.", "Nobody here knows who calls it."]
+        - ["{cr_who|cap} may still use it."]
+      comments:
+        - "Ask the branch manager."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        branch: ["{cr_branch}"]
+      title:
+        - "Returns list export misses plates at {branch}"
+        - "Cron on the {branch} server exits with no output"
+      body:
+        - ["{branch|cap}: plates with spaces come out wrong.", "The job skips late returns."]
+        - ["{branch|cap} server is {unmanaged/an old host}."]
+      comments:
+        - "Probably parsing. I will check."
+        - "Move it to the scheduler."
+comments:
+  - "Is this {cr_who} or us?"
+  - "Does the counter see it?"
+  - "Check the subscription cars too."
+  - "That matches the service report."
+chat:
+  support:
+    - let:
+        amt: ["{s_money}"]
+        why: ["charged twice", "returned early", "car was not as booked", "wrong class given", "never picked up"]
+      root:
+        - "refund request: {s_cust}, {amt}, {why}"
+        - "{s_hey}, refund for {amt}? {why}"
+        - "{s_ticket}: {why}, {amt} back"
+        - "renter wants {amt} back, reason: {why}"
+        - "can i refund {amt}? says {why}"
+      replies:
+        - ["check the rental terms first", "{why} counts, full refund", "over {200-500} needs finance approval"]
+        - ["terms allow it, refunding now", "already refunded last week", "{s_ack}, they get it in {3-7} days"]
+        - ["{s_thx}", ""]
+    - let:
+        what: ["receipt not arriving", "extension refused", "deposit not released", "invoice missing fees", "points not credited"]
+      root:
+        - "escalating to tech: {what}, filed as {issue}"
+        - "{s_hey}, can tech look at {issue}? {what}"
+        - "more cases on {what}, adding to {issue}"
+        - "third complaint about {what} today"
+        - "{what} again. {issue} has the details"
+      replies:
+        - ["looking now", "we have it, {person} is on it", "can you send {me/over} the agreement numbers?"]
+        - ["numbers are in the issue", "{s_ack}, pasting them"]
+    - let:
+        who: ["a corporate fleet manager", "an insurance partner", "a subscription driver", "a travel agent"]
+      root:
+        - "{who} says the invoice total is wrong"
+        - "{who} wants an invoice with fees split"
+        - "{s_hey}, {who} needs invoices for {1-9} rentals"
+        - "{who} cannot download invoices"
+        - "partner says damage recovery is short {s_money}"
+      replies:
+        - ["can you send the agreement numbers?", "which month is that?"]
+        - ["the {b_page} page, they say", "the statement from last month"]
+        - ["pulling it from {s_tool}", "finance has the full list"]
+    - let:
+        shift: ["morning", "evening", "weekend", "night"]
+      root:
+        - "{shift} handover: {5-30} open cases, none urgent"
+        - "queue is {20-90} deep after the counter outage"
+        - "handover for {shift}: deposit cases mostly"
+        - "{shift} shift: {2-9} complaints about the app"
+      replies:
+        - ["{s_ack}, taking the oldest first", "i will triage the deposit ones"]
+        - ["tag the app ones for tech", ""]
+  team:
+    - let:
+        what: ["release notes", "the weekly report", "the capacity plan", "the peak readiness checklist"]
+      root:
+        - "who owns {what} this week?"
+        - "can someone pick up {what}?"
+        - "{what} needs an owner before {day}"
+        - "{s_hey}, who is writing {what}?"
+        - "still no owner for {what}"
+      replies:
+        - ["i can take it", "{person} did it last time"]
+        - ["{s_ack}, thanks", ""]
+    - let:
+        launch: ["the summer peak", "the new branch launch", "the subscription relaunch", "the keyless rollout"]
+      root:
+        - "heads up: {launch} goes out {day}"
+        - "{launch} goes live {c_soon}, anything blocking?"
+        - "freeze starts {day} for {launch}"
+        - "who is on call for {launch}?"
+        - "prep for {launch}: please check your tickets"
+      replies:
+        - ["rates are loaded here", "nothing from billing"]
+        - ["on call from {time}", "check the availability sync once more"]
+    - let:
+        x: ["customer service", "the claims team", "fleet operations", "the corporate sales team"]
+      root:
+        - "{x} asked about the billing fix, status?"
+        - "meeting with {x} on {day}, who joins?"
+        - "{x} wants a walkthrough {c_soon}"
+        - "{x} is waiting on us for {issue}"
+      replies:
+        - ["i will join", "can someone brief me first?"]
+        - ["it ships {day}", "waiting on review"]
+  engineering:
+    - let:
+        thing: ["the rate cache", "the availability sync", "the telematics connector", "the agreement renderer", "the loyalty accrual job"]
+      root:
+        - "{thing} is slow, anyone changed something?"
+        - "is {thing} failing for anyone else?"
+        - "design question for {thing}, async or batch?"
+        - "who knows {thing} best?"
+        - "pr up for {thing}, {c_patch}"
+      replies:
+        - ["not me, check the deploys", "{person} touched it {c_when_eng}"]
+        - ["it is the telematics vendor again", "looks fine from here"]
+        - ["{s_thx}", ""]
+    - let:
+        fmt: ["the toll provider file", "the telematics feed", "the fleet status export", "the damage claim export"]
+      root:
+        - "{fmt} format changed again, who knows why?"
+        - "vendor sent {fmt} with a new column"
+        - "parser breaks on {fmt} from the {1-9}th"
+        - "{fmt} has local times, no zone"
+      replies:
+        - ["pin the parser to old format", "ask the vendor for a spec"]
+        - ["added a test with their file", "will fix it {c_when_eng}"]
+    - let:
+        dep: ["the pdf library", "the date library", "the http client", "the payment sdk"]
+      root:
+        - "should we upgrade {dep}? new major is out"
+        - "upgrading {dep} after the peak?"
+        - "{dep} needs the security patch"
+        - "who is upgrading {dep}?"
+      replies:
+        - ["not before the summer peak", "after the freeze"]
+        - ["doing it in staging first", "{s_ack}"]
+    - let:
+        thing: ["a flaky test", "the build cache", "the staging data", "the build agent"]
+      root:
+        - "{thing} is blocking main again"
+        - "main is red because of {thing}"
+        - "help with {thing}? {c_patch}"
+        - "{thing} again, anyone?"
+      replies:
+        - ["rerun it", "known issue, being fixed"]
+        - ["{s_ack}", "will look {c_when_eng}"]
+  incidents:
+    - let:
+        what: ["online reservations", "digital key unlock", "the payment page", "the return flow", "the counter system"]
+      root:
+        - "{what} is {s_symptom} {s_since}"
+        - "is {what} down for anyone?"
+        - "alert: {what} error rate above {3-20} percent"
+        - "branches say {what} is failing"
+        - "{what} {s_symptom}, counters are calling"
+      replies:
+        - ["checking now", "looking at dashboards", "i see it too"]
+        - ["rolled back the last release, watching", "vendor side issue, they confirmed"]
+        - ["recovering", "all clear at {time}"]
+    - let:
+        inc: ["{cr_incident}"]
+      root:
+        - "{inc}: reservation queue is {2-9},{100-900} deep"
+        - "heads up, {inc}, expect traffic"
+        - "fleet ops flagged {inc}, scale up?"
+        - "{inc} right now, we need capacity"
+      replies:
+        - ["scaling now", "raised the minimum pods"]
+        - ["the app is holding", "watch the payment callbacks"]
+        - ["{s_ack}", ""]
+    - let:
+        thing: ["the telematics platform", "the payment gateway", "the counter system", "the toll provider"]
+      root:
+        - "{thing} sync lag is {5-40} minutes"
+        - "{thing} has been quiet since {time}"
+        - "{thing} status page shows an incident"
+        - "vendor says {thing} is degraded"
+      replies:
+        - ["opened a case with them", "failing over to the backup"]
+        - ["branches are affected", "none seen yet"]
+    - let:
+        what: ["the receipt job", "the ledger export", "the damage charge run", "the deposit release queue"]
+      root:
+        - "near miss: {what} almost failed, a retry saved it"
+        - "post-incident review for {what} is {day} at {time}"
+        - "{what} woke me up at {time}"
+        - "{what} backed up to {1-9},{100-900}"
+      replies:
+        - ["noted, adding to the review", "{c_agree}"]
+        - ["can you write it up?", ""]
+  town-square:
+    - let:
+        what: ["the branch visit", "the driver safety day", "the fleet open day", "the new depot opening party"]
+      root:
+        - "{what} is {c_soon}, sign up in the portal"
+        - "reminder: {what} {c_soon}"
+        - "{c_hey}: {what} is {c_soon} at {time}"
+        - "who is going to {what}?"
+        - "{what}, details in the newsletter"
+      replies:
+        - ["i am in", "count me in"]
+        - ["{c_thanks}", ""]
+    - let:
+        what: ["the new city launch", "the electric fleet order", "the subscription relaunch", "the airport contract renewal"]
+      root:
+        - "{what} has been announced, congrats all"
+        - "{c_hey}, {what} is public from {day}"
+        - "thanks to everyone on {what}"
+        - "{what}: all hands {day} at {time}"
+      replies:
+        - ["great news", "{c_em}"]
+        - ["{c_thanks}", ""]
+  direct:
+    - let:
+        q: ["the deposit rules", "the extension logic", "the one-way fee rules", "the damage charge split"]
+      root:
+        - "quick question about {q}"
+        - "{s_hey}, do you know how {q} works?"
+        - "got a minute for {q}?"
+        - "can you explain {q}?"
+        - "who wrote {q}?"
+      replies:
+        - ["sure, call in {s_soon}", "ask {person}, they know it"]
+        - ["{s_thx}", "{s_ack}"]
+    - let:
+        when: ["on friday", "next week", "tomorrow", "{day}"]
+      root:
+        - "i am off {when}, can you cover the pager?"
+        - "swap on-call {when}?"
+        - "can we move our 1:1 {when}?"
+        - "{s_hey}, can you cover {when}?"
+      replies:
+        - ["yes, no problem", "{day} is hard, {day} works"]
+        - ["{s_thx}", ""]
+  off-topic:
+    - let:
+        what: ["the worst rental i had", "road trip playlists", "electric car range anxiety", "the best drive of the year"]
+      root:
+        - "anyone want to talk about {what}?"
+        - "did you see {what}?"
+        - "best story about {what}?"
+        - "thoughts on {what}?"
+      replies:
+        - ["haha yes", "{c_agree}"]
+        - ["send photos", ""]
+    - let:
+        food: ["the canteen", "the new ramen place", "the cafe downstairs", "the food truck"]
+      root:
+        - "lunch at {food}?"
+        - "is {food} open today?"
+        - "{food} menu looks good today"
+        - "{s_lunch} or {food}?"
+      replies:
+        - ["i am in", "give me ten minutes"]
+        - ["see you there", ""]

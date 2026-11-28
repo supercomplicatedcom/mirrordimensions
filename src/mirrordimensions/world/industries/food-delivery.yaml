@@ -1,0 +1,870 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Food delivery: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: food-delivery
+name: Food delivery
+group: Retail and commerce
+aliases:
+  - meal delivery
+  - delivery platform
+  - restaurant delivery
+  - on-demand delivery
+  - delivery app
+description: A delivery platform that connects customers, restaurants and couriers, dispatches orders in real time, and invoices merchants for commissions and promoted placement.
+name_suffixes:
+  - Eats
+  - Delivery
+  - Dash
+  - Bites
+  - Courier
+  - Express
+invoice_items:
+  - Order commissions
+  - Sponsored placements
+organization:
+  head: VP of Engineering
+  it_admin: IT Administrator
+  teams:
+    platform: {department: Platform Engineering, title: Platform Engineer}
+    billing: {department: Payments, title: Payments Engineer}
+    data: {department: Data Platform, title: Data Engineer}
+    support: {department: Merchant and Courier Support, title: Support Specialist, lead: Support Manager}
+    product: {department: Product, title: Product Manager}
+    operations: {department: City Operations, title: City Operations Analyst}
+names:
+  repos:
+    billing-service: [merchant-billing, commissions, billing-service, payouts-service]
+    platform-docs: [eng-handbook, platform-docs, dispatch-runbooks, team-docs]
+    data-pipeline: [orders-warehouse, delivery-etl, data-pipeline, events-loads]
+    infra-config: [infra-config, cloud-config, env-config, deploy-config]
+    customer-portal: [merchant-portal, merchant-center, customer-web, customer-portal]
+    ops-scripts: [ops-scripts, city-scripts, legacy-scripts, admin-tools]
+  channels:
+    engineering: [engineering, eng, dev, dispatch-dev]
+    incidents: [incidents, dispatch-alerts, prod-incidents, outages]
+    releases: [releases, deploys, app-releases, shipping]
+    billing-team: [billing-team, payments, merchant-billing, billing-eng]
+    platform-team: [platform-team, platform, dispatch-platform, infra]
+    data-team: [data-team, analytics, data, insights]
+    support: [merchant-support, support, courier-support, cs-team]
+    leads: [leads, eng-leads, managers, team-leads]
+systems:
+  typical: [github, slack, stripe, adyen, twilio, braze, segment, datadog]
+  common: [sentry, launchdarkly, snowflake, confluent cloud, zendesk, pagerduty, intercom]
+symbols:
+  b_doc: [merchant statement, commission invoice, credit note, marketing invoice, corporate meal invoice, refund adjustment]
+  b_customer: [independent restaurant, restaurant chain, convenience store, grocery partner, corporate account, new merchant, enterprise merchant, ghost kitchen]
+  b_who: [merchant support, the partnerships team, finance, courier operations, the city teams]
+  b_pwho: [merchant support, a merchant, "{person}", the partnerships team, finance]
+  b_ticket_noun: [ticket, case, complaint, escalation]
+  b_since: [last month, this week, since the weekly payout, since the city launch, "for about {2-6} weeks"]
+  b_page: [orders, menus, payouts, statements, promotions, reviews, store hours]
+  b_acct_size: ["{20-200} locations", "{300-900} menu items", "{5-30} staff users", "over {1000-6000} orders"]
+  b_provider_event: [payment captured, payment declined, refund issued, chargeback opened, payout sent, payout failed]
+  b_money_path: [billing/commissions.py, billing/promotions.py, billing/payouts.py, billing/rounding.py]
+  b_check_path: [the commission tests, the payout tests, the refund tests, the callback tests]
+  b_taxkind: [sales tax, VAT, delivery fee tax, GST, service fee tax, bag fee]
+  p_table: [orders, merchants, couriers, deliveries, payouts, promotions, refunds, menu_items, dispatch_events]
+  p_report: [the daily orders by city report, the delivery time dashboard, the merchant payout reconciliation, the courier earnings report, the refund rate report, the promo spend report]
+  p_source: [the courier location stream, the merchant menu feeds, the payment processor settlements, the map provider usage logs, the support desk export, the promo redemption events]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the payments controller]
+  p_alert_name: [dispatch latency, courier location lag, payout batch delay, the nightly load finishing late, certificate expiry, error rate on the merchant portal, replication lag]
+  s_plan: [a standard commission plan, a premium partner plan, a sponsored package, a corporate meal plan, a pickup only plan, a ghost kitchen plan]
+  c_customer: [a merchant, a courier, a customer, a chain account, a corporate buyer, a city manager]
+  s_tool: [the merchant admin, the support desk, the payout console, the order lookup, the ticket queue]
+  s_thing: [the dispatch job, the payout run, the menu sync, the export, the cron, the ETA service, the promo engine, the webhook handler]
+  c_eng_area: [the dispatch job, the ETA model, the menu sync, the payout run, the promo engine, the refund flow, the courier app, the export endpoint]
+  fd_peak: [the dinner rush, the Friday peak, a storm, a big game night, a holiday weekend, the lunch rush]
+  fd_fail: [a missing item, a late delivery, a wrong order, a cold order, a double charge, an unassigned order]
+  fd_actor: [a courier, a merchant, a customer, a driver]
+  fd_reg: [courier classification rules, tip transparency rules, fee cap rules, background check rules, PCI DSS, tax on delivery fees]
+  fd_city: [the downtown zone, the airport zone, the university area, the suburbs, the harbor district, the new city launch]
+  fd_fix: [paused the batch, restarted dispatch, cleared the queue, resent the webhook]
+  fd_why: [a closed kitchen, a long wait, an out of stock item, a wrong address, a lost courier, a spilled bag]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        path: ["{b_money_path}"]
+        customer: ["{b_customer}"]
+      title:
+        - "Commission charged on the discounted total"
+        - "Platform funded promo still bills commission"
+        - "{customer|cap} commission above the rate card"
+        - "{doc|cap} total is a cent off"
+        - "Commission base includes the tip"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_raised} on {customer} accounts."
+        -   - "{/Also, /And /}A promo cuts the order total."
+            - "The tip rides on the order."
+            - ""
+        -   - "{path|cap} reads the gross amount."
+            - "Fees use the pre-promo total."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with a promo order."
+        - "{b_cm_check}, {path} sums all lines."
+        - "Finance owes {2-9} merchants a credit."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        why: ["{fd_why}"]
+      title:
+        - "Merchant charged for refunds caused by {why}"
+        - "Refund liability hits the wrong party"
+        - "Courier fault refunds billed to merchants"
+        - "Refunds for {why} hit the statement"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "A customer is refunded for {why}."
+            - "Support refunds the full order."
+        -   - "{/Also, /And /}the merchant statement deducts it."
+            - "Fault is never recorded."
+            - ""
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "Record who caused the refund."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_plan}"
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+      title:
+        - "Weekly {doc} lists an order twice"
+        - "Reopened orders counted again"
+        - "Statement total differs from payout"
+        - "Merchant payout is short by cents"
+      body:
+        -   - "An order is edited after pickup."
+            - "A reorder shares an id."
+        -   - "The {doc} counts both."
+            - "The payout uses the other total."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Dedupe on order id."
+        - "{b_cm_hand}"
+        - "{b_cm_later}"
+    - labels: [needs-decision]
+      let:
+        who: ["{b_who}"]
+        question: [who pays a late delivery refund, charging merchants for long prep times, holding a payout after a complaint, commission on cancelled orders]
+      title:
+        - "Policy for {question}?"
+        - "Who decides {question}?"
+        - "Late delivery refund liability"
+        - "Decide {question}"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} handles {question} {b_nd_b}."
+        -   - "{/Also, /And /}cities apply their own rule."
+            - "Answers differ by market."
+            - ""
+        -   - "{fd_reg|cap} may apply."
+            - "Merchants compare notes."
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who}."
+      comments:
+        - "A fault code would settle it."
+        - "{b_cm_lean} splitting the cost."
+        - "Legal should check the terms."
+    - labels: [bug]
+      title:
+        - "Sponsored placement billed for paused days"
+        - "Marketing invoice ignores the budget cap"
+        - "Ad spend and invoice differ"
+      body:
+        -   - "A merchant pauses a campaign."
+            - "The cap is reached early."
+        -   - "{/Also, /And /}billing keeps counting."
+            - "The invoice uses the click time."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Bill on the impression date."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [a city launch, a payout run, a courier deactivation, a dispatch rollback, a merchant onboarding]
+      title:
+        - "How-to: run {thing}"
+        - "Checklist for {thing}"
+        - "Write down the steps for {thing}"
+        - "Runbook: {thing}"
+      body:
+        -   - "Nobody keeps steps for {thing}."
+            - "{person} does {thing} from memory."
+        -   - "{fd_reg|cap} must be documented."
+            - "City teams ask for a list."
+        -   - "{b_dc_c} would be plenty."
+            - "One page with the contacts."
+      comments:
+        - "Notes from last time exist."
+        - "Add the city contacts."
+        - "Include who approves it."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/dispatch.md", "docs/runbooks/payout-run.md", "docs/runbooks/menu-sync.md", "docs/runbooks/courier-app.md"]
+        step: [pausing new orders, checking the map provider, draining the dispatch queue, switching on surge limits, warning city teams]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "Dispatch runbook skips {step}"
+        - "{runbook}: {step} not listed"
+        - "Update {runbook} after the migration"
+      body:
+        -   - "Followed {runbook} in an incident."
+            - "It left out {step}."
+        -   - "{person} told us in chat only."
+            - "{step|cap} sits in one head."
+        -   - "{p_owner_ask}"
+            - "{p_reviewer_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Add the peak hour limits."
+        - "{b_cm_docs}"
+    - labels: [docs, enhancement]
+      let:
+        flow: [an order from cart to doorstep, a refund from complaint to ledger, a courier, signup to first trip, a menu from upload to app]
+      title:
+        - "Explain how {flow} works"
+        - "Architecture note: {flow}"
+        - "One page on {flow}"
+        - "Describe {flow} end to end"
+      body:
+        -   - "New joiners ask how it works."
+            - "Only {person} knows the whole path."
+        -   - "{/Also, /And /}one diagram and a short page."
+            - "A simple picture would do."
+            - ""
+      comments:
+        - "I can draw it, someone check."
+        - "Include the failure cases."
+        - "{b_cm_docs}"
+  data:
+    - labels: [bug, data-quality]
+      let:
+        city: ["{fd_city}"]
+        table: ["{p_table}"]
+      title:
+        - "Delivery times look too low in {city}"
+        - "Duplicate dispatch events in {table}"
+        - "ETA error spikes for {city}"
+        - "Courier pings arrive out of order"
+      body:
+        -   - "The dashboard shows short trips."
+            - "Events arrive twice."
+        -   - "{/Also, /And /}clock skew on the courier app."
+            - "A retry replays the event."
+            - ""
+        -   - "{p_noticed|cap}."
+            - "City ops saw it first."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Use the server time."
+        - "Key on order and sequence."
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "{report|cap} does not match finance"
+        - "Courier earnings differ from payouts"
+        - "Refund rate counts reopened claims twice"
+        - "Promo spend misses stacked offers"
+      body:
+        -   - "The report is {2-9} percent off."
+            - "Finance sees another total."
+        -   - "{/Also, /And /}tips land in another week."
+            - "Stacked promos count once."
+            - ""
+        -   - "{b_ex_a}."
+            - "{who|cap} needs it before the review."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Use the ledger date."
+        - "{b_cm_check}"
+        - "Keep the old number beside it."
+    - labels: [security, task]
+      title:
+        - "Purge old courier location trails"
+        - "Customer addresses stay in the warehouse"
+        - "Erasure requests miss dispatch_events"
+      body:
+        -   - "Location trails are kept forever."
+            - "Addresses stay after deletion."
+        -   - "Privacy asked for a {30/90} day limit."
+            - "Courier data needs a short limit."
+        -   - "{p_owner_ask}"
+      comments:
+        - "A nightly purge by trip id."
+        - "Aggregate before deleting."
+        - "{b_cm_later}"
+    - labels: [performance]
+      let:
+        peak: ["{fd_peak}"]
+      title:
+        - "Nightly load slow after {peak}"
+        - "Load runs long on busy weekends"
+        - "Location stream makes the load crawl"
+      body:
+        -   - "Loads take {1-3} hours longer."
+            - "{peak|cap} doubles the volume."
+        -   - "{/Also, /And /}the slowest step reads all pings."
+            - ""
+        -   - "{b_pf_e}"
+      comments:
+        - "Downsample the location pings."
+        - "{b_cm_prof} {b_cm_prof2}"
+        - "{b_cm_plan}"
+  portal:
+    - labels: [bug]
+      let:
+        browser: ["{b_browser}"]
+      title:
+        - "Menu upload fails for large menus"
+        - "Menu import stalls at {10-90} percent"
+        - "Item photos fail in {browser}"
+        - "Edited prices miss the app"
+      body:
+        -   - "Merchants upload {2-9} hundred items."
+            - "Files over {5-20} MB fail."
+        -   - "The page shows a vague error."
+            - "It happens in {browser}."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Chunk the upload."
+        - "{b_cm_repro} with a big menu."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Payout statement export misses adjustments"
+        - "Statement CSV drops refunds"
+        - "Exported totals differ from the screen"
+      body:
+        -   - "Merchants reconcile from the export."
+            - "The CSV omits some lines."
+        -   - "{/Also, /And /}it skips refund adjustments."
+            - "Promo credits are missing."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Use the page's own query."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Tracking page shows a stale courier"
+        - "Tracking map jumps back and forth"
+        - "Delivered orders still en route"
+      body:
+        -   - "Customers watch the map."
+            - "The courier dot lags behind."
+        -   - "The page polls every {10-60} seconds."
+            - "Location updates are cached."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Switch to push updates."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [enhancement]
+      let:
+        ask: [pause the store, change prep time, mark an item sold out, dispute a refund]
+      title:
+        - "Let merchants {ask} in the portal"
+        - "Portal: {ask}"
+        - "Merchants want to {ask}"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+      comments:
+        - "Support gets {2-9} requests daily."
+        - "Needs a limit per day."
+        - "{b_cm_srv}"
+  infra:
+    - labels: [performance]
+      let:
+        peak: ["{fd_peak}"]
+      title:
+        - "Dispatch queue falls behind in {peak}"
+        - "Map provider limits trip during {peak}"
+        - "Scale dispatch before {peak}"
+      body:
+        -   - "Orders jump {2-6}x at {peak}."
+            - "Last time orders went unassigned."
+        -   - "{/Also, /And /}map calls hit the quota."
+            - "Retries add more load."
+            - ""
+        -   - "{/Also, /And /}raise quotas and add workers."
+            - ""
+      comments:
+        - "{b_cm_prof}"
+        - "Cache routes between pings."
+        - "{b_cm_plan}"
+    - labels: [security, enhancement]
+      title:
+        - "Alert before processor keys expire"
+        - "Who rotates the payment keys?"
+        - "Push credentials expire next month"
+      body:
+        -   - "The key expires in {20-120} days."
+            - "Nobody owns the rotation."
+        -   - "{/Also, /And /}A lapse stops payouts."
+            - "Couriers lose notifications."
+            - ""
+        -   - "{p_owner_ask}"
+      comments:
+        - "I will add a {30/14} day alert."
+        - "Rotate on staging first."
+        - "{b_cm_plan}"
+    - labels: [bug, incident]
+      title:
+        - "Dispatch database failover takes minutes"
+        - "Failover drops open orders"
+        - "Primary switch leaves stale locks"
+      body:
+        -   - "Orders stall during a switch."
+            - "Couriers see empty queues."
+        -   - "{/Also, /And /}connections do not recover."
+            - "Locks stay held."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "Lower the connection timeout."
+        - "{b_cm_check}"
+        - "Rehearse the failover."
+  ops:
+    - labels: [question]
+      let:
+        script: ["close_inactive_merchants.sh", "export_payouts.sh", "reset_courier_queue.sh", "{p_script}"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+        - "Does anything call {script}?"
+        - "Retire {script}?"
+        - "{script}: anyone using this?"
+      body:
+        -   - "Found {script} while tidying."
+            - "{script|cap} has no recent changes."
+        -   - "{/Also, /And /}written for the old dispatch."
+            - "It predates the new payouts."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Will remove it next month."
+      comments:
+        - "Not used by us."
+        - "Check cron on {p_old_ref}."
+        - "Keep it until the move ends."
+comments:
+  - "Merchant support has {2-9} of these open."
+  - "{b_pwho|cap} has a merchant waiting."
+  - "Does it hit {fd_city} too?"
+  - "Only {fd_city}, or every market?"
+  - "Matters most during {fd_peak}."
+  - "Checked the order log, same result."
+  - "City ops wants to know."
+  - "Hold off until {fd_peak} ends."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: {fd_peak} planning {day} at {time}"
+        - "change freeze for {fd_peak} starts {c_soon}"
+        - "all hands {day} at {time} in {c_room}"
+        - "welcome {person} to the dispatch team"
+        - "reminder: {fd_reg} review is {c_soon}"
+      replies:
+        -   - "does it include on-call?"
+            - "who needs to attend?"
+            - "will it be recorded?"
+        -   - "{c_yes}, all of them"
+            - "leads only"
+            - "{c_idk}, ask {person}"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_em}"
+    - root:
+        - "{c_hey}: benefits enrolment closes {c_soon}"
+        - "office closed {c_soon}, wfh"
+        - "it patching {c_soon}, restart please"
+        - "new city launches {c_soon}"
+      replies:
+        -   - "{c_ack}"
+            - "{c_thanks}"
+        -   - ""
+            - "thanks for the heads up"
+    - root:
+        - "huge thanks to {person} for the storm night"
+        - "{c_hey}, record orders yesterday in {fd_city}"
+        - "the team won an industry award"
+      replies:
+        -   - "amazing"
+            - "{c_em}"
+            - "well deserved"
+        -   - ""
+            - "{c_thanks}"
+  off-topic:
+    - root:
+        - "what did you order for lunch?"
+        - "ordered on our own app, {10-40} minutes"
+        - "best delivery tip story?"
+        - "lunch ideas, sick of {c_food}"
+        - "new place opened near {c_place}"
+      replies:
+        -   - "nice"
+            - "dogfooding is hard"
+            - "not for me"
+        -   - "{c_lol}"
+            - "save me a fry"
+            - ""
+    - root:
+        - "{c_sport} {c_soon}, anyone in?"
+        - "{c_weekend} {c_soon}, anyone?"
+        - "{c_pet} just did something silly"
+        - "reading anything good lately?"
+      replies:
+        -   - "i'm in"
+            - "nice"
+            - "can't, sorry"
+        -   - "{c_em}"
+            - ""
+  engineering:
+    - root:
+        - "dispatch latency up since deploy"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "{c_ci_fail} is failing on main"
+        - "who owns the ETA model?"
+        - "should we bump {c_dep}? new major is out"
+      replies:
+        -   - "i'll look {c_when_eng}"
+            - "which city?"
+            - "{c_idk}, checking"
+        -   - "it is the new build"
+            - "rolled back, watching"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "design question for {c_eng_area}, async?"
+        - "heads up, freeze from {day} for {fd_peak}"
+        - "why does {c_eng_area} retry {2-9} times?"
+        - "who is on call this week?"
+      replies:
+        -   - "async, with a retry"
+            - "ask {person}"
+            - "it is in the handbook"
+        -   - "{c_ack}"
+            - "ok, thanks"
+            - ""
+    - root:
+        - "local env broke after {pulling main/a rebase}"
+        - "is {c_tool} down for anyone else?"
+        - "tiny pr: fix typo in {repo} readme"
+      replies:
+        -   - "restart the dev container"
+            - "same here"
+            - "merged"
+        -   - "{c_thanks}"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the commission fixes, standup in {5-15} minutes"
+        - "who picks up {issue}?"
+        - "sprint planning {day} at {time}, bring estimates"
+        - "anyone free to pair on {issue}?"
+        - "retro: who owns the payout run?"
+      replies:
+        -   - "me, after standup"
+            - "i can {c_when_eng}"
+            - "{c_pto}, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {c_customer} reports {fd_fail}"
+        - "support says {fd_fail}, {issue} maybe?"
+        - "{c_hey}, {fd_fail} again, {2-9}th this week"
+        - "city ops flagged {fd_fail} in {fd_city}"
+      replies:
+        -   - "which order id?"
+            - "{issue} looks like it"
+            - "send me the city"
+        -   - "{c_ack}, taking it"
+            - "checking the logs"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers merchant support?"
+      replies:
+        -   - "in the handbook"
+            - "i do"
+        -   - "{c_thanks}"
+            - ""
+  support:
+    - let:
+        who: ["{c_customer}"]
+        fail: ["{fd_fail}"]
+      root:
+        - "{who|cap} reports {fail}"
+        - "{s_hey}, {who}: {fail}, case {4100-4999}"
+        - "{who} is upset, {fail}"
+        - "{fail} again, how do we fix it?"
+        - "{fail} in {fd_city}, what do we say?"
+      replies:
+        -   - "check the order timeline"
+            - "known, see {issue}"
+            - "send me the order id"
+            - "escalate to city ops"
+        -   - "{s_ack}, will reply"
+            - "{s_thx}"
+            - "done, refunded"
+            - ""
+    - let:
+        why: ["{fd_why}"]
+        sum: ["{s_money}"]
+      root:
+        - "customer wants {sum} back, {why}"
+        - "{s_hey}, refund for {why}, {sum}"
+        - "merchant disputes a refund, {why}"
+        - "who pays for a refund after {why}?"
+      replies:
+        -   - "check who caused it"
+            - "platform covers it this time"
+            - "ask the city manager"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - let:
+        item: ["{item_a}", "{item_b}"]
+        sum: ["{s_money}"]
+      root:
+        - "{s_cust|cap} asks why {item} is {sum}"
+        - "merchant questions the {item} line"
+        - "can someone explain {item}? merchant asks"
+        - "{item} went up, they noticed"
+      replies:
+        -   - "the rate card changed"
+            - "sponsored days are itemised"
+            - "{s_look} at the statement"
+        -   - "{s_thx}"
+            - ""
+    - root:
+        - "queue is at {20-90} open cases, mostly late orders"
+        - "{s_hey}, courier says the payout is short"
+        - "merchant cannot upload the menu"
+        - "tips missing from earnings"
+      replies:
+        -   - "known, see {issue}"
+            - "i'll check the account"
+            - "send me the courier id"
+        -   - "{s_ack}"
+            - "{s_thx}"
+  incidents:
+    - root:
+        - "dispatch is slow in {fd_city}"
+        - "orders unassigned since {time}"
+        - "payout batch is {20-90} minutes late"
+        - "{s_hey}, the map provider shows an incident"
+      replies:
+        -   - "is it all cities?"
+            - "{s_oncall} is looking"
+            - "pausing new orders"
+        -   - "{fd_fix}, watching"
+            - "back at {time}"
+            - ""
+        -   - "{s_thx}, file an issue"
+            - ""
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed"
+        - "review of the dispatch outage is {day} at {time}"
+        - "on-call handover: nothing open"
+      replies:
+        -   - "threshold is tight, raising it"
+            - "worth an issue"
+            - "works for me"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "processor key expires in {2-9} days"
+        - "{s_al} location stream lag {s_age}"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "{s_al} dispatch queue at {1-9},{100-900}"
+      replies:
+        -   - "rotating now"
+            - "i'll check the stream"
+            - "looks like the new build"
+        -   - "{s_ack}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you check the ETA config {s_soon}?"
+        - "{s_hey}, can you cover merchant support {s_soon}?"
+        - "quick question: where do refunds land?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this courier story"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - ""
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "ugh, staging dispatch is broken again"
+        - "survived {fd_peak}, finally"
+        - "{s_hey}, got a minute for audit prep?"
+      replies:
+        -   - "yes, count me in"
+            - "can't today"
+            - "same, long week"
+        -   - "tomorrow?"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Merchant emails delayed
+      - Statement mail running late
+      - Payout notices not sent
+    alert:
+      - "merchant emails delayed, oldest waited {20-90} min"
+      - "{s_al} statement queue age {s_age}"
+      - "payout mail not going out since {time}"
+    fix_message:
+      - "Queue merchant emails, not inline sends"
+      - "{s_q_verb|cap} statements {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment provider callback errors
+      - Elevated errors on provider webhooks
+      - Payment events failing
+    alert:
+      - "payment webhooks failing, rate above {5-30} percent"
+      - "{s_al} provider events erroring since {time}"
+      - "webhook endpoint throwing 5xx errors"
+    fix_message:
+      - "Retry webhooks on timeout"
+      - "Retry callbacks that time out"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate payout notices
+      - Merchants got the statement twice
+      - Payout email sent twice
+    alert:
+      - "merchants got statements twice, {3-12} reports"
+      - "{s_al} duplicate payout notices after a retry"
+      - "same email sent twice since {day}"
+    fix_message:
+      - "Check the sent log first"
+      - "Skip emails already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly orders load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad order rows"
+      - "{s_al} warehouse load aborted, dashboards stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed order rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Orders load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "orders load ran twice, counts doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Merchant portal timeouts for big chains
+      - Order list times out
+      - Portal slow for large chains
+    alert:
+      - "merchant portal timeouts, p95 above {5-20}s"
+      - "{s_al} order list 504s, largest chains only"
+      - "portal slow for big chains since {time}"
+    fix_message:
+      - "Page the order list"
+      - "Add pagination to orders"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Merchant login errors after deploy
+      - Merchants signed out after the release
+      - Login loop on the merchant portal
+    alert:
+      - "merchant logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "merchants cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - Webhook certificate expired
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}"
+      - "{s_al} tls errors on staging, no renewal"
+      - "webhook certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - Dispatch alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "dispatch alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "seeing the same in support tickets"
+    - "checking the dispatch dashboard now"
+    - "is it one city or all?"
+    - "might be the deploy from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the platform, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the commission rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} assigns refund fault? {s_un_c}"
+    - "{s_un_a} why dispatch slowed? {s_un_c}"

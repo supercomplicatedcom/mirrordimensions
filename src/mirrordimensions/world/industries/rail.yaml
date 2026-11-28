@@ -1,0 +1,1039 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Rail: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: rail
+name: Rail
+group: Transport and logistics
+aliases:
+  - railway
+  - railroad
+  - freight rail
+  - short line railroad
+description: A freight railroad that moves carloads and intermodal containers, tracks every car on its network, and bills shippers and connecting railroads.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Railway
+  - Railroad
+  - Rail
+  - Rail Freight
+  - Short Line
+  - Pacific Rail
+invoice_items:
+  - Carload freight
+  - Demurrage
+organization:
+  head: Director of Information Technology
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Information Technology
+      title: Platform Engineer
+    billing:
+      department: Revenue Accounting Systems
+      title: Billing Systems Engineer
+    data:
+      department: Network Data
+      title: Data Engineer
+    support:
+      department: Customer Service Center
+      title: Customer Service Representative
+    product:
+      department: Digital Services
+      title: Product Manager
+    operations:
+      department: Operations Technology
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, freight-billing, waybill-billing, interline-settlement]
+    platform-docs: [platform-docs, it-handbook, yard-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, car-event-loads, network-etl, rail-warehouse]
+    infra-config: [infra-config, wayside-network-config, environments, platform-config]
+    customer-portal: [customer-portal, shipper-portal, car-tracking-portal, railnet]
+    ops-scripts: [ops-scripts, yard-scripts, legacy-scripts, dispatch-scripts]
+  channels:
+    engineering: [engineering, dev, it-chat]
+    incidents: [incidents, network-alerts, outages]
+    support: [support, customer-service, shipper-support]
+    data-team: [data-team, car-data, network-data]
+    billing-team: [billing-team, revenue-systems, interline-team]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - sap s/4hana cloud
+    - honeywell forge
+    - esri arcgis online
+    - servicenow
+    - samsara
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - salesforce
+symbols:
+  b_doc:
+    - freight bill
+    - demurrage invoice
+    - switching invoice
+    - car hire statement
+    - credit memo
+  b_customer:
+    - carload shipper
+    - intermodal customer
+    - short line railroad
+    - terminal operator
+    - bulk shipper
+    - private car owner
+  b_who:
+    - the customer service center
+    - car accounting
+    - the pricing desk
+    - dispatch
+    - interline settlement
+  b_pwho:
+    - a shipper
+    - car accounting
+    - '{person}'
+    - the pricing desk
+    - dispatch
+  b_region:
+    - Texas
+    - Illinois
+    - Ontario
+    - Alberta
+    - Montana
+    - Georgia
+    - Ohio
+    - Manitoba
+  b_taxkind:
+    - sales tax
+    - fuel tax
+    - GST
+    - property levy
+    - excise tax
+    - carbon levy
+  b_currency:
+    - USD
+    - CAD
+    - MXN
+    - EUR
+    - GBP
+  b_page:
+    - car tracking
+    - waybills
+    - invoices
+    - demurrage
+    - spot requests
+    - account settings
+    - the dashboard
+    - payment history
+  b_acct_size:
+    - '{200-900} cars'
+    - '{15-60} users'
+    - '{3-12} billing contacts'
+    - '{20-120} industry tracks'
+    - '{40-300} waybills'
+  b_provider_event:
+    - payment received
+    - payment failed
+    - ACH return
+    - wire confirmed
+    - remittance posted
+    - chargeback opened
+  c_customer:
+    - a carload shipper
+    - one of the larger intermodal customers
+    - a short line railroad
+    - a terminal operator
+  s_plan:
+    - a contract rate agreement
+    - a spot move
+    - a private car lease
+    - a switching agreement
+  p_source:
+    - the car location messages
+    - the wayside detector readings
+    - the interchange files from connecting railroads
+    - the yard system's switch lists
+    - the crew management export
+    - the track inspection reports
+  p_report:
+    - the daily car inventory
+    - the dwell time dashboard
+    - the demurrage summary
+    - the interline settlement report
+    - the on-time performance report
+  p_table:
+    - car events
+    - waybills
+    - interchange records
+    - detector readings
+    - switch lists
+    - consists
+  p_finance_ask:
+    - the car accountant
+    - someone in revenue accounting
+    - the controller
+    - the interline analyst
+  c_eng_area:
+    - the waybill rating
+    - the demurrage clock
+    - the car event import
+    - the interchange parser
+    - the spot request form
+    - the fuel surcharge lookup
+  s_thing:
+    - the rating run
+    - the car event import
+    - the interchange load
+    - the invoice run
+    - the nightly load
+  p_alert_name:
+    - car event queue depth
+    - the invoice run finishing late
+    - wayside detector link loss
+    - failed backups of the waybill database
+    - interchange feed delay
+  p_cert_host:
+    - the shipper portal certificate
+    - the interchange gateway certificate
+    - the wayside gateway certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the interchange gateway password
+    - the car location API key
+    - the payments provider token
+    - the detector vendor credentials
+  rl_car:
+    - boxcars
+    - tank cars
+    - hopper cars
+    - covered hoppers
+    - intermodal flats
+    - gondolas
+  rl_yard:
+    - the {Elmwood/Harbor/Westfield} yard
+    - the {north/south} classification yard
+    - the {Gateway/Riverside} intermodal terminal
+    - the interchange at {Junction/Crossing} {1-9}
+  rl_event:
+    - a derailment upline
+    - a track closure
+    - a flood washout
+    - a heat restriction
+    - a crew shortage
+    - a bridge strike
+  rl_detector:
+    - hot box detectors
+    - wheel impact detectors
+    - dragging equipment detectors
+    - weigh in motion scales
+  rl_peak:
+    - harvest season
+    - the holiday peak
+    - month end
+    - the winter freeze
+  rl_note:
+    - Raised by car accounting.
+    - The service center hit it first.
+    - '{person} saw it on a {rl_car} move.'
+    - A shipper queried it.
+  rl_cm:
+    - Checked against the waybill.
+    - Same on the last batch.
+    - Rerun after the fix looks right.
+    - Numbers match the interchange file.
+  rl_when:
+    - before the next invoice run
+    - before the peak season
+    - ahead of month end
+    - before the tariff change
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        car:
+          - '{rl_car}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Demurrage clock counts weekends
+        - '{doc|cap} charges free days wrongly'
+        - Free time for {car} ignores holidays
+        - Demurrage starts at placement, not constructive
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - '{rl_note}'
+          - A shipper disputed the demurrage.
+          - Customer service flagged it.
+        - - Free days are counted by calendar.
+          - The tariff says working days.
+          - The holiday table is empty.
+          - Placement time is not read.
+          - '{rl_note}'
+        - - Charges start a day early.
+          - The gap is about {2-9} percent.
+          - Credits will be needed.
+          - '{rl_note}'
+        - - Needs a fix {rl_when}.
+          - '{p_owner_ask}'
+          - '{b_urgent}'
+          - '{rl_note}'
+      comments:
+        - '{rl_cm}'
+        - Add a holiday table per region.
+        - '{b_cm_plan}'
+        - Credits may follow for earlier months.
+    - labels: [bug]
+      let:
+        yard:
+          - '{rl_yard}'
+      title:
+        - Per diem uses wrong rate date
+        - Hire billed after car return
+        - Per diem charged twice at {yard}
+        - Interchange date off by a day
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Connecting railroads dispute the hire.
+          - '{rl_note}'
+        - - Hire starts at the interchange.
+          - The date comes from the file.
+          - Time zones differ at the junction.
+          - A reweigh resets the clock.
+          - '{rl_note}'
+        - - Car accounting corrects it by hand.
+          - The difference adds up monthly.
+          - '{rl_note}'
+        - - '{b_urgent}'
+          - '{p_priority}'
+          - '{rl_note}'
+      comments:
+        - '{rl_cm}'
+        - Use the interchange timestamp.
+        - Rates change on the first.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        n:
+          - '{2-4}'
+      title:
+        - Interline split gives wrong share
+        - Revenue split ignores the {n} road route
+        - Settlement shares differ from the tariff
+        - Joint rate divided on mileage only
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - A connecting road disputed its share.
+          - '{rl_note}'
+        - - The split uses route miles.
+          - The tariff names fixed shares.
+          - A {n} road move has two splits.
+          - '{rl_note}'
+        - - Totals match, shares do not.
+          - Settlement is off by {2-9} percent.
+          - '{rl_note}'
+        - - '{p_owner_ask}'
+          - '{p_priority}'
+          - '{rl_note}'
+      comments:
+        - Store the split on the rate.
+        - '{rl_cm}'
+        - Interline will confirm the shares.
+    - labels: [bug]
+      let:
+        peak:
+          - '{rl_peak}'
+      title:
+        - Fuel surcharge lags the index
+        - Surcharge for {peak} uses the old table
+        - Fuel percentage differs from the tariff
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Shippers compare to the published rate.
+          - '{rl_note}'
+        - - The index is monthly.
+          - The table loads late.
+          - Bills use the prior month.
+          - '{rl_note}'
+        - - The gap is about {2-9} percent.
+          - '{rl_note}'
+        - - '{p_priority}'
+          - '{b_urgent}'
+          - '{rl_note}'
+      comments:
+        - Load the table on the first.
+        - '{rl_cm}'
+        - Credits for the month may follow.
+    - labels: [bug]
+      let:
+        car:
+          - '{rl_car}'
+      title:
+        - Switching charges applied to through moves
+        - Waybill for {car} rated with the wrong route
+        - Duplicate switching line on the bill
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - A terminal disputed switching fees.
+          - '{rl_note}'
+        - - The route comes from the waybill.
+          - A reroute is not applied.
+          - '{rl_note}'
+        - - Two switch lists create two lines.
+          - '{rl_note}'
+        - - '{b_urgent}'
+          - '{p_owner_ask}'
+          - '{rl_note}'
+      comments:
+        - Rate on the final route.
+        - '{rl_cm}'
+        - Dedupe by switch list id.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - demurrage waivers
+          - detention credits
+          - service failure claims
+      title:
+        - Who approves {question}?
+        - Policy for {question}
+        - Limits for {question}
+      body:
+        - - '{b_nd_a}'
+          - Answers differ by person.
+          - '{rl_note}'
+        - - '{b_raised}, {b_scope}.'
+          - '{rl_note}'
+        - - Needs a ruling from {who}.
+          - '{b_nd_f}'
+          - '{rl_note}'
+      comments:
+        - Set a dollar limit per desk.
+        - Legal should check the terms.
+        - Track approvals in the ticket.
+  portal:
+    - labels: [bug]
+      let:
+        car:
+          - '{rl_car}'
+      title:
+        - Car tracking shows an old location
+        - Location for {car} lags by hours
+        - Cars show at the wrong yard
+        - Placement status never updates
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Shippers plan unloading from it.
+          - '{rl_note}'
+        - - Events arrive late from yards.
+          - The page shows the latest arrival.
+          - '{rl_note}'
+        - - Time zones differ per yard.
+          - '{rl_note}'
+        - - '{b_urgent}'
+          - '{rl_note}'
+      comments:
+        - Sort by event time.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        what:
+          - spot requests
+          - car orders
+          - release notices
+      title:
+        - Submit of {what} fails near the cutoff
+        - '{what|cap} vanish after a save'
+        - Duplicate {what} after a retry
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Shippers miss the order window.
+          - '{rl_note}'
+        - - The form times out under load.
+          - A retry creates a second order.
+          - '{rl_note}'
+        - - Only some browsers fail.
+          - '{rl_note}'
+        - - '{p_priority}'
+          - '{rl_note}'
+      comments:
+        - Make the save idempotent.
+        - '{b_cm_repro} on a fresh account.'
+        - Load test before the peak.
+    - labels: [bug, performance]
+      let:
+        what:
+          - car inventory
+          - waybill lists
+          - demurrage statements
+      title:
+        - '{what|cap} page is slow for large shippers'
+        - '{what|cap} time out with {2-9} thousand rows'
+        - Search for {what} never finishes
+      body:
+        - - '{b_raised}, {b_scope}.'
+          - Large shippers wait minutes.
+          - '{rl_note}'
+        - - The page loads every row.
+          - Each row triggers a lookup.
+          - '{rl_note}'
+        - - A next link would do.
+          - '{rl_note}'
+        - - '{p_priority}'
+          - '{rl_note}'
+      comments:
+        - Page the list on the server.
+        - Index the car number.
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        what:
+          - waybills
+          - invoices
+          - car inventories
+      title:
+        - Shippers can see {what} of other shippers
+        - '{what|cap} list ignores the company'
+        - Wrong company sees {what}
+      body:
+        - - A user saw {what} not theirs.
+          - '{b_raised}, {b_scope}.'
+          - '{rl_note}'
+        - - The list filters by user only.
+          - '{rl_note}'
+        - - '{b_dlk_c}'
+          - '{rl_note}'
+        - - '{b_dlk_e}'
+          - '{rl_note}'
+      comments:
+        - '{b_cm_repro}, no company filter.'
+        - '{b_cm_fix_up} It adds a company check.'
+        - Check the access log first.
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/demurrage.md
+          - docs/interline.md
+          - docs/car-hire.md
+      title:
+        - '{Handbook/Docs}: {page} lists an old tariff'
+        - '{page} disagrees with the billing code'
+        - '{page|cap} misses the new tariff year'
+      body:
+        - - '{page|cap} describes last year.'
+          - New rules are not listed.
+          - '{rl_note}'
+        - - A joiner used the old rule.
+          - '{p_noticed|cap}.'
+          - '{rl_note}'
+        - - Pricing owns the rules.
+          - The code is the truth.
+          - '{rl_note}'
+        - - '{p_owner_ask}'
+          - '{rl_note}'
+      comments:
+        - Pricing will send the rules.
+        - Will update it {rl_when}.
+        - Link the published tariff.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - an interchange feed outage
+          - a stuck invoice run
+          - a wayside link loss
+          - a car event backlog
+      title:
+        - Runbook for {thing}
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        - - The guide says nothing about {thing}.
+          - Last time {thing} cost {2-6} hours.
+          - '{rl_note}'
+        - - On call asks the dispatch desk.
+          - Steps live in one person's notes.
+          - '{rl_note}'
+        - - A short page would help.
+          - Who to call, in what order.
+          - '{rl_note}'
+        - - '{p_priority}'
+          - '{rl_note}'
+      comments:
+        - Add the dispatch desk number.
+        - Operations should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - tariff versioning
+          - who approves bill reversals
+          - the peak change freeze
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: handbook and practice differ'
+        - Where should {topic} live?
+      body:
+        - - New people keep asking about {topic}.
+          - The answer depends who you ask.
+          - '{rl_note}'
+        - - Pricing and accounting disagree.
+          - Nothing is written down.
+          - '{rl_note}'
+        - - '{b_dc_c} {b_dc_e}'
+          - '{rl_note}'
+      comments:
+        - Ask {p_finance_ask} for the rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - car numbers
+          - waybill numbers
+          - consist ids
+      title:
+        - Duplicate {what} in the car events
+        - Same {what} on two records
+        - '{what|cap} fail the format check'
+        - Car events repeat after a replay
+      body:
+        - - Found {2-80} bad {what}.
+          - A count shows extra rows.
+          - '{rl_note}'
+        - - The yard system resends messages.
+          - The load only inserts.
+          - '{rl_note}'
+        - - Dwell time looks too long.
+          - Demurrage may be billed twice.
+          - '{rl_note}'
+        - - '{p_priority}'
+          - '{rl_note}'
+      comments:
+        - Key on car plus event time.
+        - Deduplicated by key, counts match.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        det:
+          - '{rl_detector}'
+      title:
+        - Gaps in {det} readings
+        - Detector feed repeats old values
+        - Readings from {det} are missing for {2-30} hours
+      body:
+        - - Readings stop for some sites.
+          - The feed repeats the last value.
+          - '{rl_note}'
+        - - The wayside link dropped.
+          - A firmware update changed fields.
+          - '{rl_note}'
+        - - Alerts to maintenance are late.
+          - Trending reports show holes.
+          - '{rl_note}'
+        - - '{rl_note}'
+          - '{p_priority}'
+      comments:
+        - Backfilled from the site buffer.
+        - Gateway log shows a drop at {time}.
+        - Flag gaps rather than zeros.
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Car event load finished {delay} late on {day_name}
+        - Invoice run waited on the {day_name} load
+        - Dwell report empty on {day_name}
+      body:
+        - - The load ended {delay} past the usual time.
+          - Event tables were empty.
+          - '{rl_note}'
+        - - The slowest step was {p_table}.
+          - A big interchange doubled the files.
+          - '{rl_note}'
+        - - '{p_noticed|cap}.'
+          - Nothing was lost, only late.
+          - '{rl_note}'
+        - - We need the cause {rl_when}.
+          - '{rl_note}'
+      comments:
+        - The yard files came late again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [question, data-quality]
+      let:
+        report:
+          - '{p_report}'
+        gap:
+          - '{p_dollars}'
+      title:
+        - '{report|cap} does not match billing, {gap} off'
+        - Car counts differ from billed cars
+        - Dwell days in {report} disagree with bills
+      body:
+        - - The report and the ledger differ.
+          - The gap is {2-9} percent.
+          - '{rl_note}'
+        - - Time zones may explain part.
+          - Holds and free days are mixed.
+          - '{rl_note}'
+        - - '{p_owner_ask}'
+          - '{rl_note}'
+      comments:
+        - Reconcile on the interchange file.
+        - '{rl_cm}'
+        - Check the cutoff times.
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        - - '{cert|cap} is due in {days} days.'
+          - We nearly missed the last renewal.
+          - '{rl_note}'
+        - - Interchange stops if it lapses.
+          - Shippers see a browser warning.
+          - '{rl_note}'
+        - - '{p_noticed|cap}.'
+          - '{rl_note}'
+        - - Needs a real alert and owner.
+          - '{p_owner_ask}'
+          - '{rl_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [bug, performance]
+      let:
+        yard:
+          - '{rl_yard}'
+      title:
+        - Radio data link at {yard} drops often
+        - Wayside sites lose link in storms
+        - Telemetry arrives in bursts
+      body:
+        - - The link drops every {2-9} hours.
+          - Weather explains some drops.
+          - '{rl_note}'
+        - - Buffers fill on the gateway.
+          - Messages arrive in late bursts.
+          - '{rl_note}'
+        - - Dispatch calls us.
+          - '{rl_note}'
+        - - '{p_priority}'
+          - '{rl_note}'
+      comments:
+        - Shortened keepalives on the gateway.
+        - A second link is quoted.
+        - Alert on flaps, not outages.
+    - labels: [security, bug]
+      let:
+        what:
+          - the wayside network
+          - the yard network
+          - the dispatch network
+      title:
+        - Firewall rule into {what} is too wide
+        - Review vendor access to {what}
+        - Segmentation gap around {what}
+      body:
+        - - One rule allows more than needed.
+          - An audit flagged broad access.
+          - '{rl_note}'
+        - - Only a few ports are used.
+          - One source host would do.
+          - '{rl_note}'
+        - - Changes wait for a window.
+          - '{rl_note}'
+        - - '{p_owner_ask}'
+          - '{rl_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - waybill records
+          - car event history
+          - inspection records
+      title:
+        - Backups of {what} keep fewer years than policy
+        - Retention for {what} is {2-6} years
+        - Restore of {what} was never tried
+      body:
+        - - Policy keeps {what} {7-10} years.
+          - The archive prunes after {2-6} years.
+          - '{rl_note}'
+        - - The last restore was never tried.
+          - Failures are logged, nobody paged.
+          - '{rl_note}'
+        - - Regulators can ask for old records.
+          - Claims reach back years.
+          - '{rl_note}'
+        - - '{p_priority}'
+          - '{rl_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: the yard office closes early {c_soon}.'
+        - safety briefing {day} at {time}
+        - reminder, vests when crossing tracks
+        - '{c_hey}: the depot tour runs {c_soon}'
+        - open enrolment closes {c_soon}
+      replies:
+        - - '{c_ack}'
+          - will be there
+          - is it mandatory?
+        - - '{c_thanks}'
+          - ''
+    - root:
+        - welcome {person}, joining from the yard
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in revenue systems
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        - - welcome {person}!
+          - '{c_em}'
+        - - '{c_thanks}'
+          - ''
+    - root:
+        - '{rl_event} upline, expect late events'
+        - network disruption {c_soon}, slow tracking
+        - heads up, {rl_event} near {rl_yard}
+        - '{rl_peak} starts {c_soon}, change freeze'
+      replies:
+        - - noted
+          - '{c_ack}'
+        - - will the alerts page us?
+          - ''
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - train spotting this weekend?
+        - best coffee near the depot?
+        - how was the rail expo?
+      replies:
+        - - '{c_lol}'
+          - '{c_agree}'
+        - - ''
+          - same
+    - root:
+        - anyone selling a bike?
+        - hiking this weekend, who is in?
+        - the cafeteria soup is back
+        - '{c_pet} ate a switch list'
+      replies:
+        - - '{c_lol}'
+          - ha
+        - - ''
+          - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the per diem lookup
+          - the interline split
+      root:
+        - '{thing} is wrong for {rl_car}'
+        - should {thing} use the interchange time?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        - - i think {person} wrote it, ask them
+          - '{c_idk}'
+          - predates the migration, check old scripts
+        - - will look {c_when_eng}
+          - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - the demurrage tests fail on holidays
+        - flaky test in the event import
+        - '{c_ci_fail} keeps timing out on rating tests'
+      replies:
+        - - same here
+          - rerunning
+          - seen it, date fixtures
+        - - fix is in {issue}
+          - '{c_ack}'
+    - root:
+        - does the import handle yard retries?
+        - what happens when a yard resends?
+        - do we dedupe car events?
+        - how late can an event arrive?
+        - are late events billed or dropped?
+      replies:
+        - - about a day, i think
+          - check the yard docs
+          - '{c_idk}'
+        - - should write that down
+          - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on invoice run days
+        - freeze for {rl_peak} starts {day}
+        - deploys paused until {time} on {day}
+        - tariff change freeze starts {c_soon}
+      replies:
+        - - '{c_ack}'
+          - got it
+        - - is a hotfix ok?
+          - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, invoice day'
+        - skipping standup, at the yard
+        - who is picking up {issue}?
+      replies:
+        - - i can take it
+          - '{c_ack}'
+          - on my list
+        - - ''
+          - thanks
+    - root:
+        - invoice run starts {c_soon}, billing freezes {day}
+        - new tariff goes live {c_soon}, any blockers?
+        - '{rl_peak} starts {c_soon}, who has the checklist?'
+        - interline settlement is {day}, who is on it?
+      replies:
+        - - i am on call
+          - checklist is in the handbook
+          - '{c_ack}'
+        - - ping me if the run stalls
+          - ''
+    - root:
+        - shipper escalation, {c_customer} disputes the bill
+        - a shipper says demurrage is wrong
+        - escalation from car accounting, hire
+        - big shipper wants a call {c_soon}
+        - '{c_hey}: {c_customer} is unhappy about tracking'
+      replies:
+        - - which account?
+          - i will check the logs
+        - - it is {issue}
+          - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says demurrage is wrong'
+        - '{who|cap} asks about the surcharge'
+        - shipper cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants a copy of the waybill'
+        - car tracking looks stale for {who}
+      replies:
+        - - check the free days first
+          - surcharge follows the tariff, tell them
+          - try a fresh login
+          - checking the log now
+        - - '{s_ack}, will tell them'
+          - '{s_thx}'
+          - ''
+    - root:
+        - shipper disputes the free time
+        - terminal wants the invoice copy
+        - '{s_cust|cap} cannot see cars, {s_ticket}'
+        - escalating, wrong route, filed as {issue}
+      replies:
+        - - sending the breakdown now
+          - copy attached to the ticket
+        - - '{s_thx}'
+          - '{c_ack}'
+    - root:
+        - queue is at {20-90} open tickets, mostly bills
+        - 'tracking calls: {20-80} since morning'
+        - tickets doubled after bills went out
+      replies:
+        - - same, will help after lunch
+          - '{c_ack}'
+        - - any macro for the demurrage question?
+          - ''
+  incidents:
+    - let:
+        what:
+          - the interchange feed
+          - the car event feed
+          - the invoice run
+      root:
+        - '{what} stopped at {time}'
+        - '{s_al} {what} silent since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - dispatch says {what} looks stale
+      replies:
+        - - looking
+          - restarted the poller, watching it
+          - gateway is up, upstream issue
+        - - fixed, backfilling
+          - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        - - '{c_ack}'
+          - will join
+        - - ''
+          - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the event server is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        - - on it
+          - '{c_ack}'
+        - - renewing today
+          - ''
+  direct:
+    - root:
+        - '{s_hey}, check the car event import {s_soon}?'
+        - which date does the report use?
+        - can you look at {issue} before the run?
+        - '{s_hey}, got a minute for the tariff?'
+        - handing over invoicing, out {s_soon}
+      replies:
+        - - sure
+          - '{s_ack}'
+          - give me ten minutes
+        - - '{s_thx}'
+          - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived the audit, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        - - sounds good
+          - '{c_lol}'
+        - - ''
+          - same
+comments:
+  - Check the published tariff first.
+  - '{rl_cm}'
+  - Does this touch the invoice run?
+  - Ask pricing before changing it.
+  - Dispatch would want to know.

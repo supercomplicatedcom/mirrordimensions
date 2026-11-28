@@ -1,0 +1,613 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Online travel agencies: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: online-travel
+name: Online travel agencies
+group: Travel, hospitality and leisure
+aliases: [online travel agency, ota, travel booking site, travel marketplace, online travel]
+description: An online travel marketplace that sells flights, stays and packages from many suppliers, takes payment and settles with suppliers and partners.
+name_suffixes: [Travel, Trips, Holidays, Journeys, Getaways, Voyages]
+invoice_items: [Package holiday booking, Flexible cancellation cover]
+organization:
+  head: VP of Engineering
+  it_admin: IT Operations Lead
+  teams:
+    platform: {department: Platform Engineering, title: Platform Engineer}
+    billing: {department: Payments and Settlements, title: Software Engineer}
+    data: {department: Data and Pricing Analytics, title: Data Engineer}
+    support: {department: Customer Care, title: Travel Support Agent}
+    product: {department: Product and Growth, title: Product Manager}
+    operations: {department: Supplier Operations, title: Supplier Operations Analyst}
+names:
+  repos:
+    billing-service: [booking-billing, payments-settlement, trip-invoicing, supplier-ledger]
+    platform-docs: [engineering-handbook, platform-runbooks, travel-tech-docs, team-wiki]
+    data-pipeline: [supplier-loads, booking-warehouse, pricing-etl, search-analytics-etl]
+    infra-config: [platform-infra, env-config-trips, cloud-environments, deploy-settings]
+    customer-portal: [traveller-web, my-trips, booking-web, checkout-web]
+    ops-scripts: [supplier-scripts, ops-batch, legacy-feeds, support-tools]
+  channels:
+    engineering: [eng-travel, product-eng, platform-chat]
+    incidents: [live-incidents, booking-incidents, prod-alerts]
+    releases: [release-train, ship-it, weekly-releases]
+    support: [traveller-support, care-escalations, support-floor]
+    leads: [eng-leads, tech-managers]
+systems:
+  typical: [github, slack, jira, okta, google workspace, confluence, salesforce, adyen, sabre]
+  common: [pagerduty, datadog, zendesk, snowflake, braze]
+symbols:
+  b_doc: [booking confirmation, supplier invoice, commission statement, refund notice, "{monthly/quarterly} partner statement"]
+  b_customer: [package holiday, flight-only, hotel-only, corporate booking, affiliate, white-label partner, metasearch, loyalty member]
+  b_who: [the supplier team, finance, customer care, the partnerships team, the payments team, fraud operations]
+  b_pwho: [customer care, a traveller, "{person}", the payments team, the partnerships team]
+  b_ticket_noun: [case, ticket, complaint, escalation]
+  b_taxkind: [VAT, tour operator margin VAT, tourism levy, airport tax, booking fee]
+  b_page: [bookings, trips, payment methods, saved travellers, receipts, price alerts, loyalty points, itineraries]
+  b_provider_event: [payment authorised, 3-D Secure failed, refund completed, chargeback opened, supplier payout settled, card token updated]
+  b_acct_size: ["{200-900} bookings", "{15-60} travellers", "{3-12} billing contacts", "{40-300} saved searches", "over {1000-4000} trip components"]
+  b_check_path: [the booking total tests, the confirmation email tests, the refund tests, the callback tests]
+  b_money_path: [billing/booking_totals.py, billing/margins.py, billing/supplier_costs.py, billing/markups.py]
+  b_mail_path: [billing/confirmations.py, billing/confirmation_queue.py, billing/itinerary_emails.py, billing/sent_log.py]
+  b_cb_path: [billing/payment_events.py, billing/psp_callbacks.py, billing/supplier_events.py]
+  b_credit_path: [billing/refunds.py, billing/supplier_credits.py, billing/vouchers.py]
+  b_dl_path: [billing/receipt_download.py, billing/documents.py]
+  b_export_path: [billing/jobs/commission_export.py, billing/export.py]
+  b_pay_path: [portal/payment_methods.py, portal/saved_cards.py]
+  s_plan: [a flexible fare bundle, a package holiday, a hotel only stay, a last minute deal, a loyalty member rate, a corporate booking]
+  s_cust: ["a traveller on {s_plan}", "someone on {s_plan}", "a customer with {s_plan}", "a booker on {s_plan}", "an affiliate on {s_plan}"]
+  c_customer: [a traveller, a corporate travel manager, an affiliate partner, a white-label partner, a loyalty member, a long standing business account]
+  p_table: [bookings, trip_components, travellers, payments, supplier_costs, refunds, vouchers, search_sessions, loyalty_accounts]
+  p_source: ["the payment provider's settlement files", "the suppliers' availability feeds", "the mail provider's delivery events", "the metasearch partners' click reports", "the suppliers' commission statements", "the fraud screening scores", "the card disputes feed"]
+  p_report: [the daily bookings report, the weekly margin report, the conversion dashboard, the supplier payables ageing report, the commission reconciliation report, the monthly board pack]
+  p_secret_thing: [the supplier gateway API key, the payments provider token, the metasearch feed credentials, the warehouse service account key, the signing key for itinerary links, the mail provider API key]
+  p_limit_target: [the search workers, the checkout pods, the portal pods, the mail relay, the warehouse loader]
+  s_thing: [the confirmation job, the commission export, the price cache, the cron, the deploy script, the migration, the retry logic, the mail template, the search ranking, the checkout flow, the webhook handler]
+  c_eng_area: [the confirmation job, the retry logic, the price lookup, the checkout flow, the nightly batch, the webhook handler, the search index, the itinerary renderer, the currency converter, the audit log, the reports page, the queue consumer]
+  s_tool: [the admin console, the booking lookup, the supplier portal, the case queue, the refund tool]
+  p_alert_name: [disk usage on the web hosts, failed backups, confirmation queue depth, the nightly load finishing late, certificate expiry, error rate on checkout, replication lag]
+  p_runbook: [docs/runbooks/confirmation-workers.md, docs/runbooks/nightly-load.md, docs/runbooks/portal-restarts.md, docs/runbooks/warehouse-restore.md, docs/runbooks/supplier-outage.md]
+  ot_trip: [a flight and hotel bundle, a round trip, a multi-city flight, a hotel only stay, a package holiday, a car hire add-on]
+  ot_supplier: [an airline supplier, a hotel chain feed, a bed bank, a car hire supplier, an activities supplier, a rail aggregator]
+  ot_flow: [flight search, the checkout page, price alerts, manage my booking, the payment step, hotel search, the itinerary page]
+  ot_when: [during the summer sale, over the bank holiday weekend, during a fare sale, after a supplier outage, on Black Friday, during school holiday searches]
+  ot_feed: [the supplier availability feed, the fare file, the commission statement, the cancellations feed, the booking events stream, the search logs export]
+  ot_cert: [the checkout certificate, the supplier API gateway certificate, the payments tunnel certificate, the metasearch feed certificate]
+  ot_incident: [a supplier outage, a fare error, a price cache wipe, a wave of schedule changes, a payment provider outage]
+  ot_who: [the supplier team, finance, customer care, the partnerships team, the payments team, fraud operations]
+  ot_extra: [travel insurance, a bag allowance, a seat upgrade, an airport transfer, flexible cancellation, a car hire add-on]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        trip: ["{ot_trip}"]
+        cur: ["{b_currency}"]
+      title:
+        - "Margin on {trip} is a cent out after {cur} conversion"
+        - "{doc|cap} differs from supplier cost for {trip}"
+        - "{cur} rate taken at booking on {trip}"
+        - "{doc|cap} does not add up for {trip}"
+        - "{trip|cap}: markup rounded per component"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {trip} bookings, {b_scope}."]
+        - ["{b_money_path} converts {cur} for each component alone.", "Each component's {cur} price is rounded before summing."]
+        - ["{doc|cap} lines sum to another figure.", "Supplier statements show another cost."]
+        - ["{trip|cap}: {finance/payments} wants one conversion step.", "Convert the whole booking once."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a two component {trip}."
+        - "Suppliers convert once, so should we."
+        - "{b_cm_check}, {cur} is rounded in {b_money_path}."
+    - labels: [bug, needs-decision]
+      let:
+        extra: ["{ot_extra}"]
+        who: ["{ot_who}"]
+      title:
+        - "Who pays for {extra} when a supplier cancels?"
+        - "Refund of {extra} after a supplier schedule change"
+        - "{extra|cap} refund rules disagree between brands"
+        - "Policy for {extra} on rebooked trips"
+        - "{extra|cap} refunded twice after a cancellation"
+      body:
+        - ["{extra|cap} comes back for some bookings only.", "Care refunds {extra}; the website does not."]
+        - ["{b_credit_path} has no rule for it.", "{b_credit_path} treats {extra} as part of the fare."]
+        - ["{who|cap} should write the rule down first.", "Needs an answer from {who}, then code."]
+        - ["{b_since|cap}, care logged {2-12} complaints.", "Support has {2-9} cases open on it."]
+      comments:
+        - "Package rules expect a full refund."
+        - "I will ask the {payments/care} team."
+        - "{b_cm_ask_who}"
+    - labels: [bug]
+      let:
+        event: ["{b_provider_event}"]
+        flow: ["{ot_flow}"]
+      title:
+        - "Booking stays pending after {event} callback"
+        - "Traveller charged twice when the {event} callback repeats"
+        - "Callback for {event} lost during {flow}"
+        - "{event|cap} arrives after the supplier hold expires"
+        - "Ticket issued without payment after {event}"
+      body:
+        - ["{b_cb_a} {b_cb_b}.", "The handler keeps no payment reference."]
+        - ["{event|cap} repeating {books the supplier twice/releases the hold/leaves the order half paid}.", "The hold lapses when {event} arrives late."]
+        - ["{b_db_c}", "Travellers pay, then lose the booking."]
+        - ["{b_cb_e} {b_cb_f}", "Check the hold time before cancelling."]
+      comments:
+        - "Seen on {2-9} bookings {b_since}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Supplier holds last {10-30} minutes only."
+  portal:
+    - labels: [bug]
+      let:
+        flow: ["{ot_flow}"]
+        browser: ["{b_browser}"]
+      title:
+        - "{flow|cap} fails in {browser}"
+        - "{flow|cap} shows a blank page on {browser}"
+        - "Travellers cannot finish {flow} in {browser}"
+        - "{browser}: {flow} {hangs/spins forever/errors out}"
+      body:
+        - ["{b_pscope}.", "{b_raised}, {b_pscope}."]
+        - ["{browser|cap} is the only one affected.", "Other browsers are fine."]
+        - ["{b_cm_syn} {b_cm_syn2}", "A cached script breaks {flow} after releases."]
+        - ["{b_urgent}", "Traffic is high at sale time."]
+      comments:
+        - "Same in {b_browser}, so not only {browser}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "The mobile app is fine."
+    - labels: [bug, performance]
+      let:
+        when: ["{ot_when}"]
+        size: ["{b_acct_size}"]
+      title:
+        - "Search results are slow {when}"
+        - "Trip list takes {b_slow} for accounts with {size}"
+        - "Timeouts on checkout {when}"
+        - "Price calendar loads slowly {when}"
+      body:
+        - ["{b_sl_a} wait {b_slow}.", "Travellers report {b_slow} for prices."]
+        - ["{b_sl_c}", "Each supplier is queried in turn."]
+        - ["{b_pf_a} supplier calls.", "The slow call is {the supplier/the price} service."]
+        - ["{ot_who|cap} see the delay too.", "Care sees it on their screens."]
+      comments:
+        - "Profiling points at supplier fan-out."
+        - "Cache prices for {1-5} minutes?"
+        - "{b_cm_priv}, so not the browser."
+    - labels: [enhancement, needs-decision]
+      let:
+        extra: ["{ot_extra}"]
+        who: ["{ot_who}"]
+      title:
+        - "Let travellers add {extra} after booking"
+        - "Self-service change of {extra}"
+        - "Feature request from {who}: {extra} in the app"
+        - "Offer {extra} on the confirmation page"
+      body:
+        - ["{extra|cap} needs a phone call today.", "Only care agents can add {extra}."]
+        - ["{b_ss_c} {b_ss_d} {b_ss_e}", "A short form would do."]
+        - ["{who|cap} says it would cut calls.", "Growth wants it before the sale."]
+        - ["{extra|cap} prices come from the supplier.", "Prices differ per supplier."]
+      comments:
+        - "How many calls is that weekly?"
+        - "Check package travel rules too."
+        - "{b_cm_try}"
+    - labels: [bug, security]
+      let:
+        flow: ["{ot_flow}"]
+      title:
+        - "Reference plus email exposes trips in {flow}"
+        - "Passport details shown in full on {flow}"
+        - "Itinerary link works for anyone"
+        - "Booking lookup in {flow} has no rate limit"
+      body:
+        - ["{flow|cap}: anyone guessing a reference reads trips.", "{flow|cap} prints whole passport numbers."]
+        - ["{b_dlk_d}", "Limit lookups per address."]
+        - ["{b_cm_legal} Traveller {data/records} fall under privacy law."]
+        - ["{b_dlk_e}"]
+      comments:
+        - "{b_cm_rolefix}"
+        - "{b_cm_tell}"
+        - "I can limit it {there/at the edge}."
+  data:
+    - labels: [bug, incident]
+      let:
+        feed: ["{ot_feed}"]
+        delay: ["{p_delay}"]
+      title:
+        - "Nightly load finished {delay} late after {feed} arrived late"
+        - "{feed|cap} missing, margin report empty"
+        - "Load waited for {feed} and timed out"
+        - "{feed|cap} came in twice, rows duplicated"
+      body:
+        - ["{Finance/The pricing team} saw {yesterday's/Monday's/weekend} figures late.", "The morning bookings report was stale."]
+        - ["{feed|cap} is never checked for completeness.", "The load starts at fixed hours."]
+        - ["{feed|cap}: {wait for/look for} a done marker.", "Alert when the file is missing."]
+        - ["{b_g_ships}"]
+      comments:
+        - "The supplier resends after {1-3} hours."
+        - "Compare row counts with the manifest."
+        - "{b_g_oneoff}"
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+      title:
+        - "Margin in the warehouse is {2-9} percent off for {ot_trip}"
+        - "Duplicate bookings in {table}"
+        - "Supplier payables miss the ledger"
+        - "{table|cap} lost rows after an amendment"
+        - "Cancelled trips count twice in {table}"
+      body:
+        - ["{b_g_checked} about {20-900} rows.", "Finance spotted it while reconciling."]
+        - ["{table|cap}: an amendment creates a new row.", "The old row stays open."]
+        - ["{Cancelled/Refunded} trips still count as sold.", "Cancelled components stay flagged sold."]
+        - ["{Join/Match} on the booking number.", "Follow the order's last status."]
+      comments:
+        - "This explains the margin report gap."
+        - "Does it hold for partial refunds?"
+        - "I can backfill {1-6} weeks."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        who: ["{ot_who}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the pricing model"
+        - "Should {who} get {source} in the warehouse?"
+        - "Add {source} for conversion reporting"
+      body:
+        - ["{who|cap} reads {source} by hand today.", "It arrives as email attachments."]
+        - ["{A nightly/An hourly} load would do.", "We need it by working day {1-4}."]
+        - ["{Times/Dates} are local to the supplier.", "Convert times to UTC on load."]
+      comments:
+        - "Which supplier code format is it?"
+        - "Check timezones on overnight flights."
+        - "{b_cm_plan}"
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{ot_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} runs out in {2-9} days"
+        - "Renew {cert} before the sale"
+        - "Nobody owns {cert}"
+      body:
+        - ["{cert|cap} is renewed by hand yearly.", "A leaver did the last renewal."]
+        - ["{Expiry/A lapse} would block {checkout/payments/search}.", "Partner feeds stop when it lapses."]
+        - ["{Warn/Alert} {14/21/30} days before expiry."]
+      comments:
+        - "Put the renewal in the calendar."
+        - "Which partners use that endpoint?"
+        - "{b_cm_plan}"
+    - labels: [bug, incident]
+      let:
+        inc: ["{ot_incident}"]
+        flow: ["{ot_flow}"]
+      title:
+        - "Autoscaling too slow for {inc}"
+        - "Retry storms on {flow} after {inc}"
+        - "Rate limits hit during {inc}"
+        - "Capacity for {flow} during {inc}"
+      body:
+        - ["After {inc}, traffic jumps {5-20} times.", "Travellers all retry at once."]
+        - ["{p_limit_target|cap} take {2-6} minutes to start."]
+        - ["{Raise/Lift} the minimum before sale season.", "Scale on queue depth, not CPU."]
+      comments:
+        - "Care spikes then too."
+        - "Let's agree a pre-scale checklist."
+        - "{b_cm_later}"
+    - labels: [chore, security]
+      let:
+        thing: ["{p_secret_thing}"]
+        item: ["{thing}"]
+        place: [the config file, a log line, a stack trace, the deploy output]
+      title:
+        - "Rotate {thing}"
+        - "{thing|cap} is overdue for rotation"
+        - "{thing|cap} is shared across environments"
+        - "Move {thing} into the secret store"
+      body:
+        - ["{b_sc_a} {b_sc_b}", "{b_sc_c}"]
+        - ["{b_sc_d} {b_sc_e}"]
+        - ["{The vendor/Our partner} wants {3-10} days notice."]
+      comments:
+        - "Schedule it outside sale periods."
+        - "Who at the vendor switches it?"
+        - "{b_cm_docs}"
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: ["{ot_incident}"]
+      title:
+        - "Runbook for {thing}"
+        - "Write up what tech does during {thing}"
+        - "On-call guide lacks steps for {thing}"
+        - "Document the freeze rules around {thing}"
+      body:
+        - ["{thing|cap}: new engineers ask what to do.", "Nobody new knows who to call."]
+        - ["{Cover/List} who to page.", "List the flags to flip."]
+        - ["{ot_who|cap} has a plan of their own.", "Link to the supplier plan."]
+      comments:
+        - "Ask the supplier team {about it/for input}."
+        - "{b_cm_up} {b_cm_read2}"
+        - "{b_cm_docs}"
+    - labels: [docs, bug]
+      let:
+        flow: ["{ot_flow}"]
+      title:
+        - "Handbook page on {flow} is out of date"
+        - "{flow|cap} runbook names the old gateway"
+        - "Docs for {flow} disagree with production"
+        - "Broken link in the {flow} page"
+      body:
+        - ["{flow|cap}: the page lists old {escalation/rota/vendor} contacts."]
+        - ["{b_cm_disc} {b_cm_when}."]
+        - ["{Fix/Update} the page and date it."]
+      comments:
+        - "Updated the contacts."
+        - "{b_cm_merged}"
+  ops:
+    - labels: [question, chore]
+      let:
+        sup: ["{ot_supplier}"]
+      title:
+        - "Is the import script for {sup} still used?"
+        - "Can we delete {sup} fare loader?"
+        - "Cancellations export for {sup} fails silently"
+      body:
+        - ["Last run was {1-9} months ago.", "Nobody here knows who calls it."]
+        - ["{ot_who|cap} may still use it."]
+      comments:
+        - "Ask the supplier team."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        sup: ["{ot_supplier}"]
+      title:
+        - "Booking export misses names for {sup}"
+        - "Cron on {sup} gateway exits with no output"
+      body:
+        - ["{sup|cap}: names with accents come out garbled.", "The job skips bookings after cutoff."]
+        - ["{sup|cap} runs from {an unmanaged/an old} host."]
+      comments:
+        - "Probably encoding. I will check."
+        - "Move it to the scheduler."
+comments:
+  - "Is this {ot_who} or us?"
+  - "Does care see the same thing?"
+  - "Check the package bookings too."
+  - "That matches the care report."
+chat:
+  support:
+    - let:
+        amt: ["{s_money}"]
+        why: ["supplier cancelled", "charged twice", "wrong dates booked", "name spelled wrong", "never travelled"]
+      root:
+        - "refund request: {s_cust}, {amt}, {why}"
+        - "{s_hey}, refund for {amt}? {why}"
+        - "{s_ticket}: {why}, {amt} back"
+        - "traveller wants {amt} back, reason: {why}"
+        - "can i refund {amt}? says {why}"
+      replies:
+        - ["check the fare rules first", "{why} counts, full refund", "over {200-500} needs payments approval"]
+        - ["rules allow it, refunding now", "already refunded last week", "{s_ack}, they get it in {3-7} days"]
+        - ["{s_thx}", ""]
+    - let:
+        what: ["confirmation not arriving", "date change refused", "hotel booking lost", "invoice missing taxes", "points not credited"]
+      root:
+        - "escalating to tech: {what}, filed as {issue}"
+        - "{s_hey}, can tech look at {issue}? {what}"
+        - "more cases on {what}, adding to {issue}"
+        - "third complaint about {what} today"
+        - "{what} again. {issue} has the details"
+      replies:
+        - ["looking now", "we have it, {person} is on it", "can you send {me/over} the booking numbers?"]
+        - ["numbers are in the issue", "{s_ack}, pasting them"]
+    - let:
+        who: ["a corporate booker", "an affiliate partner", "a white-label partner", "a loyalty member"]
+      root:
+        - "{who} says the invoice total is wrong"
+        - "{who} wants a receipt with taxes split"
+        - "{s_hey}, {who} needs receipts for {1-9} trips"
+        - "{who} cannot download receipts"
+        - "partner says commission is short {s_money}"
+      replies:
+        - ["can you send the booking numbers?", "which month is that?"]
+        - ["the {b_page} page, they say", "the statement from last month"]
+        - ["pulling it from {s_tool}", "finance has the full list"]
+    - let:
+        shift: ["morning", "evening", "weekend", "night"]
+      root:
+        - "{shift} handover: {5-30} open cases, none urgent"
+        - "queue is {20-90} deep after the supplier outage"
+        - "handover for {shift}: fare sale cases mostly"
+        - "{shift} shift: {2-9} complaints about the app"
+      replies:
+        - ["{s_ack}, taking the oldest first", "i will triage the sale ones"]
+        - ["tag the app ones for tech", ""]
+  team:
+    - let:
+        what: ["release notes", "the weekly report", "the capacity plan", "the sale readiness checklist"]
+      root:
+        - "who owns {what} this week?"
+        - "can someone pick up {what}?"
+        - "{what} needs an owner before {day}"
+        - "{s_hey}, who is writing {what}?"
+        - "still no owner for {what}"
+      replies:
+        - ["i can take it", "{person} did it last time"]
+        - ["{s_ack}, thanks", ""]
+    - let:
+        launch: ["the summer sale", "the new supplier launch", "the loyalty relaunch", "the checkout redesign"]
+      root:
+        - "heads up: {launch} goes out {day}"
+        - "{launch} goes live {c_soon}, anything blocking?"
+        - "freeze starts {day} for {launch}"
+        - "who is on call for {launch}?"
+        - "prep for {launch}: please check your tickets"
+      replies:
+        - ["pricing rules are loaded here", "nothing from billing"]
+        - ["on call from {time}", "check the price cache once more"]
+    - let:
+        x: ["customer care", "the supplier team", "the payments team", "the partnerships team"]
+      root:
+        - "{x} asked about the booking fix, status?"
+        - "meeting with {x} on {day}, who joins?"
+        - "{x} wants a walkthrough {c_soon}"
+        - "{x} is waiting on us for {issue}"
+      replies:
+        - ["i will join", "can someone brief me first?"]
+        - ["it ships {day}", "waiting on review"]
+  engineering:
+    - let:
+        thing: ["the price cache", "the supplier connector", "the search index", "the itinerary renderer", "the loyalty accrual job"]
+      root:
+        - "{thing} is slow, anyone changed something?"
+        - "is {thing} failing for anyone else?"
+        - "design question for {thing}, async or batch?"
+        - "who knows {thing} best?"
+        - "pr up for {thing}, {c_patch}"
+      replies:
+        - ["not me, check the deploys", "{person} touched it {c_when_eng}"]
+        - ["it is the supplier api again", "looks fine from here"]
+        - ["{s_thx}", ""]
+    - let:
+        fmt: ["the fare file", "the availability feed", "the cancellations feed", "the commission statement"]
+      root:
+        - "{fmt} format changed again, who knows why?"
+        - "supplier sent {fmt} with a new column"
+        - "parser breaks on {fmt} from the {1-9}th"
+        - "{fmt} has local times, no zone"
+      replies:
+        - ["pin the parser to old format", "ask the supplier for a spec"]
+        - ["added a test with their file", "will fix it {c_when_eng}"]
+    - let:
+        dep: ["the pdf library", "the date library", "the http client", "the payment sdk"]
+      root:
+        - "should we upgrade {dep}? new major is out"
+        - "upgrading {dep} after the sale?"
+        - "{dep} needs the security patch"
+        - "who is upgrading {dep}?"
+      replies:
+        - ["not before the summer sale", "after the freeze"]
+        - ["doing it in staging first", "{s_ack}"]
+    - let:
+        thing: ["a flaky test", "the build cache", "the staging data", "the build agent"]
+      root:
+        - "{thing} is blocking main again"
+        - "main is red because of {thing}"
+        - "help with {thing}? {c_patch}"
+        - "{thing} again, anyone?"
+      replies:
+        - ["rerun it", "known issue, being fixed"]
+        - ["{s_ack}", "will look {c_when_eng}"]
+  incidents:
+    - let:
+        what: ["flight search", "checkout", "the payment step", "hotel search", "manage my booking"]
+      root:
+        - "{what} is {s_symptom} {s_since}"
+        - "is {what} down for anyone?"
+        - "alert: {what} error rate above {3-20} percent"
+        - "care says {what} is failing"
+        - "{what} {s_symptom}, travellers are complaining"
+      replies:
+        - ["checking now", "looking at dashboards", "i see it too"]
+        - ["rolled back the last release, watching", "supplier side issue, they confirmed"]
+        - ["recovering", "all clear at {time}"]
+    - let:
+        inc: ["{ot_incident}"]
+      root:
+        - "{inc}: booking queue is {2-9},{100-900} deep"
+        - "heads up, {inc}, expect traffic"
+        - "supplier team flagged {inc}, scale up?"
+        - "{inc} right now, we need capacity"
+      replies:
+        - ["scaling now", "raised the minimum pods"]
+        - ["the app is holding", "watch the payment callbacks"]
+        - ["{s_ack}", ""]
+    - let:
+        thing: ["the airline gateway", "the payment gateway", "the hotel supplier api", "the fraud screening vendor"]
+      root:
+        - "{thing} latency is {5-40} seconds"
+        - "{thing} has been quiet since {time}"
+        - "{thing} status page shows an incident"
+        - "vendor says {thing} is degraded"
+      replies:
+        - ["opened a case with them", "failing over to the backup"]
+        - ["bookings are failing", "none seen yet"]
+    - let:
+        what: ["the confirmation job", "the commission export", "the refund job", "the payout file"]
+      root:
+        - "near miss: {what} almost failed, a retry saved it"
+        - "post-incident review for {what} is {day} at {time}"
+        - "{what} woke me up at {time}"
+        - "{what} backed up to {1-9},{100-900}"
+      replies:
+        - ["noted, adding to the review", "{c_agree}"]
+        - ["can you write it up?", ""]
+  town-square:
+    - let:
+        what: ["the team offsite", "the travel perk programme", "the quarterly town hall", "the new office opening party"]
+      root:
+        - "{what} is {c_soon}, sign up in the portal"
+        - "reminder: {what} {c_soon}"
+        - "{c_hey}: {what} is {c_soon} at {time}"
+        - "who is going to {what}?"
+        - "{what}, details in the newsletter"
+      replies:
+        - ["i am in", "count me in"]
+        - ["{c_thanks}", ""]
+    - let:
+        what: ["the new market launch", "the summer sale", "the loyalty relaunch", "the partner integration"]
+      root:
+        - "{what} has been announced, congrats all"
+        - "{c_hey}, {what} is public from {day}"
+        - "thanks to everyone on {what}"
+        - "{what}: all hands {day} at {time}"
+      replies:
+        - ["great news", "{c_em}"]
+        - ["{c_thanks}", ""]
+  direct:
+    - let:
+        q: ["the markup rules", "the hold time", "the amendment logic", "the refund split"]
+      root:
+        - "quick question about {q}"
+        - "{s_hey}, do you know how {q} works?"
+        - "got a minute for {q}?"
+        - "can you explain {q}?"
+        - "who wrote {q}?"
+      replies:
+        - ["sure, call in {s_soon}", "ask {person}, they know it"]
+        - ["{s_thx}", "{s_ack}"]
+    - let:
+        when: ["on friday", "next week", "tomorrow", "{day}"]
+      root:
+        - "i am off {when}, can you cover the pager?"
+        - "swap on-call {when}?"
+        - "can we move our 1:1 {when}?"
+        - "{s_hey}, can you cover {when}?"
+      replies:
+        - ["yes, no problem", "{day} is hard, {day} works"]
+        - ["{s_thx}", ""]
+  off-topic:
+    - let:
+        what: ["that long layover", "the best beach we visited", "airport lounges", "the worst hotel breakfast"]
+      root:
+        - "anyone want to talk about {what}?"
+        - "did you see {what}?"
+        - "best story about {what}?"
+        - "thoughts on {what}?"
+      replies:
+        - ["haha yes", "{c_agree}"]
+        - ["send photos", ""]
+    - let:
+        food: ["the canteen", "the new ramen place", "the cafe downstairs", "the food truck"]
+      root:
+        - "lunch at {food}?"
+        - "is {food} open today?"
+        - "{food} menu looks good today"
+        - "{s_lunch} or {food}?"
+      replies:
+        - ["i am in", "give me ten minutes"]
+        - ["see you there", ""]

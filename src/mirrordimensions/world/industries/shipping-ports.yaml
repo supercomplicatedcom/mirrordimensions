@@ -1,0 +1,1050 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Shipping and ports: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: shipping-ports
+name: Shipping and ports
+group: Transport and logistics
+aliases:
+  - shipping
+  - maritime
+  - ports
+  - container shipping
+  - port operations
+description: A port operator or shipping line that handles vessels and containers, and bills shipping lines, agents and cargo owners for berths, handling and storage.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Port Authority
+  - Terminals
+  - Shipping
+  - Harbour
+  - Maritime
+  - Container Line
+invoice_items:
+  - Berth hire
+  - Container handling
+organization:
+  head: Head of IT
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Information Technology
+      title: Platform Engineer
+    billing:
+      department: Port Billing Systems
+      title: Billing Systems Engineer
+    data:
+      department: Terminal Data
+      title: Data Engineer
+    support:
+      department: Customer Service
+      title: Customer Service Representative
+    product:
+      department: Digital Port
+      title: Product Manager
+    operations:
+      department: Terminal Operations Technology
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, port-billing, vessel-billing, tariff-service]
+    platform-docs: [platform-docs, it-handbook, terminal-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, terminal-loads, vessel-etl, port-warehouse]
+    infra-config: [infra-config, quay-network-config, environments, platform-config]
+    customer-portal: [customer-portal, agent-portal, shipping-line-portal, gate-portal]
+    ops-scripts: [ops-scripts, terminal-scripts, legacy-scripts, gate-scripts]
+  channels:
+    engineering: [engineering, dev, it-chat]
+    incidents: [incidents, terminal-alerts, outages]
+    support: [support, customer-service, agent-support]
+    data-team: [data-team, terminal-data, vessel-data]
+    billing-team: [billing-team, port-billing, tariff-team]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - sap s/4hana cloud
+    - project44
+    - esri arcgis online
+    - honeywell forge
+    - servicenow
+    - navis
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - fourkites
+symbols:
+  b_doc:
+    - port call invoice
+    - container storage invoice
+    - berth hire invoice
+    - demurrage invoice
+    - credit note
+  b_customer:
+    - shipping line
+    - vessel agent
+    - freight forwarder
+    - cargo owner
+    - trucking company
+    - bulk shipper
+  b_who:
+    - the harbour master's office
+    - customer service
+    - the tariff team
+    - terminal planning
+    - the finance desk
+  b_pwho:
+    - an agent
+    - a shipping line
+    - '{person}'
+    - terminal planning
+    - the tariff team
+  b_region:
+    - the Netherlands
+    - Singapore
+    - Australia
+    - Canada
+    - Germany
+    - Spain
+    - Brazil
+    - the United States
+  b_taxkind:
+    - VAT
+    - GST
+    - harbour dues
+    - customs duty
+    - sales tax
+    - environmental levy
+  b_currency:
+    - USD
+    - EUR
+    - GBP
+    - SGD
+    - AUD
+  b_page:
+    - vessel calls
+    - gate appointments
+    - invoices
+    - container status
+    - berth windows
+    - account settings
+    - the dashboard
+    - payment history
+  b_acct_size:
+    - '{200-900} containers'
+    - '{15-60} users'
+    - '{3-12} billing contacts'
+    - '{20-120} vessel calls'
+    - '{40-300} bookings'
+  b_provider_event:
+    - payment received
+    - payment failed
+    - wire confirmed
+    - remittance posted
+    - bank guarantee called
+    - chargeback opened
+  c_customer:
+    - a shipping line
+    - one of the larger agents
+    - a freight forwarder
+    - a trucking company
+  s_plan:
+    - a berth window contract
+    - a spot call
+    - a volume rebate deal
+    - a storage agreement
+  p_source:
+    - the terminal operating system export
+    - the vessel agent's arrival notices
+    - the gate OCR camera feed
+    - the customs release messages
+    - the AIS position feed
+    - the crane move logs
+  p_report:
+    - the daily berth report
+    - the yard occupancy dashboard
+    - the vessel productivity report
+    - the unbilled calls list
+    - the dwell time report
+  p_table:
+    - vessel calls
+    - container moves
+    - gate transactions
+    - berth windows
+    - storage days
+    - customs holds
+  p_finance_ask:
+    - the port accountant
+    - someone in the tariff team
+    - the controller
+    - the receivables lead
+  c_eng_area:
+    - the tariff lookup
+    - the storage clock
+    - the berth hire calculation
+    - the gate import
+    - the vessel schedule job
+    - the move counter
+  s_thing:
+    - the tariff run
+    - the gate import
+    - the vessel feed
+    - the invoice run
+    - the nightly load
+  p_alert_name:
+    - gate message backlog
+    - the invoice run finishing late
+    - AIS feed lag
+    - failed backups of the terminal database
+    - quay network errors
+  p_cert_host:
+    - the agent portal certificate
+    - the gate gateway certificate
+    - the customs link certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the terminal system service account password
+    - the customs link credentials
+    - the payments provider token
+    - the AIS feed key
+  sp_vessel:
+    - the container ship {Aurora/Meridian/Halcyon}
+    - the bulk carrier {Northern/Eastern} Star
+    - the tanker {Marlow/Cadence}
+    - the feeder {Kestrel/Osprey}
+    - the car carrier {Tideway/Windrush}
+  sp_berth:
+    - berth {1-12}
+    - the north quay
+    - the container berth
+    - the bulk jetty
+    - the ro-ro ramp
+  sp_charge:
+    - port dues
+    - berth hire
+    - pilotage
+    - towage
+    - wharfage
+    - reefer plug hours
+    - storage
+  sp_cargo:
+    - reefer containers
+    - dangerous goods
+    - bulk grain
+    - empty containers
+    - project cargo
+  sp_event:
+    - a berth delay
+    - a crane breakdown
+    - a customs hold
+    - a strike notice
+    - bad weather
+    - a late pilot
+  sp_note:
+    - Raised by the finance desk.
+    - Customer service hit it first.
+    - '{person} saw it on {sp_vessel}.'
+    - A vessel agent queried it.
+  sp_cm:
+    - Checked against the berth log.
+    - Same on the last call.
+    - Rerun after the fix looks right.
+    - Numbers match the move counts.
+  sp_when:
+    - before the next invoice run
+    - before the vessel sails
+    - ahead of the tariff change
+    - before month end
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        vessel:
+          - '{sp_vessel}'
+        charge:
+          - '{sp_charge}'
+      title:
+        - Port dues use wrong gross tonnage
+        - '{charge|cap} for {vessel} is {2-9} percent off'
+        - Invoice tonnage differs from the call
+        - Dues charged on wrong vessel size
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{sp_note}'
+            - An agent disputed the tonnage.
+            - Finance noticed it on {vessel}.
+        -   - The tariff bands use gross tonnage.
+            - Billing reads the registry value.
+            - A refit changed the tonnage.
+            - Records are cached for a year.
+            - '{sp_note}'
+        -   - The gap is about {2-9} percent.
+            - Across a month that adds up.
+            - Credits will be needed.
+            - '{sp_note}'
+        -   - Needs a fix {sp_when}.
+            - '{p_owner_ask}'
+            - '{b_urgent}'
+            - '{sp_note}'
+      comments:
+        - '{sp_cm}'
+        - Tonnage comes from the registry.
+        - '{b_cm_plan}'
+        - Credits may follow for earlier calls.
+    - labels: [bug]
+      let:
+        berth:
+          - '{sp_berth}'
+        event:
+          - '{sp_event}'
+      title:
+        - Berth hire counts hours before arrival
+        - Berth hire ignores {event}
+        - '{berth|cap} hire charged from the booked window'
+        - Late arrival billed from the window
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - An agent queried the hours.
+            - '{sp_note}'
+        -   - Hire starts at the window start.
+            - The contract says first line.
+            - Arrival time is not read.
+            - Delay credits are manual.
+            - '{sp_note}'
+        -   - After {event} the bill is high.
+            - The difference is {2-30} hours.
+            - '{sp_note}'
+        -   - '{b_urgent}'
+            - '{p_priority}'
+            - '{sp_note}'
+      comments:
+        - '{sp_cm}'
+        - Use the first line time.
+        - Delays need a credit rule.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        charge:
+          - storage
+          - demurrage
+          - detention
+      title:
+        - Free days for {charge} count weekends
+        - '{charge|cap} clock ignores port holidays'
+        - '{charge|cap} charged before free time ends'
+        - Wrong start for {charge}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Customers dispute {charge} bills.
+            - '{sp_note}'
+        -   - Free days are counted by calendar.
+            - Gate out is used, not discharge.
+            - Customs holds do not pause it.
+            - '{sp_note}'
+        -   - The tariff says working days.
+            - Charges start a day early.
+            - '{sp_note}'
+        -   - '{p_owner_ask}'
+            - '{p_priority}'
+            - '{sp_note}'
+      comments:
+        - Add a holiday table.
+        - Customs holds should stop the clock.
+        - Credits for last month are needed.
+    - labels: [bug]
+      let:
+        cargo:
+          - '{sp_cargo}'
+      title:
+        - Surcharge missing for {cargo}
+        - '{cargo|cap} billed at the standard rate'
+        - Special cargo surcharge applied twice
+        - Reefer plug hours are rounded down
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Freight forwarders noticed.
+            - '{sp_note}'
+        -   - The cargo class is not copied.
+            - Plug hours are rounded per day.
+            - '{sp_note}'
+        -   - Revenue is lower than expected.
+            - Surcharge lines are missing.
+            - '{sp_note}'
+        -   - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{sp_note}'
+      comments:
+        - Copy the cargo class at booking.
+        - '{sp_cm}'
+        - Add a test per cargo class.
+    - labels: [bug]
+      let:
+        cur:
+          - '{b_currency}'
+      title:
+        - Dues in {cur} use the wrong rate date
+        - Exchange rate taken at invoice date
+        - '{cur} totals differ from the tariff'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Agents compare to the tariff.
+            - '{sp_note}'
+        -   - Rate date is the invoice date.
+            - The tariff names the arrival date.
+            - '{sp_note}'
+        -   - Rounding differs per line.
+            - '{sp_note}'
+        -   - '{b_urgent}'
+            - '{sp_note}'
+      comments:
+        - Use the tariff rate date.
+        - '{sp_cm}'
+        - Finance wants a rate table.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - berth delay credits
+          - storage waivers
+          - late payment fees
+      title:
+        - Who approves {question}?
+        - Policy for {question}
+        - Limits for {question}
+      body:
+        -   - '{b_nd_a}'
+            - Answers differ by person.
+            - '{sp_note}'
+        -   - '{b_raised}, {b_scope}.'
+            - '{sp_note}'
+        -   - Needs a ruling from {who}.
+            - '{b_nd_f}'
+            - '{sp_note}'
+      comments:
+        - Set a dollar limit per desk.
+        - Legal should check the terms.
+        - Track approvals in the ticket.
+  portal:
+    - labels: [bug]
+      let:
+        vessel:
+          - '{sp_vessel}'
+      title:
+        - Vessel ETA shows the wrong time
+        - ETA for {vessel} jumps back a day
+        - Berth window shows the old slot
+        - Arrival times use server time
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Agents plan trucks from the ETA.
+            - '{sp_note}'
+        -   - ETA comes from the AIS feed.
+            - Time zones differ at the quay.
+            - '{sp_note}'
+        -   - The window updates after a save.
+            - '{sp_note}'
+        -   - '{b_urgent}'
+            - '{sp_note}'
+      comments:
+        - Show times in the port zone.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        what:
+          - gate appointments
+          - release orders
+          - container lists
+      title:
+        - Booking of {what} fails near the cutoff
+        - '{what|cap} vanish after a save'
+        - Duplicate {what} after a retry
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Truckers wait at the gate.
+            - '{sp_note}'
+        -   - The form times out under load.
+            - A retry creates a second row.
+            - '{sp_note}'
+        -   - Only some browsers fail.
+            - '{sp_note}'
+        -   - '{p_priority}'
+            - '{sp_note}'
+      comments:
+        - Make the save idempotent.
+        - '{b_cm_repro} on a fresh account.'
+        - Load test before the peak.
+    - labels: [bug, performance]
+      let:
+        what:
+          - container status
+          - invoice lists
+          - yard maps
+      title:
+        - '{what|cap} page is slow for large agents'
+        - '{what|cap} time out with {2-9} thousand rows'
+        - Search for {what} never finishes
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Large agents wait minutes.
+            - '{sp_note}'
+        -   - The page loads every row.
+            - Each row triggers a lookup.
+            - '{sp_note}'
+        -   - A next link would do.
+            - '{sp_note}'
+        -   - '{p_priority}'
+            - '{sp_note}'
+      comments:
+        - Page the list on the server.
+        - Index the container number.
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        what:
+          - invoices
+          - release orders
+          - container lists
+      title:
+        - Agents can see {what} of other agents
+        - '{what|cap} list ignores the company'
+        - Wrong company sees {what}
+      body:
+        -   - A user saw {what} not theirs.
+            - '{b_raised}, {b_scope}.'
+            - '{sp_note}'
+        -   - The list filters by user only.
+            - '{sp_note}'
+        -   - '{b_dlk_c}'
+            - '{sp_note}'
+        -   - '{b_dlk_e}'
+            - '{sp_note}'
+      comments:
+        - '{b_cm_repro}, no company filter.'
+        - '{b_cm_fix_up} It adds a company check.'
+        - Check the access log first.
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/tariff.md
+          - docs/storage-rules.md
+          - docs/berth-windows.md
+      title:
+        - '{Handbook/Docs}: {page} lists an old tariff'
+        - '{page} disagrees with the billing code'
+        - '{page|cap} misses the new tariff year'
+      body:
+        -   - '{page|cap} describes last year.'
+            - New bands are not listed.
+            - '{sp_note}'
+        -   - A joiner used the old band.
+            - '{p_noticed|cap}.'
+            - '{sp_note}'
+        -   - The tariff team owns the rules.
+            - The code is the truth.
+            - '{sp_note}'
+        -   - '{p_owner_ask}'
+            - '{sp_note}'
+      comments:
+        - Tariff team will send the bands.
+        - Will update it {sp_when}.
+        - Link the published tariff.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - a gate system outage
+          - a stuck invoice run
+          - an AIS feed loss
+          - a customs link failure
+      title:
+        - Runbook for {thing}
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        -   - The guide says nothing about {thing}.
+            - Last time {thing} cost {2-6} hours.
+            - '{sp_note}'
+        -   - On call asks the control room.
+            - Steps live in one person's notes.
+            - '{sp_note}'
+        -   - A short page would help.
+            - Who to call, in what order.
+            - '{sp_note}'
+        -   - '{p_priority}'
+            - '{sp_note}'
+      comments:
+        - Add the control room number.
+        - Terminal operations should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - tariff versioning
+          - who approves invoice reversals
+          - the peak change freeze
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: handbook and practice differ'
+        - Where should {topic} live?
+      body:
+        -   - New people keep asking about {topic}.
+            - The answer depends who you ask.
+            - '{sp_note}'
+        -   - Finance and the tariff team disagree.
+            - Nothing is written down.
+            - '{sp_note}'
+        -   - '{b_dc_c} {b_dc_e}'
+            - '{sp_note}'
+      comments:
+        - Ask {p_finance_ask} for the rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - container numbers
+          - vessel call ids
+          - booking references
+      title:
+        - Duplicate {what} after the system migration
+        - Same {what} on two records
+        - '{what|cap} fail the check digit'
+        - Invalid {what} in {p_table}
+      body:
+        -   - Found {2-80} bad {what}.
+            - A count shows extra rows.
+            - '{sp_note}'
+        -   - The old system allowed typos.
+            - The merge kept both records.
+            - '{sp_note}'
+        -   - Storage is billed twice.
+            - Moves attach to the wrong box.
+            - '{sp_note}'
+        -   - '{p_priority}'
+            - '{sp_note}'
+      comments:
+        - Validate the check digit on load.
+        - Deduplicated by key, counts match.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        event:
+          - '{sp_event}'
+      title:
+        - AIS positions missing after {event}
+        - Vessel feed repeats old positions
+        - Gaps in crane move counts
+        - Move counts differ from the log
+      body:
+        -   - Positions stop for {2-12} hours.
+            - The feed repeats the last value.
+            - '{sp_note}'
+        -   - The vendor API rate limited us.
+            - A firmware update changed fields.
+            - '{sp_note}'
+        -   - ETAs are wrong in the portal.
+            - Productivity numbers look low.
+            - '{sp_note}'
+        -   - '{sp_note}'
+            - '{p_priority}'
+      comments:
+        - Backfilled from the vendor archive.
+        - Gateway log shows a drop at {time}.
+        - Flag stale values, not zeros.
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Terminal load finished {delay} late on {day_name}
+        - Invoice run waited on the {day_name} load
+        - Unbilled calls list empty on {day_name}
+      body:
+        -   - The load ended {delay} past the usual time.
+            - Call tables were empty.
+            - '{sp_note}'
+        -   - The slowest step was {p_table}.
+            - A big vessel doubled the moves.
+            - '{sp_note}'
+        -   - '{p_noticed|cap}.'
+            - Nothing was lost, only late.
+            - '{sp_note}'
+        -   - We need the cause {sp_when}.
+            - '{sp_note}'
+      comments:
+        - The terminal export came late again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [question, data-quality]
+      let:
+        report:
+          - '{p_report}'
+        gap:
+          - '{p_dollars}'
+      title:
+        - '{report|cap} does not match billing, {gap} off'
+        - Move counts differ from invoiced moves
+        - Storage days in {report} disagree with invoices
+      body:
+        -   - The report and the ledger differ.
+            - The gap is {2-9} percent.
+            - '{sp_note}'
+        -   - Time zones may explain part.
+            - Holds and free days are mixed.
+            - '{sp_note}'
+        -   - '{p_owner_ask}'
+            - '{sp_note}'
+      comments:
+        - Reconcile on the berth log.
+        - '{sp_cm}'
+        - Check the cutoff times.
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        -   - '{cert|cap} is due in {days} days.'
+            - We nearly missed the last renewal.
+            - '{sp_note}'
+        -   - Gates stop if it lapses.
+            - Agents see a browser warning.
+            - '{sp_note}'
+        -   - '{p_noticed|cap}.'
+            - '{sp_note}'
+        -   - Needs a real alert and owner.
+            - '{p_owner_ask}'
+            - '{sp_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [bug, performance]
+      let:
+        site:
+          - '{sp_berth}'
+      title:
+        - Quay network drops near {site}
+        - Gate cameras lose link at peak
+        - OCR feed arrives in bursts
+      body:
+        -   - The link drops every {2-9} hours.
+            - Wireless is thin at the quay.
+            - '{sp_note}'
+        -   - Buffers fill on the gateway.
+            - Gate messages arrive late.
+            - '{sp_note}'
+        -   - Truckers queue at the gate.
+            - '{sp_note}'
+        -   - '{p_priority}'
+            - '{sp_note}'
+      comments:
+        - Shortened keepalives on the gateway.
+        - A second access point is quoted.
+        - Alert on flaps, not outages.
+    - labels: [security, bug]
+      let:
+        what:
+          - the terminal network
+          - the gate network
+          - the crane control network
+      title:
+        - Firewall rule into {what} is too wide
+        - Review vendor access to {what}
+        - Segmentation gap around {what}
+      body:
+        -   - One rule allows more than needed.
+            - An audit flagged broad access.
+            - '{sp_note}'
+        -   - Only a few ports are used.
+            - One source host would do.
+            - '{sp_note}'
+        -   - Changes wait for a window.
+            - '{sp_note}'
+        -   - '{p_owner_ask}'
+            - '{sp_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - gate records
+          - vessel call records
+          - customs messages
+      title:
+        - Backups of {what} keep fewer years than policy
+        - Retention for {what} is {2-6} years
+        - Restore of {what} was never tried
+      body:
+        -   - Policy keeps {what} {7-10} years.
+            - The archive prunes after {2-6} years.
+            - '{sp_note}'
+        -   - The last restore was never tried.
+            - Failures are logged, nobody paged.
+            - '{sp_note}'
+        -   - Customs can audit old records.
+            - Agents dispute charges later.
+            - '{sp_note}'
+        -   - '{p_priority}'
+            - '{sp_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: the gate opens early {c_soon}.'
+        - safety briefing {day} at {time}
+        - reminder, vests on the quay
+        - '{c_hey}: the harbour tour runs {c_soon}'
+        - open enrolment closes {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - will be there
+            - is it mandatory?
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - welcome {person}, joining from terminal planning
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in port billing
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        -   - welcome {person}!
+            - '{c_em}'
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - '{sp_vessel} arrives {c_soon}, expect noise'
+        - port congestion {c_soon}, slow gates
+        - heads up, {sp_event} at {sp_berth}
+        - peak season starts {c_soon}, change freeze
+      replies:
+        -   - noted
+            - '{c_ack}'
+        -   - will the alerts page us?
+            - ''
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - ferry is late again
+        - best coffee near the quay?
+        - how was the shipping expo?
+      replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+        -   - ''
+            - same
+    - root:
+        - anyone selling a bike?
+        - sailing this weekend, who is in?
+        - the cafeteria soup is back
+        - '{c_pet} ate a gate pass'
+      replies:
+        -   - '{c_lol}'
+            - ha
+        -   - ''
+            - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the tonnage lookup
+          - the surcharge rules
+      root:
+        - '{thing} is wrong for {sp_cargo}'
+        - should {thing} use the arrival date?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        -   - i think {person} wrote it, ask them
+            - '{c_idk}'
+            - predates the migration, check old scripts
+        -   - will look {c_when_eng}
+            - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - tariff tests fail on leap days
+        - flaky test in the storage clock
+        - '{c_ci_fail} keeps timing out on tariff tests'
+      replies:
+        -   - same here
+            - rerunning
+            - seen it, date fixtures
+        -   - fix is in {issue}
+            - '{c_ack}'
+    - root:
+        - does the import handle gate retries?
+        - what happens when the terminal resends?
+        - do we dedupe gate moves?
+        - how late can a move arrive?
+        - are late moves billed or dropped?
+      replies:
+        -   - about a day, i think
+            - check the terminal docs
+            - '{c_idk}'
+        -   - should write that down
+            - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on invoice run days
+        - freeze for peak season starts {day}
+        - deploys paused until {time} on {day}
+        - tariff change freeze starts {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - got it
+        -   - is a hotfix ok?
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, invoice day'
+        - skipping standup, on the quay
+        - who is picking up {issue}?
+      replies:
+        -   - i can take it
+            - '{c_ack}'
+            - on my list
+        -   - ''
+            - thanks
+    - root:
+        - invoice run starts {c_soon}, billing freezes {day}
+        - new tariff goes live {c_soon}, any blockers?
+        - peak season starts {c_soon}, who has the checklist?
+        - customs audit is {day}, who is on it?
+      replies:
+        -   - i am on call
+            - checklist is in the handbook
+            - '{c_ack}'
+        -   - ping me if the run stalls
+            - ''
+    - root:
+        - agent escalation, {c_customer} disputes the invoice
+        - shipping line says storage is wrong
+        - escalation from the finance desk, dues
+        - big agent wants a call {c_soon}
+        - '{c_hey}: {c_customer} is unhappy about the gate'
+      replies:
+        -   - which account?
+            - i will check the logs
+        -   - it is {issue}
+            - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says the dues are wrong'
+        - '{who|cap} asks about storage'
+        - agent cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants the call statement'
+        - the ETA looks wrong for {who}
+      replies:
+        -   - check the tonnage first
+            - storage follows the tariff, tell them
+            - try a fresh login
+            - checking the log now
+        -   - '{s_ack}, will tell them'
+            - '{s_thx}'
+            - ''
+    - root:
+        - agent disputes the berth hours
+        - forwarder wants the invoice copy
+        - '{s_cust|cap} cannot see bookings, {s_ticket}'
+        - escalating, wrong tonnage, filed as {issue}
+      replies:
+        -   - sending the breakdown now
+            - copy attached to the ticket
+        -   - '{s_thx}'
+            - '{c_ack}'
+    - root:
+        - queue is at {20-90} open tickets, mostly invoices
+        - 'gate calls: {20-80} since morning'
+        - tickets doubled after invoices went out
+      replies:
+        -   - same, will help after lunch
+            - '{c_ack}'
+        -   - any macro for the storage question?
+            - ''
+  incidents:
+    - let:
+        what:
+          - the gate system
+          - the vessel feed
+          - the invoice run
+      root:
+        - '{what} stopped at {time}'
+        - '{s_al} {what} silent since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - the control room says {what} looks stale
+      replies:
+        -   - looking
+            - restarted the poller, watching it
+            - gateway is up, upstream issue
+        -   - fixed, backfilling
+            - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        -   - '{c_ack}'
+            - will join
+        -   - ''
+            - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the gate server is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        -   - on it
+            - '{c_ack}'
+        -   - renewing today
+            - ''
+  direct:
+    - root:
+        - '{s_hey}, check the gate import {s_soon}?'
+        - which tonnage does the report use?
+        - can you look at {issue} before the run?
+        - '{s_hey}, got a minute for the tariff?'
+        - handing over invoicing, out {s_soon}
+      replies:
+        -   - sure
+            - '{s_ack}'
+            - give me ten minutes
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived the audit, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        -   - sounds good
+            - '{c_lol}'
+        -   - ''
+            - same
+comments:
+  - Check the published tariff first.
+  - '{sp_cm}'
+  - Does this touch the invoice run?
+  - Ask the tariff team before changing.
+  - Control room would want to know.

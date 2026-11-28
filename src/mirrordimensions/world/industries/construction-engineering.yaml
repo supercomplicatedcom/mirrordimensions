@@ -1,0 +1,1489 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Construction and engineering: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: construction-engineering
+name: Construction and engineering
+group: Industry and infrastructure
+aliases:
+  - construction
+  - general contracting
+  - civil engineering
+  - engineering and construction
+  - building contractor
+description: A contractor and engineering firm that delivers building and infrastructure projects and bills owners through progress payments with retainage and change orders.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Construction
+  - Builders
+  - Contractors
+  - Engineering
+  - Civil
+  - Group
+  - Infrastructure
+  - Constructors
+invoice_items:
+  - Construction progress billings
+  - Change order work
+organization:
+  head: Director of Project Technology
+  it_admin: IT Administrator
+  teams:
+    platform:
+      department: Project Systems
+      title: Systems Engineer
+    billing:
+      department: Project Accounting
+      title: Software Engineer
+    data:
+      department: Project Controls
+      title: Data Engineer
+    support:
+      department: Project Support
+      title: Project Support Specialist
+      lead: Project Support Lead
+    product:
+      department: Digital Delivery
+      title: Product Manager
+    operations:
+      department: Field Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service:
+      - pay-apps
+      - project-billing
+      - billing-service
+      - progress-billing
+      - job-invoicing
+    platform-docs:
+      - project-systems-docs
+      - systems-handbook
+      - runbooks
+      - field-systems-wiki
+    data-pipeline:
+      - job-cost-loads
+      - project-warehouse
+      - controls-reporting
+      - wip-etl
+      - ops-analytics-etl
+    infra-config:
+      - site-infra
+      - jobsite-config
+      - project-environments
+      - field-infra
+    customer-portal:
+      - owner-portal
+      - subcontractor-portal
+      - project-portal
+      - client-web
+      - trade-portal
+    ops-scripts:
+      - field-scripts
+      - site-tools
+      - legacy-field-scripts
+      - admin-tools
+  channels:
+    engineering:
+      - project-systems
+      - eng
+      - dev
+    incidents:
+      - site-incidents
+      - systems-down
+      - incidents
+    releases:
+      - releases
+      - go-lives
+      - deploys
+    billing-team:
+      - project-accounting
+      - billing-team
+      - pay-apps
+    platform-team:
+      - field-systems
+      - platform-team
+      - site-ops
+    data-team:
+      - project-controls
+      - data-team
+      - reporting
+    support:
+      - project-support
+      - field-help
+      - support
+systems:
+  typical:
+    - Procore
+    - Autodesk Construction Cloud
+    - Oracle NetSuite
+    - Microsoft Project
+    - Gitea
+    - Mattermost
+    - Jira
+    - Microsoft Power BI
+    - primavera
+    - bluebeam
+  common:
+    - Sage Intacct
+    - Smartsheet
+    - DocuSign
+    - Samsara
+    - Esri ArcGIS Online
+symbols:
+  b_doc:
+    - pay application
+    - invoice
+    - credit memo
+    - change order invoice
+    - T&M invoice
+    - retainage invoice
+  b_customer:
+    - owner
+    - general contractor
+    - public agency
+    - developer
+    - design-build
+    - subcontract
+    - repeat
+  b_who:
+    - the project managers
+    - project accounting
+    - finance
+    - the owner's rep
+    - the estimating team
+    - the field office
+  b_pwho:
+    - project accounting
+    - an owner
+    - '{person}'
+    - the project managers
+    - the field office
+  b_ticket_noun:
+    - ticket
+    - case
+    - RFI
+    - escalation
+    - claim
+  b_money_path:
+    - billing/pay_app.py
+    - billing/retainage.py
+    - billing/change_orders.py
+    - billing/rounding.py
+  b_provider_event:
+    - payment succeeded
+    - payment failed
+    - remittance advice posted
+    - refund completed
+    - chargeback opened
+    - payout settled
+  b_taxkind:
+    - sales tax
+    - use tax
+    - GST
+    - VAT
+    - reverse-charge VAT
+  b_region:
+    - Texas
+    - Ontario
+    - Ireland
+    - Queensland
+    - the UK
+    - Alberta
+    - Scotland
+    - Florida
+  b_page:
+    - pay applications
+    - lien waivers
+    - change orders
+    - daily reports
+    - submittals
+    - drawings
+    - RFIs
+    - the dashboard
+  b_acct_size:
+    - '{200-900} line items'
+    - '{15-60} users'
+    - '{3-12} active projects'
+    - '{40-300} subcontractors'
+    - over {1000-4000} cost lines
+  b_slow:
+    - about {20-90} seconds
+    - over a minute
+    - '{3-12} minutes'
+    - nearly {2-4} minutes
+  p_table:
+    - cost_lines
+    - timesheets
+    - change_orders
+    - pay_apps
+    - equipment_hours
+    - commitments
+    - projects
+    - safety_events
+  p_source:
+    - the equipment telematics feed
+    - the timesheet export
+    - the schedule system's activity data
+    - the subcontractor insurance records
+    - the CRM account list
+    - the drone survey index
+  p_report:
+    - the WIP schedule
+    - the job cost report
+    - the backlog report
+    - the safety incident summary
+    - the aging receivables report
+    - the equipment utilisation report
+  p_finance_ask:
+    - the controller
+    - someone in finance
+    - the job cost accountant
+    - the CFO's office
+    - the credit manager
+  p_service_name:
+    - billing-service
+    - customer-portal
+    - data-pipeline
+    - the timesheet sync
+    - the pay app generator
+  p_glossary_term:
+    - the WIP
+    - the cost code tree
+    - the rota
+    - the reporting workers
+    - the pay app queue
+    - the project template
+  p_alert_name:
+    - disk usage on the file server
+    - failed backups
+    - pay app queue depth
+    - the nightly cost sync finishing late
+    - the timesheet import
+  p_secret_thing:
+    - the project system service account
+    - the timesheet API key
+    - the telematics token
+    - the warehouse service account key
+    - the payments provider token
+  p_limit_target:
+    - the reporting workers
+    - the invoice workers
+    - the portal pods
+    - the timesheet sync
+    - the pay app generator
+  p_script:
+    - import_timesheets.sh
+    - rotate_logs.sh
+    - check_disk.sh
+    - sync_costcodes.sh
+    - purge_drawings.sh
+    - rotate_backups.sh
+    - copy_photos.sh
+    - reset_tablets.sh
+  p_script_path:
+    - /var/log/app
+    - /opt/billing/exports
+    - /srv/portal/drawings
+    - /mnt/backups/daily
+    - /data/projects/photos
+  p_script_symptom:
+    - fails with no such file
+    - exits 0 but does nothing
+    - complains about a missing binary
+    - hangs on the second file server
+    - copies zero files
+  p_old_ref:
+    - the old cron host
+    - the retired jump box
+    - the pre-migration file server
+    - the previous timesheet host
+    - the old tablet image
+  p_runbook:
+    - docs/runbooks/billing-workers.md
+    - docs/runbooks/nightly-load.md
+    - docs/runbooks/job-sites.md
+    - docs/runbooks/pay-apps.md
+    - docs/runbooks/file-server.md
+  p_pipeline_file:
+    - pipeline/load.py
+    - pipeline/clean.py
+    - pipeline/validate.py
+    - pipeline/lock.py
+    - pipeline/jobcost.py
+  s_plan:
+    - a lump sum contract
+    - a guaranteed maximum price
+    - a time and materials deal
+    - a unit price contract
+    - a framework agreement
+  s_tool:
+    - the project system
+    - the ERP admin console
+    - the support desk
+    - the field app
+    - the document portal
+  s_docs:
+    - the wiki
+    - the shared drive
+    - the handbook
+    - the project runbook
+  s_lunch:
+    - the canteen
+    - the deli across the road
+    - the food truck
+    - the noodle place
+    - the site trailer
+  c_customer:
+    - a client
+    - one of the owners
+    - a public agency
+    - a developer
+    - a repeat customer
+  c_eng_area:
+    - the pay app job
+    - the retainage calc
+    - the timesheet import
+    - the cost code sync
+    - the drawing upload
+    - the lien waiver flow
+    - the export endpoint
+    - the login flow
+    - the retry logic
+    - the daily report PDF
+  c_blocker:
+    - waiting on review
+    - blocked on site access
+    - waiting on the project system vendor
+    - stuck on a flaky job
+    - waiting on the owner's approval
+  c_team_topic:
+    - the sprint
+    - the release
+    - the backlog
+    - the board
+    - the close
+  c_room:
+    - the site trailer
+    - the training room
+    - the meeting room
+    - the front office
+  ce_site:
+    - the hospital job
+    - the bridge rehab
+    - the warehouse build
+    - the school addition
+    - the tower fit-out
+    - the water plant upgrade
+    - the highway widening
+    - the housing development
+  ce_trade:
+    - concrete
+    - steel
+    - electrical
+    - mechanical
+    - roofing
+    - drywall
+    - excavation
+    - paving
+  ce_cert:
+    - certificate of insurance
+    - lien waiver
+    - certified payroll report
+    - bond
+    - safety plan
+    - permit
+  ce_phase:
+    - foundations
+    - framing
+    - fit-out
+    - closeout
+    - site work
+    - commissioning
+  ce_job:
+    - job {2000-9999}
+    - project {20000-29999}
+    - contract {100-999}
+    - PCO {1-300}
+  ce_raised:
+    - '{Raised/Flagged/Reported} by {b_who}'
+    - '{b_who|cap} {raised/flagged/mentioned} it'
+    - Came up on a call with {b_who}
+    - This landed with us via {b_who}
+  ce_urgent:
+    - Payment is not blocked.
+    - An owner is waiting on this {day}.
+    - Not urgent, {but/though} it keeps coming up.
+    - Nothing is stuck yet.
+    - Needs fixing before the next draw.
+    - The owner may escalate.
+  ce_scope:
+    - '{3-30} pay apps {b_since}'
+    - '{2-12} {b_customer} projects {b_since}'
+    - about {5-40} lines {b_since}
+    - so far {2-9} {b_ticket_noun}s
+    - '{3-25} cost lines on one job'
+issues:
+  billing:
+    - labels:
+        - bug
+      let:
+        pct:
+          - '5'
+          - '10'
+          - '7.5'
+          - '2.5'
+        doc:
+          - '{b_doc}'
+        customer:
+          - '{b_customer}'
+        phase:
+          - '{ce_phase}'
+        path:
+          - billing/retainage.py
+          - billing/pay_app.py
+          - billing/contracts.py
+      title:
+        - '{doc|cap} holds the wrong retainage on {customer} jobs'
+        - Retainage {pct} percent wrong on {doc}s
+        - Why is retainage {pct} percent on {customer} {doc}s?
+        - Retainage not released at {phase}
+      body:
+        -   - '{ce_raised}, {ce_scope}.'
+            - '{ce_raised} on {customer} jobs, {ce_scope}.'
+        -   - '{path} applies {pct} percent to {the whole/each} line.'
+            - The rate in {path} ignores the {phase} step-down.
+        -   - Retainage should fall after {phase}.
+            - The contract drops retainage at {50/60/75} percent complete.
+        -   - '{ce_urgent}'
+      comments:
+        - '{b_cm_repro} with a {customer} job.'
+        - '{b_cm_check}, the contract terms may be wrong.'
+        - Finance wants open {doc}s corrected.
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        doc:
+          - pay application
+          - progress invoice
+        customer:
+          - '{b_customer}'
+        n:
+          - '{1-9} dollars'
+          - '{10-90} dollars'
+          - '{100-900} dollars'
+        path:
+          - billing/sov.py
+          - billing/pay_app.py
+          - billing/change_orders.py
+      title:
+        - '{doc|cap} differs from the SOV'
+        - '{customer|cap} rejects {doc}: lines do not add up'
+        - SOV off after a change order
+        - Pay app total off SOV by {n}
+      body:
+        -   - '{ce_raised}, {ce_scope}.'
+            - Their rep sent back {2-9} pay apps.
+        -   - '{path} sums billed to date only.'
+            - Change orders land in {path} {late/twice}.
+        -   - Owners check each line.
+            - Lines must add up to contract.
+        -   - '{ce_urgent}'
+      comments:
+        - '{b_cm_repro} with {ce_job}.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+      let:
+        n:
+          - '{1-40}'
+        when:
+          - twice
+          - before approval
+          - a month late
+        doc:
+          - '{b_doc}'
+        path:
+          - billing/change_orders.py
+          - billing/markup.py
+          - billing/pay_app.py
+      title:
+        - '{doc|cap} bills a pending change order'
+        - Approved change order missing from next {doc}
+        - Change order markup applied twice
+        - Change order {n} billed {when}
+      body:
+        -   - '{ce_raised}, {ce_scope}.'
+            - Project managers noticed on {ce_job}.
+        -   - '{path} reads change orders by status.'
+            - Pending items pass the filter in {path}.
+        -   - Markup is set per contract.
+            - Only approved changes may be billed.
+      comments:
+        - '{b_cm_repro}.'
+        - Which {doc}s already went out?
+        - '{b_cm_fix_up}'
+    - labels:
+        - needs-decision
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - billing for stored materials
+          - T&M tickets without sign-off
+          - lien waivers before payment
+          - retainage on subcontractors
+          - back charges to trades
+          - early mobilisation costs
+        a:
+          - bill at cost
+          - hold until signed
+          - bill on delivery
+          - release at completion
+          - pass it to the trade
+          - bill the full amount
+        b:
+          - bill with markup
+          - bill anyway
+          - bill at installation
+          - release at closeout
+          - absorb it
+          - bill half now
+      title:
+        - '{question|cap}: who rules?'
+        - Decide how to handle {question}
+        - Open question on {question}
+        - Policy for {question}?
+      body:
+        -   - '{b_nd_a}, {b_nd_b} {b_nd_c}'
+            - '{b_who|cap} handles {question} {b_nd_b} {b_nd_c}'
+        -   - 'Options: {a}, or {b}.'
+            - We could {a}; or {b}; or keep it as is.
+        -   - '{b_nd_f}'
+            - Finance and legal should {sign off/agree} first.
+      comments:
+        - '{b_cm_lean} {a}.'
+        - '{b_cm_ask_who}'
+        - Needs a ruling from {b_who}.
+  portal:
+    - labels:
+        - bug
+      let:
+        kind:
+          - scanned
+          - photo
+          - signed
+          - conditional
+          - final
+        path:
+          - portal/waivers.py
+          - portal/uploads.py
+          - portal/files.py
+      title:
+        - '{kind|cap} waivers rejected as the wrong type'
+        - Subcontractors cannot attach a {kind} waiver
+        - Lien waiver upload fails for {kind} files
+      body:
+        -   - '{ce_raised}, {ce_scope}.'
+            - '{2-9} subcontractors called {b_since}.'
+        -   - '{path} allows PDF only.'
+            - '{path} limits files to {5-10} MB.'
+        -   - Payment waits for the waiver.
+            - Trades phone the field office.
+      comments:
+        - '{b_cm_repro} with a scanned file.'
+        - '{b_cm_ask_who}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - bug
+        - security
+      let:
+        path:
+          - portal/pay_apps.py
+          - portal/subs.py
+          - portal/files.py
+      title:
+        - Pay app ids are guessable
+        - Pay app route skips trade check
+        - Subs see other trades' pay apps
+      body:
+        -   - '{ce_raised}, noticed while helping a trade.'
+            - Found while checking a ticket, {ce_scope}.
+        -   - '{path} looks up by id only.'
+            - Changing the id opens {another/a different} trade's pay app.
+        -   - Some include bank details.
+            - Pay apps show contract rates.
+        -   - '{b_dlk_e}'
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_fix_up} It adds an owner check to {path}.'
+        - Check the access log for {that/this} route.
+    - labels:
+        - bug
+        - performance
+      let:
+        size:
+          - '{b_acct_size}'
+        page:
+          - daily reports
+          - the drawing list
+          - the RFI log
+          - submittals
+        pages:
+          - daily reports
+          - the drawing list
+          - the RFI log
+          - submittals
+      title:
+        - '{page|cap} is {very slow/painfully slow/unusable} for jobs with {size}'
+        - Portal {page} takes {b_slow} to load for large jobs
+        - '{page|cap} times out on big projects'
+      body:
+        -   - '{ce_raised}, {ce_scope}.'
+            - Support has {2-9} {b_ticket_noun}s about it {b_since}.
+        -   - '{b_sl_a} {b_sl_b}.'
+            - Jobs with {size} {wait/sit through} {b_slow}.
+        -   - '{b_sl_c} {b_sl_d}'
+            - '{b_sl_e}'
+        -   - '{b_sl_f}'
+      comments:
+        - '{b_cm_repro} with a big job copy.'
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_pg} {b_cm_pg2}'
+    - labels:
+        - enhancement
+      let:
+        kind:
+          - change orders
+          - pay apps
+          - lien waivers
+          - submittals
+        path:
+          - portal/changes.py
+          - portal/approvals.py
+      title:
+        - Owners want to sign {kind} online
+        - Change order approval with a signature
+        - Let owners approve change orders online
+      body:
+        -   - '{ce_raised}. {b_g_asking}'
+            - Approvals go by email, {often/monthly}.
+        -   - Today a signature {means/needs} a scan.
+            - The change order page in {path} is read only.
+        -   - It needs an audit trail.
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_small} {b_cm_start}'
+  docs:
+    - labels:
+        - docs
+        - enhancement
+      let:
+        flow:
+          - how a pay app is built
+          - the cost code tree
+          - setting up a new project
+          - the WIP schedule close
+          - how lien waivers are tracked
+          - the month-end close for jobs
+      title:
+        - '{flow|cap} needs a page in the handbook'
+        - Write up {flow} for new engineers
+        - Nobody has written down {flow}
+        - Document {flow}
+      body:
+        -   - "{flow|cap} lives in {person}'s head today."
+            - New joiners keep asking about {flow}.
+        -   - One page with {a diagram/the steps}.
+            - A page of steps and failures.
+        -   - '{Add/List} the accounting contact {if/when} it stalls.'
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - bug
+      let:
+        page:
+          - docs/oncall.md
+          - docs/access.md
+          - docs/releases.md
+          - docs/runbooks/job-sites.md
+          - docs/runbooks/pay-apps.md
+        stale:
+          - the old file server
+          - the retired site VPN
+          - last year's cost codes
+          - the previous timesheet app
+          - the former project template
+      title:
+        - '{Handbook/Docs}: {page} lists {stale}'
+        - Stale reference to {stale} in {page}
+        - '{page|cap} still names {stale}'
+      body:
+        -   - '{page|cap} still mentions {stale}.'
+            - '{page|cap} was last edited before the merger.'
+        -   - '{A new hire/Someone} hit a wall.'
+            - '{person} hit this on {day}.'
+        -   - Someone from {ce_site} should read it through.
+      comments:
+        - '{b_cm_check}'
+        - '{Fixed/Updated} the first sections, {more/some} to go.'
+    - labels:
+        - docs
+        - task
+      let:
+        howto:
+          - reissue a pay application
+          - add a cost code
+          - close out a job
+          - fix a timesheet import
+          - attach insurance certificates
+          - reopen a closed project
+        screen:
+          - the project system
+          - the ERP
+          - the cost code editor
+      title:
+        - 'How-to: {howto}'
+        - Write up how to {howto}
+        - 'Add a how-to: {howto}'
+      body:
+        -   - '{Support/Service} asks about this {often/monthly/weekly}.'
+            - '{Project accounting/Finance} does this by hand.'
+        -   - Steps, common errors, {and/plus} who approves.
+            - Short, with screenshots of {screen}.
+      comments:
+        - '{b_cm_up} {b_cm_read2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - docs
+        - needs-decision
+      let:
+        change:
+          - prevailing wage updates
+          - a lien law change
+          - owner contract terms
+          - a bonding requirement
+          - a new safety rule
+        who:
+          - '{b_who}'
+      title:
+        - '{change|cap}: where in the handbook?'
+        - How do we document {change}?
+        - Decide how to record {change}
+      body:
+        -   - '{change|cap} touches {the portal/billing/the data loads}.'
+            - Legal sends notices, nobody files.
+        -   - One log {is/might be} easier to keep.
+            - 'Options: a page per change, {or/versus} a running log.'
+        -   - '{b_nd_f}'
+      comments:
+        - '{b_cm_lean} a running log.'
+        - '{b_cm_ask_who}'
+  data:
+    - labels:
+        - bug
+        - data-quality
+      let:
+        site:
+          - '{ce_site}'
+        n:
+          - '{1000-9000}'
+          - '{10000-90000}'
+        report:
+          - the WIP schedule
+          - the job cost report
+        path:
+          - pipeline/jobcost.py
+          - pipeline/clean.py
+      title:
+        - '{site|cap} has {n} dollars in the wrong period'
+        - Job cost for {site} does not match the ledger
+        - WIP over-billing wrong for {site}
+      body:
+        -   - '{site|cap} is {n} dollars off {b_since}.'
+            - '{report|cap} disagrees with the ledger for {site}.'
+        -   - '{path} uses entry date, not work date.'
+            - Late timesheets post {late/wrongly}.
+        -   - The controller closes the books on {day}.
+      comments:
+        - '{b_cm_repro}.'
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - bug
+        - incident
+      let:
+        when:
+          - the weekend
+          - the last week of the month
+          - tablet edits
+          - offline entries
+        event:
+          - an app update
+          - a late edit
+          - a sync retry
+        site:
+          - '{ce_site}'
+        n:
+          - '{20-400}'
+      title:
+        - '{event|cap} drops timesheet rows'
+        - Timesheets from {when} never reached the warehouse
+        - Timesheet load misses {when}
+      body:
+        -   - '{n} timesheets are missing {b_since}.'
+            - Crews on {site} lost {2-9} days of hours.
+        -   - '{event|cap} changes the row id.'
+            - The load skips {late-edited/edited} rows.
+        -   - Payroll noticed on {day}.
+      comments:
+        - '{b_cm_check} the load log first.'
+        - '{b_cm_fix_up}'
+    - labels:
+        - enhancement
+      let:
+        source:
+          - equipment telematics
+          - subcontractor insurance records
+          - schedule activity data
+          - safety observations
+          - drone survey indexes
+        who:
+          - operations
+          - the safety team
+          - project controls
+          - finance
+        report:
+          - the equipment utilisation report
+          - the job cost report
+          - the safety incident summary
+        format:
+          - CSV
+          - XML
+          - JSON lines
+          - a flat file
+      title:
+        - '{source|cap} should land in the warehouse'
+        - Bring {source} into the warehouse
+        - Load {source} into the warehouse
+      body:
+        -   - '{who|cap} wants it next to {report}.'
+            - Today {someone/a clerk} copies it by hand.
+        -   - It arrives as {format} {every hour/each night/after each shift}.
+            - Files land on {the project share/a plant share}.
+        -   - A rough size is {2-6} days with checks.
+      comments:
+        - '{b_cm_ask_who}'
+        - Keep the raw files {30-90} days.
+    - labels:
+        - question
+        - data-quality
+      let:
+        report:
+          - the backlog report
+          - the pipeline dashboard
+        gap:
+          - '{2-9}'
+          - '{10-20}'
+      title:
+        - '{report|cap} does not match project controls ({gap} off)'
+        - '{report|cap}: {gap} gap against the schedule'
+        - Backlog differs from projects by {gap} percent
+      body:
+        -   - Project controls counts signed contracts.
+            - The load counts awarded work.
+        -   - It was {gap} percent last quarter.
+            - The gap is about {gap} percent {b_since}.
+        -   - Need a date rule {first/now}.
+      comments:
+        - '{b_cm_hand} the monthly total.'
+        - '{b_cm_ask_who}'
+  infra:
+    - labels:
+        - security
+        - bug
+      let:
+        target:
+          - trailer router
+          - site camera
+          - tablet dock
+          - jobsite gateway
+      title:
+        - '{target|cap} has a factory password'
+        - Trailer router has a default password
+        - Default login on {target}
+      body:
+        -   - '{person} found it during a site visit.'
+            - A scan listed {2-9} devices.
+        -   - It is not in the {vault/password manager}.
+            - It was never changed after install.
+        -   - Rotate it, {record/log} each device.
+      comments:
+        - '{b_cm_check}'
+        - I will rotate it {c_soon}.
+    - labels:
+        - security
+        - enhancement
+      let:
+        cert:
+          - site VPN certificate
+          - tablet MDM certificate
+          - portal certificate
+          - mail relay certificate
+      title:
+        - '{cert|cap} expiry should page someone'
+        - Alert before the {cert} expires
+        - No warning for the {cert}
+      body:
+        -   - The {cert} expired on {day} and {nothing/no one} warned us.
+            - Sites lost sync for {2-9} hours.
+        -   - Add a warning {14/21/30} days ahead.
+            - A nightly job check {would be/is} enough.
+      comments:
+        - '{b_cm_fix_up}'
+        - '{b_cm_ask_who}'
+    - labels:
+        - bug
+        - performance
+      let:
+        target:
+          - file server
+          - project share
+          - backup server
+          - document store
+        n:
+          - '{5-25}'
+        env_file:
+          - environments/production.yaml
+          - config/retention.yaml
+      title:
+        - '{target|cap} disk is nearly full'
+        - No retention set on the {target} archive
+        - Photo storage on the {target} fills in {n} days
+      body:
+        -   - Usage went from {40-60} to {85-95} percent {b_since}.
+            - Photos and drone files grow {2-9} GB a day.
+        -   - '{Alerts/Warnings} fire at {95/98} percent.'
+            - Retention is not set in {env_file}.
+      comments:
+        - '{b_cm_check}'
+        - '{b_cm_fix_up}'
+    - labels:
+        - chore
+        - security
+      let:
+        target:
+          - file server
+          - tablet image
+          - trailer router firmware
+          - backup agent
+      title:
+        - '{target|cap} is out of support'
+        - Plan the move off the old {target}
+        - Upgrade the {target}
+      body:
+        -   - The vendor ends support in {2-9} months.
+            - The vendor no longer patches {it/this}.
+        -   - It needs a quiet window, {check/see} the calendar.
+            - Do it between project closes.
+      comments:
+        - '{b_cm_ask_who}'
+        - Site teams need {2-6} weeks notice.
+  ops:
+    - labels:
+        - bug
+      let:
+        script:
+          - import_timesheets.sh
+          - sync_costcodes.sh
+          - purge_drawings.sh
+        days:
+          - '{7-90}'
+        kind:
+          - timesheet files
+          - exports
+          - drawings
+        symptom:
+          - '{p_script_symptom}'
+        old:
+          - '{p_old_ref}'
+      title:
+        - '{Scripts/Ops}: {script} keeps {days} days of {kind}, docs say something else'
+        - '{script} {symptom}'
+      body:
+        -   - It was written for {old}.
+            - Nobody has touched it {since/after} the move.
+      comments:
+        - '{b_cm_check}'
+comments:
+  - '{b_g_ask} the job number?'
+  - Which job was this, {ce_site}?
+  - '{b_cm_repro}.'
+  - The project manager {asked/enquired} about this on {day}.
+  - Finance wants to know {if/when} it affects {ce_job}.
+  - '{b_g_loop} {person}, they know the field side.'
+  - Payment is not blocked, {but/though} it is close.
+  - Can we see the owner's {ce_cert} for this?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: safety stand-down at {time} {c_soon}, all crews.'
+        - toolbox talk at {time} on {day}, please attend.
+        - 'reminder: site safety walk at {time} {c_soon}'
+      replies:
+        -   - '{c_ack}'
+            - does that include the office?
+            - '{c_thanks}'
+        -   - '{c_yes}, everyone'
+            - '{c_yes}{c_sep} hard hats please'
+            - ''
+    - let:
+        site:
+          - '{ce_site}'
+      root:
+        - owner visit at {site} on {day}, please keep {c_room} tidy.
+        - '{c_hey}: owner walkthrough {day}, badges at the trailer'
+        - client tour of {site} {day} at {time}
+      replies:
+        -   - '{c_ack}'
+            - what time do they arrive?
+            - '{c_thanks}'
+        -   - around {time}
+            - '{c_idk}, ask {person}'
+            - ''
+    - let:
+        site:
+          - '{ce_site}'
+      root:
+        - parking at {site} changes {c_soon}, use the east lot.
+        - '{c_hey}, gate access moves {c_soon} at {site}'
+        - new site entrance at {site} from {day}
+      replies:
+        -   - '{c_ack}'
+            - does that include deliveries?
+            - '{c_thanks}'
+        -   - '{c_yes}, all vehicles'
+            - '{c_idk}, ask {person}'
+            - ''
+  off-topic:
+    - root:
+        - anyone want to carpool, route {2-9} is closed
+        - road works near the office again{c_sep} leave early
+        - who is up for {c_sport} after work {day}?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_no}, sorry'
+            - which gate?
+        -   - '{c_ack}'
+            - '{c_lol}'
+            - ''
+  engineering:
+    - root:
+        - '{c_ci_fail} fails on the pay app branch'
+        - pay app branch is red, {c_ci_fail} failed again
+        - '{c_ci_fail} fails in {repo}, only on the retainage change'
+      replies:
+        -   - same here after lunch
+            - which test exactly?
+            - '{c_blocker} on my side'
+        -   - the rounding one
+            - looks like a missing fixture
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - i'll rerun it
+            - ''
+    - let:
+        n:
+          - '{20-400}'
+        site:
+          - '{ce_site}'
+      root:
+        - timesheet import dropped {n} rows from {site}
+        - timesheets missing for {site} since {day}
+        - the timesheet sync skips late edits
+      replies:
+        -   - which crew?
+            - same here, only tablets
+            - '{c_idk}, checking'
+        -   - the paving crew
+            - '{c_ack}'
+            - attaching the file to {issue}
+        -   - found it, a row id change
+            - '{c_thanks}'
+            - ''
+    - let:
+        trade:
+          - '{ce_trade}'
+      root:
+        - cost code sync failed on new {trade} code
+        - new {trade} cost code missing in portal
+        - '{c_hey}: cost codes out of sync for {trade}'
+      replies:
+        -   - which project?
+            - seeing it too
+            - checking the sync log
+        -   - the new one
+            - '{c_idk}'
+            - retry worked
+        -   - '{c_ack}'
+            - '{c_thanks}'
+            - ''
+    - root:
+        - round per line or on total?
+        - 'retainage rounding: per line or total?'
+        - round each line or the sum?
+      replies:
+        -   - per line, owners check lines
+            - on the total is simpler
+            - '{c_idk}'
+        -   - lines must add up
+            - '{c_agree}'
+            - ''
+    - let:
+        thing:
+          - the page size
+          - the font set
+          - the image limit
+      root:
+        - generator eats memory, who touched {thing}?
+        - pay app generator memory keeps growing
+        - '{c_hey}, pay app generator restarted itself {c_soon}'
+      replies:
+        -   - not me
+            - i changed the page size {c_soon}
+            - '{c_idk}'
+        -   - that could be it
+            - '{c_ack}'
+            - checking the graphs
+  team:
+    - let:
+        report:
+          - the WIP schedule
+          - the job cost report
+          - the backlog report
+      root:
+        - project managers want a change to {report}
+        - '{c_hey}: request from project controls for {report}'
+        - operations asked for a tweak to {report}
+      replies:
+        -   - what do they need?
+            - is it quick?
+            - '{c_ack}'
+        -   - split by phase
+            - a column for committed cost
+            - '{c_idk}, asking'
+        -   - '{c_ack}, will look {c_soon}'
+            - put it on the board
+            - ''
+    - root:
+        - who covers site tablets while {person} is out?
+        - tablet issues, who has them {c_soon}?
+        - '{person} is {c_pto}, who takes tablet tickets?'
+      replies:
+        -   - i can take them
+            - '{c_idk}'
+            - ask {person}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - root:
+        - 'year end close: what do {we/i} {owe/need}?'
+        - close in {2-6} weeks, what is on our list?
+        - close planning, who owns {the WIP/the cost} steps?
+      replies:
+        -   - the WIP schedule, cost codes
+            - i'll write the list
+            - '{c_idk}'
+        -   - '{c_ack}'
+            - add the timesheets
+            - put it on the board
+    - let:
+        ref:
+          - '{ce_job}'
+      root:
+        - 'owner escalation: {c_customer} says the pay app for {ref} is wrong'
+        - '{c_customer} rejected the pay app for {ref}'
+        - pay app problem for {c_customer}, {ref}
+      replies:
+        -   - checking the schedule of values
+            - which line?
+            - '{c_ack}'
+        -   - the retainage line
+            - a change order
+            - '{c_idk}'
+        -   - i'll reissue it
+            - '{c_thanks}'
+            - ''
+  support:
+    - let:
+        ref:
+          - '{ce_job}'
+      root:
+        - '{s_cust|cap} cannot find the pay app for {ref}'
+        - pay app for {ref} is missing, {s_cust} is asking
+        - '{s_cust|cap} says the pay app for {ref} never arrived'
+      replies:
+        -   - is it approved?
+            - i see it in the log
+            - looking now
+        -   - approved {c_soon}
+            - still in draft
+            - '{c_idk}'
+        -   - '{c_ack}, resending'
+            - '{c_thanks}'
+            - ''
+    - let:
+        ref:
+          - '{ce_job}'
+        trade:
+          - '{ce_trade}'
+      root:
+        - a {trade} sub cannot upload a waiver for {ref}
+        - lien waiver upload fails for {ref}, {trade} sub is calling
+        - '{trade} sub says the waiver page errors'
+      replies:
+        -   - what file type?
+            - try a PDF
+            - '{c_idk}'
+        -   - a phone photo
+            - PDF too
+            - over the size limit
+        -   - escalating to eng, filed as {issue}
+            - send it by email for now
+            - ''
+    - let:
+        ref:
+          - '{ce_job}'
+        pct:
+          - '5'
+          - '10'
+          - '7.5'
+      root:
+        - '{s_cust|cap} asks why retainage is {pct} percent on {ref}'
+        - retainage question on {ref}, {s_cust} disagrees
+        - owner disputes retainage on {ref}
+      replies:
+        -   - what does the contract say?
+            - i see {pct} percent
+            - '{c_idk}'
+        -   - it drops at half way
+            - '{c_yes}'
+            - not sure
+        -   - asking project accounting
+            - '{c_ack}'
+            - ''
+    - let:
+        n:
+          - '{1-40}'
+        ref:
+          - '{ce_job}'
+      root:
+        - change order {n} approved, not on portal, {s_cust} asks
+        - '{s_cust|cap} cannot see change order {n}'
+        - change order {n} missing for {ref}
+      replies:
+        -   - is it released?
+            - send it by email
+            - '{c_idk}'
+        -   - not released yet
+            - '{c_yes}'
+            - waiting on a signature
+        -   - asking the PM
+            - '{c_ack}'
+            - ''
+    - let:
+        ref:
+          - '{ce_job}'
+      root:
+        - certified payroll report for {ref} is late, {s_cust} is calling
+        - '{s_cust|cap} wants the payroll report for {ref}'
+        - payroll report missing for {ref}
+      replies:
+        -   - payroll has it
+            - which week?
+            - '{c_ack}'
+        -   - last week
+            - '{c_idk}, asking'
+            - ready {c_soon}
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+  incidents:
+    - let:
+        site:
+          - '{ce_site}'
+        site2:
+          - '{ce_site}'
+      root:
+        - site sync stopped, {site} is not reporting
+        - no daily reports from {site} since {time}
+        - sync down and {site} stopped uploading
+      replies:
+        -   - whole company or one site?
+            - seeing the same on {site2}
+            - checking the sync now
+        -   - just {site}
+            - '{c_idk}, looking'
+            - restarted the service, still down
+        -   - back up after a restart
+            - trailer router, IT has it
+            - '{c_ack}'
+    - root:
+        - pay app generator failing, no submissions
+        - pay apps not building, draw is {c_soon}
+        - accounting waits on pay apps
+      replies:
+        -   - is the project system up?
+            - the draw is due
+            - '{c_ack}, checking'
+        -   - system is up, queue is stuck
+            - restarting the generator
+            - '{c_idk}'
+        -   - pay apps are building again
+            - queue cleared
+            - '{c_thanks}'
+    - let:
+        n:
+          - '{200-4000}'
+      root:
+        - timesheet import stuck at {n} rows
+        - payroll cutoff, timesheet queue at {n}
+        - timesheet sync backed up to {n}
+      replies:
+        -   - '{c_ack}, looking'
+            - last one imported at {time}
+            - app side or ours?
+        -   - ours, the token expired
+            - '{c_idk}'
+            - checking the key
+        -   - reconnected, draining
+            - queue is draining
+            - '{c_thanks}'
+    - let:
+        site:
+          - '{ce_site}'
+      root:
+        - cost sync slow, no costs for {site}
+        - costs stale, sync still running
+        - no job costs for {c_soon}, sync is late
+      replies:
+        -   - '{c_ack}, checking the job'
+            - extract or load?
+            - '{c_idk}'
+        -   - extract finished, load at {2-9}0 percent
+            - waiting on a lock
+            - '{c_ack}'
+        -   - done, costs look right now
+            - released the lock
+            - '{c_thanks}'
+    - let:
+        what:
+          - the pay app export
+          - the nightly job cost sync
+          - the invoice run
+          - the timesheet sync
+      root:
+        - 'near miss: {what} almost failed, a retry saved it'
+        - '{what} nearly missed the cutoff, retried fine'
+        - close call with {what} last night
+      replies:
+        -   - what was the cause?
+            - '{c_ack}'
+            - add it to the review
+        -   - a lock timeout
+            - '{c_idk}'
+            - a gateway hiccup
+        -   - '{c_thanks}'
+            - ''
+  direct:
+    - let:
+        ref:
+          - '{ce_job}'
+      root:
+        - '{s_hey}, can you reissue the pay app, {ref}?'
+        - '{s_hey}, need a pay app reissue for {ref} {s_soon}'
+        - could you rebuild the pay app, {ref}? {s_soon}
+      replies:
+        -   - '{c_ack}, give me {5-15} minutes'
+            - which period?
+            - sure
+        -   - the last one
+            - '{ref}'
+            - '{c_thanks}'
+        -   - done, check your inbox
+            - sent
+            - ''
+    - let:
+        site:
+          - '{ce_site}'
+      root:
+        - 'quick question: which crew is on {site}?'
+        - '{s_hey}, do you know who runs {site}?'
+        - who owns {site}, north team or south?
+      replies:
+        -   - '{c_idk}, ask {person}'
+            - the south team since spring
+            - the north team
+        -   - '{c_thanks}'
+            - '{c_ack}'
+            - ''
+    - root:
+        - minute for the retainage calc? {something/it} looks off
+        - '{s_hey}, can we look at retainage?'
+        - retainage question, {s_soon}?
+      replies:
+        -   - '{c_ack}, in {5-20} min'
+            - sure, call me
+            - '{c_idk}, which job?'
+        -   - the one in {the pay app/the billing} code
+            - '{c_thanks}'
+            - ''
+incidents:
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment remittance callbacks failing
+      - Remittance callbacks {from/via} the payments provider erroring
+      - Errors on remittance callbacks
+      - Payment callbacks failing
+    alert:
+      - '{s_cb_bad}, {s_cb_b}'
+      - '{s_al} remittance callbacks failing, {s_cb_b}'
+      - '{s_cb_bad} - {s_cb_b}'
+    fix_message:
+      - '{s_cb_fix|cap}'
+      - 'Handle provider timeouts: {s_cb_fix}'
+      - '{s_cb_fix|cap}, log each attempt'
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Daily report timeouts {for/on} large jobs
+      - Daily reports time out {for/on} big projects
+      - Large projects see portal 504s
+      - Portal slow on daily reports
+    alert:
+      - '{s_portal_slow}, {s_portal_b}'
+      - '{s_al} {s_portal_slow}'
+      - daily reports timing out {for/on} big jobs, {s_portal_b}
+    fix_message:
+      - '{s_page_fix|cap}'
+      - Page the daily report list
+      - Add pagination to daily reports
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly job cost load failed
+      - Overnight timesheet load failed
+      - Warehouse load aborted on bad rows
+      - Nightly load did not finish
+    alert:
+      - '{s_load_a}, {s_load_b}'
+      - '{s_al} {s_load_a}'
+      - '{s_load_a} - job dashboards are stale'
+    fix_message:
+      - '{s_load_fix|cap}'
+      - Skip bad timesheet rows, log them

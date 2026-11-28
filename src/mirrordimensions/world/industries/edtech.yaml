@@ -1,0 +1,603 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Education technology: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: edtech
+name: Education technology
+group: Education and non-profit
+aliases: [edtech company, learning software, e-learning, online learning platform, education software]
+description: A company that sells learning software to schools, districts and families, and bills them for licences and subscriptions.
+name_suffixes: [Learning, Education, Labs, Academy, Learning Systems, Schoolworks, Classroom]
+invoice_items: ["District licence", "Onboarding and training"]
+organization:
+  head: Head of Engineering
+  it_admin: IT and Security Administrator
+  teams:
+    platform: {department: Engineering, title: Platform Engineer}
+    billing: {department: Engineering, title: Licensing and Billing Engineer}
+    data: {department: Data and Insights, title: Data Engineer}
+    support: {department: Customer Success, title: Support Specialist}
+    product: {department: Product and Curriculum, title: Product Manager}
+    operations: {department: Operations, title: Implementation Analyst}
+names:
+  repos:
+    billing-service: [licensing-service, billing-service, district-billing, subscriptions, licence-billing]
+    platform-docs: [platform-docs, engineering-handbook, runbooks, team-handbook]
+    data-pipeline: [usage-pipeline, learning-analytics, roster-loads, warehouse-loads, student-data-etl]
+    infra-config: [infra-config, school-year-infra, deploy-config, platform-config]
+    customer-portal: [teacher-portal, district-portal, school-admin-portal, classroom-web, learner-web]
+    ops-scripts: [ops-scripts, rollover-scripts, legacy-scripts, admin-tools]
+  channels:
+    engineering: [engineering, eng, dev, product-eng]
+    incidents: [incidents, school-hours-incidents, prod-alerts]
+    releases: [releases, shipping, deploys]
+    billing-team: [licensing-team, billing-team, billing-eng]
+    platform-team: [platform-team, platform, platform-eng]
+    data-team: [data-team, insights, learning-analytics]
+    support: [customer-success, support, district-support]
+    leads: [leads, eng-leads, managers]
+systems:
+  typical: [gitea, mattermost, Google Workspace, Okta, Salesforce, Zendesk, Stripe, Snowflake, clever, moodle]
+  common: [Instructure Canvas, Amplitude, Segment, Tableau, Sentry, PagerDuty]
+symbols:
+  b_doc: ["licence invoice", "renewal invoice", "seat true-up invoice", "pro forma quote", "credit note", "term statement"]
+  b_customer: [district, single-school, charter network, university department, consumer family, pilot]
+  b_who: ["the sales team", "customer success", "finance", "the district account manager", "implementation"]
+  b_pwho: [support, "a district admin", "{person}", "customer success", "a school secretary"]
+  b_currency: [USD, CAD, GBP, EUR, AUD]
+  b_taxkind: ["sales tax", "VAT", "GST", "use tax", "tax-exempt status"]
+  b_region: [Texas, Ontario, Ireland, Queensland, "New York", Scotland, Florida]
+  b_page: [rosters, "licence seats", classes, "usage reports", assignments, "teacher lists"]
+  b_acct_size: ["{2000-60000} students", "{200-3000} teachers", "{40-300} schools", "{500-9000} classes"]
+  b_browser: ["Chrome on a school Chromebook", "Safari on an iPad", Edge, "an older Firefox", "Chrome on a managed laptop"]
+  b_ticket_noun: [ticket, case, "district ticket", escalation]
+  c_customer: ["a district", "one of the larger districts", "a charter network", "a school", "a university department"]
+  s_plan: ["the district licence", "a school licence", "the pilot plan", "a family annual plan", "a campus licence"]
+  p_source: ["the rostering provider's nightly files", "the learning management system's grade export", "the support desk's ticket export", "the CRM account list", "the product usage events", "the payments provider's payout reports"]
+  p_report: ["the weekly active students dashboard", "the district renewals report", "the licence utilisation report", "the churn dashboard", "the monthly revenue dashboard", "the aging receivables report"]
+  p_table: [students, classes, enrolments, licences, districts, usage_events, teachers, rosters]
+  p_finance_ask: ["the finance lead", "someone in finance", "the revenue accountant", "the sales operations lead"]
+  c_eng_area: ["the roster sync", "the grade passback", "the licence check", "the invoice job", "the login flow", "the assignment export"]
+  s_thing: ["the roster sync", "the grade passback", "the export", "the report", "the cron", "the licence job"]
+  ed_lms: ["the district's learning management system", "the school's learning platform", "the learning management system"]
+  ed_sis: ["the student information system", "the district's records system", "the school's roster system"]
+  ed_peak: ["back to school", "the first week of term", "the August rollover", "the start of the school year"]
+  ed_slow: ["{3-9} minutes", "about {20-60} seconds", "over a minute", "{2-5} hours"]
+  ed_role: [teacher, "school admin", "district admin", "teaching assistant", substitute]
+  ed_student_data: ["student names", "grades", "reading levels", "assignment scores", "class lists"]
+issues:
+  billing:
+    - labels: [bug]
+      weight: 3
+      let:
+        event: ["a mid-term roster import", "a school added in August", "students moved between schools", "a district merge", "a late rollover"]
+        doc: ["{b_doc}"]
+      title:
+        - "Seat count on the {doc} is wrong after {event}"
+        - "True-up {doc} bills {event|lower} twice"
+        - "{Licensed seats/Seat totals/Seat counts} {disagree/differ} from rosters after {event}"
+        - "Billed seats {above/below/off from} active students after {event}"
+        - "{doc|cap} ignores seats added by {event}"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {b_customer} accounts, {b_scope}."]
+        - ["Seats are counted {at/on/from} the {last/latest/previous} roster file.", "True-up reads one midnight roster.", "Seats come from a stale snapshot."]
+        - ["Customers see the {doc} and call {b_who}.", "{b_who|cap} has to explain it by hand.", ""]
+      comments:
+        - "{b_cm_repro}, two schools plus a late import."
+        - "Which date wins, {the term start/the import day}?"
+        - "{b_cm_check}, I think {b_money_path} reads the old snapshot."
+    - labels: [bug]
+      let:
+        problem: ["is missing from the {b_doc}", "prints on the wrong line", "is cut off in the PDF", "is not saved with the quote", "changes after renewal"]
+      title:
+        - "Purchase order number {problem}"
+        - "District PO {problem}, {b_customer} accounts"
+        - "{PO/Purchase order} reference {problem}"
+        - "Finance offices reject {b_doc}s when the PO {problem}"
+      body:
+        - ["No PO, no payment, {b_pscope}.", "{b_raised}, {b_scope}.", "School finance offices send {b_doc}s back, {b_scope}."]
+        - ["The field sits on the order.", "Stored per quote, never copied forward.", "Renewals start from a blank order."]
+      comments:
+        - "Copy it forward on renewal, {and/but} flag it."
+        - "{person} knows the quote tool handover."
+    - labels: [needs-decision]
+      let:
+        question: ["refunds after the school year starts", "a licence cancelled mid-term", "pilots that convert to paid", "seats removed after the count date", "prorating a school added in January"]
+        who: [finance, "customer success", "the sales team", "the account team"]
+      title:
+        - "Policy for {question}?"
+        - "Decision needed on {question}"
+        - "What do we do about {question}?"
+        - "{question|cap}: who approves?"
+      body:
+        - ["Contracts say little about {question}.", "Nothing in {b_credit_path} limits it.", "The code allows anything today."]
+        - ["Needs an answer {b_timeframe}.", "{who|cap} should decide first.", "Districts keep asking {who} for this."]
+      comments:
+        - "Most contracts allow it in {30-60} days."
+        - "Let's decide on {day}, {person} can you pull the numbers?"
+    - labels: [enhancement]
+      let:
+        feature: ["a sales tax exemption certificate", "a cost centre", "a grant code", "a second billing contact", "a school year label"]
+      title:
+        - "Show {feature} on the {b_doc}"
+        - "Districts want {feature} on every {b_doc}"
+        - "Store {feature} with the billing profile"
+        - "{feature|cap} on {b_doc}s, asked for again"
+      body:
+        - ["{b_raised}, {b_scope}.", "Grant schools need it for audits."]
+        - ["It must be frozen when the {b_doc} is issued.", "Needs a column and a field.", "The PDF template needs a line."]
+      comments:
+        - "Is it free text or fixed?"
+        - "{b_cm_plan} for the backend, the form needs {person}."
+    - labels: [bug]
+      let:
+        rule: ["the school year start", "the fiscal year end", "the renewal date", "the first of the month"]
+      title:
+        - "Renewals billed on {rule} for the wrong term"
+        - "Term dates on the {b_doc} are off by a year around {rule}"
+        - "Licence term starts early near {rule}"
+      body:
+        - ["Districts renew in {June/July/August}, spanning two fiscal years.", "Summer renewals pick the old term."]
+        - ["{b_scope|cap}.", "{b_urgent}"]
+      comments:
+        - "Use the contract start date."
+  portal:
+    - labels: [bug, performance]
+      weight: 3
+      let:
+        size: ["{b_acct_size}"]
+        step: ["roster import", "class list refresh", "nightly sync", "licence assignment"]
+      title:
+        - "{step|cap} {times out/stalls/crawls} for districts with {size}"
+        - "Old class lists stay until {step} ends"
+        - "{step|cap} takes {ed_slow} at {ed_peak}"
+        - "Large district cannot finish {step}, {size}"
+      body:
+        - ["{b_raised}, {b_scope}.", "Support has {2-9} districts waiting, {b_scope}."]
+        - ["It reads {ed_sis} files one row at a time.", "Each student triggers its own lookup.", "The job locks the class table."]
+        - ["Teachers notice on day one.", ""]
+      comments:
+        - "I measured {ed_slow} on staging with {size}."
+        - "Batches of {200-1000} students bring it down."
+        - "{b_cm_later}"
+    - labels: [bug, security]
+      let:
+        role: ["{ed_role}"]
+        data: ["{ed_student_data}"]
+      title:
+        - "A {role} can see {data} from another school"
+        - "{data|cap} visible to the wrong {role}"
+        - "Class permissions leak {data} across schools"
+        - "Parent link shows {data} of a sibling's classmates"
+      body:
+        - ["Found {when/while} checking a ticket from {b_pwho}.", "{b_raised}, one district so far."]
+        - ["The check ignores the school.", "The query joins on class only.", "Roles are scoped per district only."]
+        - ["Student privacy applies, so {keep it/please keep it} out of chat.", "Details stay in this issue."]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}, as a {role}."
+        - "Do we owe a notice? Asking {person}."
+        - "{b_cm_fix_up} It adds a school check."
+    - labels: [bug]
+      let:
+        sso: ["school single sign-on", "the district login provider", "the rostering login", "a Google school account", "a Microsoft school account"]
+      title:
+        - "Sign-in with {sso} fails on {b_browser}"
+        - "Students loop back to login with {sso}"
+        - "{sso|cap} works for teachers, not for students"
+        - "Cannot sign in through {sso} after the {ed_peak} rollover"
+      body:
+        - ["{b_pscope}.", "Mostly {b_browser}, {b_pscope}."]
+        - ["Cookies are blocked on managed devices.", "The session cookie drops in frames.", "Callback URLs differ for some districts."]
+      comments:
+        - "Fine in a private window, cookies?"
+        - "Device policies differ, ask the district."
+    - labels: [bug]
+      let:
+        problem: ["does not reach the gradebook", "arrives twice", "shows the wrong score", "is missing for resubmissions"]
+      title:
+        - "Grade passback {problem}"
+        - "Scores sent to {ed_lms} {problem}"
+        - "Assignment grade {problem} for some classes"
+      body:
+        - ["Teachers report it {b_since}, {b_pscope}.", "{b_raised} on {b_customer} accounts."]
+        - ["Calls time out on large classes.", "Late scores overwrite the first one.", "Scores are rounded before sending."]
+      comments:
+        - "Which standard does their system use?"
+        - "Added a retry, {b_branch}."
+    - labels: [enhancement, docs]
+      let:
+        issue: ["missing focus rings", "unlabelled buttons", "low contrast text", "keyboard traps", "unreadable charts"]
+        area: ["the student activity page", "the assignment screen", "the teacher dashboard", "the quiz player"]
+      title:
+        - "Accessibility: {issue} on {area}"
+        - "Districts ask for fixes to {issue} on {area}"
+        - "{issue|cap} on {area}, accessibility audit item"
+      body:
+        - ["A district accessibility review flagged it.", "Procurement asked for a conformance statement.", "A screen reader user found it."]
+        - ["Needs markup changes and styles.", "Mostly markup, some scripting.", ""]
+      comments:
+        - "Related items share one checklist."
+        - "{b_cm_sr} {b_cm_sr2}"
+  docs:
+    - labels: [docs, bug]
+      let:
+        page: ["docs/student-privacy.md", "docs/subprocessors.md", "docs/data-retention.md"]
+        stale: ["a retired subprocessor", "the old retention period", "last year's contact", "the previous policy name"]
+      title:
+        - "Handbook: {page} still lists {stale}"
+        - "{page} out of date, mentions {stale}"
+        - "Update {page}, {stale} is gone"
+      body:
+        - ["District reviewers read this page.", "Support links it for districts.", "Sales sends it with questionnaires."]
+        - ["Needs a check with {person}.", "Legal should look before it ships.", ""]
+      comments:
+        - "Who owns the vendor list now?"
+        - "{b_cm_docs}"
+    - labels: [docs, task]
+      let:
+        howto: ["roll classes over for next term", "restore a roster after bad import", "remove a school on request", "load a rostering file by hand", "export a district's data on request"]
+      title:
+        - "How-to: {howto}"
+        - "Write up how to {howto}"
+        - "Handbook needs a how-to to {howto}"
+      body:
+        - ["Only {person} knows the steps today.", "It comes up every August.", "Support asks about it every term."]
+        - ["Include what can go wrong.", "Add the usual failure modes.", ""]
+      comments:
+        - "{b_cm_up} {b_cm_read2}"
+    - labels: [docs, enhancement]
+      let:
+        item: ["the back to school launch checklist", "the district onboarding steps", "the rostering support guide", "the school hours on-call guide"]
+      title:
+        - "Write up {item}"
+        - "Add {item} to the handbook"
+        - "{item|cap} lives in someone's head"
+      body:
+        - ["Nobody new can find it.", "{ed_peak|cap} is when it matters.", "Customer success keeps a private copy."]
+        - ["One page would do.", "A short page is enough.", ""]
+      comments:
+        - "Put it under docs/runbooks."
+    - labels: [docs, needs-decision]
+      let:
+        topic: ["support hours in August", "freeze dates around term start", "who answers district escalations", "student data requests"]
+      title:
+        - "Handbook disagrees with practice on {topic}"
+        - "Decide how to write up {topic}"
+        - "{topic|cap}: docs and practice differ"
+      body:
+        - ["The page was written {2-4} years ago.", "Practice changed after last term.", "Two pages say different things."]
+        - ["Needs a ruling from {b_who}.", ""]
+      comments:
+        - "I will check with {person}."
+  data:
+    - labels: [bug, incident]
+      let:
+        peak: ["{ed_peak}", "the first Monday of term", "the rollover weekend", "the first week of a semester"]
+      title:
+        - "Usage load finished {ed_slow} late during {peak}"
+        - "Nightly load late every day of {peak}"
+        - "Dashboards stale at {peak}, load behind"
+      body:
+        - ["Event volume is {3-8} times a normal week.", "Student logins jump all at once.", "Class creation spikes overnight."]
+        - ["Customer success wants the numbers by {6-8}am.", "Districts read usage reports each morning.", ""]
+      comments:
+        - "Partition by district, run in parallel."
+        - "The clean step is slowest."
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+        cause: ["a district merge", "a rostering file reload", "students changing schools", "two sign-ins for one student"]
+      title:
+        - "Duplicate student records in {table} after {cause}"
+        - "{table|cap} has two rows for one student, {cause}"
+        - "Counts in {table} are inflated by {cause}"
+      body:
+        - ["Active student totals are too high, {b_scope}.", "Finance bills on this number."]
+        - ["No stable student id exists.", "We match on name and year.", "The merge keeps both rows."]
+      comments:
+        - "Use the district id plus district."
+        - "{b_cm_check} how many rows per district."
+    - labels: [enhancement, needs-decision]
+      let:
+        scope: ["students who left", "a district at contract end", "a parent's deletion request", "children under thirteen"]
+      title:
+        - "Delete data for {scope} from the warehouse"
+        - "Retention and deletion for {scope}"
+        - "Purge {scope} within the contract window"
+      body:
+        - ["Contracts promise deletion in {30-90} days.", "Privacy law sets the clock."]
+        - ["Today it is a manual query.", "Only the app database is covered.", "Backups need a rule too."]
+      comments:
+        - "Needs sign-off from {p_finance_ask} and legal."
+        - "Soft delete first, hard later?"
+    - labels: [bug, data-quality]
+      let:
+        feed: ["school day usage events", "login events", "assignment events", "attendance imports"]
+      title:
+        - "Timezone problem in {feed}"
+        - "{feed|cap} land on the wrong day in {b_region}"
+        - "School day boundaries wrong in {feed}"
+      body:
+        - ["Events are stored in UTC.", "The district timezone is ignored."]
+        - ["Evening activity lands on tomorrow.", ""]
+      comments:
+        - "Store the zone on the school."
+  infra:
+    - labels: [performance, enhancement]
+      let:
+        target: ["the web tier", "the quiz service", "the roster workers", "the login service", "the database replicas"]
+      title:
+        - "Scale {target} before {ed_peak}"
+        - "Load plan for {target} at term start"
+        - "{target|cap} fell over at {ed_peak} last year"
+      body:
+        - ["Traffic is {3-10} times higher at {time} on school days.", "Whole classes log in together."]
+        - ["We need a plan before {b_timeframe}.", "Last year's fix was manual.", "Autoscaling lags the first bell."]
+      comments:
+        - "Warm up {2-6} nodes before {time}."
+        - "{b_cm_later}"
+    - labels: [security, bug]
+      let:
+        item: ["the rostering provider key", "the grade passback secret", "a district's single sign-on certificate", "the payments key"]
+      title:
+        - "Rotate {item}"
+        - "{item|cap} has not been rotated in {2-4} years"
+        - "Alert before {item} expires"
+      body:
+        - ["Found {b_sc_b}", "It expires {b_timeframe}.", "The rotation date has passed."]
+        - ["Districts break when it lapses.", "Keep it out of chat please.", ""]
+      comments:
+        - "Rotation plan is in the runbook, {person} please review."
+    - labels: [bug, incident]
+      let:
+        alert: ["login errors", "roster queue depth", "slow quiz loads", "failed rostering files"]
+      title:
+        - "Alert for {alert} is quiet during school hours"
+        - "{alert|cap} alert fires at night only"
+        - "On-call is not paged for {alert}"
+      body:
+        - ["Schools are online from {6-7}am to {4-5}pm local time.", "Routing uses one timezone only."]
+        - ["Support hears about it first.", ""]
+      comments:
+        - "Split by timezone, east coast first."
+    - labels: [question, chore]
+      let:
+        setting: ["the school-year rollover job", "the August scale schedule", "the term-start freeze", "the readiness delay"]
+      title:
+        - "Why is {setting} different in staging?"
+        - "Check {setting} before {ed_peak}"
+      body:
+        - ["Values differ and nobody remembers why.", "Staging never gets the load."]
+      comments:
+        - "I think {person} changed it last year."
+  ops:
+    - labels: [question]
+      let:
+        script: [rollover_classes.sh, purge_old_rosters.sh, archive_usage.sh, fix_school_ids.py]
+      title:
+        - "Is {script} still used after rollover?"
+        - "Can we delete {script}?"
+      body:
+        - ["It last ran {2-4} years ago."]
+      comments:
+        - "Ask {person}, they ran it every August."
+comments:
+  - "{b_cm_check}, this matters most at {ed_peak}."
+  - "Districts will notice this one first."
+  - "Does it affect {b_customer} accounts only?"
+  - "Teachers notice on day one."
+  - "Which district reported it?"
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: school year starts {c_soon} for big districts"
+        - "reminder, {ed_peak} is {c_soon}, no deploys after {time}."
+        - "{c_hey}, term start freeze begins {day} at {time}"
+        - "support is extended hours {c_soon}, sign up for a shift"
+        - "freeze from {day}, ship what you have by {time}"
+      replies:
+        - ["does the freeze cover docs changes?", "who is on the rota?", "can we still fix typos?", "what about hotfixes?"]
+        - ["hotfixes need a lead", "{c_yes}, docs are fine", "the rota is in the calendar", ""]
+        - ["{c_thanks}", "{c_ack}", ""]
+    - root:
+        - "welcome {person}, joining customer success {c_soon}"
+        - "{c_hey}: say hi to {person}, who starts {c_soon} on the implementation team"
+        - "new teacher advisor {person} joins {c_soon}, show them the staging classroom"
+        - "please welcome {person} to platform this week"
+        - "{person} starts {c_soon}, find them for coffee"
+      replies:
+        - ["welcome!", "{c_em}", "welcome aboard"]
+        - ["any laptop issues?", "need access to anything?", ""]
+    - root:
+        - "district conference next month, who goes?"
+        - "{c_hey}: conference travel requests are due {c_soon}"
+        - "we have a conference booth, volunteers?"
+        - "sales needs {2-4} engineers at the education conference"
+        - "survey for the conference booth, takes {2-5} minutes"
+      replies:
+        - ["is it in person?", "how long is it?", "does it cover hotel?"]
+        - ["two days in {b_region}", "yes, travel is covered", "{c_idk}, ask {person}", ""]
+        - ["{c_thanks}", ""]
+  off-topic:
+    - root:
+        - "my family chat is sick of {c_food}"
+        - "anyone else's kid starting school {c_soon}?"
+        - "what from school stuck with you?"
+        - "best teacher ever? mine taught {math/history/music}"
+        - "random: first day jitters for {person}'s kid {c_soon}"
+      replies:
+        - ["mine had a rule about {pencils/seating/late homework}", "{c_lol}, same", "my kid is {3-17}"]
+        - ["{c_em}", "good luck to them", ""]
+    - root:
+        - "{c_place} has a back to school deal"
+        - "lunch? {s_lunch} at {time}"
+        - "{c_food} at {c_place} today?"
+        - "who is up for {c_food} on {day}?"
+        - "{s_lunch} again? i am tired of {c_food}"
+      replies:
+        - ["in", "can't, calls all day", "{c_yes}, give me {5-15} minutes"]
+        - ["{c_em}", ""]
+    - root:
+        - "anyone doing {c_sport} this weekend?"
+        - "weekend plans? i am doing {c_weekend}"
+        - "did anyone watch the {match/game} last night?"
+        - "{c_pet} chewed my charger again"
+        - "finally a quiet weekend, {c_weekend} for me"
+      replies:
+        - ["{c_agree}", "nice", "{c_lol}"]
+        - ["how was it?", "photos?", ""]
+  engineering:
+    - root:
+        - "can someone review my pr on {repo}? {c_patch}, touches the roster import"
+        - "pr up for {c_eng_area}, {c_patch}, please review"
+        - "review please: {c_eng_area} change in {repo}, {c_patch}"
+        - "{person}, could you look at my {c_eng_area} pr?"
+        - "small pr for {c_eng_area}, {c_patch}"
+      replies:
+        - ["looking now", "after standup", "{c_when_eng}"]
+        - ["left two comments", "{c_ack}, merging", "lgtm"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "heads up: rostering files from {b_region} districts changed format"
+        - "district {ed_peak} is near, who owns the {c_eng_area} backlog?"
+        - "{c_eng_area} is slow for big districts{c_sep} anyone changed something?"
+        - "imports break without {a birth year/a grade}"
+        - "keep old formats for {c_eng_area}, or drop them?"
+      replies:
+        - ["i can look {c_when_eng}", "{c_idk}, check the changelog", "which district?"]
+        - ["{c_yes}, one of the bigger ones", "ticket is {s_ticket}", "will post a note", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "{c_ci_fail} is failing again on main"
+        - "{c_tool} broke after the lockfile update"
+        - "should we upgrade {c_dep}? a new major shipped"
+        - "{c_cmd} fails since the rebase"
+        - "who is on call during {ed_peak}?"
+      replies:
+        - ["same here", "works for me", "retry it, it was flaky"]
+        - ["i will pin the version", "{c_ack}", "try clearing the cache"]
+        - ["{c_thanks}", ""]
+  team:
+    - root:
+        - "standup in {5-15} minutes, {c_status} on my side"
+        - "who covers support {c_soon}? i am {c_pto}"
+        - "sprint planning at {time} on {day}, bring estimates"
+        - "retro action: owners for term start"
+        - "release prep for {repo}: who has the checklist?"
+      replies:
+        - ["i can take {c_soon}", "checklist is in the handbook", "{c_ack}"]
+        - ["thanks!", "{c_em}", ""]
+    - root:
+        - "customer escalation: {c_customer} cannot sync classes"
+        - "district asking for {ed_student_data} export, who handles it?"
+        - "{c_customer} says seats do not match, {issue} is related"
+        - "implementation call at {time}, can engineering join?"
+        - "a district admin is waiting on {issue}, any update?"
+      replies:
+        - ["i can join", "checking the logs", "who is the contact?"]
+        - ["the ticket is {s_ticket}", "they are in {b_region}", "waiting on their file", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "who is picking up {issue}?"
+        - "anyone free to pair on {issue}?"
+        - "is the board current before term?"
+        - "{person}{c_sep} review my pr when free?"
+        - "show and tell {day} {time}, volunteers?"
+      replies:
+        - ["i can pair {c_when_eng}", "mine", "not me, buried"]
+        - ["{c_thanks}", "{c_ack}", ""]
+  support:
+    - root:
+        - "teacher can't see classes after rostering{c_sep} anyone seen this?"
+        - "{s_cust|cap} asks why seats jumped to {2000-9000} this month"
+        - "district admin wants a PO copy, {s_ticket}"
+        - "parent says login fails, {s_ticket}"
+        - "{s_cust|cap}: roster file rejected, now what?"
+      replies:
+        - ["checking the import log", "{c_yes}, seen it {2-5} times", "escalating to eng"]
+        - ["it was the file encoding", "send me the file name", "filed as {issue}", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "refund request: {s_cust}, {s_money}, says they cancelled before term"
+        - "{s_cust|cap} adds a school mid-term{c_sep} price?"
+        - "i updated the welcome macro{c_sep} use the new one"
+        - "queue is at {20-90} open tickets, {ed_peak} is here"
+        - "{s_cust|cap} is {s_mood}, been waiting {2-5} days"
+      replies:
+        - ["finance decides refunds", "ask {person} about proration", "use the macro, it has links"]
+        - ["{c_ack}", "will do", ""]
+    - root:
+        - "customer never got the welcome email"
+        - "{s_cust|cap} cannot find the roster upload"
+        - "escalating to eng{c_sep} grade passback fails, filed as {issue}"
+        - "district wants a deletion form{c_sep} who owns it?"
+        - "{morning/evening} handover: {5-25} open tickets, nothing on fire"
+      replies:
+        - ["spam folder checked?", "i will resend it", "which email domain?"]
+        - ["it is the district filter", "docs page is under help centre", "legal owns that form", ""]
+        - ["{c_thanks}", ""]
+    - root:
+        - "reminder: district contacts only{c_sep} never email students"
+        - "heads up, privacy questionnaire due {c_soon}"
+        - "{s_cust|cap} asks where student data lives"
+        - "when is data deleted after exit?"
+      replies:
+        - ["answer is in the privacy page", "{c_idk}, ask legal", "i will send the link"]
+        - ["{c_thanks}", ""]
+  incidents:
+    - root:
+        - "login errors for students since {time}, schools are starting"
+        - "{c_hey}, roster queue backed up to {1-9},{100-900} jobs"
+        - "alert: quiz service slow for {2-9} districts, p95 above {5-20}s"
+        - "paging: classes not loading, east coast"
+        - "is anyone else seeing logins {s_symptom}?"
+      replies:
+        - ["looking now", "seeing the same", "checking the dashboards"]
+        - ["it started after the {time} deploy", "one district only so far", "rolling back"]
+        - ["fixed, watching", ""]
+    - root:
+        - "near miss: import almost wiped classes{c_sep} backup saved it"
+        - "the roster alert is flapping again"
+        - "login outage review is {day} at {time}"
+        - "on-call handover: nothing open, {s_oncall} is quiet"
+        - "login certificate expires in {2-9} days"
+      replies:
+        - ["noted", "thanks for the handover", "adding it to the review"]
+        - ["i will renew it {c_soon}", ""]
+    - root:
+        - "provider status page shows an incident"
+        - "the roster worker disk is at {80-97} percent"
+        - "rolled back {repo} after a bad deploy, all fine"
+        - "passback queue backed up to {1-9},{100-900} messages"
+        - "passback alert woke me at {time}"
+      replies:
+        - ["are districts affected?", "i see it too", "will check the logs"]
+        - ["customer facing, yes", "support is on it", "no impact so far", ""]
+  direct:
+    - root:
+        - "{s_hey}, could you look at {issue} {s_soon}?"
+        - "quick question: how are students matched?"
+        - "got a minute for rollover plans?"
+        - "{s_hey}, thought you'd like this classroom story"
+        - "move the rollover review to {time}?"
+      replies:
+        - ["{c_yes}", "give me {5-15} minutes", "i will ping you"]
+        - ["{c_thanks}", ""]
+    - root:
+        - "ugh, the district's file has {2-9} formats in one folder"
+        - "survived {ed_peak}, finally"
+        - "read my write-up before {day}?"
+        - "handing over rollover while i'm out {s_soon}"
+        - "{s_hey}, review my pr when you can?"
+      replies:
+        - ["{c_lol}", "i feel that", "thanks for covering"]
+        - ["{c_ack}", ""]
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "i'm working from home {day}"
+        - "{s_hey}, got the notes from that call?"
+        - "can you cover my on-call {day}?"
+        - "{s_hey}, rule for district data requests?"
+      replies:
+        - ["sure, see you there", "{c_yes}", "sorry, busy"]
+        - ["{c_thanks}", ""]

@@ -1,0 +1,588 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Research institutes: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: research-institutes
+name: Research institutes
+group: Education and non-profit
+aliases: [research institute, research centre, research center, scientific research, research organization]
+description: An independent research organization that runs laboratories and core facilities, wins grants and contracts from funders, and reports its spending and results to them.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Institute, Research Institute, Laboratories, Research Center, Institute for Science, Foundation for Research]
+invoice_items: ["Cost-reimbursement drawdown", "Core facility recharge"]
+organization:
+  head: Director of Research Computing
+  it_admin: Systems Administrator
+  teams:
+    platform: {department: Research Computing, title: Research Software Engineer}
+    billing: {department: Sponsored Programs Systems, title: Grants Systems Engineer}
+    data: {department: Research Data Services, title: Data Engineer}
+    support: {department: Research Administration, title: Research Support Specialist}
+    product: {department: Scientific Operations, title: Program Manager}
+    operations: {department: Core Facilities, title: Facilities Analyst}
+names:
+  repos:
+    billing-service: [award-billing, sponsor-billing, grants-ledger, drawdown-service]
+    platform-docs: [research-handbook, lab-handbook, computing-docs, sop-library]
+    data-pipeline: [lims-loads, research-warehouse, instrument-etl, data-loads]
+    infra-config: [cluster-config, research-infra, environment-config, storage-config]
+    customer-portal: [researcher-portal, award-portal, core-portal, pi-portal]
+    ops-scripts: [lab-scripts, legacy-scripts, core-admin-scripts, old-lab-ops]
+  channels:
+    engineering: [research-eng, dev, software-chat]
+    incidents: [incidents, instrument-alerts, outages]
+    releases: [releases, deploys, release-notes]
+    billing-team: [grants-systems, award-billing-team, sponsored-systems]
+    platform-team: [research-computing, platform-team, compute-team]
+    data-team: [data-services, data-team, lims-data]
+    support: [research-support, pi-support, grants-help]
+    leads: [leads, program-leads, managers]
+systems:
+  typical: [github, slack, microsoft 365, okta, jira, confluence, tableau, labware lims, benchling]
+  common: [snowflake, zoom, box, qualtrics]
+symbols:
+  b_doc: ["sponsor invoice", "drawdown request", "subaward invoice", "financial report", "{monthly/quarterly} statement"]
+  b_customer: ["federal", "foundation", "industry-sponsored", "subaward", "fixed-price"]
+  b_who: ["the grants office", "research finance", "the sponsored programs team", "a principal investigator"]
+  b_pwho: ["the grants office", "a principal investigator", "{person}", "a core manager"]
+  b_currency: ["EUR", "GBP", "CHF", "CAD", "AUD"]
+  b_taxkind: ["VAT", "sales tax", "GST", "withholding tax"]
+  b_region: ["Germany", "the UK", "Canada", "Switzerland", "Australia"]
+  b_page: ["awards", "budgets", "effort reports", "the dashboard", "subawards", "drawdowns"]
+  b_acct_size: ["{3-40} active awards", "{200-900} budget lines", "{3-12} subawards", "{15-60} named investigators"]
+  c_customer: ["a principal investigator", "a sponsor program officer", "a department administrator", "a collaborating lab"]
+  s_plan: ["a federal award", "a foundation grant", "a subaward", "an industry contract"]
+  s_cust: ["a PI on {s_plan}", "someone on {s_plan}", "an investigator with {s_plan}", "a lab on {s_plan}"]
+  p_table: ["awards", "subawards", "timesheets", "specimens", "instrument_runs", "bookings", "publications", "payments"]
+  p_finance_ask: ["the grants accountant", "someone in research finance", "the sponsored programs lead", "the controller"]
+  p_report: ["the award burn-rate report", "the effort summary", "the sponsor financial report", "the core utilization report"]
+  p_source: ["the electronic lab notebook exports", "the instrument booking calendar", "the grants system award feed", "the publication tracking export", "the freezer monitoring feed"]
+  c_eng_area: ["the LIMS export parser", "the award sync", "the booking service", "the recharge calculator", "the effort report job"]
+  s_thing: ["the award sync", "the recharge job", "the export", "the nightly load"]
+  ri_core: ["the sequencing core", "the imaging core", "the proteomics core", "the microscopy suite", "the cryo-EM suite"]
+  ri_instrument: ["the mass spectrometer", "the confocal", "the sequencer", "the plate reader", "the flow cytometer"]
+  ri_sponsor: ["a federal funder", "a private foundation", "an industry sponsor", "a state agency"]
+  ri_deadline: ["the proposal deadline", "the progress report date", "the quarterly drawdown", "the audit visit"]
+  ri_dataset: ["a restricted cohort", "the genomics release", "a clinical extract", "an interview archive"]
+  ri_data: ["raw sequencing runs", "microscope images", "mass spectrometry output", "survey exports"]
+  ri_feed: ["the instrument logs", "the specimen intake feed", "the booking export", "the freezer sensor feed"]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        rate: ["the negotiated indirect rate", "the off-campus rate", "the on-site rate", "the modified direct cost base"]
+        award: ["a federal award", "a foundation grant", "a subaward", "a cost-share award"]
+      title:
+        - "Wrong cost base for indirects on {award}"
+        - "{rate|cap} ignored once the agreement changed"
+        - "Indirect charge on {b_doc}s is {off/out/wrong} for {award}"
+        - "Why are overhead amounts different on {award}?"
+        - "Overhead on {award} {ignores/misses/skips} {rate}"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {award}, {b_scope}."]
+        - ["The rate is read once in {b_money_path}.", "Rates are cached in {b_money_path}, never refreshed.", "{b_money_path} uses one rate for every period."]
+        - ["New agreements apply from their start.", "Older costs keep the old rate."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a rate change mid-period."
+        - "{b_cm_check}, rates have no effective dates."
+        - "{person} can ask for the signed agreement."
+    - labels: [bug]
+      let:
+        limit: ["the total award", "the current budget period", "the approved budget", "the cost-share commitment"]
+        reason: ["a late subaward invoice", "a no-cost extension", "a rebudget", "a carryforward"]
+      title:
+        - "Charges can pass {limit} after {reason}"
+        - "Nothing stops spending beyond {limit}"
+        - "{reason|cap} lets a drawdown go past {limit}"
+        - "Guard against costs above {limit}"
+        - "Award ceiling ignored after {reason}"
+      body:
+        - ["After {reason} the ceiling is wrong, {b_scope}.", "{b_raised}, {b_scope}, after {reason}."]
+        - ["The check in {b_credit_path} sums only one budget period.", "{b_credit_path} counts the open period only."]
+        - ["Refuse with a plain message.", "Show a readable error when refused."]
+      comments:
+        - "Sponsor approval dates matter here, {person} can confirm."
+        - "{b_cm_fix_up} It sums all periods together."
+    - labels: [bug]
+      let:
+        report: ["the SF-425 export", "the quarterly financial report", "the drawdown request", "the final financial report"]
+        gap: ["{1-9} cents", "{40-900} dollars", "one subaward line", "a single cost transfer"]
+      title:
+        - "{report|cap} does not match the ledger by {gap}"
+        - "Mismatch of {gap} in {report}"
+        - "{report|cap} is {off/out} by {gap} for one award"
+        - "Why does {report} disagree with the ledger?"
+      body:
+        - ["{b_raised}, {b_scope}.", "Research finance found it at closeout."]
+        - ["The ledger includes pending cost transfers.", "Late posted costs are left out.", "Rounding differs by line."]
+        - ["Finance needs it before {p_finance_ask} signs off.", "{b_urgent}"]
+      comments:
+        - "Counted {2-9} awards with the same gap."
+        - "{b_cm_stage}, transfers post after cut-off."
+    - labels: [needs-decision]
+      let:
+        question: ["late effort certification", "effort split across two awards", "cost transfers after 90 days", "salary above the sponsor cap"]
+        who: ["research finance", "the grants office", "the sponsored programs lead"]
+      title:
+        - "Policy for {question}?"
+        - "Decision needed: how do we handle {question}"
+        - "{question|cap}: who approves?"
+        - "Agree rules for {question} before we build more"
+      body:
+        - ["Today {who} handles {question} by hand.", "{who|cap} decides {question} case by case."]
+        - ["The code has no rule.", "Nothing in {b_credit_path} limits it."]
+        - ["Need an answer {b_timeframe}."]
+      comments:
+        - "Funder guidance says nothing here."
+        - "Let's decide {day}, {person} can you bring cases?"
+    - labels: [enhancement]
+      let:
+        report: ["a monthly burn-rate summary", "a list of awards ending soon", "unspent balance by award", "effort by investigator"]
+        who: ["the grants office", "research finance", "the department administrators"]
+      title:
+        - "Export {report} for {who}"
+        - "{who|cap} wants {report} without asking an engineer"
+        - "Schedule {report} instead of a manual query"
+        - "{report|cap}: columns and format?"
+      body:
+        - ["{who|cap} asks for {report} every month.", "{person} runs a query by hand."]
+        - ["Columns need agreeing with {who}.", "Format must match the funder form."]
+      comments:
+        - "{person} has the query, {b_cm_turn}."
+        - "Split by award year? Query changes."
+  portal:
+    - labels: [bug]
+      let:
+        who: ["principal investigators", "department administrators", "sponsor officers", "subaward contacts"]
+        when: ["the fiscal year rollover", "an award transfer", "a no-cost extension", "the new budget period"]
+      title:
+        - "Award list is empty for {who} after {when}"
+        - "{who|cap} cannot see their awards since {when}"
+        - "Missing awards in the portal after {when}"
+        - "Award page blank after {when}, {b_browser}"
+      body:
+        - ["{b_raised}, {b_pscope}.", "{who|cap} reported it, {b_pscope}."]
+        - ["Role mapping is rebuilt nightly.", "Access follows the old period."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} {b_cm_stage}, the access row is gone."
+        - "Check the role sync job."
+    - labels: [bug, enhancement]
+      let:
+        resource: ["{ri_core}", "{ri_instrument}", "a shared microscope", "the cluster reservation"]
+        problem: ["double books slots", "ignores the recharge rate", "does not release cancelled slots", "shows the wrong calendar day"]
+      title:
+        - "Booking {resource} in the portal {problem}"
+        - "{resource|cap} booking {problem}"
+        - "Portal booking for {resource} {problem} for some users"
+        - "Calendar for {resource} {problem}"
+      body:
+        - ["{b_raised}, {b_pscope}.", "Core staff noticed it, {b_pscope}."]
+        - ["Two people got the same slot.", "The page and calendar disagree."]
+        - ["It matters most near {ri_deadline}."]
+      comments:
+        - "Time zones again? Local time."
+        - "{b_cm_fix_up}"
+    - labels: [bug, security]
+      let:
+        dataset: ["a restricted cohort", "the genomics release", "a clinical extract", "an interview archive"]
+        scope: ["a former collaborator", "someone from another lab", "a visiting student"]
+      title:
+        - "Download link for {dataset} stays live after access ends"
+        - "{scope|cap} can still fetch {dataset}"
+        - "Data access expires too late for {dataset}"
+        - "Guessable download ids for {dataset}"
+      body:
+        - ["{b_raised}, while reviewing access logs.", "Noticed during a data use review."]
+        - ["The link outlives the approval.", "{b_dlk_c}"]
+        - ["Keep details out of chat please."]
+      comments:
+        - "{b_cm_repro} with an expired approval."
+        - "Check the access log first."
+    - labels: [enhancement]
+      let:
+        ask: ["download an award budget", "request a rebudget", "upload a progress report", "see subaward balances"]
+      title:
+        - "Let investigators {ask} without writing to the grants office"
+        - "Allow users to {ask} in the portal"
+        - "Self-service: {ask}"
+      body:
+        - ["People email the grants office to {ask}.", "Grants staff do it by hand."]
+        - ["A portal form would be enough.", "{b_fr_c}"]
+      comments:
+        - "Needs an approval step for finance."
+        - "{b_fr_d}"
+  docs:
+    - labels: [docs, bug]
+      let:
+        sop: ["the freezer alarm procedure", "the specimen intake checklist", "the data release guide", "the instrument booking policy"]
+        stale: ["last year's rate sheet", "the old safety officer", "a retired form", "the former records manager"]
+      title:
+        - "{Docs/Handbook}: {sop} still lists {stale}"
+        - "{sop|cap} mentions {stale}"
+        - "Out of date: {sop} points to {stale}"
+        - "{sop|cap} is stale, it lists {stale}"
+      body:
+        - ["Noticed it onboarding a visiting researcher.", "{b_raised}."]
+        - ["{person} owns the page now."]
+      comments:
+        - "Updated the page, please reread."
+        - "Also check the lab binder copy."
+    - labels: [docs, task]
+      let:
+        howto: ["request a new data use agreement", "onboard a visiting researcher", "close out an award", "archive instrument data after a project", "restore a lab share from backup"]
+      title:
+        - "How-to: {howto}"
+        - "Write up how to {howto}"
+        - "Handbook needs a page: {howto}"
+      body:
+        - ["New people keep asking how to {howto}.", "Only {person} knows how to {howto}."]
+        - ["A short page of steps."]
+      comments:
+        - "I can draft it after {ri_deadline}."
+        - "Link it from the handbook index."
+    - labels: [needs-decision, docs]
+      let:
+        records: ["raw instrument output", "consent forms", "lab notebooks", "award correspondence", "specimen logs"]
+        who: ["the compliance office", "research finance", "the data steward"]
+      title:
+        - "Decide how long to keep {records}"
+        - "Retention period for {records}?"
+        - "{records|cap}: how do we write up retention?"
+      body:
+        - ["Funders and our policy differ on {records}.", "The handbook and practice disagree."]
+        - ["{who|cap} should decide."]
+      comments:
+        - "Funders want three years after closeout."
+        - "{b_g_needs}"
+    - labels: [docs, enhancement]
+      let:
+        service: ["the booking service", "the award sync", "the recharge calculator", "the LIMS loads"]
+      title:
+        - "Add an architecture note for {service}"
+        - "Document how {service} works"
+      body:
+        - ["Newcomers cannot follow {service}.", "Nothing explains {service} today."]
+      comments:
+        - "A diagram would help."
+  data:
+    - labels: [bug]
+      let:
+        error: ["a schema change in the export", "a duplicate accession id", "a timeout reading the sequencing store", "a malformed specimen code"]
+      title:
+        - "Nightly load fails with {error}"
+        - "Nightly load stops on {error}"
+        - "LIMS load aborted because of {error}"
+        - "{error|cap} breaks the nightly load"
+      body:
+        - ["The load stopped at {time} on {day}.", "Failed overnight, dashboards are stale."]
+        - ["{b_pf_e}", "{b_urgent}"]
+      comments:
+        - "{b_cm_stage}, the same file fails."
+        - "Quarantine the bad rows and continue?"
+    - labels: [bug, data-quality]
+      let:
+        gap: ["{1-9} awards", "about {2-9} percent", "a few thousand dollars", "{3-30} subaward lines"]
+      title:
+        - "Totals differ from the ledger by {gap}"
+        - "{p_report|cap} does not match research finance ({gap})"
+        - "Warehouse and ledger disagree on {gap}"
+      body:
+        - ["Finance spotted it at quarter close.", "{b_raised}."]
+        - ["Late cost transfers may explain it.", "The load runs before ledger close."]
+      comments:
+        - "{b_cm_prof} the join on award id."
+        - "Is the cut-off identical?"
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        owner: ["research finance", "the core facilities", "the data steward"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Should {owner} get {source} in the warehouse?"
+        - "Add {source} to the nightly load"
+      body:
+        - ["{owner|cap} wants {source} for reporting.", "Reports need {source}."]
+        - ["Access and retention need agreeing first."]
+      comments:
+        - "Is any of it personal data?"
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        feed: ["{ri_feed}"]
+      title:
+        - "{feed|cap} an hour off since the change"
+        - "Timezone problem in {feed}"
+        - "{feed|cap} mixes local and UTC times"
+      body:
+        - ["Instrument hosts write local time.", "Some hosts use UTC."]
+        - ["Midnight runs land a day off."]
+      comments:
+        - "Store UTC, convert at the edge."
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["the instrument gateway certificate", "the portal certificate", "the cluster login certificate", "the booking service certificate"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} expires in {2-9} days"
+        - "Renew {cert}, nobody was warned"
+      body:
+        - ["Instrument hosts reject connections after expiry.", "Expiry stopped runs last year."]
+        - ["Add a warning two weeks ahead."]
+      comments:
+        - "{b_cm_check} the renewal job."
+    - labels: [bug, performance]
+      let:
+        data: ["{ri_data}"]
+        days: ["{30-90}", "{90-180}"]
+      title:
+        - "Archive storage for {data} fills faster than planned"
+        - "Archive tier disk is at {70-95} percent"
+        - "Plan more space for {data}"
+      body:
+        - ["Growth is {5-20} terabytes a month.", "The new instrument doubled the output."]
+        - ["Retention of {days} days on scratch is not enough.", "Cold storage moves run only weekly."]
+      comments:
+        - "Ask core managers what stays."
+        - "{b_cm_prof} last month's usage:"
+    - labels: [bug, security]
+      let:
+        target: ["instrument workstations", "the shared lab drive", "the ELN database", "the LIMS database"]
+      title:
+        - "Backups: {target} not covered"
+        - "Backups skip {target}"
+        - "No restore test for {target}"
+      body:
+        - ["{target|cap} fell out of the backup policy.", "The last restore of {target} was never tried."]
+        - ["A failed backup pages nobody."]
+      comments:
+        - "Add it, then try a restore."
+    - labels: [question]
+      let:
+        setting: ["{p_setting}", "the job limit", "the scratch quota"]
+        queue: ["the short queue", "the GPU queue", "the large memory queue"]
+      title:
+        - "Why is {setting} set this way for {queue}?"
+        - "Tune {setting} for {queue}"
+      body:
+        - ["Researchers complain about waiting on {queue}.", "{queue|cap} stalls near {ri_deadline}."]
+      comments:
+        - "Check the scheduler log first."
+  ops:
+    - labels: [question]
+      let:
+        script: ["sync_instruments.sh", "rotate_freezer_logs.sh", "export_recharge.py", "purge_scratch.sh"]
+      title:
+        - "Is {script} still used by the core facilities?"
+        - "Can we delete {script}?"
+      body:
+        - ["Nothing in cron calls {script}.", "Nobody remembers who wrote {script}."]
+      comments:
+        - "Ask the core managers before deleting."
+comments:
+  - "The grants office needs this before {ri_deadline}."
+  - "{b_cm_check} with the core manager."
+  - "Funder rules say otherwise, {person} can you check?"
+  - "Does this touch {ri_core}?"
+  - "Let's confirm with research finance first."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: seminar is {day} at {time}, in {c_room}."
+        - "reminder, the weekly seminar is {day} at {time}"
+        - "{c_hey|cap}, visiting speaker {day} at {time}, lunch provided"
+        - "seminar moved to {day} at {time}"
+        - "journal club {day} at {time}, paper is in the shared folder"
+      replies:
+        - ["will it be recorded?", "is there a remote link?", "can we submit questions beforehand?"]
+        - ["{c_yes}, recording goes up afterwards", "{c_yes}, link is in the invite", ""]
+        - ["{c_thanks}", "{c_ack}", ""]
+    - root:
+        - "{ri_deadline} is {c_soon}, {p_finance_ask} needs final numbers by {day}"
+        - "{c_hey}: {ri_deadline} is {day}, send updates to research finance"
+        - "heads up, {ri_deadline} has moved to {day}"
+        - "{ri_deadline} lands {c_soon}, grants office has office hours {day}"
+      replies:
+        - ["which form do we use?", "who is checking the budget pages?", "is the deadline firm?"]
+        - ["the one in the shared folder", "{person} is, ask them", "{c_yes}, no extensions"]
+        - ["{c_ack}", "{c_thanks}"]
+    - root:
+        - "{ri_core} is closed {c_soon} for maintenance"
+        - "{c_hey}: {ri_instrument} is down {c_soon} for service, rebook please"
+        - "{ri_instrument} service visit on {day}, bookings that day are cancelled"
+        - "freezer room is closed {c_soon} for the compressor swap"
+        - "power work in {c_floor} on {day}, move anything sensitive"
+      replies:
+        - ["how long will it be out?", "who rebooks the slots?", "is the backup unit staying on?"]
+        - ["about {2-9} hours", "core staff will email you", "{c_idk}, ask {person}"]
+        - ["{c_thanks}", ""]
+  off-topic:
+    - root:
+        - "who goes to the conference {soon/in spring/in october}?"
+        - "who is heading to {the conference/the workshop} next month?"
+        - "flights are pricey, sharing a hotel?"
+        - "poster printing is a mess, tips?"
+        - "travel form is confusing, anyone done?"
+      replies:
+        - ["i am going, {day} to {day}", "sharing a room works for me", "not this year"]
+        - ["the print shop downstairs is quick", "use the template, send it {c_soon}", "ask {person}"]
+    - root:
+        - "lunch ideas? i am sick of {c_food}"
+        - "anyone want {c_food} {c_soon}?"
+        - "the cafeteria has {c_food} again, worth it?"
+        - "{c_place} is doing a lunch deal today"
+        - "walking to {c_place}, join?"
+      replies:
+        - ["{c_yes}, give me {5-15} minutes", "in", "not today, {s_busy}"]
+        - ["{c_agree}", "{c_lol}"]
+    - root:
+        - "{c_pet} is {sleeping/hiding/snoring} under my desk, wfh life"
+        - "look at {c_pet} {c_sep} {still/again} on the keyboard"
+        - "{happy birthday/congrats} {person}!"
+        - "happy birthday {person}, cake in {c_room} at {time}"
+        - "did anyone catch the {game/match/race} {last night/yesterday}?"
+      replies:
+        - ["{c_lol}", "aww", "{c_em}"]
+        - ["thanks all", "{c_thanks}", ""]
+  engineering:
+    - root:
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "pr up for {repo}, {c_patch}, who has a minute?"
+        - "review please: {c_eng_area}, {c_patch}"
+        - "{c_hey}, small pr in {repo}, {c_patch}"
+        - "{person}, could you review my change to {c_eng_area}?"
+      replies:
+        - ["{c_ack}, looking {c_soon}", "{c_yes}, after standup", "can take it {c_when_eng}"]
+        - ["left a few comments", "lgtm, merging", ""]
+    - root:
+        - "the lims export changed format again, {c_eng_area} is failing"
+        - "new firmware changed columns, parser broke"
+        - "{ri_instrument} now writes dates differently"
+        - "got a malformed row in the {ri_instrument} export, {c_eng_area} chokes on it"
+        - "accession ids repeat, load rejects them"
+      replies:
+        - ["can you attach the file?", "which instrument host?", "did the vendor announce it?"]
+        - ["attached", "host is in the {ri_core} rack", "no notice, found it by accident"]
+        - ["i will patch the parser {c_when_eng}", "make it tolerant of both?"]
+    - root:
+        - "the cluster queue is {slow/stuck/empty} again, anyone changed the scheduler?"
+        - "{c_ci_fail} is failing on main"
+        - "should we upgrade {c_dep}? a new major came out"
+        - "local env broke after {pulling main/a rebase}"
+        - "who is on call this week?"
+        - "{service} is slow, anyone changed something?"
+      replies:
+        - ["not me", "checking the logs", "{c_idk}"]
+        - ["found it, config change from {day}", "{c_ack}"]
+  team:
+    - root:
+        - "standup in {5-15} minutes, {c_status} on my side"
+        - "{c_hey}, standup moved to {time}"
+        - "skipping standup, {c_pto}"
+        - "who is covering research support {c_soon}?"
+      replies:
+        - ["{c_ack}", "{c_thanks}"]
+        - ["i can cover {day}", "{person} has it", ""]
+    - root:
+        - "award closeout for {2-9} awards is due {c_soon}, who owns the report script?"
+        - "closeout week, the ledger freezes {day}"
+        - "grants office wants awards ending soon"
+        - "who is checking {issue}? it blocks closeout"
+        - "closeout checklist needs an owner for {ri_deadline}"
+      replies:
+        - ["i can take the script", "{person} did it last time", "{c_idk}"]
+        - ["list is in the shared folder", "will send it {c_soon}", ""]
+        - ["{c_thanks}"]
+    - root:
+        - "pi escalation: their {b_doc} shows the wrong total, filed as {issue}"
+        - "a pi cannot see subawards, ideas?"
+        - "{person}, {ri_core} manager asks about recharge in {issue}"
+        - "sponsor officer wants the drawdown breakdown {c_soon}"
+      replies:
+        - ["looking at it {c_when_eng}", "which award?", "sending the numbers {c_soon}"]
+        - ["award is in the ticket", "{c_ack}"]
+  support:
+    - root:
+        - "a pi lost their award, {anyone/has anyone} seen it?"
+        - "{s_cust|cap} asks why the recharge is {s_money} this month"
+        - "a pi says effort is missing"
+        - "{s_cust|cap}: budget page total differs from ledger"
+        - "needs the award number on old {b_doc}s. possible?"
+      replies:
+        - ["is it in {s_ticket}?", "which award number?", "checking the role sync"]
+        - ["yes, {s_ticket}", "will send it {c_soon}", ""]
+        - ["{c_thanks}", "{c_ack}"]
+    - root:
+        - "core booking: someone cannot book {ri_instrument}, says slots are full"
+        - "two labs both booked {ri_instrument} on {day}, who wins?"
+        - "{s_cust} asks how recharge is set for {ri_core}"
+        - "recharge question: cancelled booking was charged?"
+      replies:
+        - ["check the cancellation window", "looking at the booking log", "escalating to eng, {s_track_a}"]
+        - ["window is 24 hours", "refund if inside the window", ""]
+    - root:
+        - "{morning/evening} handover: {5-20} open tickets, nothing on fire"
+        - "queue is at {20-80} open tickets, {behind/nearly caught up}"
+        - "heads up, {s_cust} is unhappy, waiting {2-9} days"
+        - "following up on {s_ticket}: is it {fixed/still open/waiting on us}?"
+      replies:
+        - ["{c_thanks}", "{c_ack}"]
+        - ["i will pick the older ones", "taking the pi tickets"]
+  incidents:
+    - root:
+        - "freezer alarm for {ri_core} paged twice, feed looks flaky"
+        - "freezer monitoring feed is {silent/late/duplicating} since {time}"
+        - "temperature alerts not arriving for the {c_floor} freezers"
+        - "sensor feed gap of {20-90} minutes this morning"
+      replies:
+        - ["gateway or the sensors?", "do we have anyone on site?", "i will check the relay"]
+        - ["gateway restarted at {time}", "someone is walking the room now"]
+        - ["{s_fixed_a}, will post notes", ""]
+    - root:
+        - "the {s_thing} is {s_symptom} {s_since}"
+        - "the nightly load is {late/stuck} {s_since}, dashboards are stale"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "instrument gateway is {s_symptom}, bookings will not save"
+        - "portal login is {s_symptom} {s_since}"
+      replies:
+        - ["i see it too", "looking at the logs", "was there a deploy?"]
+        - ["rolled back, watching", "{c_idk}"]
+        - ["{s_track_a}"]
+    - root:
+        - "the {p_alert_name} alert is flapping again"
+        - "post-incident review for {s_thing} is set for {day} at {time}"
+        - "on-call handover: nothing open, {s_oncall} is quiet"
+        - "gateway certificate expires in {2-9} days"
+      replies:
+        - ["muting it for now", "who owns that alert?", "{c_ack}"]
+        - ["i will adjust the threshold", "added to the review"]
+  direct:
+    - root:
+        - "{s_hey}, can you send the {ri_core} budget?"
+        - "{s_hey}, do you have recharge rates?"
+        - "quick question: source of effort data?"
+        - "{s_hey}, who approves a rebudget for {ri_sponsor}?"
+        - "{s_hey}, need the data use agreement template {s_soon}"
+      replies:
+        - ["{s_ack}, sending it {s_soon}", "it is in the shared folder", "ask {person}, they have it"]
+        - ["{s_thx}", "perfect"]
+    - root:
+        - "{s_hey}, could you review my pr?"
+        - "got a minute for {s_thing}?"
+        - "can we move our catch up?"
+        - "lunch? {s_lunch} at {time}"
+        - "can you read the draft before {day}?"
+      replies:
+        - ["{s_ack}", "{c_yes}, give me {5-30} minutes", "{s_no}"]
+        - ["{s_thx}"]
+    - root:
+        - "i am working from home {c_soon}"
+        - "handing over {s_thing} while i am out {s_soon}"
+        - "{s_hey}, thought you would like this talk"
+        - "ugh, the vpn dropped again"
+        - "survived the audit prep, finally"
+      replies:
+        - ["{s_ack}", "{c_lol}", "{s_thx}"]
+        - ["good luck", "take care"]

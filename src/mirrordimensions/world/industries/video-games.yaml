@@ -1,0 +1,545 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Video games: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: video-games
+name: Video games
+group: Technology and media
+aliases: [gaming, game studio, game developer, game publisher, live service games, mobile games]
+description: A game studio and publisher that runs live online games, sells in-game purchases and passes through platform storefronts.
+name_suffixes: [Games, Studios, Interactive, Play, Entertainment, Labs, Digital]
+invoice_items: [Season pass, Premium currency bundle]
+organization:
+  head: Technical Director
+  it_admin: Studio IT Administrator
+  teams:
+    platform: {department: Online Services, title: Backend Engineer}
+    billing: {department: Store and Payments, title: Payments Engineer}
+    data: {department: Game Analytics, title: Data Engineer}
+    support: {department: Player Support, title: Player Support Agent}
+    product: {department: Game Engineering, title: Gameplay Engineer}
+    operations: {department: Live Operations, title: Live Ops Engineer}
+names:
+  repos:
+    billing-service: [store-service, purchase-service, payments-backend, entitlements-billing]
+    platform-docs: [live-ops-handbook, online-runbooks, studio-tech-docs, launch-playbooks]
+    data-pipeline: [telemetry-loads, game-warehouse, economy-etl, analytics-loads]
+    infra-config: [fleet-config, server-infra, online-config, deploy-config]
+    customer-portal: [player-account, account-site, player-portal, support-hub]
+    ops-scripts: [ops-scripts, server-tools, legacy-scripts, patch-scripts]
+  channels:
+    engineering: [engineering, online-eng, backend, builders]
+    incidents: [incidents, live-incidents, live-issues, outages]
+    support: [player-support, support, players, community-support]
+    leads: [leads, eng-leads, studio-leads]
+systems:
+  typical: [github, slack, jira, okta, datadog, pagerduty, zendesk, perforce, unity]
+  common: [sentry, firebase, snowflake, looker, launchdarkly, google workspace]
+symbols:
+  b_doc: [receipt, refund receipt, gift code statement, platform statement, invoice]
+  b_customer: [PC players, console players, mobile players, subscribers, high spend accounts, parent managed accounts]
+  b_who: [player support, live ops, community management, finance, the platform team]
+  b_pwho: [player support, a player, '{person}', live ops, community management]
+  b_ticket_noun: [ticket, case, report, appeal]
+  b_page: [purchase history, linked accounts, the store, inventory, the friends list, ban appeals, the season pass page, settings]
+  b_acct_size: ['{200-900} items', '{40-300} purchases', '{3-8} linked platforms', '{15-60} friends']
+  s_plan: [the season pass, a premium currency bundle, the monthly subscription, a starter pack, the deluxe edition]
+  p_table: [players, purchases, inventory_items, matches, telemetry_events, refunds, entitlements, bans]
+  p_source: [the console store reports, the PC storefront settlement files, the telemetry stream, the support desk export, the anti-cheat flags]
+  p_report: [the daily revenue report, the retention dashboard, the conversion funnel, the refund rate report, the economy health dashboard]
+  p_glossary_term: [the fleet, the live build, the rota, the hotfix train, the economy sheet]
+  p_alert_name: [matchmaking queue time, server fleet capacity, login errors, purchase failures, the nightly telemetry load finishing late]
+  c_customer: [a player, a high spend account, a parent, a streamer]
+  c_eng_area: [the purchase grant, the matchmaking call, the inventory sync, the login flow, the telemetry client, the store page]
+  c_dep: [the engine plugin, the http client, the orm, the serialization library, the date library]
+  s_thing: [the telemetry load, the purchase reconcile, the season rollover, the cron, the leaderboard job, the fleet scaler]
+  s_tool: [the player console, the store admin, the live ops tool, the case queue]
+  p_delay: ['{2-4} hours', 'about {40-90} minutes', 'nearly {2-3} hours', '{2-5} hours']
+  vg_event: [a season launch, patch day, a holiday event, a free weekend, an esports final, a collab drop]
+  vg_platform: [the PC storefront, the console store, the mobile store, the cloud gaming service, the handheld store]
+  vg_mode: [ranked, the co-op mode, the battle royale mode, the event playlist, the casual queue]
+  vg_item: [a skin, a battle pass tier, a currency pack, an emote, a weapon bundle, a founder pack]
+  vg_spike: ['{3-9} times normal players', 'ten times the usual logins', 'record concurrent players', 'four times the norm']
+  vg_region: [EU west, NA east, the SEA region, Brazil, Japan, Oceania]
+  vg_ask: [who owns it, can someone take it, is anyone on it, do we have an owner]
+  vg_bug: [a dupe glitch, an exploit, a rollback, a desync, a crash on load, a stat reset]
+  vg_cheat: [aim assist cheats, a currency exploit, account boosting, a duplication exploit, a matchmaking exploit]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        item: ['{vg_item}']
+        store: ['{vg_platform}']
+      title:
+        - Players get {item} twice after a retry
+        - Duplicate grant for {item} from {store}
+        - '{item|cap} granted but the charge failed'
+        - Purchase on {store} granted nothing
+        - Why did the retry grant {item} again?
+      body:
+        - ['{b_raised}, {b_scope}.', '{b_raised} on {b_customer}, {b_scope}.']
+        - ['The grant job retries on timeout.', 'A timeout triggers a retry.']
+        - ['No key marks the purchase.', 'Grants are not idempotent.']
+        - ['{b_urgent}', '{b_urgent} {b_offer}']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_check}{c_sep} grants live in {b_money_path}.'
+        - Key grants on the receipt id.
+        - '{b_cm_later}'
+    - labels: [needs-decision]
+      let:
+        case: [a chargeback, a refund after use, a parent refund, a fraud flag, a platform refund]
+      title:
+        - What happens to items after {case}?
+        - Claw back items after {case}?
+        - Policy for {case}
+        - '{case|cap}: ban or remove items?'
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['Practice differs by agent.', 'Agents answer differently.']
+        - ['Some items were already traded.', 'Items may be traded on.']
+        - ['Needs a decision from legal.', 'Legal has to decide.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Check the platform rules first.
+        - '{b_cm_keep}'
+    - labels: [bug]
+      let:
+        region: ['{vg_region}', '{b_region}']
+        currency: ['{b_currency}']
+      title:
+        - Regional price wrong in {region}
+        - '{currency} pack rounds to the wrong price'
+        - Store shows two prices in {region}
+        - '{b_taxkind} missing on {region} receipts'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The price table is cached.', 'Prices are cached.']
+        - ['Updates need a restart.', 'A restart clears it.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_repro}'
+        - Platform sets the price tiers.
+        - '{b_cm_check}'
+    - labels: [bug]
+      let:
+        thing: [the season pass, the monthly subscription, a founder pack, a rental item]
+      title:
+        - '{thing|cap} expires a day early'
+        - Proration wrong for {thing}
+        - '{thing|cap} renews after a refund'
+        - Season rollover cuts {thing} short
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Dates use the server zone.', 'It ignores the player zone.']
+        - ['Players lose a day.', 'It costs a day of access.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_day}'
+        - Store dates in the same zone.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        store: ['{vg_platform}']
+      title:
+        - Settlement from {store} off by {p_dollars}
+        - Platform fee on {store} not matching
+        - Reconcile for {store} misses refunds
+        - Payout from {store} differs from the report
+      body:
+        - ['Raised by {b_who}, {b_scope}.']
+        - ['Their file lists net amounts.', 'The file lists net values.']
+        - ['We book gross amounts.', 'Our side is gross.']
+        - ['Finance needs one view.', '']
+      comments:
+        - '{b_cm_ask_who}'
+        - Book both and reconcile.
+        - '{b_cm_plan}'
+  portal:
+    - labels: [bug]
+      let:
+        thing: [purchase history, linked accounts, inventory, season progress]
+      title:
+        - '{thing|cap} missing after linking a platform'
+        - '{thing|cap} lost when accounts merge'
+        - Account page shows old {thing}
+        - '{thing|cap} differs from the game'
+      body:
+        - ['{b_raised}, {b_pscope}.']
+        - ['The merge keeps one account.', 'Merging drops the second one.']
+        - ['Items sit on the old record.', 'Old records keep the items.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_repro} with two linked platforms.'
+        - Move items before the merge.
+        - '{b_cm_fix_up}'
+    - labels: [security, bug]
+      let:
+        attack: [credential stuffing, account takeover, a leaked token, SIM based resets, session theft]
+      title:
+        - Login rate limit missing, {attack}
+        - Alert on {attack} against the account site
+        - '{attack|cap} hits {2-9} players a day'
+        - Add a second factor against {attack}
+      body:
+        - ['Raised by {b_who}, {b_pscope}.']
+        - ['Limits are per ip only.', 'No per account limit.']
+        - ['Players lose inventory.', 'Stolen items cannot return.']
+        - ['Keep details out of chat.']
+      comments:
+        - '{b_cm_tell}'
+        - Lock after {2-9} fails.
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        ask: [appeal a ban online, see why a ban happened, set spending limits, request a refund, export their data]
+      title:
+        - Let players {ask}
+        - Players want to {ask}
+        - 'Feature request from {b_who}: {ask}'
+        - '{ask|cap}, asked for again'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['Today it goes by email.', 'Email handles it now.']
+        - ['Volume spikes after {vg_event}.', 'It spikes with updates.']
+        - ['It needs a new form.', '']
+      comments:
+        - '{b_cm_try}'
+        - Privacy rules may apply.
+        - '{b_cm_plan}'
+    - labels: [bug, performance]
+      let:
+        page: [the store page, the inventory page, the account page, the friends list]
+      title:
+        - '{page|cap} slow at {vg_spike}'
+        - '{page|cap} times out for {b_acct_size}'
+        - '{page|cap} fails to load after {vg_event}'
+        - '{page|cap} takes {b_slow} on mobile'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['The query loads every item.', 'It loads all items.']
+        - ['No paging on the list.', 'The list is not paged.']
+        - ['{b_offer}']
+      comments:
+        - '{b_cm_prof}'
+        - '{b_cm_pg} {b_cm_pg2}'
+        - '{b_cm_idx}'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        thing: [client retries, offline sessions, bot matches, duplicate flushes, staff accounts]
+      title:
+        - Telemetry counts {thing} twice
+        - Retention inflated by {thing}
+        - '{thing|cap} skew the economy dashboard'
+        - '{p_report|cap} differs from purchases'
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The client resends on bad links.', 'Clients resend after drops.']
+        - ['No key marks each event.', 'Events have no unique key.']
+        - ['Balance decisions use these.']
+      comments:
+        - Key on session, seq and player.
+        - '{b_cm_prof}'
+        - '{b_cm_turn}'
+    - labels: [bug, incident]
+      let:
+        load: [the telemetry load, the economy snapshot, the purchase reconcile, the leaderboard job]
+      title:
+        - '{load|cap} finished {p_delay} late'
+        - '{load|cap} aborted on patch day'
+        - Dashboards stale after {load} failed
+        - '{load|cap} missed the live ops meeting'
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Event volume doubled after launch.', 'Volume jumped after the patch.']
+        - ['The job ran out of memory.', 'Memory ran out.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - Alert if not done by 7am.
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        table: [match results, economy sinks, store impressions, cohort retention]
+        range: [the last season, the last 90 days, since the engine upgrade, the last two seasons]
+      title:
+        - Backfill {table} for {range}
+        - Warehouse lacks {table} for {range}
+        - Live ops wants {table}, {range}
+        - '{table|cap} gap in {range}'
+      body:
+        - ['Asked for by {b_who}.', '{b_raised}.']
+        - ['They plan a balance pass.', 'It feeds the season plan.']
+        - ['Raw files are archived.', 'Old files are in cold storage.']
+      comments:
+        - '{b_cm_turn}'
+        - '{b_cm_plan}'
+        - Run it off peak hours.
+  infra:
+    - labels: [performance, bug]
+      let:
+        target: [the server fleet, matchmaking, the login service, the patch CDN]
+      title:
+        - '{target|cap} overloaded at {vg_spike}'
+        - Scale {target} before {vg_event}
+        - Autoscaling for {target} is late
+        - Queue times high in {vg_region}
+      body:
+        - ['{b_raised}, {b_since}.']
+        - ['Scaling starts after the spike.', 'It scales after the peak.']
+        - ['Warm capacity would help.', 'Pre-warming helps.']
+      comments:
+        - '{b_cm_prof}'
+        - Pre-scale on the release calendar.
+        - '{b_cm_plan}'
+    - labels: [security, bug]
+      let:
+        cert: [the patch CDN certificate, the anti-cheat signing key, the login gateway certificate, the platform API token]
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {2-9} days'
+        - Rotate {cert} before {vg_event}
+        - Nobody owns {cert}
+      body:
+        - ['Found while checking the calendar.', '{b_raised}.']
+        - ['Old clients pin it.', 'Launchers pin the current one.']
+        - ['A lapse blocks patching.', 'A miss stops logins.']
+      comments:
+        - '{b_cm_plan}'
+        - Needs two approvers.
+        - Put it on the oncall calendar.
+    - labels: [chore]
+      let:
+        target: [the dedicated server image, the matchmaking config, the anti-cheat service, the launcher]
+      title:
+        - Upgrade {target}
+        - Roll out {target} by region
+        - '{target|cap} differs between regions'
+        - Plan the change for {target}
+      body:
+        - ['{b_raised}.']
+        - ['Players are online at all hours.', 'There is no quiet hour.']
+        - ['Roll out by region.', 'Stage it by region.']
+      comments:
+        - '{b_cm_plan}'
+        - '{b_cm_tell}'
+        - Pick the lowest traffic hour.
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: [a hotfix, a rollback, an economy exploit, an emergency maintenance, an event launch]
+      title:
+        - Runbook for {thing}
+        - Write up {thing} for on call
+        - Handbook lacks {thing}
+        - '{thing|cap} lives in one head'
+      body:
+        - ['{b_raised}.', 'Raised after {vg_event}.']
+        - ['It needs owners and contacts.', 'List owners and steps.']
+        - ['{person} did it last.', '']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_cm_list} {b_cm_def}'
+        - '{b_cm_up}'
+    - labels: [docs, bug]
+      let:
+        stale: [the old patch checklist, last season's rota, the retired paging number, the previous server host list]
+      title:
+        - Handbook still lists {stale}
+        - '{Docs/Handbook}: {stale} in the escalation page'
+        - Pages mention {stale}
+      body:
+        - ['{b_raised}.', 'Spotted by a new starter.']
+        - ['The page is out of date.', 'Nobody revised it.']
+        - ['A search finds {2-9} pages.']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_g_note}'
+        - I will fix them this week.
+  ops:
+    - labels: [bug]
+      let:
+        script: [restart_servers.sh, purge_old_builds.sh, rotate_match_logs.sh, sync_patch_notes.py]
+      title:
+        - '{Scripts/Ops}: {script} skips {vg_region}'
+        - Is {script} still used?
+        - '{script} fails on the new server image'
+      body:
+        - ['Found during patch day.', '{b_raised}.']
+        - ['It predates the new fleet.', 'Written for the old hosts.']
+        - ['Nobody owns it now.', '']
+      comments:
+        - '{b_cm_check}'
+        - '{b_g_who}'
+        - Can we retire it?
+chat:
+  support:
+    - root:
+        - '{s_cust|cap} lost {vg_item} after {vg_bug}'
+        - player asks why {vg_item} did not arrive{c_sep} {s_ticket}
+        - '{s_cust|cap} says a parent bought it'
+        - escalating to eng{c_sep} purchase stuck{c_sep} {s_ticket}
+        - player banned by {vg_cheat}{c_sep} appeals
+      replies:
+        - ['which platform?', 'what is the player id?', 'do we have the receipt?']
+        - ['same on two devices', '{c_idk}{c_sep} asking them', 'id is in the case']
+        - ['filing it now', 'linking {s_ticket}', 'i will check the grant']
+    - root:
+        - refund request{c_sep} {s_cust}{c_sep} {s_money}{c_sep} says it was not delivered
+        - streamer wants a bonus for {vg_event}
+        - parent asks about spending limits
+      replies:
+        - ['do we have the receipt id?', 'what does the policy say?']
+        - ['sending the screenshot', 'checking the log']
+        - ['apply it and note the case', 'finance approves over {s_money}']
+    - root:
+        - queue is at {20-90} open cases{c_sep} {vg_event} is driving contacts
+        - evening handover{c_sep} login issue open
+        - heads up{c_sep} {s_cust} is angry{c_sep} waiting {2-5} days
+      replies:
+        - ['is there a known issue?', 'who updates players?']
+        - ['eng has it{c_sep} update at {time}', 'banner is live']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - standup in {5-15} minutes{c_sep} {c_status} on my side
+        - who is picking up {issue}?
+        - '{person} is {c_pto}{c_sep} who covers the store?'
+        - patch freeze for {vg_event}{c_sep} who has the checklist?
+        - anyone free to pair on {issue}?
+      replies:
+        - ['i can take it', 'on it after lunch']
+        - ['{person} knows the store', 'i did last time{c_sep} someone else']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - '{vg_event} goes live {day}{c_sep} capacity ready?'
+        - store rotation changes {c_soon}{c_sep} who flips it?
+        - hotfix train leaves {day} at {time}
+      replies:
+        - ['is the fleet pre-scaled?', 'what is in it?']
+        - ['{c_yes}{c_sep} done {time}', 'not yet']
+        - ['{c_ack}']
+    - root:
+        - retro notes are in the handbook{c_sep} add yours
+        - post incident review for {issue_title} is {day} at {time}
+        - owners needed for review actions
+      replies:
+        - ['added mine', 'after the call']
+        - ['{c_agree}', '{c_thanks}']
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - matchmaking is slow{c_sep} anyone changed the queue rules?
+        - '{c_ci_fail} fails on main after engine update'
+        - should the grant be async?
+        - login errors up {5-40} percent{c_sep} anyone deployed?
+      replies:
+        - ['on it', 'looking now', 'give me ten']
+        - ['no changes here', 'rate limit changed {c_soon}']
+        - ['async with a receipt key', 'sync{c_sep} players want it now']
+    - root:
+        - how do we version the sheet?
+        - does the client retry failed grants?
+        - heads up{c_sep} freeze from {day}{c_sep} for {vg_event}
+        - the leaderboard is slow{c_sep} anyone else seeing it?
+      replies:
+        - ['in git{c_sep} per season', 'pin it per patch']
+        - ['yes{c_sep} three times then errors', '{c_no}{c_sep} it waits for the next login']
+        - ['{c_ack}', '{c_thanks}']
+    - root:
+        - local env broke after plugin update
+        - how do i replay matches locally?
+        - is {c_tool} broken for anyone else?
+      replies:
+        - ['pin the old version', 'same here{c_sep} clear the cache']
+        - ['replay tool is in tools', 'ask {person}{c_sep} they wrote it']
+  incidents:
+    - root:
+        - login errors in {vg_region}{c_sep} {vg_spike}
+        - matchmaking queues over {5-30} minutes
+        - alert{c_sep} purchase failures above {5-30} percent
+        - the {p_alert_name} alert is flapping again
+        - '{vg_bug} reported on the forums {s_since}'
+      replies:
+        - ['who is incident lead?', '{vg_ask}?']
+        - ['i have it{c_sep} comms at {time}', '{person} is on the bridge']
+        - ['update at {time}', 'resolved{c_sep} watching']
+    - root:
+        - review for the {vg_event} outage is {day} at {time}
+        - near miss{c_sep} bad build almost went live
+        - '{vg_cheat} spreading{c_sep} do we roll back?'
+      replies:
+        - ['i will draft it', 'who writes the player note?']
+        - ['community team{c_sep} by {day}', '{c_ack}']
+    - root:
+        - cloud provider has an incident{c_sep} status page is red
+        - the storefront is down{c_sep} purchases failing
+        - platform login service is flaky
+      replies:
+        - ['anything we can do?', 'any eta?']
+        - ['no eta{c_sep} telling players', 'failing over now']
+  town-square:
+    - root:
+        - '{c_hey}: all hands {day} at {time}{c_sep} roadmap and season plan'
+        - security training is due {c_soon}
+        - welcome {person}{c_sep} joining online services {c_soon}
+      replies:
+        - ['will it be recorded?', 'welcome!']
+        - ['{c_yes}{c_sep} link after', '{c_thanks}']
+    - root:
+        - playtest is {c_soon}{c_sep} sign up in the thread
+        - office is closed {c_soon}{c_sep} on call rota unchanged
+      replies:
+        - ['count me in', '{c_ack}']
+        - ['{c_yes}', '{c_thanks}']
+  off-topic:
+    - root:
+        - who is playing {vg_mode} tonight?
+        - lunch ideas? sick of {c_food}
+        - '{c_pet} learned a new trick'
+        - best co-op game this year?
+      replies:
+        - ['{c_lol}', '{c_agree}']
+        - ['the thai place', 'try the bakery']
+    - root:
+        - '{c_weekend} for me{c_sep} anyone else?'
+        - best podcast for the commute?
+        - cold in the office again
+      replies:
+        - ['{c_lol}', 'send a photo']
+        - ['{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}{c_sep} can you review my store change {s_soon}?'
+        - quick question{c_sep} who owns the grant job?
+        - can you cover my on call {day} night?
+        - got a minute{c_sep} purchase question?
+      replies:
+        - ['sure', 'in a call{c_sep} back at {time}']
+        - ['{person} does', 'platform team']
+        - ['{c_thanks}']
+    - root:
+        - handing over the fleet scaler{c_sep} out {s_soon}
+        - did the player note go out?
+        - can you read the pricing sheet {c_sep} {day}?
+      replies:
+        - ['send me the notes', '{c_ack}']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - can you cover player escalations {day}?
+        - did the status banner go live?
+        - '{s_hey}{c_sep} can you join the platform call?'
+      replies:
+        - ['sure', 'on it']
+        - ['{c_yes}{c_sep} {time}', 'not yet']
+    - root:
+        - new build goes to cert {c_soon}{c_sep} checklist done?
+        - who has the patch notes for {day}?
+      replies:
+        - ['not yet', '{c_yes}']
+        - ['in the handbook', 'ask {person}']
+comments:
+  - '{b_cm_check}{c_sep} the entitlement table may be it.'
+  - Which platform was this on?
+  - '{b_g_ask} the player id?'

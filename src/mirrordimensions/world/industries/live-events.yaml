@@ -1,0 +1,614 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Live events and ticketing: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: live-events
+name: Live events and ticketing
+group: Travel, hospitality and leisure
+aliases: [ticketing, live entertainment, event ticketing, concerts and festivals, venue operator]
+description: A live events and ticketing company that sells tickets for concerts, sport and shows, scans entry at venues, and settles with promoters and venues.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Live, Tickets, Entertainment, Events, Presents, Arenas]
+invoice_items: [Ticket order service fee, Venue hospitality package]
+organization:
+  head: VP of Engineering
+  it_admin: IT Operations Lead
+  teams:
+    platform: {department: Platform Engineering, title: Platform Engineer}
+    billing: {department: Settlements and Payments, title: Software Engineer}
+    data: {department: Sales and Audience Analytics, title: Data Engineer}
+    support: {department: Fan Support, title: Fan Support Agent}
+    product: {department: Fan Experience, title: Product Manager}
+    operations: {department: Venue and Event Operations, title: Event Operations Manager, lead: Director of Event Operations}
+names:
+  repos:
+    billing-service: [order-billing, promoter-settlements, ticket-ledger, fee-service]
+    platform-docs: [engineering-handbook, onsale-runbooks, ticketing-tech-docs, platform-notes]
+    data-pipeline: [sales-loads, audience-warehouse, ticket-etl, scan-pipeline]
+    infra-config: [ticketing-infra, env-config-live, platform-environments, cloud-config]
+    customer-portal: [fan-web, my-tickets, box-office-web, checkout-web]
+    ops-scripts: [venue-scripts, doors-tools, legacy-batch, onsale-utils]
+  channels:
+    engineering: [ticketing-eng, onsale-tech, live-engineering]
+    incidents: [onsale-incidents, doors-alerts, tech-incidents]
+    releases: [release-train, go-live, weekly-releases]
+    support: [fan-support, fan-escalations, box-office-desk]
+    leads: [tech-leads, ticketing-leads]
+systems:
+  typical: [github, slack, jira, okta, google workspace, confluence, salesforce, stripe, ticketing platform]
+  common: [pagerduty, datadog, zendesk, snowflake, braze]
+symbols:
+  b_doc: [order confirmation, promoter settlement, venue settlement statement, refund notice, "{monthly/quarterly} partner statement"]
+  b_customer: [season ticket holder, promoter, venue partner, fan club member, corporate hospitality, group sales, resale seller, festival pass holder]
+  b_who: [the promoter team, finance, fan support, the venue partnerships team, the box office, the fraud team]
+  b_pwho: [fan support, a fan, "{person}", the box office, the venue partnerships team]
+  b_ticket_noun: [case, ticket, complaint, escalation]
+  b_taxkind: [service fee, facility charge, VAT, amusement tax, order processing fee]
+  b_page: [orders, upcoming events, payment methods, saved cards, receipts, ticket transfers, resale listings, fan club]
+  b_provider_event: [payment authorised, payment declined, refund completed, chargeback opened, promoter payout settled, card token updated]
+  b_acct_size: ["{200-900} orders", "{15-60} seats", "{3-12} billing contacts", "{40-300} saved events", "over {1000-4000} tickets"]
+  b_check_path: [the order total tests, the confirmation email tests, the refund tests, the callback tests]
+  b_money_path: [billing/order_totals.py, billing/fees.py, billing/face_value.py, billing/promoter_split.py]
+  b_mail_path: [billing/confirmations.py, billing/order_queue.py, billing/ticket_emails.py, billing/sent_log.py]
+  b_cb_path: [billing/payment_events.py, billing/psp_callbacks.py, billing/resale_events.py]
+  b_credit_path: [billing/refunds.py, billing/event_credits.py, billing/adjustments.py]
+  b_dl_path: [billing/receipt_download.py, billing/documents.py]
+  b_export_path: [billing/jobs/settlement_export.py, billing/export.py]
+  b_pay_path: [portal/payment_methods.py, portal/saved_cards.py]
+  s_plan: [a general admission ticket, a reserved seat, a presale code, a season package, a festival pass, a hospitality package]
+  s_cust: ["a fan with {s_plan}", "someone with {s_plan}", "a buyer of {s_plan}", "a booker on {s_plan}", "a customer with {s_plan}"]
+  c_customer: [a fan, a promoter, a venue partner, a season ticket holder, a corporate hospitality buyer, a long standing venue client]
+  p_table: [orders, tickets, events, payments, order_lines, refunds, resale_listings, scan_events, fan_accounts]
+  p_source: ["the payment processor's settlement files", "the venues' scan event feeds", "the mail provider's delivery events", "the fan club member list", "the promoters' allocation files", "the fraud screening scores", "the card disputes feed"]
+  p_report: [the daily sales report, the weekly sell-through report, the on-sale dashboard, the promoter payable report, the refund exposure report, the monthly board pack]
+  p_secret_thing: [the venue gateway API key, the payments provider token, the barcode signing key, the warehouse service account key, the signing key for ticket links, the mail provider API key]
+  p_limit_target: [the queue workers, the checkout pods, the portal pods, the mail relay, the warehouse loader]
+  s_thing: [the order job, the settlement export, the seat map cache, the cron, the deploy script, the migration, the retry logic, the mail template, the queue release, the checkout flow, the webhook handler]
+  c_eng_area: [the order job, the retry logic, the seat lookup, the checkout flow, the nightly batch, the webhook handler, the queue release, the ticket renderer, the fee lookup, the audit log, the reports page, the queue consumer]
+  s_tool: [the admin console, the order lookup, the promoter portal, the case queue, the refund tool]
+  p_alert_name: [disk usage on the web hosts, failed backups, order queue depth, the nightly load finishing late, certificate expiry, error rate on checkout, replication lag]
+  p_runbook: [docs/runbooks/order-workers.md, docs/runbooks/nightly-load.md, docs/runbooks/portal-restarts.md, docs/runbooks/warehouse-restore.md, docs/runbooks/onsale-playbook.md]
+  le_event: [a stadium concert, a theatre run, a festival weekend, a season opener, a touring show, a sports fixture]
+  le_venue: [the arena, a stadium, a small theatre, an outdoor festival site, a club venue]
+  le_extra: [a parking pass, a VIP upgrade, a merchandise bundle, a drinks package, ticket protection, a meet and greet]
+  le_flow: [the on-sale queue, seat selection, ticket transfer, the resale flow, ticket scanning, the checkout page]
+  le_when: [during a major on-sale, at doors open, during presale, on a Friday at ten, after an event announcement, during festival week]
+  le_feed: [the presale list, the scan events feed, the venue seating chart, the promoter allocation file, the resale listings feed, the fraud scores export]
+  le_cert: [the scanning gateway certificate, the queue service certificate, the box office certificate, the payments tunnel certificate]
+  le_incident: [a bot flood, a queue overload at on-sale, a cancelled show, a scanner outage at doors, a payment provider timeout]
+  le_who: [the promoter team, finance, fan support, the venue partnerships team, the box office, the fraud team]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        fee: ["{b_taxkind}"]
+        event: ["{le_event}"]
+      title:
+        - "{doc|cap} total is a cent out with {fee}"
+        - "{fee|cap} rounded per ticket for {event}"
+        - "{doc|cap} does not add up for {event}"
+        - "{fee|cap} on large orders {disagrees with/does not match} the {doc}"
+        - "{event|cap}: {fee} differs from face value plus fees"
+      body:
+        - ["{b_raised}, {b_scope}.", "{b_raised} on {event} orders, {b_scope}."]
+        - ["{fee|cap} is rounded per ticket in {b_money_path}.", "{b_money_path} rounds {fee} on each ticket alone.", "Each ticket's {fee} is rounded before summing."]
+        - ["{doc|cap} lines sum to another figure.", "The promoter statement shows another total."]
+        - ["{event|cap}: {finance/settlements} wants one rounding step.", "Round once per order, as quoted."]
+        - ["{b_urgent}"]
+      comments:
+        - "{b_cm_repro} with a four ticket {event} order."
+        - "The checkout rounds once, so the {doc} should too."
+        - "{b_cm_check}, {fee} is rounded in {b_money_path}."
+    - labels: [bug, needs-decision]
+      let:
+        extra: ["{le_extra}"]
+        who: ["{le_who}"]
+      title:
+        - "Refund of {extra} when a show is postponed"
+        - "Who decides refunds for {extra} on rescheduled dates?"
+        - "{extra|cap} refund rules differ by venue"
+        - "Policy for {extra} when an event is moved"
+        - "{extra|cap} refunded twice after a cancellation"
+      body:
+        - ["{extra|cap} comes back for some orders only.", "The box office refunds {extra}; the website does not."]
+        - ["{b_credit_path} has no rule for it.", "{b_credit_path} treats {extra} as part of the ticket."]
+        - ["{who|cap} should write the rule down first.", "Needs an answer from {who}, then code."]
+        - ["{b_since|cap}, fan support logged {2-12} complaints.", "Support has {2-9} cases open on it."]
+      comments:
+        - "Promoters decide, not us."
+        - "I will ask the {promoter/venue} team."
+        - "{b_cm_ask_who}"
+    - labels: [bug]
+      let:
+        event: ["{b_provider_event}"]
+        flow: ["{le_flow}"]
+      title:
+        - "Tickets issued twice after {event} callback"
+        - "Fan charged twice when the {event} callback repeats"
+        - "Callback for {event} lost during {flow}"
+        - "{event|cap} arrives after the seat hold expires"
+        - "Seats released after {event}"
+      body:
+        - ["{b_cb_a} {b_cb_b}.", "The handler keeps no processor reference."]
+        - ["{event|cap} repeating {issues a second set/releases the seats/leaves the order half paid}.", "The hold lapses when {event} arrives late."]
+        - ["{b_db_c}", "Fans pay, then lose the seats."]
+        - ["{b_cb_e} {b_cb_f}", "Check the hold time before releasing."]
+      comments:
+        - "Seen on {2-9} orders {b_since}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "Seat holds last {5-10} minutes."
+  portal:
+    - labels: [bug]
+      let:
+        flow: ["{le_flow}"]
+        browser: ["{b_browser}"]
+      title:
+        - "{flow|cap} fails in {browser}"
+        - "{flow|cap} shows a blank page on {browser}"
+        - "Fans cannot finish {flow} in {browser}"
+        - "{browser}: {flow} {hangs/spins forever/errors out}"
+      body:
+        - ["{b_pscope}.", "{b_raised}, {b_pscope}."]
+        - ["{browser|cap} is the only one affected.", "Other browsers are fine."]
+        - ["{b_cm_syn} {b_cm_syn2}", "A cached script breaks {flow} after releases."]
+        - ["{b_urgent}", "Volume is high near on-sale."]
+      comments:
+        - "Same in {b_browser}, so not only {browser}."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "The mobile app is fine."
+    - labels: [bug, performance]
+      let:
+        when: ["{le_when}"]
+        size: ["{b_acct_size}"]
+      title:
+        - "Seat map is slow {when}"
+        - "Order history takes {b_slow} for accounts with {size}"
+        - "Timeouts on checkout {when}"
+        - "Queue position stalls {when}"
+      body:
+        - ["{b_sl_a} wait {b_slow}.", "Fans report {b_slow} to see seats."]
+        - ["{b_sl_c}", "Each section triggers its own lookup."]
+        - ["{b_pf_a} seat availability checks.", "The slow call is {the inventory/the pricing} service."]
+        - ["{le_who|cap} see the delay too.", "The box office sees it too."]
+      comments:
+        - "Profiling points at seat inventory."
+        - "Cache sections for {1-5} seconds?"
+        - "{b_cm_priv}, so not the browser."
+    - labels: [enhancement, needs-decision]
+      let:
+        extra: ["{le_extra}"]
+        who: ["{le_who}"]
+      title:
+        - "Let fans add {extra} after buying"
+        - "Self-service change of {extra}"
+        - "Feature request from {who}: {extra} in the app"
+        - "Offer {extra} on the confirmation page"
+      body:
+        - ["{extra|cap} needs a phone call today.", "Only the box office can add {extra}."]
+        - ["{b_ss_c} {b_ss_d} {b_ss_e}", "A short form would do."]
+        - ["{who|cap} says it would cut calls.", "Revenue wants it before the tour."]
+        - ["{extra|cap} prices differ per event.", "Prices come from the promoter."]
+      comments:
+        - "How many calls is that weekly?"
+        - "Check venue rules too."
+        - "{b_cm_try}"
+    - labels: [bug, security]
+      let:
+        flow: ["{le_flow}"]
+      title:
+        - "Number plus email exposes tickets in {flow}"
+        - "Barcodes can be copied from {flow}"
+        - "Ticket link works for anyone"
+        - "Order lookup in {flow} has no rate limit"
+      body:
+        - ["{flow|cap}: anyone guessing a number reads orders.", "{flow|cap} prints static barcodes."]
+        - ["{b_dlk_d}", "Limit lookups per address."]
+        - ["{b_cm_legal} Fan {data/records} fall under privacy law."]
+        - ["{b_dlk_e}"]
+      comments:
+        - "{b_cm_rolefix}"
+        - "{b_cm_tell}"
+        - "Rotating barcodes would help."
+  data:
+    - labels: [bug, incident]
+      let:
+        feed: ["{le_feed}"]
+        delay: ["{p_delay}"]
+      title:
+        - "Nightly load finished {delay} late after {feed} arrived late"
+        - "{feed|cap} missing, sales report empty"
+        - "Load waited for {feed} and timed out"
+        - "{feed|cap} came in twice, rows duplicated"
+      body:
+        - ["{Finance/The promoter team} saw {yesterday's/Monday's/weekend} figures late.", "The morning sales report was stale."]
+        - ["{feed|cap} is never checked for completeness.", "The load starts at fixed hours."]
+        - ["{feed|cap}: {wait for/look for} a done marker.", "Alert when the file is missing."]
+        - ["{b_g_ships}"]
+      comments:
+        - "The venue resends after {1-3} hours."
+        - "Compare row counts with the manifest."
+        - "{b_g_oneoff}"
+    - labels: [bug, data-quality]
+      let:
+        table: ["{p_table}"]
+      title:
+        - "Sold tickets in the warehouse are {2-9} percent off for {le_venue}"
+        - "Duplicate tickets in {table}"
+        - "Refund exposure misses the ledger"
+        - "{table|cap} lost rows after a transfer"
+        - "Transferred tickets count twice in {table}"
+      body:
+        - ["{b_g_checked} about {20-900} rows.", "Finance spotted it while reconciling."]
+        - ["{table|cap}: a transfer creates a new row.", "The old row stays open."]
+        - ["{Resold/Refunded} tickets still count as sold.", "Cancelled seats stay flagged sold."]
+        - ["{Join/Match} on the ticket barcode.", "Follow the ticket's last status."]
+      comments:
+        - "This explains the sell-through gap."
+        - "Does it hold for resale?"
+        - "I can backfill {1-6} weeks."
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+        who: ["{le_who}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the audience model"
+        - "Should {who} get {source} in the warehouse?"
+        - "Add {source} for sell-through reporting"
+      body:
+        - ["{who|cap} reads {source} by hand today.", "It arrives as email attachments."]
+        - ["{A nightly/An hourly} load would do.", "We need it by working day {1-4}."]
+        - ["{Times/Dates} are local to the venue.", "Convert times to UTC on load."]
+      comments:
+        - "Which venue code format is it?"
+        - "Check timezones on touring shows."
+        - "{b_cm_plan}"
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert: ["{le_cert}"]
+      title:
+        - "Alert before {cert} expires"
+        - "{cert|cap} runs out in {2-9} days"
+        - "Renew {cert} before the big on-sale"
+        - "Nobody owns {cert}"
+      body:
+        - ["{cert|cap} is renewed by hand yearly.", "A leaver did the last renewal."]
+        - ["{Expiry/A lapse} would block {scanning/payments/queueing}.", "Venue scanners stop when it lapses."]
+        - ["{Warn/Alert} {14/21/30} days before expiry."]
+      comments:
+        - "Put the renewal in the calendar."
+        - "Which venues use that gateway?"
+        - "{b_cm_plan}"
+    - labels: [bug, incident]
+      let:
+        inc: ["{le_incident}"]
+        flow: ["{le_flow}"]
+      title:
+        - "Autoscaling too slow for {inc}"
+        - "Retry storms on {flow} after {inc}"
+        - "Rate limits hit during {inc}"
+        - "Capacity for {flow} during {inc}"
+      body:
+        - ["After {inc}, traffic jumps {5-20} times.", "Fans all refresh at once."]
+        - ["{p_limit_target|cap} take {2-6} minutes to start."]
+        - ["{Raise/Lift} the minimum before on-sales.", "Scale on queue depth, not CPU."]
+      comments:
+        - "Fan support spikes then too."
+        - "Let's agree a pre-scale checklist."
+        - "{b_cm_later}"
+    - labels: [chore, security]
+      let:
+        thing: ["{p_secret_thing}"]
+        item: ["{thing}"]
+        place: [the config file, a log line, a stack trace, the deploy output]
+      title:
+        - "Rotate {thing}"
+        - "{thing|cap} is overdue for rotation"
+        - "{thing|cap} is shared across environments"
+        - "Move {thing} into the secret store"
+      body:
+        - ["{b_sc_a} {b_sc_b}", "{b_sc_c}"]
+        - ["{b_sc_d} {b_sc_e}"]
+        - ["{The vendor/Our partner} wants {3-10} days notice."]
+      comments:
+        - "Schedule it away from on-sales."
+        - "Who at the vendor switches it?"
+        - "{b_cm_docs}"
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: ["{le_incident}"]
+      title:
+        - "Runbook for {thing}"
+        - "Write up what tech does during {thing}"
+        - "On-call guide lacks steps for {thing}"
+        - "Document the freeze rules around {thing}"
+      body:
+        - ["{thing|cap}: new engineers ask what to do.", "Nobody new knows who to call."]
+        - ["{Cover/List} who to page.", "List the flags to flip."]
+        - ["{le_who|cap} has a plan of their own.", "Link to the on-sale plan."]
+      comments:
+        - "Ask event operations {about it/for input}."
+        - "{b_cm_up} {b_cm_read2}"
+        - "{b_cm_docs}"
+    - labels: [docs, bug]
+      let:
+        flow: ["{le_flow}"]
+      title:
+        - "Handbook page on {flow} is out of date"
+        - "{flow|cap} runbook names the old gateway"
+        - "Docs for {flow} disagree with production"
+        - "Broken link in the {flow} page"
+      body:
+        - ["{flow|cap}: the page lists old {escalation/rota/vendor} contacts."]
+        - ["{b_cm_disc} {b_cm_when}."]
+        - ["{Fix/Update} the page and date it."]
+      comments:
+        - "Updated the contacts."
+        - "{b_cm_merged}"
+  ops:
+    - labels: [question, chore]
+      let:
+        venue: ["{le_venue}"]
+      title:
+        - "Is the scan sync for {venue} still used?"
+        - "Can we delete the {venue} door export?"
+        - "Guest list export for {venue} fails silently"
+      body:
+        - ["Last run was {1-9} months ago.", "Nobody here knows who calls it."]
+        - ["{le_who|cap} may still use it."]
+      comments:
+        - "Ask the venue manager."
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        venue: ["{le_venue}"]
+      title:
+        - "Door list export misses names at {venue}"
+        - "Cron on the {venue} gateway exits with no output"
+      body:
+        - ["{venue|cap}: names with accents come out garbled.", "The job skips late orders."]
+        - ["{venue|cap} server is {unmanaged/an old host}."]
+      comments:
+        - "Probably encoding. I will check."
+        - "Move it to the scheduler."
+comments:
+  - "Is this {le_who} or us?"
+  - "Does the box office see it?"
+  - "Check the festival passes too."
+  - "That matches the fan support report."
+chat:
+  support:
+    - let:
+        amt: ["{s_money}"]
+        why: ["show was cancelled", "charged twice", "seats were not together", "wrong date bought", "could not attend"]
+      root:
+        - "refund request: {s_cust}, {amt}, {why}"
+        - "{s_hey}, refund for {amt}? {why}"
+        - "{s_ticket}: {why}, {amt} back"
+        - "fan wants {amt} back, reason: {why}"
+        - "can i refund {amt}? says {why}"
+      replies:
+        - ["check the event policy first", "{why} counts, full refund", "over {200-500} needs promoter approval"]
+        - ["policy allows it, refunding now", "already refunded last week", "{s_ack}, they get it in {3-7} days"]
+        - ["{s_thx}", ""]
+    - let:
+        what: ["tickets not arriving", "transfer refused", "seats lost after payment", "receipt missing fees", "presale code rejected"]
+      root:
+        - "escalating to tech: {what}, filed as {issue}"
+        - "{s_hey}, can tech look at {issue}? {what}"
+        - "more cases on {what}, adding to {issue}"
+        - "third complaint about {what} today"
+        - "{what} again. {issue} has the details"
+      replies:
+        - ["looking now", "we have it, {person} is on it", "can you send {me/over} the order numbers?"]
+        - ["numbers are in the issue", "{s_ack}, pasting them"]
+    - let:
+        who: ["a promoter", "a venue manager", "a hospitality buyer", "a fan club member"]
+      root:
+        - "{who} says the settlement total is wrong"
+        - "{who} wants a statement with fees split"
+        - "{s_hey}, {who} needs statements for {1-9} events"
+        - "{who} cannot download statements"
+        - "promoter says payout is short {s_money}"
+      replies:
+        - ["can you send the event codes?", "which month is that?"]
+        - ["the {b_page} page, they say", "the statement from last month"]
+        - ["pulling it from {s_tool}", "finance has the full list"]
+    - let:
+        shift: ["morning", "evening", "weekend", "night"]
+      root:
+        - "{shift} handover: {5-30} open cases, none urgent"
+        - "queue is {20-90} deep after the on-sale"
+        - "handover for {shift}: refund cases mostly"
+        - "{shift} shift: {2-9} complaints about the app"
+      replies:
+        - ["{s_ack}, taking the oldest first", "i will triage the refund ones"]
+        - ["tag the app ones for tech", ""]
+  team:
+    - let:
+        what: ["release notes", "the weekly report", "the capacity plan", "the on-sale checklist"]
+      root:
+        - "who owns {what} this week?"
+        - "can someone pick up {what}?"
+        - "{what} needs an owner before {day}"
+        - "{s_hey}, who is writing {what}?"
+        - "still no owner for {what}"
+      replies:
+        - ["i can take it", "{person} did it last time"]
+        - ["{s_ack}, thanks", ""]
+    - let:
+        launch: ["the stadium tour on-sale", "the festival launch", "the resale relaunch", "the new venue integration"]
+      root:
+        - "heads up: {launch} goes out {day}"
+        - "{launch} goes live {c_soon}, anything blocking?"
+        - "freeze starts {day} for {launch}"
+        - "who is on call for {launch}?"
+        - "prep for {launch}: please check your tickets"
+      replies:
+        - ["inventory is loaded here", "nothing from billing"]
+        - ["on call from {time}", "check the queue release once more"]
+    - let:
+        x: ["fan support", "the box office", "the promoter team", "the venue partnerships team"]
+      root:
+        - "{x} asked about the order fix, status?"
+        - "meeting with {x} on {day}, who joins?"
+        - "{x} wants a walkthrough {c_soon}"
+        - "{x} is waiting on us for {issue}"
+      replies:
+        - ["i will join", "can someone brief me first?"]
+        - ["it ships {day}", "waiting on review"]
+  engineering:
+    - let:
+        thing: ["the seat map cache", "the queue service", "the venue connector", "the ticket renderer", "the fee calculator"]
+      root:
+        - "{thing} is slow, anyone changed something?"
+        - "is {thing} failing for anyone else?"
+        - "design question for {thing}, async or batch?"
+        - "who knows {thing} best?"
+        - "pr up for {thing}, {c_patch}"
+      replies:
+        - ["not me, check the deploys", "{person} touched it {c_when_eng}"]
+        - ["it is the venue api again", "looks fine from here"]
+        - ["{s_thx}", ""]
+    - let:
+        fmt: ["the promoter allocation file", "the scan events feed", "the seating chart", "the presale list"]
+      root:
+        - "{fmt} format changed again, who knows why?"
+        - "venue sent {fmt} with a new column"
+        - "parser breaks on {fmt} from the {1-9}th"
+        - "{fmt} has local times, no zone"
+      replies:
+        - ["pin the parser to old format", "ask the venue for a spec"]
+        - ["added a test with their file", "will fix it {c_when_eng}"]
+    - let:
+        dep: ["the pdf library", "the barcode library", "the http client", "the payment sdk"]
+      root:
+        - "should we upgrade {dep}? new major is out"
+        - "upgrading {dep} after the on-sale?"
+        - "{dep} needs the security patch"
+        - "who is upgrading {dep}?"
+      replies:
+        - ["not before the tour on-sale", "after the freeze"]
+        - ["doing it in staging first", "{s_ack}"]
+    - let:
+        thing: ["a flaky test", "the build cache", "the staging data", "the build agent"]
+      root:
+        - "{thing} is blocking main again"
+        - "main is red because of {thing}"
+        - "help with {thing}? {c_patch}"
+        - "{thing} again, anyone?"
+      replies:
+        - ["rerun it", "known issue, being fixed"]
+        - ["{s_ack}", "will look {c_when_eng}"]
+  incidents:
+    - let:
+        what: ["the on-sale queue", "checkout", "ticket scanning", "the payment page", "ticket transfer"]
+      root:
+        - "{what} is {s_symptom} {s_since}"
+        - "is {what} down for anyone?"
+        - "alert: {what} error rate above {3-20} percent"
+        - "the box office says {what} is failing"
+        - "{what} {s_symptom}, venues are calling"
+      replies:
+        - ["checking now", "looking at dashboards", "i see it too"]
+        - ["rolled back the last release, watching", "vendor side issue, they confirmed"]
+        - ["recovering", "all clear at {time}"]
+    - let:
+        inc: ["{le_incident}"]
+      root:
+        - "{inc}: order queue is {2-9},{100-900} deep"
+        - "heads up, {inc}, expect traffic"
+        - "the box office flagged {inc}, scale up?"
+        - "{inc} right now, we need capacity"
+      replies:
+        - ["scaling now", "raised the minimum pods"]
+        - ["the app is holding", "watch the payment callbacks"]
+        - ["{s_ack}", ""]
+    - let:
+        thing: ["the scanning gateway", "the payment gateway", "the venue inventory api", "the fraud screening vendor"]
+      root:
+        - "{thing} latency is {5-40} seconds"
+        - "{thing} has been quiet since {time}"
+        - "{thing} status page shows an incident"
+        - "vendor says {thing} is degraded"
+      replies:
+        - ["opened a case with them", "failing over to the backup"]
+        - ["venues are affected", "none seen yet"]
+    - let:
+        what: ["the order job", "the settlement export", "the refund run", "the payout file"]
+      root:
+        - "near miss: {what} almost failed, a retry saved it"
+        - "post-incident review for {what} is {day} at {time}"
+        - "{what} woke me up at {time}"
+        - "{what} backed up to {1-9},{100-900}"
+      replies:
+        - ["noted, adding to the review", "{c_agree}"]
+        - ["can you write it up?", ""]
+  town-square:
+    - let:
+        what: ["the staff ticket draw", "the venue tour", "the quarterly town hall", "the new office opening party"]
+      root:
+        - "{what} is {c_soon}, sign up in the portal"
+        - "reminder: {what} {c_soon}"
+        - "{c_hey}: {what} is {c_soon} at {time}"
+        - "who is going to {what}?"
+        - "{what}, details in the newsletter"
+      replies:
+        - ["i am in", "count me in"]
+        - ["{c_thanks}", ""]
+    - let:
+        what: ["the stadium tour", "the festival lineup", "the resale relaunch", "the new venue partnership"]
+      root:
+        - "{what} has been announced, congrats all"
+        - "{c_hey}, {what} is public from {day}"
+        - "thanks to everyone on {what}"
+        - "{what}: all hands {day} at {time}"
+      replies:
+        - ["great news", "{c_em}"]
+        - ["{c_thanks}", ""]
+  direct:
+    - let:
+        q: ["the fee rules", "the seat hold time", "the transfer logic", "the refund split"]
+      root:
+        - "quick question about {q}"
+        - "{s_hey}, do you know how {q} works?"
+        - "got a minute for {q}?"
+        - "can you explain {q}?"
+        - "who wrote {q}?"
+      replies:
+        - ["sure, call in {s_soon}", "ask {person}, they know it"]
+        - ["{s_thx}", "{s_ack}"]
+    - let:
+        when: ["on friday", "next week", "tomorrow", "{day}"]
+      root:
+        - "i am off {when}, can you cover the pager?"
+        - "swap on-call {when}?"
+        - "can we move our 1:1 {when}?"
+        - "{s_hey}, can you cover {when}?"
+      replies:
+        - ["yes, no problem", "{day} is hard, {day} works"]
+        - ["{s_thx}", ""]
+  off-topic:
+    - let:
+        what: ["the best gig i went to", "festival camping tips", "that terrible seat", "last night's match"]
+      root:
+        - "anyone want to talk about {what}?"
+        - "did you see {what}?"
+        - "best story about {what}?"
+        - "thoughts on {what}?"
+      replies:
+        - ["haha yes", "{c_agree}"]
+        - ["send photos", ""]
+    - let:
+        food: ["the canteen", "the new ramen place", "the cafe downstairs", "the food truck"]
+      root:
+        - "lunch at {food}?"
+        - "is {food} open today?"
+        - "{food} menu looks good today"
+        - "{s_lunch} or {food}?"
+      replies:
+        - ["i am in", "give me ten minutes"]
+        - ["see you there", ""]

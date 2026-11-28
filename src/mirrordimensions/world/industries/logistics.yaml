@@ -1,0 +1,1077 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Logistics and freight: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: logistics
+name: Logistics and freight
+group: Transport and logistics
+aliases:
+  - freight
+  - freight forwarding
+  - 3pl
+  - freight and logistics
+  - third party logistics
+description: A freight forwarder and third party logistics provider that books shipments, runs warehouses and bills shippers for freight, storage and customs work.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Logistics
+  - Freight
+  - Forwarding
+  - Supply Chain
+  - Cargo
+  - Transport
+invoice_items:
+  - Freight charge
+  - Warehouse handling
+organization:
+  head: Director of Technology
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Technology
+      title: Platform Engineer
+    billing:
+      department: Freight Billing Systems
+      title: Billing Systems Engineer
+    data:
+      department: Logistics Data
+      title: Data Engineer
+    support:
+      department: Customer Service
+      title: Customer Service Representative
+    product:
+      department: Digital Products
+      title: Product Manager
+    operations:
+      department: Operations
+      title: Operations Analyst
+names:
+  repos:
+    billing-service: [billing-service, freight-billing, shipment-billing, rating-service]
+    platform-docs: [platform-docs, tech-handbook, ops-runbooks, platform-handbook]
+    data-pipeline: [data-pipeline, shipment-loads, edi-etl, logistics-warehouse]
+    infra-config: [infra-config, edi-gateway-config, environments, platform-config]
+    customer-portal: [customer-portal, shipper-portal, tracking-portal, booking-portal]
+    ops-scripts: [ops-scripts, warehouse-scripts, legacy-scripts, edi-scripts]
+  channels:
+    engineering: [engineering, dev, tech-chat]
+    incidents: [incidents, ops-alerts, outages]
+    support: [support, customer-service, shipper-support]
+    data-team: [data-team, shipment-data, edi-data]
+    billing-team: [billing-team, freight-billing, rating-team]
+systems:
+  typical:
+    - github
+    - slack
+    - microsoft 365
+    - oracle netsuite
+    - blue yonder
+    - manhattan active
+    - project44
+    - servicenow
+    - otm
+    - manhattan wms
+  common:
+    - okta
+    - pagerduty
+    - datadog
+    - snowflake
+    - salesforce
+    - fourkites
+symbols:
+  b_doc:
+    - freight invoice
+    - customs brokerage invoice
+    - warehouse storage invoice
+    - accessorial invoice
+    - credit memo
+  b_customer:
+    - shipper
+    - importer
+    - e-commerce brand
+    - retailer
+    - manufacturer
+    - 3PL client
+  b_who:
+    - the customer service desk
+    - freight audit
+    - the pricing team
+    - the operations desk
+    - customs compliance
+  b_pwho:
+    - a shipper
+    - freight audit
+    - '{person}'
+    - the pricing team
+    - the operations desk
+  b_region:
+    - Germany
+    - Canada
+    - Mexico
+    - the Netherlands
+    - Australia
+    - Singapore
+    - California
+    - Illinois
+  b_taxkind:
+    - VAT
+    - customs duty
+    - GST
+    - import duty
+    - sales tax
+    - excise tax
+  b_currency:
+    - USD
+    - EUR
+    - GBP
+    - CAD
+    - CNY
+    - MXN
+  b_page:
+    - shipments
+    - tracking
+    - invoices
+    - rate quotes
+    - proof of delivery
+    - account settings
+    - the dashboard
+    - bookings
+  b_acct_size:
+    - '{200-900} shipments'
+    - '{15-60} users'
+    - '{3-12} billing contacts'
+    - '{40-300} lanes'
+    - '{20-120} warehouse locations'
+  b_provider_event:
+    - payment received
+    - payment failed
+    - ACH return
+    - wire confirmed
+    - remittance posted
+    - chargeback opened
+  c_customer:
+    - a shipper
+    - one of the larger importers
+    - a retailer
+    - a 3PL client
+  s_plan:
+    - a contract rate card
+    - a spot quote
+    - a dedicated lane deal
+    - a warehouse agreement
+  p_source:
+    - the carriers' EDI invoices
+    - the customs broker's entry files
+    - the warehouse scan feed
+    - the carrier tracking API
+    - the TMS shipment export
+    - the fuel index publication
+  p_report:
+    - the daily shipment report
+    - the on-time delivery dashboard
+    - the freight margin report
+    - the unbilled shipments list
+    - the warehouse utilisation report
+  p_table:
+    - shipments
+    - freight invoices
+    - tracking events
+    - rate cards
+    - inventory moves
+    - customs entries
+  p_finance_ask:
+    - the freight audit lead
+    - someone in finance
+    - the controller
+    - the pricing manager
+  c_eng_area:
+    - the rating engine
+    - the fuel surcharge lookup
+    - the tracking import
+    - the EDI parser
+    - the booking form
+    - the dimension weight job
+  s_thing:
+    - the rating run
+    - the EDI import
+    - the tracking feed
+    - the invoice run
+    - the nightly load
+  p_alert_name:
+    - EDI queue depth
+    - the invoice run finishing late
+    - tracking API errors
+    - failed backups of the shipment database
+    - warehouse feed delays
+  p_cert_host:
+    - the EDI gateway certificate
+    - the shipper portal certificate
+    - the carrier API certificate
+    - the internal gateway certificate
+  p_secret_thing:
+    - the EDI gateway password
+    - the carrier tracking API key
+    - the payments provider token
+    - the customs broker credentials
+  lg_lane:
+    - Chicago to Dallas
+    - Rotterdam to Frankfurt
+    - Shenzhen to Los Angeles
+    - Toronto to Detroit
+    - Monterrey to Laredo
+    - Singapore to Sydney
+  lg_mode:
+    - ocean freight
+    - air freight
+    - truckload
+    - less than truckload
+    - intermodal
+    - rail
+  lg_accessorial:
+    - detention
+    - demurrage
+    - a liftgate fee
+    - storage
+    - a redelivery fee
+    - residential delivery
+  lg_edi:
+    - the 210 invoice
+    - the 214 status
+    - the 204 tender
+    - the 990 response
+  lg_site:
+    - the {Elmwood/Harbor/Westfield} warehouse
+    - the {north/south} cross dock
+    - the {Gateway/Riverside} distribution centre
+    - the container freight station
+  lg_peak:
+    - peak season
+    - the holiday rush
+    - month end
+    - the pre Lunar New Year surge
+  lg_note:
+    - Raised by freight audit.
+    - Customer service hit it first.
+    - '{person} saw it on a {lg_mode} lane.'
+    - A shipper queried it.
+  lg_cm:
+    - Checked against the carrier invoice.
+    - Same on the last batch.
+    - Rerun after the fix looks right.
+    - Numbers match the rate card.
+  lg_when:
+    - before the next invoice run
+    - before the peak surge
+    - ahead of month end
+    - before the rate cards renew
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        mode:
+          - '{lg_mode}'
+        doc:
+          - '{b_doc}'
+      title:
+        - Fuel surcharge uses last week's index
+        - '{doc|cap} applies the wrong surcharge for {mode}'
+        - Surcharge table not updated on Mondays
+        - Fuel percentage differs from the carrier
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{lg_note}'
+            - A shipper disputed the surcharge.
+            - Freight audit flagged the lane.
+        -   - The index is published weekly.
+            - Billing reads it once a month.
+            - The table loads on Tuesday.
+            - Shipments use the old week.
+            - '{lg_note}'
+        -   - The gap is about {2-9} percent.
+            - On big accounts it adds up.
+            - Credits will be needed.
+            - '{lg_note}'
+        -   - Needs a fix {lg_when}.
+            - '{p_owner_ask}'
+            - '{b_urgent}'
+            - '{lg_note}'
+      comments:
+        - '{lg_cm}'
+        - The table has an effective date.
+        - '{b_cm_plan}'
+        - Credits may follow for earlier weeks.
+    - labels: [bug]
+      let:
+        mode:
+          - '{lg_mode}'
+        lane:
+          - '{lg_lane}'
+      title:
+        - Dimensional weight ignored on {mode} quotes
+        - Billed weight uses actual, not volumetric
+        - '{lane|cap} rated on the wrong weight'
+        - Chargeable weight rounds down
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - The carrier billed more than us.
+            - '{lg_note}'
+        -   - Rating compares two weights.
+            - The code takes the lower one.
+            - Rounding goes to the whole kilo.
+            - Volume is computed in inches.
+            - '{lg_note}'
+        -   - Margin on the lane is negative.
+            - The difference is {2-9} percent.
+            - '{lg_note}'
+        -   - '{b_urgent}'
+            - '{p_priority}'
+            - '{lg_note}'
+      comments:
+        - '{lg_cm}'
+        - Use the higher of both weights.
+        - Rounding rules sit in rate cards.
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        acc:
+          - '{lg_accessorial}'
+      title:
+        - Free time for {acc} counts weekends
+        - '{acc|cap} clock ignores holidays'
+        - '{acc|cap} charged before the free days end'
+        - Wrong start date for {acc}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Customers dispute {acc} bills.
+            - '{lg_note}'
+        -   - Free days are counted by calendar.
+            - Gate in is used, not discharge.
+            - Holidays are not in the table.
+            - '{lg_note}'
+        -   - The contract says working days.
+            - Charges start a day early.
+            - '{lg_note}'
+        -   - '{p_owner_ask}'
+            - '{p_priority}'
+            - '{lg_note}'
+      comments:
+        - Add a holiday table per port.
+        - '{lg_cm}'
+        - Credits for last month are needed.
+    - labels: [bug]
+      let:
+        cur:
+          - '{b_currency}'
+      title:
+        - Freight invoices in {cur} use the wrong rate date
+        - Exchange rate taken at invoice date
+        - '{cur} totals differ from the carrier'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Customers compare to carrier bills.
+            - '{lg_note}'
+        -   - Rate date is the invoice date.
+            - The contract names the ship date.
+            - '{lg_note}'
+        -   - Rounding differs per line.
+            - Totals miss by a few cents.
+            - '{lg_note}'
+        -   - '{b_urgent}'
+            - '{lg_note}'
+      comments:
+        - Use the contract rate date.
+        - '{lg_cm}'
+        - Finance wants a rate table.
+    - labels: [bug]
+      let:
+        edi:
+          - '{lg_edi}'
+      title:
+        - Duplicate carrier invoices from {edi}
+        - '{edi|cap} loads twice after a retry'
+        - Carrier cost posted twice on shipment
+      body:
+        -   - The carrier resends after a timeout.
+            - Freight audit sees two costs.
+            - '{lg_note}'
+        -   - The import has no dedupe key.
+            - Invoice numbers get a suffix.
+            - '{lg_note}'
+        -   - Margin looks too low.
+            - Payables may pay twice.
+            - '{lg_note}'
+        -   - '{p_priority}'
+            - '{p_owner_ask}'
+            - '{lg_note}'
+      comments:
+        - Key on carrier plus invoice number.
+        - '{lg_cm}'
+        - Add a unique constraint.
+    - labels: [needs-decision]
+      let:
+        who:
+          - '{b_who}'
+        question:
+          - accessorial approvals
+          - disputed detention
+          - late customs fees
+      title:
+        - Who approves {question}?
+        - Policy for {question}
+        - Limits for {question}
+      body:
+        -   - '{b_nd_a}'
+            - Answers differ by person.
+            - '{lg_note}'
+        -   - '{b_raised}, {b_scope}.'
+            - '{lg_note}'
+        -   - Needs a ruling from {who}.
+            - '{b_nd_f}'
+            - '{lg_note}'
+      comments:
+        - Set a dollar limit per desk.
+        - Legal should check the terms.
+        - Track approvals in the ticket.
+  portal:
+    - labels: [bug]
+      let:
+        mode:
+          - '{lg_mode}'
+      title:
+        - Tracking shows the wrong status for {mode}
+        - Events appear out of order
+        - Delivered shows before in transit
+        - Tracking page lags the carrier
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Shippers watch tracking daily.
+            - '{lg_note}'
+        -   - Events arrive late from carriers.
+            - The page sorts by arrival time.
+            - '{lg_note}'
+        -   - Time zones differ at the port.
+            - '{lg_note}'
+        -   - '{b_urgent}'
+            - '{lg_note}'
+      comments:
+        - Sort by event time.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        doc:
+          - proof of delivery
+          - bill of lading
+          - customs entry
+      title:
+        - Download of the {doc} fails
+        - '{doc|cap} PDF is blank in {b_browser}'
+        - Shippers cannot open the {doc}
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - The file is made on demand.
+            - '{lg_note}'
+        -   - Large scans time out.
+            - Old files sit in cold storage.
+            - '{lg_note}'
+        -   - Only the PDF fails.
+            - '{lg_note}'
+        -   - '{p_priority}'
+            - '{lg_note}'
+      comments:
+        - Pre build after delivery.
+        - '{b_cm_repro} on a fresh account.'
+        - Cache the file for a day.
+    - labels: [bug]
+      let:
+        lane:
+          - '{lg_lane}'
+      title:
+        - Rate quote for {lane} uses the wrong zone
+        - Quote tool uses old lane rates
+        - Online quote differs from the invoice
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - Quotes and invoices disagree.
+            - '{lg_note}'
+        -   - The tool caches rate cards.
+            - Zones changed last month.
+            - '{lg_note}'
+        -   - Sales corrects quotes by hand.
+            - '{lg_note}'
+        -   - '{b_urgent}'
+            - '{lg_note}'
+      comments:
+        - Refresh the cache on rate changes.
+        - '{lg_cm}'
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        what:
+          - bookings
+          - invoices
+          - shipment documents
+      title:
+        - Users can see {what} of other shippers
+        - '{what|cap} list ignores the company'
+        - Wrong company sees {what}
+      body:
+        -   - A user saw {what} not theirs.
+            - '{b_raised}, {b_scope}.'
+            - '{lg_note}'
+        -   - The list filters by user only.
+            - '{lg_note}'
+        -   - '{b_dlk_c}'
+            - '{lg_note}'
+        -   - '{b_dlk_e}'
+            - '{lg_note}'
+      comments:
+        - '{b_cm_repro}, no company filter.'
+        - '{b_cm_fix_up} It adds a company check.'
+        - Check the access log first.
+  docs:
+    - labels: [docs, bug]
+      let:
+        page:
+          - docs/rating.md
+          - docs/accessorials.md
+          - docs/edi.md
+      title:
+        - '{Handbook/Docs}: {page} lists old surcharge rules'
+        - '{page} disagrees with the rating code'
+        - '{page|cap} misses the new carrier format'
+      body:
+        -   - '{page|cap} describes last year.'
+            - New carriers are not listed.
+            - '{lg_note}'
+        -   - A joiner used the old rule.
+            - '{p_noticed|cap}.'
+            - '{lg_note}'
+        -   - Pricing owns the rules.
+            - The code is the truth.
+            - '{lg_note}'
+        -   - '{p_owner_ask}'
+            - '{lg_note}'
+      comments:
+        - Pricing will send the rules.
+        - Will update it {lg_when}.
+        - Link the rate card template.
+    - labels: [docs, enhancement]
+      let:
+        thing:
+          - an EDI gateway outage
+          - a stuck invoice run
+          - a carrier API change
+          - a warehouse feed failure
+      title:
+        - Runbook for {thing}
+        - On-call guide needs steps for {thing}
+        - Write up what to do about {thing}
+      body:
+        -   - The guide says nothing about {thing}.
+            - Last time {thing} cost {2-6} hours.
+            - '{lg_note}'
+        -   - On call asks the operations desk.
+            - Steps live in one person's notes.
+            - '{lg_note}'
+        -   - A short page would help.
+            - Who to call, in what order.
+            - '{lg_note}'
+        -   - '{p_priority}'
+            - '{lg_note}'
+      comments:
+        - Add the carrier support numbers.
+        - Operations should review it.
+        - Draft is in my branch.
+    - labels: [docs, needs-decision]
+      let:
+        topic:
+          - rate card versioning
+          - who approves credit memos
+          - the peak season freeze
+      title:
+        - Decide how to document {topic}
+        - '{topic|cap}: handbook and practice differ'
+        - Where should {topic} live?
+      body:
+        -   - New people keep asking about {topic}.
+            - The answer depends who you ask.
+            - '{lg_note}'
+        -   - Pricing and finance disagree.
+            - Nothing is written down.
+            - '{lg_note}'
+        -   - '{b_dc_c} {b_dc_e}'
+            - '{lg_note}'
+      comments:
+        - Ask {p_finance_ask} for the rule.
+        - Can draft it once we agree.
+  data:
+    - labels: [bug, data-quality]
+      let:
+        edi:
+          - '{lg_edi}'
+      title:
+        - Gaps in {edi} messages from carriers
+        - Missing status events for {2-80} shipments
+        - Carrier feed stops on format change
+        - '{edi|cap} fails to parse for one carrier'
+      body:
+        -   - Messages stop for one carrier.
+            - Some shipments never update.
+            - '{lg_note}'
+        -   - The carrier changed a field.
+            - The parser rejects the file.
+            - '{lg_note}'
+        -   - Tracking shows no movement.
+            - Customers ask where the freight is.
+            - '{lg_note}'
+        -   - '{lg_note}'
+            - '{p_priority}'
+      comments:
+        - Reprocessed the rejected files.
+        - Keep rejects in a queue.
+        - Ask the carrier for the spec.
+    - labels: [bug, incident]
+      let:
+        delay:
+          - '{p_delay}'
+        day_name:
+          - '{day}'
+      title:
+        - Shipment load finished {delay} late on {day_name}
+        - Invoice run waited on the {day_name} load
+        - Unbilled report empty on {day_name}
+      body:
+        -   - The load ended {delay} past the usual time.
+            - Shipment tables were empty.
+            - '{lg_note}'
+        -   - The slowest step was {p_table}.
+            - '{lg_peak|cap} doubled the files.'
+            - '{lg_note}'
+        -   - '{p_noticed|cap}.'
+            - Nothing was lost, only late.
+            - '{lg_note}'
+        -   - We need the cause {lg_when}.
+            - '{lg_note}'
+      comments:
+        - The carrier files came late again.
+        - Start the run after the load?
+        - Added row counts to the {day_name} log.
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - shipment ids
+          - customs entry numbers
+          - carrier codes
+      title:
+        - Duplicate {what} after the system merge
+        - Same {what} on two shipments
+        - '{what|cap} collide between two systems'
+      body:
+        -   - Found {2-60} duplicate {what}.
+            - A count shows extra rows.
+            - '{lg_note}'
+        -   - The merge kept both records.
+            - Keys are not unique here.
+            - '{lg_note}'
+        -   - Freight is billed twice.
+            - Reports show the shipment twice.
+            - '{lg_note}'
+        -   - '{p_priority}'
+            - '{lg_note}'
+      comments:
+        - Deduplicated by key, counts match.
+        - Add a uniqueness check to validate.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        what:
+          - tariff codes
+          - port codes
+          - weight units
+      title:
+        - '{what|cap} differ between the TMS and billing'
+        - Mixed {what} in {p_table}
+        - Unit mismatch in the margin report
+      body:
+        -   - One source stores kilos.
+            - The other stores pounds.
+            - '{lg_note}'
+        -   - Totals are off by a factor.
+            - The gap is {2-9} percent.
+            - '{lg_note}'
+        -   - '{p_owner_ask}'
+            - '{lg_note}'
+      comments:
+        - Added a unit column, nothing guessed.
+        - '{lg_cm}'
+        - '{b_cm_plan}'
+    - labels: [enhancement]
+      let:
+        who:
+          - freight audit
+          - the pricing team
+          - the carrier managers
+      title:
+        - Load carrier scorecards for {who}
+        - '{who|cap} want on time data'
+        - Lane level cost data for {who}
+      body:
+        -   - '{who|cap} ask for lane level data.'
+            - They pull exports by hand.
+            - '{lg_note}'
+        -   - Roughly {2-9} million rows a month.
+            - Storage rises a little.
+            - '{lg_note}'
+        -   - Needs a new feed and table.
+            - Keep raw files for audit.
+            - '{lg_note}'
+        -   - '{b_fr_d}'
+            - '{lg_note}'
+      comments:
+        - Keep raw files, parse later.
+        - '{b_cm_plan}'
+  infra:
+    - labels: [security, enhancement]
+      let:
+        cert:
+          - '{p_cert_host}'
+        days:
+          - '{14-30}'
+      title:
+        - Alert before {cert} expires
+        - '{cert|cap} expires in {days} days'
+        - Renewal for {cert} is still by hand
+      body:
+        -   - '{cert|cap} is due in {days} days.'
+            - We nearly missed the last renewal.
+            - '{lg_note}'
+        -   - Carriers cannot send EDI after lapse.
+            - Shippers see a browser warning.
+            - '{lg_note}'
+        -   - '{p_noticed|cap}.'
+            - '{lg_note}'
+        -   - Needs a real alert and owner.
+            - '{p_owner_ask}'
+            - '{lg_note}'
+      comments:
+        - Renewed {cert}, next expiry in {80-360} days.
+        - Plan around the maintenance window.
+        - Page on it in alerts.yaml.
+    - labels: [performance, enhancement]
+      let:
+        peak:
+          - '{lg_peak}'
+      title:
+        - Capacity for the portal in {peak}
+        - Scale the booking pages before {peak}
+        - EDI queue backs up in {peak}
+      body:
+        -   - Traffic hit {2-9} times normal.
+            - The queue grew past {20-90} thousand.
+            - '{lg_note}'
+        -   - Limits cap the workers too low.
+            - Autoscaling reacts too slowly.
+            - '{lg_note}'
+        -   - Customers phoned instead.
+            - '{lg_note}'
+        -   - '{p_priority}'
+            - Needs a plan {lg_when}.
+            - '{lg_note}'
+      comments:
+        - Raised the worker limits.
+        - Load test before the season.
+        - Alert on queue age, not depth.
+    - labels: [security, bug]
+      let:
+        what:
+          - the EDI gateway
+          - the warehouse network
+          - the carrier API proxy
+      title:
+        - Firewall rule into {what} is too wide
+        - Review partner access to {what}
+        - Segmentation gap around {what}
+      body:
+        -   - One rule allows more than needed.
+            - An audit flagged broad access.
+            - '{lg_note}'
+        -   - Only a few ports are used.
+            - One source host would do.
+            - '{lg_note}'
+        -   - Changes wait for a window.
+            - '{lg_note}'
+        -   - '{p_owner_ask}'
+            - '{lg_note}'
+      comments:
+        - Traffic logs show two ports used.
+        - Keep the old rule off first.
+    - labels: [bug, security]
+      let:
+        what:
+          - customs records
+          - EDI messages
+          - proof of delivery files
+      title:
+        - Backups of {what} keep fewer years than policy
+        - Retention for {what} is {2-6} years
+        - Restore of {what} was never tried
+      body:
+        -   - Policy keeps {what} {5-7} years.
+            - The archive prunes after {2-4} years.
+            - '{lg_note}'
+        -   - The last restore was never tried.
+            - Failures are logged, nobody paged.
+            - '{lg_note}'
+        -   - Customs can audit old entries.
+            - Shippers dispute charges later.
+            - '{lg_note}'
+        -   - '{p_priority}'
+            - '{lg_note}'
+      comments:
+        - Raised retention, cost is small.
+        - Scheduled a restore check.
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: the warehouse closes early {c_soon}.'
+        - safety walk {day} at {time}
+        - reminder, vests on the dock floor
+        - '{c_hey}: the {lg_peak} shift sign up is open'
+        - open enrolment closes {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - will be there
+            - is it mandatory?
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - welcome {person}, joining from the ops desk
+        - '{person} is our new analyst, starts {c_soon}'
+        - say hi to {person}, new in freight audit
+        - '{c_hey}, {person} joins us {c_soon}'
+      replies:
+        -   - welcome {person}!
+            - '{c_em}'
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - '{lg_peak} starts {c_soon}, change freeze from {day}'
+        - port congestion {c_soon}, expect slow tracking
+        - carrier strike news, expect noise
+        - heads up, {lg_peak} volumes are up
+      replies:
+        -   - noted
+            - '{c_ack}'
+        -   - will the alerts page us?
+            - ''
+  off-topic:
+    - root:
+        - anyone watching the {match/game} {last night/tonight}?
+        - lunch ideas? food truck is back
+        - ring road traffic is awful
+        - best coffee near the dock?
+        - how was the trade show?
+      replies:
+        -   - '{c_lol}'
+            - '{c_agree}'
+        -   - ''
+            - same
+    - root:
+        - anyone selling a bike?
+        - hiking this weekend, who is in?
+        - the cafeteria soup is back
+        - '{c_pet} ate a delivery slip'
+      replies:
+        -   - '{c_lol}'
+            - ha
+        -   - ''
+            - nice
+  engineering:
+    - let:
+        thing:
+          - '{c_eng_area}'
+          - the zone lookup
+          - the accessorial rules
+      root:
+        - '{thing} is wrong for {lg_mode}'
+        - should {thing} use chargeable weight?
+        - can someone review my pr on {repo}? touches {thing}
+        - who wrote {thing}? need context
+        - '{thing} broke after the {day} deploy'
+      replies:
+        -   - i think {person} wrote it, ask them
+            - '{c_idk}'
+            - predates the migration, check old scripts
+        -   - will look {c_when_eng}
+            - '{c_ack}'
+    - root:
+        - '{c_ci_fail} is failing again on main'
+        - rating tests fail on leap days
+        - flaky test in the EDI parser
+        - '{c_ci_fail} keeps timing out on rate tests'
+      replies:
+        -   - same here
+            - rerunning
+            - seen it, date fixtures
+        -   - fix is in {issue}
+            - '{c_ack}'
+    - root:
+        - does the import handle carrier retries?
+        - what happens when a carrier resends?
+        - do we dedupe invoices?
+        - how late can a status arrive?
+        - are late statuses applied or dropped?
+      replies:
+        -   - about a day, i think
+            - check the carrier docs
+            - '{c_idk}'
+        -   - should write that down
+            - '{c_thanks}'
+    - root:
+        - heads up, deploy freeze from {day}
+        - no deploys on invoice run days
+        - freeze for {lg_peak} starts {day}
+        - deploys paused until {time} on {day}
+        - month end freeze starts {c_soon}
+      replies:
+        -   - '{c_ack}'
+            - got it
+        -   - is a hotfix ok?
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - '{c_hey}: standup moved to {time}, invoice day'
+        - skipping standup, on the dock
+        - who is picking up {issue}?
+      replies:
+        -   - i can take it
+            - '{c_ack}'
+            - on my list
+        -   - ''
+            - thanks
+    - root:
+        - invoice run starts {c_soon}, billing freezes {day}
+        - rate cards renew {day}, any blockers?
+        - '{lg_peak} starts {c_soon}, who has the checklist?'
+        - customs audit is {day}, who is on it?
+      replies:
+        -   - i am on call
+            - checklist is in the handbook
+            - '{c_ack}'
+        -   - ping me if the run stalls
+            - ''
+    - root:
+        - shipper escalation, {c_customer} disputes the invoice
+        - a customer says detention is wrong
+        - escalation from freight audit, margin
+        - big shipper wants a call {c_soon}
+        - '{c_hey}: {c_customer} is unhappy about tracking'
+      replies:
+        -   - which account?
+            - i will check the logs
+        -   - it is {issue}
+            - '{c_ack}'
+  support:
+    - let:
+        who:
+          - '{s_cust}'
+      root:
+        - '{who|cap} says the surcharge is wrong'
+        - '{who|cap} asks about detention'
+        - shipper cannot log in, {s_ticket}
+        - '{s_hey}, {who} wants a proof of delivery'
+        - tracking is stuck for {who}
+      replies:
+        -   - check the fuel table first
+            - detention follows the contract, tell them
+            - try a fresh login
+            - checking the log now
+        -   - '{s_ack}, will tell them'
+            - '{s_thx}'
+            - ''
+    - root:
+        - customer disputes the freight charge
+        - importer wants the entry copy
+        - '{s_cust|cap} cannot see bookings, {s_ticket}'
+        - escalating, wrong weight, filed as {issue}
+      replies:
+        -   - sending the breakdown now
+            - copy attached to the ticket
+        -   - '{s_thx}'
+            - '{c_ack}'
+    - root:
+        - queue is at {20-90} open tickets, mostly invoices
+        - 'tracking calls: {20-80} since morning'
+        - tickets doubled after invoices went out
+      replies:
+        -   - same, will help after lunch
+            - '{c_ack}'
+        -   - any macro for the surcharge question?
+            - ''
+  incidents:
+    - let:
+        what:
+          - the EDI gateway
+          - the tracking feed
+          - the invoice run
+      root:
+        - '{what} stopped at {time}'
+        - '{s_al} {what} silent since {time}'
+        - is anyone else seeing {what} {s_symptom}?
+        - the ops desk says {what} looks stale
+      replies:
+        -   - looking
+            - restarted the poller, watching it
+            - gateway is up, upstream issue
+        -   - fixed, backfilling
+            - '{c_ack}'
+    - root:
+        - near miss, a retry saved it
+        - the {p_alert_name} alert is flapping again
+        - incident review is {day} at {time}
+        - on-call handover, nothing open, {s_oncall} is quiet
+      replies:
+        -   - '{c_ack}'
+            - will join
+        -   - ''
+            - thanks
+    - root:
+        - '{p_cert_host} expires in {2-9} days'
+        - the EDI server is at {75-95} percent disk
+        - the {p_alert_name} alert woke me at {time}
+      replies:
+        -   - on it
+            - '{c_ack}'
+        -   - renewing today
+            - ''
+  direct:
+    - root:
+        - '{s_hey}, check the EDI import {s_soon}?'
+        - which weight does the report use?
+        - can you look at {issue} before the run?
+        - '{s_hey}, got a minute for rates?'
+        - handing over invoicing, out {s_soon}
+      replies:
+        -   - sure
+            - '{s_ack}'
+            - give me ten minutes
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - lunch? {s_lunch} at {time}
+        - ugh, the vpn dropped again
+        - survived peak, finally
+        - '{s_hey}, thought you would like this'
+      replies:
+        -   - sounds good
+            - '{c_lol}'
+        -   - ''
+            - same
+comments:
+  - Check the rate card first.
+  - '{lg_cm}'
+  - Does this touch the invoice run?
+  - Ask pricing before changing it.
+  - Ops desk would want to know.

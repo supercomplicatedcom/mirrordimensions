@@ -1,0 +1,884 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Restaurants and food service: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: restaurants
+name: Restaurants and food service
+group: Retail and commerce
+aliases:
+  - restaurant group
+  - food service
+  - restaurant chain
+  - dining
+  - hospitality dining
+description: A restaurant group that runs point of sale, online ordering, reservations and kitchen systems across its locations, and invoices catering clients and private events.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Kitchen
+  - Hospitality Group
+  - Restaurants
+  - Eatery
+  - Grill
+  - Dining Group
+invoice_items:
+  - Catering orders
+  - Private event deposits
+organization:
+  head: Head of Technology
+  it_admin: IT Manager
+  teams:
+    platform: {department: Technology, title: Platform Engineer}
+    billing: {department: Finance Systems, title: Systems Engineer}
+    data: {department: Analytics, title: Data Engineer}
+    support: {department: Guest Relations, title: Guest Relations Associate, lead: Guest Relations Manager}
+    product: {department: Digital Product, title: Product Manager}
+    operations: {department: Restaurant Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [catering-billing, events-invoicing, billing-service, house-accounts]
+    platform-docs: [tech-handbook, platform-docs, restaurant-runbooks, team-docs]
+    data-pipeline: [sales-loads, restaurant-data-pipeline, data-pipeline, pos-etl]
+    infra-config: [infra-config, location-network-config, env-config, kitchen-config]
+    customer-portal: [guest-portal, online-ordering, customer-portal, catering-web]
+    ops-scripts: [ops-scripts, location-scripts, legacy-scripts, pos-tools]
+  channels:
+    engineering: [engineering, tech, dev, restaurant-tech]
+    incidents: [incidents, pos-outages, prod-incidents, kitchen-alerts]
+    releases: [releases, menu-releases, deploys, shipping]
+    billing-team: [billing-team, catering-billing, finance-systems, billing-eng]
+    platform-team: [platform-team, restaurant-platform, platform, infra]
+    data-team: [data-team, analytics, data, reporting]
+    support: [guest-relations, support, care-team, cs-team]
+    leads: [leads, tech-leads, managers, team-leads]
+systems:
+  typical: [github, slack, toast, square, workday, ukg pro, braze, zendesk, olo]
+  common: [stripe, quickbooks online, klaviyo, google workspace, okta, tableau]
+symbols:
+  b_doc: [catering invoice, event deposit receipt, credit note, corporate statement, gift card receipt, final event invoice]
+  b_customer: [catering client, corporate account, private event host, wedding client, school, franchisee, gift card buyer, loyalty member]
+  b_who: [the catering team, restaurant managers, finance, the events team, guest relations]
+  b_pwho: [the catering team, a restaurant manager, "{person}", the events team, finance]
+  b_ticket_noun: [ticket, case, complaint, escalation]
+  b_page: [catering orders, event quotes, statements, gift cards, saved menus, reservations, receipts]
+  b_acct_size: ["{20-120} past events", "{5-30} users", "over {200-900} order lines", "{3-15} delivery addresses"]
+  b_provider_event: [payment captured, payment declined, refund issued, chargeback opened, card settled, deposit received]
+  b_money_path: [billing/catering.py, billing/events.py, billing/tax.py, billing/rounding.py]
+  b_check_path: [the catering tests, the event tests, the tax tests, the deposit tests]
+  b_taxkind: [sales tax, prepared food tax, service charge, gratuity, delivery tax, alcohol tax]
+  p_table: [checks, items, menu_items, recipes, shifts, tips, voids, reservations, gift_cards]
+  p_report: [the daily sales by location report, the food cost report, the labor percentage report, the void and comp report, the delivery commission report, the reservation no-show report]
+  p_source: [the POS check files, the delivery marketplace order feeds, the inventory counts, the scheduling export, the reservation platform export, the payment processor settlements]
+  p_finance_ask: [the finance lead, someone in finance, the revenue accountant, the group controller]
+  p_alert_name: [POS offline rate, kitchen printer queue, online order backlog, the nightly load finishing late, certificate expiry, error rate on online ordering, replication lag]
+  s_plan: [a house account, a catering order, the loyalty program, a gift card, a private event, a corporate account]
+  c_customer: [a guest, a catering client, a corporate buyer, a restaurant manager, a general manager, an event host]
+  s_tool: [the order console, the guest relations desk, the menu admin, the POS back office, the ticket queue]
+  s_thing: [the menu update, the POS sync, the inventory job, the export, the cron, the kitchen printer, the reservation feed, the webhook handler]
+  c_eng_area: [the menu sync, the POS journal export, the tip pooling, the online ordering queue, the reservation feed, the kitchen display, the gift card lookup, the export endpoint]
+  rt_loc: [the downtown location, the harbor restaurant, the airport kiosk, the mall unit, the flagship, the ghost kitchen]
+  rt_item: [the burger, the lunch special, the tasting menu, the brunch plate, the kids menu, the seasonal dessert]
+  rt_peak: [Valentine's Day, Mother's Day, the Friday dinner rush, New Year's Eve, game day, patio season]
+  rt_fail: [a voided check, a doubled tip, a lost reservation, an 86'd item still orderable, a printer jam, a wrong modifier]
+  rt_reg: [tip reporting rules, allergen labelling, health inspection records, PCI DSS, tip credit rules, alcohol licence rules]
+  rt_device: [the kitchen display, the handheld, the receipt printer, the card reader, the kiosk, the ordering tablet]
+  rt_fix: [rebooted the printer, resent the menu, restarted the sync, cleared the queue]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        path: ["{b_money_path}"]
+        tax: ["{b_taxkind}"]
+      title:
+        - "Service charge taxed twice on events"
+        - "{tax|cap} applied to the gratuity"
+        - "{doc|cap} total is a cent off"
+        - "Event {doc} double counts the {tax}"
+        - "Catering tax wrong for {tax}"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "{/Also, /And /}A service charge is added."
+            - "Gratuity is listed as a charge."
+            - ""
+        -   - "{path|cap} taxes the full total."
+            - "The charge joins the tax base."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "{b_cm_repro} with a service charge."
+        - "{b_cm_check}, {path} sums all lines."
+        - "Finance owes {2-9} clients a credit."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+        customer: ["{b_customer}"]
+      title:
+        - "Event deposit missing on final {doc}"
+        - "Deposit taken twice for one event"
+        - "{customer|cap} pays full price after deposit"
+        - "Balance due ignores the deposit"
+      body:
+        -   - "{b_raised}, {b_scope}."
+            - "{b_pscope}."
+        -   - "{/Also, /And /}A deposit is paid at booking."
+            - "The host pays by phone."
+            - ""
+        -   - "The final {doc} shows the full price."
+            - "Billing never sees the deposit."
+        -   - "{b_urgent}"
+            - "{b_urgent} {b_offer}"
+      comments:
+        - "The POS books a gift tender."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_plan}"
+        - "{b_cm_later}"
+    - labels: [bug]
+      let:
+        doc: ["{b_doc}"]
+      title:
+        - "Headcount change not reflected on the {doc}"
+        - "Final guest count ignored"
+        - "Menu price changes hit signed quotes"
+        - "Quote total moves after approval"
+      body:
+        -   - "A client changes the headcount."
+            - "A menu price is updated."
+        -   - "The {doc} uses the old number."
+            - "Signed quotes pick up new prices."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Freeze prices at signing."
+        - "{b_cm_hand}"
+        - "{b_cm_later}"
+    - labels: [needs-decision]
+      let:
+        who: ["{b_who}"]
+        question: [refunding a deposit after a cancellation, charging for late headcount cuts, splitting a bill across companies, holding a house account over limit]
+      title:
+        - "Policy for {question}?"
+        - "Who decides {question}?"
+        - "Deposit refund rules"
+        - "Decide {question}"
+      body:
+        -   - "{b_nd_a} {b_nd_b}"
+            - "{who|cap} handles {question} {b_nd_b}."
+        -   - "{/Also, /And /}managers apply their own rule."
+            - "Answers differ by location."
+            - ""
+        -   - "{/Also, /And /}clients compare quotes."
+            - "Complaints reach head office."
+            - ""
+        -   - "{b_nd_f}"
+            - "Needs a ruling from {who}."
+      comments:
+        - "A written schedule is simplest."
+        - "{b_cm_lean} a tiered refund."
+        - "Legal should check the contract."
+    - labels: [bug]
+      title:
+        - "Franchise royalty statement uses gross sales"
+        - "Royalty counts comps and voids"
+        - "Statement for a franchisee is {2-9} percent high"
+      body:
+        -   - "Royalties follow net sales."
+            - "The statement uses gross."
+        -   - "{/Also, /And /}comps and voids are included."
+            - "Gift card sales count twice."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Net out voids and comps."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+  docs:
+    - labels: [docs, task]
+      let:
+        thing: [a menu change, a new location, a POS upgrade, a holiday closure, a price update]
+      title:
+        - "How-to: run {thing}"
+        - "Checklist for {thing}"
+        - "Write down the steps for {thing}"
+        - "Runbook: {thing}"
+      body:
+        -   - "Nobody keeps steps for {thing}."
+            - "{person} does {thing} from memory."
+        -   - "{rt_reg|cap} must be documented."
+            - "Managers call us when it breaks."
+        -   - "{b_dc_c} would be plenty."
+            - "One page with the contacts."
+      comments:
+        - "Notes from last time exist."
+        - "Add the vendor contacts."
+        - "Include who approves it."
+    - labels: [docs, bug]
+      let:
+        runbook: ["docs/runbooks/pos-offline.md", "docs/runbooks/menu-sync.md", "docs/runbooks/kitchen-printers.md", "docs/runbooks/online-ordering.md"]
+        step: [switching to offline mode, resending the menu, checking the printer queue, calling the card processor, telling the managers]
+      title:
+        - "{runbook} is missing a step: {step}"
+        - "POS runbook skips {step}"
+        - "{runbook}: {step} not listed"
+        - "Update {runbook} after the upgrade"
+      body:
+        -   - "Followed {runbook} in an outage."
+            - "It left out {step}."
+        -   - "{person} told us in chat only."
+            - "{step|cap} sits in one head."
+        -   - "{p_owner_ask}"
+            - "{p_reviewer_ask}"
+      comments:
+        - "Added {step} as step {2-6}."
+        - "Managers need a printed copy."
+        - "{b_cm_docs}"
+    - labels: [docs, enhancement]
+      let:
+        flow: [an online order, cart to kitchen, a tip from card to payroll, an 86'd item, kitchen to menu, a catering quote to invoice]
+      title:
+        - "Explain how {flow} works"
+        - "Architecture note: {flow}"
+        - "One page on {flow}"
+        - "Describe {flow} end to end"
+      body:
+        -   - "New joiners ask how it works."
+            - "Only {person} knows the whole path."
+        -   - "{/Also, /And /}one diagram and a short page."
+            - "A simple picture would do."
+            - ""
+      comments:
+        - "I can draw it, someone check."
+        - "Include the offline case."
+        - "{b_cm_docs}"
+  data:
+    - labels: [bug, data-quality]
+      let:
+        loc: ["{rt_loc}"]
+        table: ["{p_table}"]
+      title:
+        - "Void and comp totals differ at {loc}"
+        - "Voids missing from {table} for {loc}"
+        - "Checks reopened and counted twice"
+        - "Daily sales miss late closed checks"
+      body:
+        -   - "Servers reopen a closed check."
+            - "A check closes after midnight."
+        -   - "{/Also, /And /}the load keeps both rows."
+            - "The day cutoff splits it."
+            - ""
+        -   - "{p_noticed|cap}."
+            - "The manager counted by hand."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Key on check id and version."
+        - "Use the business day, not midnight."
+        - "{b_cm_plan}"
+    - labels: [bug, data-quality]
+      let:
+        report: ["{p_report}"]
+        who: ["{b_who}"]
+      title:
+        - "{report|cap} does not match finance"
+        - "Food cost ignores waste entries"
+        - "Labor percentage counts tips as sales"
+        - "Delivery commission report is {2-9} percent off"
+      body:
+        -   - "The report is {2-9} percent off."
+            - "Finance sees another total."
+        -   - "{/Also, /And /}comps land in another week."
+            - "Tips count as revenue."
+            - ""
+        -   - "{b_ex_a}."
+            - "{who|cap} needs it before the review."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Use the business date."
+        - "{b_cm_check}"
+        - "Keep the old number beside it."
+    - labels: [bug, incident]
+      let:
+        peak: ["{rt_peak}"]
+      title:
+        - "Sales load late after {peak}"
+        - "Check files missing from {2-9} locations"
+        - "Offline locations delay the load"
+      body:
+        -   - "Locations upload after closing."
+            - "Some POS units stay offline."
+        -   - "{/Also, /And /}the load starts without them."
+            - "Totals look low until noon."
+            - ""
+        -   - "{p_noticed|cap}."
+        -   - "{p_owner_ask}"
+      comments:
+        - "Wait for locations or a cutoff."
+        - "{b_cm_prof} {b_cm_prof2}"
+        - "{b_cm_plan}"
+    - labels: [enhancement]
+      let:
+        source: ["{p_source}"]
+      title:
+        - "Load {source} into the warehouse"
+        - "Bring {source} into the nightly load"
+        - "Add {source} to the pipeline"
+        - "Should chefs get {source}?"
+      body:
+        -   - "Managers ask for {source} weekly."
+            - "{person} pulls {source} by hand."
+        -   - "{/Also, /And /}it would sharpen food cost."
+            - "Scheduling could use it."
+            - ""
+        -   - "{/Also, /And /}strip card data first."
+            - "Keep guest details out."
+            - ""
+      comments:
+        - "Which locations send {source}?"
+        - "Keep it for {2/3} years."
+        - "{b_cm_plan}"
+  portal:
+    - labels: [bug]
+      let:
+        item: ["{rt_item}"]
+        browser: ["{b_browser}"]
+      title:
+        - "Online menu shows {item} after it is 86'd"
+        - "Sold out items stay orderable"
+        - "Menu does not refresh in {browser}"
+        - "Orders arrive for off-menu items"
+      body:
+        -   - "The kitchen marks {item} as out."
+            - "Guests still order it online."
+        -   - "The menu cache lasts {5-30} minutes."
+            - "It happens in {browser}."
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Push each 86 to the site."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [bug]
+      title:
+        - "Catering quote form loses the headcount"
+        - "Event request drops dietary notes"
+        - "Allergy details missing from the order"
+      body:
+        -   - "A client fills in the form."
+            - "Notes never reach the kitchen."
+        -   - "{/Also, /And /}allergy details matter."
+            - "Chefs ask clients again."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{b_urgent}"
+      comments:
+        - "Show notes on the ticket."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_fix_up}"
+    - labels: [bug]
+      title:
+        - "Gift card balance a day late"
+        - "Gift card lookup returns zero"
+        - "Used gift cards keep a balance"
+      body:
+        -   - "Guests redeem in the restaurant."
+            - "The site shows the old balance."
+        -   - "{/Also, /And /}the portal caches the balance."
+            - "Locations sync in batches."
+            - ""
+        -   - "{b_raised}, {b_scope}."
+        -   - "{p_priority}"
+      comments:
+        - "Read the balance live."
+        - "{b_cm_repro} {b_cm_stage}."
+        - "{b_cm_later}"
+    - labels: [enhancement]
+      let:
+        ask: [download a statement, repeat a past catering order, upload a headcount change, pay a deposit online]
+      title:
+        - "Let clients {ask}"
+        - "Portal: {ask}"
+        - "Clients want to {ask}"
+      body:
+        -   - "{b_ss_a} {b_ss_b}"
+        -   - "{b_ss_c} {b_ss_d} {b_ss_e}"
+        -   - "{b_ss_f}"
+      comments:
+        - "Guest relations gets {2-9} calls daily."
+        - "Needs finance approval."
+        - "{b_cm_srv}"
+  infra:
+    - labels: [bug, incident]
+      let:
+        loc: ["{rt_loc}"]
+        device: ["{rt_device}"]
+      title:
+        - "{loc|cap} loses the POS link at night"
+        - "{device|cap} drops off the network"
+        - "No failover line at {loc}"
+        - "Kitchen printers stop during the rush"
+      body:
+        -   - "The main line dropped {2-6} times."
+            - "Tickets stop printing."
+        -   - "{/Also, /And /}cards need the link."
+            - "Cooks work from memory."
+            - ""
+        -   - "{p_priority}"
+      comments:
+        - "Add a cellular backup."
+        - "The carrier checks the line."
+        - "{b_cm_check}"
+    - labels: [security, enhancement]
+      title:
+        - "Alert before card reader certificates expire"
+        - "Who renews the reader keys?"
+        - "Guest wifi shares the POS network"
+      body:
+        -   - "Keys expire in {20-120} days."
+            - "Nobody owns the readers."
+        -   - "{rt_reg|cap} cover this."
+            - "The audit asks about it."
+        -   - "{p_owner_ask}"
+      comments:
+        - "I will add a {30/14} day alert."
+        - "Split the wifi first."
+        - "{b_cm_plan}"
+    - labels: [performance]
+      let:
+        peak: ["{rt_peak}"]
+      title:
+        - "Online ordering limits too low for {peak}"
+        - "Order queue backs up on {peak}"
+        - "Raise ordering capacity before {peak}"
+      body:
+        -   - "Orders jump {2-6}x at {peak}."
+            - "Last time guests saw errors."
+        -   - "{/Also, /And /}tickets reach the kitchen late."
+            - "Retries add more load."
+            - ""
+        -   - "{/Also, /And /}raise limits and add workers."
+            - ""
+      comments:
+        - "{b_cm_prof}"
+        - "Throttle new orders first."
+        - "{b_cm_plan}"
+  ops:
+    - labels: [question]
+      let:
+        script: ["push_menu.sh", "close_day.sh", "reprint_tickets.sh", "{p_script}"]
+      title:
+        - "Is {script} still used?"
+        - "Can we delete {script}?"
+        - "Does anything call {script}?"
+        - "Retire {script}?"
+        - "{script}: anyone using this?"
+      body:
+        -   - "Found {script} while tidying."
+            - "{script|cap} has no recent changes."
+        -   - "{/Also, /And /}written for the old POS."
+            - "It predates the new kitchen setup."
+            - ""
+        -   - "{p_owner_ask}"
+            - "Will remove it next month."
+      comments:
+        - "Not used by us."
+        - "Check cron on {p_old_ref}."
+        - "Keep it until the rollout ends."
+comments:
+  - "Managers logged {2-9} of these today."
+  - "{b_pwho|cap} has a guest waiting."
+  - "Does it hit {rt_loc} too?"
+  - "Only {rt_item}, or the whole menu?"
+  - "Matters most during {rt_peak}."
+  - "Checked the POS journal, same result."
+  - "Restaurant ops wants to know."
+  - "Hold off until {rt_peak} ends."
+chat:
+  town-square:
+    - root:
+        - "{c_hey}: {rt_peak} planning {day} at {time}"
+        - "change freeze for {rt_peak} starts {c_soon}"
+        - "all hands {day} at {time} in {c_room}"
+        - "welcome {person} to the tech team"
+        - "reminder: health inspection is {c_soon}"
+      replies:
+        -   - "does it include the kitchens?"
+            - "who needs to attend?"
+            - "will it be recorded?"
+        -   - "{c_yes}, all of them"
+            - "leads only"
+            - "{c_idk}, ask {person}"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_em}"
+    - root:
+        - "{c_hey}: benefits enrolment closes {c_soon}"
+        - "office closed {c_soon}, restaurants open"
+        - "it patching {c_soon}, restart please"
+        - "staff meal at {rt_loc} {c_soon}"
+      replies:
+        -   - "{c_ack}"
+            - "{c_thanks}"
+        -   - ""
+            - "thanks for the heads up"
+    - root:
+        - "huge thanks to {person} for {rt_peak}"
+        - "{c_hey}, record covers yesterday at {rt_loc}"
+        - "the group won a local award"
+      replies:
+        -   - "amazing"
+            - "{c_em}"
+            - "well deserved"
+        -   - ""
+            - "{c_thanks}"
+  off-topic:
+    - root:
+        - "anyone tried {rt_item} at {rt_loc}?"
+        - "who is working {rt_peak}?"
+        - "best staff meal this week?"
+        - "lunch ideas, sick of {c_food}"
+        - "new place opened near {c_place}"
+      replies:
+        -   - "love it"
+            - "queue was huge"
+            - "not for me"
+        -   - "{c_lol}"
+            - "save me one"
+            - ""
+    - root:
+        - "{c_sport} {c_soon}, anyone in?"
+        - "{c_weekend} {c_soon}, anyone?"
+        - "{c_pet} just did something silly"
+        - "reading anything good lately?"
+      replies:
+        -   - "i'm in"
+            - "nice"
+            - "can't, sorry"
+        -   - "{c_em}"
+            - ""
+  engineering:
+    - root:
+        - "menu sync slow since the patch"
+        - "can someone review my pr on {repo}? {c_patch}"
+        - "{c_ci_fail} is failing on main"
+        - "who owns the tip pooling code?"
+        - "should we bump {c_dep}? new major is out"
+      replies:
+        -   - "i'll look {c_when_eng}"
+            - "which locations?"
+            - "{c_idk}, checking"
+        -   - "it is the new build"
+            - "rolled back, watching"
+            - ""
+        -   - "{c_thanks}"
+            - "{c_ack}"
+    - root:
+        - "design question for {c_eng_area}, async?"
+        - "heads up, freeze from {day} for {rt_peak}"
+        - "why does {c_eng_area} retry {2-9} times?"
+        - "who is on call this week?"
+      replies:
+        -   - "async, with a retry"
+            - "ask {person}"
+            - "it is in the handbook"
+        -   - "{c_ack}"
+            - "ok, thanks"
+            - ""
+    - root:
+        - "local env broke after {pulling main/a rebase}"
+        - "is {c_tool} down for anyone else?"
+        - "tiny pr: fix typo in {repo} readme"
+      replies:
+        -   - "restart the dev container"
+            - "same here"
+            - "merged"
+        -   - "{c_thanks}"
+            - ""
+  team:
+    - root:
+        - "{c_status} on the tip fixes, standup in {5-15} minutes"
+        - "who picks up {issue}?"
+        - "sprint planning {day} at {time}, bring estimates"
+        - "anyone free to pair on {issue}?"
+        - "retro: who owns the menu sync?"
+      replies:
+        -   - "me, after standup"
+            - "i can {c_when_eng}"
+            - "{c_pto}, not me"
+        -   - "{c_thanks}"
+            - ""
+    - root:
+        - "escalation: {rt_loc} reports {rt_fail}"
+        - "guest relations says {rt_fail}, {issue} maybe?"
+        - "{c_hey}, {rt_fail} again, {2-9}th this week"
+        - "{c_customer} complains about {rt_fail}"
+      replies:
+        -   - "which location?"
+            - "{issue} looks like it"
+            - "send me the check number"
+        -   - "{c_ack}, taking it"
+            - "checking the logs"
+            - ""
+    - root:
+        - "release prep for {repo}: who has the checklist?"
+        - "{person}, review my pr when free?"
+        - "i am {c_pto}, who covers restaurant support?"
+      replies:
+        -   - "in the handbook"
+            - "i do"
+        -   - "{c_thanks}"
+            - ""
+  support:
+    - let:
+        who: ["{c_customer}"]
+        fail: ["{rt_fail}"]
+      root:
+        - "{who|cap} reports {fail}"
+        - "{s_hey}, {who}: {fail}, case {4100-4999}"
+        - "{who} is upset, {fail}"
+        - "{fail} at {rt_loc}, what do we say?"
+        - "{fail} again, how do we fix it?"
+      replies:
+        -   - "ask for the check number"
+            - "known, see {issue}"
+            - "i'll check the POS journal"
+            - "send me the location"
+        -   - "{s_ack}, will reply"
+            - "{s_thx}"
+            - "done, refunded"
+            - ""
+    - let:
+        sum: ["{s_money}"]
+      root:
+        - "guest charged {sum} twice on one check"
+        - "{s_hey}, tip came out doubled, {sum}"
+        - "online order never arrived, wants {sum} back"
+        - "gift card shows the wrong balance, {sum}"
+      replies:
+        -   - "check the card settlement"
+            - "refund up to the limit"
+            - "ask the general manager"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - let:
+        item: ["{item_a}", "{item_b}"]
+        sum: ["{s_money}"]
+      root:
+        - "{s_cust|cap} asks why {item} is {sum}"
+        - "client questions the {item} line"
+        - "can someone explain {item}? client asks"
+        - "{item} went up, they noticed"
+      replies:
+        -   - "the menu price changed"
+            - "headcount went up"
+            - "{s_look} at the quote"
+        -   - "{s_thx}"
+            - ""
+    - root:
+        - "queue is at {20-90} open cases, mostly online orders"
+        - "{s_hey}, loyalty points missing after a visit"
+        - "catering client cannot log in"
+        - "reservation shows twice in the book"
+      replies:
+        -   - "known, see {issue}"
+            - "i'll check the account"
+            - "send me the order number"
+        -   - "{s_ack}"
+            - "{s_thx}"
+  incidents:
+    - root:
+        - "POS offline at {rt_loc}"
+        - "card payments failing since {time}"
+        - "kitchen printers stopped at {rt_loc}"
+        - "{s_hey}, online orders are {s_symptom}"
+      replies:
+        -   - "is it all locations?"
+            - "{s_oncall} is looking"
+            - "they are on paper tickets"
+        -   - "{rt_fix}, watching"
+            - "back at {time}"
+            - ""
+        -   - "{s_thx}, file an issue"
+            - ""
+    - root:
+        - "{p_alert_name} alert is flapping again"
+        - "near miss: {c_eng_area} almost failed"
+        - "review of the POS outage is {day} at {time}"
+        - "on-call handover: nothing open"
+      replies:
+        -   - "threshold is tight, raising it"
+            - "worth an issue"
+            - "works for me"
+        -   - "{s_ack}"
+            - "{s_thx}"
+            - ""
+    - root:
+        - "reader certificate expires in {2-9} days"
+        - "{s_al} order backlog at {1-9},{100-900}"
+        - "is anyone else seeing {s_thing} {s_symptom}?"
+        - "{s_al} menu sync stale since {time}"
+      replies:
+        -   - "renewing now"
+            - "i'll check the queue"
+            - "looks like the new build"
+        -   - "{s_ack}"
+            - ""
+  direct:
+    - root:
+        - "{s_hey}, could you check the menu file {s_soon}?"
+        - "{s_hey}, can you cover restaurant support {s_soon}?"
+        - "quick question: where do tips land?"
+        - "can you swap on-call {c_soon}?"
+        - "{s_hey}, thought you'd like this photo of {rt_item}"
+      replies:
+        -   - "sure, no problem"
+            - "{s_ack}"
+            - "let me check my calendar"
+        -   - "{s_thx}, owe you one"
+            - ""
+    - root:
+        - "lunch? {s_lunch} at {time}"
+        - "ugh, the kitchen printer jammed again"
+        - "survived {rt_peak}, finally"
+        - "{s_hey}, got a minute for audit prep?"
+      replies:
+        -   - "yes, count me in"
+            - "can't today"
+            - "same, long week"
+        -   - "tomorrow?"
+            - ""
+incidents:
+  - role: billing
+    fix: billing/email_queue.py
+    title:
+      - Event emails delayed
+      - Catering mail running late
+      - Quote confirmations not sent
+    alert:
+      - "event emails delayed, oldest waited {20-90} min"
+      - "{s_al} catering queue age {s_age}"
+      - "quote mail not going out since {time}"
+    fix_message:
+      - "Queue event emails, not inline sends"
+      - "{s_q_verb|cap} catering mail {s_q_how}"
+  - role: billing
+    fix: billing/callbacks.py
+    title:
+      - Payment processor callback errors
+      - Elevated errors on card callbacks
+      - Card settlement events failing
+    alert:
+      - "card callbacks failing, rate above {5-30} percent"
+      - "{s_al} settlement events erroring since {time}"
+      - "callback endpoint throwing 5xx errors"
+    fix_message:
+      - "Retry callbacks on timeout"
+      - "Retry callbacks that time out"
+  - role: billing
+    fix: billing/sent_log.py
+    title:
+      - Duplicate invoices sent
+      - Clients got the invoice twice
+      - Deposit receipt sent twice
+    alert:
+      - "clients got invoices twice, {3-12} reports"
+      - "{s_al} duplicate receipts after a retry"
+      - "same email sent twice since {day}"
+    fix_message:
+      - "Check the sent log first"
+      - "Skip emails already sent"
+  - role: data
+    fix: pipeline/validate.py
+    title:
+      - Nightly sales load failed
+      - Overnight load did not finish
+      - Warehouse load aborted
+    alert:
+      - "nightly load failed, bad check rows"
+      - "{s_al} warehouse load aborted, dashboards stale"
+      - "overnight load exited with errors"
+    fix_message:
+      - "Skip malformed check rows"
+      - "Drop bad rows and continue"
+  - role: data
+    fix: pipeline/lock.py
+    title:
+      - Sales load ran twice
+      - Two loads overlapped last night
+      - Duplicate load run detected
+    alert:
+      - "sales load ran twice, covers doubled"
+      - "{s_al} two loads overlapped, totals look off"
+      - "second load start at {time}"
+    fix_message:
+      - "Take a lock before loading"
+      - "Stop overlapping loads with a lock"
+  - role: portal
+    fix: portal/pagination.py
+    title:
+      - Online ordering timeouts for big accounts
+      - Order history times out
+      - Portal slow for large accounts
+    alert:
+      - "online ordering timeouts, p95 above {5-20}s"
+      - "{s_al} order history 504s, largest accounts only"
+      - "portal slow for big accounts since {time}"
+    fix_message:
+      - "Page the order history"
+      - "Add pagination to orders"
+  - role: portal
+    fix: portal/session.py
+    title:
+      - Guest login errors after deploy
+      - Guests signed out after the release
+      - Login loop on online ordering
+    alert:
+      - "guest logins failing since the release"
+      - "{s_al} login loop, error rate climbing"
+      - "guests cannot sign in since {time}"
+    fix_message:
+      - "Put the session cookie domain back"
+      - "Fix the session cookie domain"
+  - role: infra
+    fix: environments/certificates.yaml
+    title:
+      - Staging certificates expired
+      - Card reader gateway certificate expired
+      - Staging endpoints rejecting connections
+    alert:
+      - "staging certificates expired at {time}"
+      - "{s_al} tls errors on staging, no renewal"
+      - "gateway certificate expired, no warning"
+    fix_message:
+      - "Renew certificates, warn 14 days ahead"
+      - "Renew expired certificates"
+  - role: infra
+    fix: alerts.yaml
+    title:
+      - Alerts not reaching on-call
+      - POS alerts not paging
+      - Production alerts firing, nobody paged
+    alert:
+      - "POS alerts firing, nobody paged"
+      - "{s_al} pager got nothing overnight"
+      - "missed the {time} alert, found by chance"
+    fix_message:
+      - "Route production alerts to the pager"
+      - "Restore the pager route"
+lines:
+  incident_reply:
+    - "i can take a look {if/unless} {nobody has it/someone has it}"
+    - "seeing the same from the restaurants"
+    - "checking the POS dashboard now"
+    - "is it one location or all?"
+    - "might be the deploy from earlier"
+    - "i'll dig through the logs"
+  release_intro:
+    - "{s_rel_c} {repo} {version}. {s_rel_b}"
+    - "{repo} {version} {s_rel_a}. {s_rel_b}"
+    - "{s_rel_c} the ordering site, {repo} {version}."
+  unanswered:
+    - "{s_un_a} the tax rules in {repo}? {s_un_c}"
+    - "{s_un_a} how {repo} handles deposits? {s_un_c}"
+    - "{s_un_a} why the menu sync slowed? {s_un_c}"

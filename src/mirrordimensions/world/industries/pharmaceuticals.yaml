@@ -1,0 +1,1089 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Pharmaceuticals: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: pharmaceuticals
+name: Pharmaceuticals
+group: Health and life sciences
+aliases:
+  - pharma
+  - drug maker
+  - drug manufacturer
+  - prescription drugs
+  - branded generics
+description: A drug maker that develops, manufactures and sells medicines under GxP rules, settling rebates and chargebacks with wholesalers, payers and distributors.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes:
+  - Pharmaceuticals
+  - Therapeutics
+  - Pharma
+  - Laboratories
+  - Medicines
+  - Biopharma
+organization:
+  head: Chief Information Officer
+  it_admin: Systems Administrator
+  teams:
+    platform:
+      department: Enterprise Applications
+      title: Validated Systems Engineer
+      lead: Enterprise Applications Manager
+    billing:
+      department: Commercial Operations IT
+      title: Contracts and Rebates Developer
+      lead: Commercial IT Manager
+    data:
+      department: Commercial Analytics
+      title: Data Engineer
+      lead: Analytics Manager
+    support:
+      department: IT Service Desk
+      title: Applications Support Analyst
+      lead: Service Desk Lead
+    product:
+      department: Digital Health
+      title: Product Owner
+      lead: Director of Digital Health
+    operations:
+      department: Quality Systems
+      title: Quality Systems Analyst
+      lead: Head of Quality Systems
+names:
+  repos:
+    billing-service: [gross-to-net, chargeback-service, rebate-engine, contracts-billing]
+    platform-docs: [validation-docs, gxp-handbook, it-quality-docs, sop-library]
+    data-pipeline: [commercial-loads, pv-data-loads, sales-data-etl, analytics-loads]
+    infra-config: [validated-env-config, gxp-infra, environment-config, hosting-config]
+    customer-portal: [hcp-portal, patient-support-portal, medinfo-portal, brand-web]
+    ops-scripts: [batch-scripts, edi-jobs, legacy-jobs, admin-scripts]
+  channels:
+    engineering: [apps-dev, commercial-it-dev, dev]
+    incidents: [gxp-incidents, it-incidents, edi-alerts]
+    releases: [change-control, releases, go-lives]
+    billing-team: [rebates-team, gtn-team, contracts-it]
+    platform-team: [validated-apps, platform-team, enterprise-apps]
+    data-team: [commercial-analytics, data-team, pv-data]
+    support: [service-desk, apps-support, help-desk]
+    leads: [it-leads, qa-it-leads, managers]
+systems:
+  typical: [veeva vault, salesforce, servicenow, gitea, mattermost, okta, snowflake, microsoft 365, argus safety, mastercontrol]
+  common: [docusign, sap s/4hana cloud, microsoft power bi, pagerduty, tableau]
+symbols:
+  b_doc:
+    - chargeback
+    - rebate invoice
+    - credit memo
+    - price protection credit
+    - rebate statement
+  b_customer:
+    - wholesaler
+    - group purchasing
+    - PBM
+    - Medicaid
+    - specialty pharmacy
+    - hospital buyer
+    - government payer
+    - distributor
+  b_who:
+    - commercial finance
+    - the contracts team
+    - trade relations
+    - compliance
+    - the market access team
+    - customer service
+  b_pwho:
+    - customer service
+    - a wholesaler
+    - '{person}'
+    - the contracts team
+    - trade relations
+  b_ticket_noun:
+    - ticket
+    - case
+    - dispute
+    - escalation
+  b_money_path:
+    - gtn/chargebacks.py
+    - gtn/rebates.py
+    - gtn/pricing.py
+    - gtn/rounding.py
+  b_mail_path:
+    - gtn/notices.py
+    - gtn/statement_mail.py
+    - gtn/templates.py
+    - gtn/sent_log.py
+  b_cb_path:
+    - gtn/edi_events.py
+    - gtn/wholesaler_files.py
+    - gtn/remittance.py
+  b_credit_path:
+    - gtn/credit_memos.py
+    - gtn/refunds.py
+    - gtn/adjustments.py
+  b_check_path:
+    - the chargeback tests
+    - the rebate tests
+    - the credit memo tests
+    - the pricing tests
+  b_provider_event:
+    - chargeback file received
+    - rebate paid
+    - credit memo issued
+    - dispute opened
+    - payment posted
+  b_currency:
+    - WAC
+    - contract price
+    - best price
+    - AMP
+  b_taxkind:
+    - excise tax
+    - state fee
+    - provider fee
+    - pharmaceutical fee
+  b_region:
+    - Ohio
+    - New Jersey
+    - North Carolina
+    - Massachusetts
+    - California
+    - Illinois
+    - Indiana
+    - Pennsylvania
+  b_acct_size:
+    - '{200-900} contracts'
+    - '{15-60} ship-to locations'
+    - '{3-12} contract contacts'
+    - '{40-300} past statements'
+  b_page:
+    - orders
+    - statements
+    - contracts
+    - the dashboard
+    - claims
+    - documents
+  c_customer:
+    - a wholesaler
+    - a specialty pharmacy
+    - a hospital buyer
+    - a prescriber office
+  s_plan:
+    - a rebate agreement
+    - a volume tier
+    - a price protection clause
+    - a tiered contract
+  s_tool:
+    - the admin console
+    - the contract tool
+    - the claims admin
+    - the work queue
+    - the case system
+  p_table:
+    - contracts
+    - chargebacks
+    - rebates
+    - shipments
+    - batches
+    - cases
+  p_report:
+    - the weekly gross to net report
+    - the monthly rebate accrual report
+    - the aging chargebacks report
+    - the safety case dashboard
+    - the inventory report
+  p_source:
+    - the wholesaler chargeback files
+    - the case system export
+    - the sales data feed
+    - the manufacturing system extract
+  p_finance_ask:
+    - the controller
+    - someone in commercial finance
+    - the revenue accounting lead
+    - the compliance officer
+  p_secret_thing:
+    - the wholesaler AS2 key
+    - the safety database password
+    - the document system API token
+    - the warehouse service account key
+  p_cert_host:
+    - the HCP portal public certificate
+    - the AS2 gateway certificate
+    - the EDI partner certificate
+    - the staging wildcard certificate
+  p_dns_name:
+    - hcp.{domain}
+    - support.{domain}
+    - reports.{domain}
+    - status.{domain}
+    - edi.{domain}
+  p_alert_name:
+    - the AS2 gateway queue
+    - the 844 chargeback load
+    - failed backups
+    - the nightly load finishing late
+    - disk usage on the EDI hosts
+  p_limit_target:
+    - the rebate workers
+    - the reporting workers
+    - the portal pods
+    - the mail relay
+  ph_part:
+    - the chargeback file
+    - the rebate file
+    - the pricing file
+    - the contract file
+  ph_edi:
+    - an 844 file
+    - an 849 file
+    - an 852 file
+    - an 867 file
+  ph_cust:
+    - a wholesaler
+    - a specialty distributor
+    - a hospital group
+    - a PBM
+    - a state Medicaid program
+  ph_reason:
+    - a contract price mismatch
+    - an expired contract
+    - a missing 340B flag
+    - a wrong product code
+    - an ineligible ship-to
+  ph_audit:
+    - an FDA inspection
+    - a SOX audit
+    - a GxP audit
+    - a CMS review
+    - a customer audit
+  ph_hand:
+    - by hand each month
+    - one at a time
+    - from the work queue
+    - out of a spreadsheet
+  ph_late:
+    - arrive after midnight
+    - land {1-3} hours late
+    - miss the morning cutoff
+    - get stuck in the queue
+  ph_old:
+    - years old
+    - from before my time
+    - older than the team
+  ph_system:
+    - the safety database
+    - the quality system
+    - the document system
+    - the contracts system
+    - the CRM
+  ph_fullmsg:
+    - full payloads
+    - whole files
+    - every field
+  ph_them:
+    - them
+    - the index
+    - the logs
+  ph_twice:
+    - a customer credited twice
+    - a duplicate payment
+    - double posted rebates
+  ph_notice:
+    - this agency notice
+    - this release note
+    - this notice from the vendor
+  ph_where:
+    - on the portal
+    - on the site
+    - online
+  ph_drill:
+    - in the next drill
+    - at the next drill
+    - during a drill
+  ph_product:
+    - the new brand
+    - the older brand
+    - the generic line
+    - the injectable
+    - the oral product
+  ph_latetitle:
+    - finished late
+    - did not finish
+    - ran past the cutoff
+  ph_afterprice:
+    - 'after a price increase'
+    - 'after a mid-quarter change'
+    - 'after a list price update'
+  ph_noid:
+    - 'no claim id'
+    - 'no reference number'
+    - 'a different key'
+  ph_split:
+    - 'split in two records'
+    - 'in two records'
+    - 'with a duplicate id'
+  ph_twoids:
+    - 'has two ids'
+    - 'is listed twice'
+    - 'matches two records'
+  ph_ledger:
+    - 'from the ledger'
+    - 'from the filing'
+    - 'from last quarter'
+  ph_npi:
+    - 'missing on some records'
+    - 'blank for new prescribers'
+    - 'not stored'
+  ph_keyed:
+    - 'to a name match'
+    - 'to the CRM id'
+    - 'by hand'
+  ph_mailbox:
+    - 'in a shared mailbox'
+    - 'in a queue'
+    - 'in someone''s inbox'
+  ph_clock:
+    - 'starts at receipt'
+    - 'starts when read'
+    - 'is set by hand'
+  ph_nextreport:
+    - 'before the next report'
+    - 'today'
+    - 'this week'
+  ph_profile:
+    - 'after a profile edit'
+    - 'after a merge'
+    - 'after a sync'
+  ph_resend:
+    - 'after a resend'
+    - 'after a restatement'
+    - 'after a late file'
+  ph_as2q:
+    - 'the AS2 queue'
+    - 'the 844 queue'
+    - 'the gateway inbox'
+  ph_wrongrota:
+    - 'to a retired channel'
+    - 'nowhere'
+    - 'to the wrong rota'
+  ph_badge:
+    - 'badge system is being replaced'
+    - 'wifi is being upgraded'
+    - 'lab network is being patched'
+  ph_training:
+    - 'data integrity training'
+    - 'GxP refresher training'
+    - 'cybersecurity training'
+  ph_tour:
+    - 'the plant tour for new staff'
+    - 'the site safety talk'
+    - 'the lab walk through'
+  ph_module:
+    - 'the same module as last year'
+    - 'a new course'
+    - 'a longer module'
+  ph_looks:
+    - 'looks like a date format'
+    - 'maybe a price field'
+    - 'a bad fixture'
+  ph_segment:
+    - 'on a new segment'
+    - 'on a repeated loop'
+    - 'on a bad date'
+  ph_amend:
+    - 'a contract amendment'
+    - 'a mid-year price change'
+    - 'a new tier'
+  ph_spec:
+    - 'who has the spec?'
+    - 'where is the spec?'
+    - 'anyone read the notice?'
+  ph_pricefile:
+    - 'the price file'
+    - 'the contract load'
+    - 'the nightly refresh'
+  ph_oncall:
+    - 'the EDI gateway'
+    - 'the portals'
+    - 'the rebate workers'
+  ph_audittrail:
+    - 'the audit trail export'
+    - 'last month''s change log'
+    - 'the access review'
+  ph_rejected:
+    - 'the chargeback file is rejected'
+    - 'a chargeback was disputed'
+    - 'the rebate total is wrong'
+  ph_oldstatus:
+    - 'an old status'
+    - 'the wrong program'
+    - 'no status'
+  ph_doc2:
+    - 'a document in the system'
+    - 'the new SOP'
+    - 'the change request'
+  ph_email:
+    - 'the same email as registration'
+    - 'a different address'
+    - 'a shared mailbox'
+  ph_whohas:
+    - 'who has it?'
+    - 'where is it kept?'
+    - 'who approves release?'
+  ph_live:
+    - 'is that live?'
+    - 'who approves it?'
+    - 'is it validated?'
+  ph_queuing:
+    - 'files are queuing'
+    - 'wholesalers are waiting'
+    - 'nothing is moving'
+  ph_waiting:
+    - 'finance is waiting'
+    - 'close is blocked'
+    - 'accruals are late'
+  ph_lagging:
+    - 'case entry is lagging'
+    - 'intake is delayed'
+    - 'users see timeouts'
+  ph_844:
+    - 'the 844 load'
+    - 'the chargeback queue'
+    - 'the rebate job'
+  ph_readonly:
+    - 'read only'
+    - 'locked'
+    - 'slow'
+  ph_contractq:
+    - 'a contract question'
+    - 'a price question'
+    - 'a file layout'
+  ph_screens:
+    - 'the new rebate screens'
+    - 'the new contract module'
+    - 'the updated claims view'
+  ph_line:
+    - 'the packaging line'
+    - 'the filling suite'
+    - 'the warehouse dock'
+  ph_lead:
+    - Also,
+    - Note that
+    - As far as we can tell,
+    - It seems
+    - Apparently
+    - From what I can see,
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        cust: ['{ph_cust}']
+        reason: ['{ph_reason}']
+        path: ['{b_money_path}']
+      title:
+        - Chargebacks from {cust} rejected for {reason}
+        - '{reason|cap} on chargebacks from {cust}'
+        - Why do chargebacks fail with {reason}?
+        - Chargeback disputes up for {cust}, {reason}
+        - 'Chargeback validation fails: {reason}'
+        - '{cust|cap} disputes chargebacks over {reason}'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+            - '{b_raised} on {cust} chargebacks, {b_scope}.'
+        -   - Prices are checked in {path}.
+            - Validation lives in {path}.
+        -   - The file shows {reason}.
+            - Rejects list {reason}.
+        -   - Contracts team reworks them {ph_hand}.
+        -   - '{b_urgent}'
+            - '{b_urgent} {b_offer}'
+      comments:
+        - '{b_cm_repro} with an 844 file from {cust}.'
+        - '{b_cm_check}, {path} may use old prices.'
+        - Trade relations needs an answer soon.
+        - '{b_cm_later}'
+    - labels: [bug, needs-decision]
+      let:
+        thing: ['best price', 'average manufacturer price', 'a base date price']
+        path: ['{b_money_path}']
+      title:
+        - Medicaid rebate uses a stale {thing}
+        - '{thing|cap} not refreshed after a price change'
+        - Rebate accrual wrong {ph_afterprice}
+        - Who owns the rule for {thing}?
+        - Quarterly rebate total off for {thing}
+        - '{thing|cap} rounding differs from the filing'
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - The calculation is in {path}.
+            - Prices are read once a quarter.
+        -   - '{ph_lead} a mid-quarter change is missed.'
+        -   - '{ph_lead} commercial finance corrects it {ph_hand}.'
+        -   - Needs a decision from {b_who}.
+      comments:
+        - '{b_cm_hand}'
+        - '{b_cm_ask_who}'
+        - Compliance files these numbers.
+    - labels: [bug]
+      let:
+        thing: ['a copay card claim', 'a patient assistance payment', 'a bridge program payment']
+      title:
+        - Reimbursement for {thing} paid twice
+        - '{thing|cap} does not match the processor file'
+        - Support program payments miss {ph_product}
+        - Unmatched {thing} pile up
+        - Program vendor sends {thing} with a bad id
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - The vendor file has {ph_noid}.
+            - Files repeat after a resend.
+        -   - '{ph_lead} we match on amount and date.'
+        -   - '{ph_lead} finance reconciles them {ph_hand}.'
+      comments:
+        - '{b_cm_dup}'
+        - '{b_cm_check}, the vendor file layout.'
+        - '{b_cm_later}'
+    - labels: [bug, data-quality]
+      let:
+        thing: ['aggregate spend', 'transfers of value', 'consulting fees']
+      title:
+        - Open payments report double counts {thing}
+        - '{thing|cap} for one prescriber {ph_split}'
+        - Spend for one physician {ph_twoids}
+        - Aggregate spend report differs {ph_ledger}
+        - Who reviews {thing} before filing?
+      body:
+        -   - Compliance asked, ahead of {ph_audit}.
+        -   - '{ph_lead} prescriber ids come from the CRM.'
+            - The NPI is {ph_npi}.
+        -   - Spend is keyed {ph_keyed}.
+        -   - '{b_nd_b}'
+      comments:
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+        - Filing deadline is fixed by law.
+  portal:
+    - labels: [bug, security]
+      let:
+        form: ['medical information request', 'product complaint form', 'adverse event form']
+      title:
+        - '{form|cap} not routed to the safety team'
+        - Adverse event reports sit {ph_mailbox}
+        - '{form|cap} confirmation never sent'
+        - Clock for adverse events starts late
+        - '{form|cap} drops the reporter phone number'
+      body:
+        -   - '{b_pscope}.'
+        -   - Reports arrive by email.
+            - The form posts to a mailbox.
+        -   - '{ph_lead} the 15 day clock {ph_clock}.'
+            - Clocks are set by hand.
+        -   - '{ph_lead} safety needs to hear about this.'
+      comments:
+        - Safety must see this {ph_nextreport}.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_tell}'
+    - labels: [bug]
+      let:
+        step: ['benefit verification', 'enrollment', 'consent signature']
+      title:
+        - Patient support {step} stuck on pending
+        - '{step|cap} fails for patients on {ph_product}'
+        - Patients cannot finish {step}
+        - '{step|cap} email never arrives'
+        - Hub vendor shows {step} done, portal does not
+      body:
+        -   - '{b_pscope}.'
+        -   - '{ph_lead} status comes from the hub vendor.'
+        -   - '{ph_lead} the portal polls once a day.'
+        -   - '{ph_lead} patients phone the support line.'
+      comments:
+        - '{b_cm_clr2} {b_cm_cb}'
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_later}'
+    - labels: [bug, security]
+      let:
+        thing: ['an email opt-out', 'a consent preference', 'a do not contact flag']
+      title:
+        - Portal ignores {thing}
+        - Emails sent to prescribers with {thing}
+        - '{thing|cap} not synced to the CRM'
+        - Opt-out takes {2-9} days to apply
+        - Consent record lost {ph_profile}
+      body:
+        -   - '{b_pscope}.'
+        -   - '{ph_lead} preferences live in two systems.'
+        -   - '{ph_lead} a nightly job copies them.'
+            - The sync is one way.
+        -   - '{ph_lead} compliance cares about consent.'
+      comments:
+        - '{b_cm_ask_who}'
+        - Privacy must review the fix.
+        - '{b_cm_plan}'
+    - labels: [bug, docs]
+      let:
+        thing: ['prescribing information', 'patient leaflet', 'medication guide']
+        prod: ['{ph_product}']
+      title:
+        - '{thing|cap} for {prod} out of date on the site'
+        - Old {thing} still downloads
+        - Site links to a withdrawn {thing}
+        - Who approves a new {thing} version?
+      body:
+        -   - '{b_pscope}.'
+        -   - Files are uploaded {ph_hand}.
+        -   - '{ph_lead} regulatory approves the new version.'
+            - The new version is not published.
+        -   - '{ph_lead} it needs a controlled release.'
+      comments:
+        - Regulatory affairs owns the approval.
+        - '{b_cm_ask_who}'
+        - '{b_cm_later}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        step: ['recording the change request', 'attaching the test evidence', 'getting quality approval', 'closing the deviation']
+        page: ['the change control SOP', 'the validation guide', 'the release checklist']
+      title:
+        - '{page|cap} is missing a step: {step}'
+        - '{page|cap} skips {step}'
+        - Validation guide does not cover {step}
+        - Add {step} to {page}
+        - 'Docs: {page} out of date after the audit'
+      body:
+        -   - Found while preparing for {ph_audit}.
+            - Raised by quality during a review.
+        -   - '{ph_lead} the page describes {ph_old} practice.'
+        -   - '{ph_lead} nobody knows who owns it.'
+        -   - '{ph_lead} a short ordered list would do.'
+      comments:
+        - '{b_cm_docs}'
+        - Quality must approve the new version.
+        - '{b_cm_up} {b_cm_read2}'
+    - labels: [docs, security]
+      let:
+        thing: ['electronic signature rules', 'audit trail review', 'adverse event intake', 'data integrity checks']
+      title:
+        - Write down how we handle {thing}
+        - Handbook never explains {thing}
+        - Where is {thing} documented?
+        - Document {thing} for new engineers
+        - Quality asks for a page on {thing}
+      body:
+        -   - Quality asked, ahead of {ph_audit}.
+            - '{ph_audit|cap} is coming, no page yet.'
+        -   - '{ph_lead} only {person} knows the steps.'
+            - The steps live in old emails.
+        -   - '{ph_lead} a page with owners would do.'
+      comments:
+        - '{b_dc_e}'
+        - Quality should review the wording.
+        - '{b_cm_draft} {day}.'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        edi: ['{ph_edi}']
+        table: ['{p_table}']
+      title:
+        - Duplicate rows from {edi}
+        - Sales data load counts {edi} twice
+        - Weekly sales totals off {ph_resend}
+        - Duplicate {table} after a wholesaler resend
+        - Totals in {table} do not match the files
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{ph_lead} wholesalers resend files after errors.'
+        -   - '{ph_lead} our load has no file control.'
+            - Nothing records the file name.
+        -   - '{ph_lead} reports double count the week.'
+        -   - '{ph_lead} needs a decision from {b_who}.'
+      comments:
+        - '{b_cm_dup}'
+        - A file log would fix it.
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        thing: ['case counts', 'serious case totals', 'late reports']
+      title:
+        - Safety {thing} differ from the warehouse
+        - '{thing|cap} do not match the safety database'
+        - Warehouse {thing} off by {2-9} percent
+        - Pharmacovigilance report disagrees with the load
+        - Why are {thing} different in two places?
+      body:
+        -   - Safety asked, ahead of {ph_audit}.
+        -   - '{ph_lead} our extract skips follow up versions.'
+            - Only the first version loads.
+        -   - '{ph_lead} case versions are handled differently.'
+        -   - '{ph_lead} we need one agreed definition.'
+      comments:
+        - '{b_cm_hand}'
+        - Safety owns the numbers.
+        - '{b_cm_ask_who}'
+    - labels: [bug, data-quality]
+      let:
+        thing: ['serialization events', 'EPCIS messages', 'shipment events']
+      title:
+        - Missing {thing} for shipments
+        - '{thing|cap} do not match the packing list'
+        - Track and trace gaps for {ph_product}
+        - Duplicate {thing} after a resend
+        - Who monitors {thing}?
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - '{ph_lead} events arrive from the packaging line.'
+            - The line sends them in batches.
+        -   - '{ph_lead} some batches never reach us.'
+        -   - '{ph_lead} supply chain reconciles them {ph_hand}.'
+      comments:
+        - '{b_cm_check}, the line logs first.'
+        - The DSCSA rules apply.
+        - '{b_cm_plan}'
+    - labels: [bug, incident]
+      let:
+        feed: ['the batch records feed', 'the sales data feed', 'the case export']
+      title:
+        - Nightly commercial load {ph_latetitle}
+        - Weekly report missing yesterday's data
+        - '{feed|cap} arrived after the load started'
+        - Load of {feed} failed on a date format
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Files {ph_late}.
+        -   - The load starts at {1-4}am sharp.
+        -   - '{ph_lead} analysts read it before {6-8}am.'
+      comments:
+        - A completion marker would help.
+        - '{b_cm_prof} {b_cm_prof2}'
+        - '{b_cm_later}'
+  infra:
+    - labels: [security, bug]
+      let:
+        change: ['a patch', 'a config change', 'an upgrade', 'a new integration']
+        sys: ['{ph_system}']
+      title:
+        - Unvalidated {change} reached {sys}
+        - Change to {sys} skipped change control
+        - '{sys|cap} {change} has no approval record'
+        - Audit trail turned off on {sys}
+        - Who approved {change} on {sys}?
+      body:
+        -   - Found while preparing for {ph_audit}.
+        -   - '{ph_lead} the change ticket is missing.'
+            - Nobody can find the approval.
+        -   - '{ph_lead} quality must assess the impact.'
+        -   - '{b_g_needs}'
+      comments:
+        - Quality needs a deviation record.
+        - '{b_cm_ask_who}'
+        - '{b_cm_plan}'
+    - labels: [bug, incident]
+      let:
+        edi: ['{ph_edi}']
+      title:
+        - AS2 gateway stopped accepting files
+        - Files from {edi} rejected on a bad certificate
+        - EDI queue backed up overnight
+        - Alert for {ph_as2q} never fired
+      body:
+        -   - '{b_raised}, {b_scope}.'
+        -   - Files wait for {1-9} hours.
+        -   - '{ph_lead} a partner changed their certificate.'
+        -   - '{ph_lead} the alert routes {ph_wrongrota}.'
+        -   - '{b_urgent}'
+      comments:
+        - '{b_cm_clr2}'
+        - Partners were not told in time.
+        - '{b_cm_check}, the gateway logs first.'
+    - labels: [chore, security]
+      let:
+        item: ['the safety database', 'the document system', 'the batch records archive']
+        issue: ['restore was never tried', 'retention is short', 'offsite copy is missing']
+      title:
+        - 'Backups of {item}: {issue}'
+        - '{item|cap} has no tested restore'
+        - Restore drill for {item}
+        - Disaster recovery for {item}
+      body:
+        -   - Found while preparing for {ph_audit}.
+        -   - '{ph_lead} no restore has run recently.'
+        -   - '{ph_lead} a restore needs to be timed.'
+      comments:
+        - '{b_cm_plan}'
+        - Recovery time needs writing down.
+        - Quality wants the result.
+    - labels: [security, enhancement]
+      let:
+        thing: ['patient names', 'reporter details', 'prescriber ids']
+        target: ['the portal', 'the case export', 'the reporting workers']
+      title:
+        - 'Personal data in application logs: {thing}'
+        - Logs from {target} contain {thing}
+        - Scrub {thing} from {target} logs
+        - '{thing|cap} written to debug output'
+      body:
+        -   - Found {thing} in {target} logs.
+        -   - '{ph_lead} the debug level logs {ph_fullmsg}.'
+        -   - Many people can read {ph_them}.
+        -   - '{ph_lead} privacy needs to look at this.'
+      comments:
+        - '{b_cm_clr} {b_cm_old}'
+        - Is this a reportable event?
+        - Please keep details out of chat.
+comments:
+  - Quality should look at this.
+  - Does this affect a validated system?
+  - '{b_cm_ask_who}'
+  - Is this reportable to regulatory?
+  - Commercial operations has noticed too.
+  - Can we cover this {ph_drill}?
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: the validated systems are down {day} from {time}'
+        - '{c_hey}, change freeze for quarter end starts {day}'
+        - all hands is {day} at {time}, in {c_room}
+        - welcome {person} to quality systems, starting {c_soon}
+        - the site {ph_badge} {c_soon}
+      replies:
+        -   - will the document system be up?
+            - do we get a reminder?
+            - is the vpn affected?
+        -   - '{c_yes}, read only access stays'
+            - '{c_idk}, ask quality'
+            - ''
+        -   - '{c_thanks}'
+            - '{c_ack}'
+    - root:
+        - benefits enrolment closes {c_soon}, pick your plan
+        - '{c_hey}: GxP refresher training is due {c_soon}'
+        - annual {ph_training} is due {c_soon}
+        - '{ph_tour} is {day} at {time}'
+      replies:
+        -   - is it {ph_module}?
+            - how long does it take?
+            - where is the link?
+        -   - about {20-45} minutes
+            - '{c_yes}, same one'
+            - under learning in the portal
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - '{c_hey}: flu shot clinic for staff is {day} in {c_room}'
+        - the cafeteria is closed {c_soon}, food trucks outside
+        - parking at the site is full {c_soon}, use the overflow lot
+        - '{c_hey}, cleanroom gowning refresher is {day} at {time}'
+      replies:
+        -   - is it mandatory?
+            - where do we sign up?
+            - does it include contractors?
+        -   - '{c_yes}, quality tracks it'
+            - sign up in the learning portal
+            - ''
+        -   - '{c_thanks}'
+            - ''
+  off-topic:
+    - root:
+        - '{c_hey}, who wants {c_food} from the food truck?'
+        - anyone joining the step challenge {c_soon}?
+        - the coffee machine on {c_floor} is dead again
+        - did anyone watch the {match/game/race} {last night/yesterday}?
+        - best {c_food} near the site?
+      replies:
+        -   - '{c_yes}, count me in'
+            - '{c_lol}'
+            - not today
+        -   - '{c_idk}'
+            - try {c_place}
+            - ''
+    - root:
+        - anyone want to swap a shift {c_soon}?
+        - happy birthday {person}!
+        - there is {c_food} in {c_room}, help yourselves
+        - look at the view from {c_floor}
+      replies:
+        -   - '{c_lol}'
+            - '{c_thanks}'
+            - on my way
+        -   - ''
+            - '{c_agree}'
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? {c_patch}
+        - '{c_ci_fail} is failing on main, {ph_looks}'
+        - the 844 parser fails {ph_segment}
+        - how do we model {ph_amend} in {repo}?
+        - the wholesaler changed the layout, {ph_spec}
+      replies:
+        -   - looking now
+            - '{c_ack}, will review {c_when_eng}'
+            - '{c_idk}, ask {person}'
+        -   - found it, a date format issue
+            - fixed in a branch
+            - ''
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - the validation package for {repo} needs a reviewer
+        - should the rebate job wait for {ph_pricefile}?
+        - add a PHI scan to {repo} builds?
+        - '{repo} deploy is red, the migration failed'
+      replies:
+        -   - i can take it
+            - '{c_ack}, adding it to the change request'
+            - need the test evidence first
+        -   - '{c_agree}'
+            - ''
+    - root:
+        - rebate job hotfix is up, {c_patch}
+        - should the load wait for {ph_edi}?
+        - who owns the copay vendor integration?
+        - merged the chargeback fix, deploying {c_when_eng}
+      replies:
+        -   - nice, reviewing now
+            - '{c_ack}'
+            - one question about the retry
+        -   - '{c_thanks}'
+            - ''
+  team:
+    - root:
+        - standup in {5-15} minutes, {c_status} on my side
+        - who is on call for {ph_oncall}?
+        - quarter end freeze starts {day}, who needs a deploy?
+        - change control board is {day} at {time}, who presents {repo}?
+        - who is picking up {issue}?
+      replies:
+        -   - i can present
+            - '{person} is on call'
+            - '{c_pto}'
+        -   - '{c_ack}'
+            - '{c_thanks}'
+    - root:
+        - commercial finance wants a report by {c_soon}, anyone free?
+        - rebate close is {day}, who checks the totals?
+        - chargeback disputes are up, who checks {ph_part}?
+        - quality asked for {ph_audittrail}
+      replies:
+        -   - i can take it
+            - '{b_cm_plan}'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - commercial finance wants news on {issue}
+        - release notes for {repo} are due {c_soon}
+        - training on {ph_screens} is {day} at {time}
+      replies:
+        -   - i can draft them
+            - '{c_ack}'
+            - '{c_pto}, ask {person}'
+        -   - '{c_thanks}'
+            - ''
+  support:
+    - root:
+        - wholesaler says {ph_rejected}, {s_ticket}
+        - '{b_pwho|cap} says a rebate statement is wrong'
+        - prescriber cannot open the portal, {s_ticket}
+        - patient support portal shows {ph_oldstatus}
+        - medical information form did not send, {s_ticket}
+        - user cannot sign {ph_doc2}
+      replies:
+        -   - sending it to {b_who}
+            - '{s_look} at {s_tool}'
+            - did they use {ph_email}?
+        -   - found it, a duplicate account, merged
+            - fixed, please confirm
+            - '{c_idk}, escalating to eng'
+        -   - '{c_thanks}'
+            - '{s_thx}'
+    - root:
+        - customer wants the contract, {ph_whohas}
+        - hub vendor wants a new layout, {ph_live}
+        - 'escalating to eng: {ph_twice}, filed as {issue}'
+        - refund request for a duplicate payment, {s_ticket}
+      replies:
+        -   - contracts team handles that
+            - '{c_yes}, under documents'
+            - '{c_idk}, checking'
+        -   - '{c_ack}'
+            - ''
+    - root:
+        - prescriber sees another name {ph_where}
+        - hub vendor cannot download the file, {s_ticket}
+        - sales rep cannot log expenses, {s_ticket}
+        - medical information call was not logged, {s_ticket}
+      replies:
+        -   - sending it to {b_who}
+            - '{s_look} at {s_tool}'
+            - '{c_idk}, escalating to eng'
+        -   - fixed, please confirm
+            - '{c_thanks}'
+  incidents:
+    - root:
+        - the AS2 gateway is down, {ph_queuing}
+        - chargeback load is stuck, {ph_waiting}
+        - HCP portal is returning errors since {time}
+        - the safety database is slow, {ph_lagging}
+        - the AS2 certificate expires in {2-9} days
+        - alert for {ph_844} is flapping again
+      replies:
+        -   - looking now
+            - '{c_ack}, paging {person}'
+            - same on my side
+        -   - restarted the gateway, recovering
+            - vendor says it is theirs
+            - fell back to the manual process
+        -   - '{c_thanks}'
+            - ''
+    - root:
+        - deviation opened for the unplanned downtime
+        - post-incident review is {day} at {time}
+        - disk at {50-95} percent on the EDI host
+        - the document system is {ph_readonly} since {time}
+      replies:
+        -   - who is the incident lead?
+            - '{person} has it'
+        -   - noted, updating the deviation
+            - '{c_ack}'
+    - root:
+        - HCP portal login is failing since {time}
+        - rebate run is stuck at {time}
+        - the label printer for {ph_line} is down
+      replies:
+        -   - looking now
+            - '{c_ack}, checking the service'
+            - paging {person}
+        -   - back to normal, watching
+            - restarted, files are moving
+            - '{c_thanks}'
+  direct:
+    - root:
+        - '{s_hey}, could you check the 844 file {s_soon}?'
+        - quick question about the rebate rounding
+        - '{s_hey}, can you cover the pager {c_soon}?'
+        - got a minute for {ph_contractq}?
+        - '{s_hey}, thought you would like {ph_notice}'
+      replies:
+        -   - '{s_ack}'
+            - '{c_yes}, send it over'
+            - '{c_no}, i am in a call until {time}'
+        -   - '{s_thx}'
+            - ''
+    - root:
+        - ugh, regulatory wants new fields {c_soon}
+        - '{s_hey}, lunch? {c_place} at {time}'
+        - survived the audit, finally
+        - read my change request by {day}?
+      replies:
+        -   - '{c_lol}'
+            - '{s_ack}'
+        -   - ''
+            - '{c_thanks}'
+    - root:
+        - '{s_hey}, can you approve my access request?'
+        - '{s_hey}, cover the go-live call?'
+        - move the audit prep to {day}?
+      replies:
+        -   - '{s_ack}'
+            - '{c_yes}, done'
+        -   - '{s_thx}'
+            - ''

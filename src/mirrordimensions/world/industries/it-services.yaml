@@ -1,0 +1,575 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# IT services and consulting: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: it-services
+name: IT services and consulting
+group: Technology and media
+aliases: [managed services, msp, it consulting, systems integrator, technology consulting, it outsourcing]
+description: A consultancy and managed service provider that runs and builds IT for client organizations and bills for time, retainers and milestones.
+name_suffixes: [Technologies, Systems, Consulting, Digital, Solutions, IT Services]
+invoice_items: [Managed services retainer, Consulting hours]
+organization:
+  head: Director of Technology
+  it_admin: Internal IT Administrator
+  teams:
+    platform: {department: Internal Systems, title: Systems Engineer}
+    billing: {department: Finance Systems, title: Billing Systems Engineer}
+    data: {department: Analytics, title: Data Engineer}
+    support: {department: Service Desk, title: Service Desk Analyst}
+    product: {department: Solutions, title: Solutions Architect}
+    operations: {department: Managed Services, title: Operations Engineer}
+names:
+  repos:
+    billing-service: [psa-billing, time-billing, engagement-billing, invoicing-service]
+    platform-docs: [delivery-handbook, runbook-library, engineer-handbook, service-playbooks]
+    data-pipeline: [utilisation-loads, psa-warehouse, reporting-loads, margin-pipeline]
+    infra-config: [client-infra, tenant-config, platform-config, deploy-config]
+    customer-portal: [client-portal, service-portal, client-hub, engagement-portal]
+    ops-scripts: [ops-scripts, patch-scripts, msp-tools, admin-scripts]
+  channels:
+    engineering: [engineering, delivery-eng, tech, builders]
+    incidents: [incidents, client-incidents, major-incidents, p1-room]
+    support: [service-desk, support, helpdesk, client-support]
+    leads: [leads, delivery-leads, practice-leads]
+systems:
+  typical: [github, slack, jira, okta, microsoft 365, servicenow, connectwise]
+  common: [pagerduty, datadog, ninjaone, hubspot, docusign]
+symbols:
+  b_doc: [invoice, credit note, time and materials invoice, milestone invoice, retainer invoice]
+  b_customer: [managed services, fixed price project, retainer, time and materials, public sector, multi-site]
+  b_who: [the service desk, the delivery team, finance, the account manager, the practice lead]
+  b_pwho: [the service desk, a client, '{person}', the account manager, the engagement manager]
+  b_ticket_noun: [ticket, incident, request, change request]
+  b_page: [timesheets, invoices, open tickets, project status, the approvals queue, contract documents, asset lists, the reports page]
+  b_acct_size: ['{200-900} tickets a month', '{15-60} approvers', '{3-12} sites', '{40-300} managed devices']
+  s_plan: [the managed services contract, a retainer, a block of hours, the project fee, the support contract]
+  p_table: [timesheets, engagements, clients, tickets, invoices, assets, contracts, rate_cards, utilisation]
+  p_source: [the PSA timesheet export, the service desk ticket export, the RMM device inventory, the CRM pipeline list, the payroll hours feed]
+  p_report: [the utilisation dashboard, the margin by engagement report, the weekly backlog report, the SLA compliance report, the unbilled hours report]
+  p_glossary_term: [the PSA, the RMM, the rota, the burn report, the block, the change calendar]
+  p_alert_name: [RMM agent check-ins, failed backups, ticket queue age, the nightly timesheet load finishing late, VPN tunnels to client sites]
+  p_finance_ask: [the finance lead, someone in finance, the billing coordinator, the controller]
+  c_customer: [a client, one of the larger clients, a managed services client, a public sector client]
+  c_eng_area: [the timesheet sync, the rate lookup, the ticket webhook, the client login, the invoice run, the device import]
+  c_dep: [the pdf library, the http client, the orm, the date library, the PSA client library]
+  s_thing: [the timesheet sync, the invoice run, the utilisation report, the cron, the device import, the ticket export]
+  s_tool: [the PSA, the service desk queue, the billing admin, the RMM console]
+  s_cust: ['a client on {s_plan}', 'someone on {s_plan}', 'a client with {s_plan}', 'an account on {s_plan}']
+  s_inv_late: [invoice emails delayed, invoice mail running late, invoice runs not finishing, invoice sends lagging behind]
+  p_delay: ['{2-4} hours', 'about {40-90} minutes', 'nearly {2-3} hours', '{2-5} hours']
+  its_site: [the Leeds office, the warehouse site, the head office, the clinic network, the branch network, the school site, the depot]
+  its_eng: [the lead engineer, a consultant, the project manager, the service delivery manager, a field technician]
+  its_engagement: [the network refresh, the cloud migration, the helpdesk contract, the security uplift, the ERP rollout, the Microsoft 365 move, the backup project, the managed desktop contract]
+  its_rate: [the senior rate, the weekend rate, the on-call rate, the travel rate, the remote rate, the discounted rate]
+  its_role: [consultant, project manager, field engineer, service desk analyst, architect]
+  its_hours: ['{2-9} hours', 'about {10-60} hours', '{1-3} days', half a day]
+  its_period: [this month, last month, last week, this quarter, the last two weeks]
+  its_vendor: [the RMM vendor, the licensing distributor, the backup vendor, the firewall vendor, the endpoint vendor]
+  its_tunnel: [the VPN tunnel, the site-to-site link, the remote access gateway, the jump host]
+  its_sev: [a P1, a P2, a priority one, a major incident]
+  its_ask: [can someone take it, who has it, is anyone on it, do we have an owner]
+  its_client_type: [a law firm, a school group, a dental chain, a logistics client, a charity, a council, a small bank, a retailer]
+  its_ex: [the cutoff, the rounding rule, the rate date, the approval step, the tax code]
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        engagement: ['{its_engagement}', 'the {its_engagement}']
+        doc: ['{b_doc}']
+      title:
+        - Approved hours missing from the {doc} for {engagement}
+        - '{doc|cap} for {engagement} leaves out approved timesheets'
+        - Timesheet hours approved {its_period} not on the {doc}
+        - '{Unbilled/Missing/Dropped} hours on {engagement} {doc}'
+        - Why do approved hours {not/never} reach the {doc}?
+        - '{engagement|cap}: {doc} total {does not/never} matches the timesheets'
+      body:
+        - ['{b_raised}, {b_scope}.', '{b_raised} for {engagement}, {b_scope}.']
+        - ['The {doc} is {off/short} by {its_hours}.', 'Approved entries are {not/never} on the {doc}.']
+        - ['Entries after the cutoff {get/are} {skipped/ignored}.', 'It {looks like/seems} late entries are {dropped/lost}.', 'Late approvals seem to fall out.']
+        - ['{b_urgent}', '{b_urgent} {b_offer}']
+      comments:
+        - '{b_cm_repro} with one late approval on {engagement}.'
+        - '{b_cm_check}, the cutoff is read in {b_money_path}.'
+        - Finance will want a rerun for {its_period}.
+        - '{b_cm_later}'
+    - labels: [bug, needs-decision]
+      let:
+        rate: ['{its_rate}']
+        engagement: ['{its_engagement}']
+      title:
+        - New rate card not applied to {engagement}
+        - '{rate|cap} {still/again} used after the {change/update}'
+        - Which rate applies to work {booked/logged} before the change on {engagement}?
+        - Rate lookup {ignores/skips} the contract {start/effective} date on {engagement}
+        - '{engagement|cap} billed at {rate} instead of the contract rate'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Finance spotted it on {engagement}, {b_scope}.']
+        - ['The lookup {takes/uses} the current card{c_sep} not the work date.', 'Rates are read at {invoice/billing} time, not {entry/work} time.']
+        - ['Old entries {get/are} repriced when the {card/rate table} changes.', 'A rate change {reprices/reprices all} work {already/long} done.']
+        - ['Needs a decision on open entries.', 'Do we reprice {open/draft} entries or {only/just} new ones?']
+      comments:
+        - Contracts say the work date {rate/card} {applies/wins}.
+        - '{b_cm_ask_who}'
+        - Issued {documents/invoices} must not {change/move}, {drafts/open ones} can be {repriced/redone}.
+        - '{b_cm_lean} keying the rate by work date.'
+    - labels: [bug]
+      let:
+        engagement: ['{its_engagement}']
+        block: [prepaid block, support block, hours bank, project budget]
+      title:
+        - 'Burn-down on the {block} for {engagement} is wrong'
+        - '{block|cap} hours go negative on {engagement}'
+        - Remaining hours in the {block} ignore {its_hours} of work
+        - Overage on {engagement} charged although the {block} has hours left
+        - '{engagement|cap}: the {block} balance disagrees with the timesheets'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Account manager noticed it on {engagement}, {b_scope}.']
+        - ['Time {booked/logged} as {non-billable/internal} still reduces the {block}.', 'Entries {without/missing} a task code {count/are charged} against the {block}.']
+        - ['The balance is {recomputed/refreshed} nightly, so {drift/error} builds up.', 'It is only recalculated overnight.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_repro} on a copy of the data.'
+        - '{b_cm_cb} Same job recomputes the balance.'
+        - Should {expired/unused} hours {roll over/lapse}?
+    - labels: [enhancement]
+      let:
+        item: [licences resold to the client, hardware pass-through, cloud usage, travel and expenses, third-party support fees]
+      title:
+        - Add a markup rule for {item}
+        - Show {item} as a {separate/distinct} line on the {invoice/bill}
+        - '{item|cap} {billed/charged} at cost{c_sep} we need a {markup/margin} rule'
+        - 'Pass-through costs: {item} need their own tax code'
+        - Can we split {item} from labour on the {b_doc}?
+      body:
+        - ['Raised by {b_who}, {b_scope}.', '{b_raised} for {item}.']
+        - ['Today it is {typed/keyed} in by hand {monthly/each month}.', 'Finance {adds/types} the line {manually/by hand} before the {run/cycle}.']
+        - ['A rule {per contract/on the contract} would {fix/cover} {most of it/most cases}.', 'A markup field {on/in} the contract would {do/be enough}.']
+        - ['The {b_doc} template needs a new section too.', '']
+      comments:
+        - Margin on {resold/pass-through} items is {usually/often} fixed {per vendor/by supplier}.
+        - '{b_cm_plan} for the schema change.'
+        - Careful with {b_taxkind} on resold licences.
+    - labels: [bug, needs-decision]
+      let:
+        milestone: [the design sign-off, go-live, the pilot phase, the data migration, user acceptance]
+      title:
+        - Milestone {b_doc} for {milestone} raised before sign-off
+        - Who confirms {milestone} before we bill it?
+        - '{milestone|cap} invoice went out with {no/without} client {acceptance/sign-off}'
+        - Billing trigger for {milestone} fires on the planned date
+        - 'Fixed price billing, {acceptance/sign-off} date or {planned/plan} date?'
+      body:
+        - ['{b_raised}, {b_scope}.', 'The client queried it, {b_scope}.']
+        - ['The trigger {uses/reads} the {planned/plan} date in the {project plan/schedule}.', 'It {fires/runs} on the {plan/planned} date, not {on acceptance/at sign-off}.']
+        - ['The contract {says/states} billing {follows/needs} {written/signed} acceptance.', 'Contracts {tie/link} the payment {to sign-off/to acceptance}.']
+        - ['Needs a decision on {recording/keeping} acceptance.', 'Where should the acceptance live?']
+      comments:
+        - Acceptance emails {sit/live} in the {account manager/manager} mailbox {today/now}.
+        - '{b_cm_ask_who}'
+        - A {manual/simple} hold flag is the {quick/short} fix.
+  portal:
+    - labels: [bug]
+      let:
+        browser: ['{b_browser}']
+        who: [client approvers, delegated approvers, finance contacts, site managers]
+      title:
+        - '{who|cap} cannot approve timesheets in {browser}'
+        - Approve button does nothing for {who} on {browser}
+        - Timesheet approval page blank for {who}
+        - 'Approvals queue {hangs/freezes/times out} for accounts with {b_acct_size}'
+        - '{who|cap} see {last/the old} month''s timesheets only'
+      body:
+        - ['{b_raised}, {b_pscope}.', '{b_pscope}.']
+        - ['The page {loads/opens}, the approve request never {leaves/goes} {the browser/out}.', 'Clicking approve gives no response.']
+        - ['Works for {staff/internal} accounts, {fails/breaks} for {client/external} users.', 'Only client users are affected.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - '{b_cm_ask_who}'
+        - Console shows a blocked request on {browser}.
+    - labels: [bug]
+      let:
+        thing: [ticket status, assigned engineer, priority, response time, last update]
+      title:
+        - The {thing} in the portal {differs/is off} from the {service desk/PSA}
+        - Portal shows an old {thing} on {b_ticket_noun}s
+        - '{thing|cap} on open {b_ticket_noun}s is stale for clients'
+        - Clients see the wrong {thing}, {b_scope}
+        - Sync of {thing} to the portal lags by hours
+      body:
+        - ['{b_raised}, {b_scope}.']
+        - ['The webhook {sometimes/now and then} fails. No retry.', 'Missed {webhooks/events} from the {PSA/desk} are {never/not} replayed.']
+        - ['Clients then {chase/ring} the {service desk/desk} for {updates/news}.', 'It causes {avoidable/needless} calls to the {desk/team}.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - A {nightly/daily} reconcile would {catch/fix} the {misses/gaps}.
+        - '{b_cm_fix_up}'
+    - labels: [bug, security]
+      let:
+        thing: [another client's tickets, a former contractor's access, a different site's asset list, internal engineer notes]
+      title:
+        - Client users can see {thing}
+        - Portal exposes {thing} to the wrong client
+        - Missing tenant filter shows {thing}
+        - '{thing|cap} visible after a contract ends'
+      body:
+        - ['Noticed while checking a support case, {b_pscope}.']
+        - ['The query {filters/checks} by user only. No {client/tenant} filter.', 'No client filter in the query.']
+        - ['{Please/Kindly} keep the {specifics/details} out of chat.', 'Details stay in this issue only.']
+      comments:
+        - '{b_cm_repro} with two test accounts.'
+        - '{b_cm_fix_up} Adds the client filter.'
+        - '{Check/Look at} the access log {too/for it}.'
+    - labels: [enhancement]
+      let:
+        ask: [raise a change request, see the SLA clock, download a monthly service report, add a site contact, approve quotes]
+      title:
+        - Let clients {ask} in the portal
+        - Clients want to {ask} without calling the desk
+        - 'Feature request from {b_who}: {ask}'
+        - 'Portal: {ask}, asked for again'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Several clients have asked, {b_pscope}.']
+        - ['Today they {email/write to} the {service desk/desk} and {wait/hope}.', 'It is {handled/done} by {phone/call} and {email/mail} {now/for now}.']
+        - ['The desk would {want/need} it linked to the {b_ticket_noun}.', '']
+      comments:
+        - '{b_cm_try}'
+        - Needs a role for {who/those who} may {do this/act}.
+        - '{b_cm_plan}'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        thing: [subcontractor hours, travel time, leave days, shared engineers, internal projects]
+      title:
+        - Utilisation double counts {thing}
+        - '{thing|cap} appear twice in the utilisation report'
+        - Utilisation {over/above} 100 percent for {some/a few} engineers
+        - Utilisation report ignores {thing}
+        - '{p_report|cap} does not match payroll, {thing} are the gap'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Practice leads noticed it {b_since}.']
+        - ['The load {joins/links} timesheets to {assignments/projects} and {multiplies/doubles} rows.', 'A join on the {assignment/staffing} table {duplicates/repeats} rows.']
+        - ['Targets come from this {number/figure}, so it {matters/counts}.', '']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_prof} the join in the load {is/looks} {guilty/to blame}.'
+        - Need the data dictionary for assignments.
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        err: [a timeout from the PSA API, a pagination gap, an expired API token, a rate limit response, a schema change in the export]
+      title:
+        - PSA export fails with {err}
+        - Nightly timesheet load stops after {err}
+        - '{err|cap} breaks the {p_source} load'
+        - Load of {p_source} aborted by {err}
+        - Intermittent {err} in the nightly job
+      body:
+        - ['{b_raised}, {b_since}.', 'It started {p_when}.']
+        - ['The job {stops/halts} at the {first/very first} error and {loads nothing/skips the rest}.', 'Nothing is {loaded/kept} when one {page/batch} fails.']
+        - ['Reports stay a day {behind/stale} until someone {reruns/restarts} it.', 'Dashboards show yesterday''s data.']
+        - ['{b_offer}']
+      comments:
+        - '{b_ask_logs}'
+        - '{Retry/Redo} the {page/batch}, not the {whole/entire} load.'
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        table: [timesheets, tickets, contracts, rate cards, device inventory]
+        range: [the last 18 months, the previous financial year, the period before the PSA migration, the last two quarters]
+      title:
+        - Backfill {table} for {range}
+        - Reports need {table} history for {range}
+        - Load {table} from before the migration
+        - '{table|cap} missing for {range} in the warehouse'
+      body:
+        - ['Finance wants margin by engagement over {range}.', 'Asked for by {b_who}, they need {range}.']
+        - ['An old {PSA/system} export sits in the {archive/shared drive}.', 'The old PSA can {still/also} {export/produce} it.']
+        - ['Rows need {mapping/matching} to the new {engagement/contract} ids.', 'Engagement ids changed in the migration.']
+      comments:
+        - '{b_cm_turn}'
+        - Keep it {behind/under} a flag so {reruns/repeats} are {safe/harmless}.
+        - '{b_cm_plan}'
+  infra:
+    - labels: [bug]
+      let:
+        tunnel: ['{its_tunnel}']
+        site: ['{its_site}']
+      title:
+        - '{tunnel|cap} to {site} drops every few hours'
+        - Tunnel to {site} flaps after the firewall change
+        - '{site|cap} unreachable from the jump host overnight'
+        - Rekey on {tunnel} fails for {site}
+        - Monitoring does not alert when {tunnel} to {site} is down
+      body:
+        - ['{b_raised}, {b_scope}.', 'Noticed on call, it happened {b_g_since}']
+        - ['The client firewall {rekeys/renews} at a {different/shorter} {interval/lifetime} from ours.', 'Lifetime {settings/values} differ on the {two ends/two sides}.']
+        - ['Engineers {lose/have no} remote access {meanwhile/then}.', 'Managed devices {go dark/show offline} in the {RMM/console}.']
+      comments:
+        - Client firewall owner {needs/has} to change the {lifetime/timer}.
+        - '{b_cm_ask_who}'
+        - '{b_g_loop} the network lead.'
+    - labels: [chore]
+      let:
+        thing: [the RMM agent, the endpoint agent, the backup agent, the monitoring probe]
+      title:
+        - '{thing|cap} versions differ across {2-9} client sites'
+        - Roll out the new {thing} to every managed site
+        - '{thing|cap} is {40-200} devices behind'
+        - 'Agent drift: {thing} on old builds'
+      body:
+        - ['Count from the inventory is {40-200} devices on old builds.', '{40-200} devices still run the old build.']
+        - ['The rollout {stalls/stops} on sites with no {maintenance/change} window.', 'Sites {without/lacking} a window {block/hold up} the {deployment/rollout}.']
+        - ['Need a {list/count} of sites that {agreed/have} a window.', '']
+      comments:
+        - '{b_cm_plan}'
+        - Do it in {batches/waves} by client, not {all/everything} at once.
+        - '{b_cm_check}'
+    - labels: [security, bug]
+      let:
+        secret: [client admin passwords, a tenant service account key, the vendor portal login, the firewall backup password]
+      title:
+        - '{secret|cap} stored in plain text in {p_script_path}'
+        - '{secret|cap} sit in a {config/settings} file in the {repository/repo}'
+        - Move {secret} into the password vault
+        - Shared vault entry for {secret} has too many members
+      body:
+        - ['{b_raised}, found during an access review.', 'Found while cleaning up the repository.']
+        - ['It has been {there/in place} since the {old/previous} tooling.', 'Older {tooling/scripts} needed it in a {file/text file}.']
+        - ['{Rotate/Change} it once it is {gone/removed}.', 'Rotation is needed afterwards.']
+      comments:
+        - History needs a scrub too.
+        - '{b_cm_plan}'
+        - '{Check/Review} who can read the {repository/repo}.'
+  docs:
+    - labels: [docs, enhancement]
+      let:
+        thing: [a new managed client, a site with no domain controller, a Microsoft 365 tenant, 'a client with a {strict/rigid} change freeze', a hosted PBX]
+      title:
+        - Onboarding runbook for {thing}
+        - Write up how we onboard {thing}
+        - 'Handbook: onboarding {thing} is only in people''s heads'
+        - Add a checklist for {thing}
+      body:
+        - ['Raised by {b_who}, new engineers keep asking.', 'New {starters/joiners} ask about it {every time/constantly}.']
+        - ['It should list {accounts/logins}, access and {first week/first-week} checks.', 'Needs access, accounts and monitoring steps.']
+        - ['{person} did the {last/latest} one and has {notes/a draft}.', '']
+      comments:
+        - '{b_cm_docs}'
+        - '{b_cm_list} and who signs each off.'
+        - '{b_cm_up}'
+    - labels: [docs, bug]
+      let:
+        stale: [the old PSA name, last year's rate card, the retired RMM, the previous service desk phone number, the former on-call rota]
+      title:
+        - '{Handbook/Docs}: SOW template still names {stale}'
+        - '{Handbook/Docs}: escalation page lists {stale}'
+        - Stale reference to {stale} in the delivery handbook
+        - Pages still mention {stale}
+      body:
+        - ['{b_raised}, {b_scope}.', 'Spotted by a new starter.']
+        - ['The page was {last edited/touched} before the {migration/switch}.', 'Nobody updated it after the switch.']
+        - ['A search for it finds {2-9} pages.', '']
+      comments:
+        - '{b_cm_docs}'
+        - I will {fix/correct} the ones I {can find/spot}.
+        - '{b_g_note}'
+  ops:
+    - labels: [bug]
+      let:
+        script: [patch_windows.sh, check_backups.sh, sync_assets.py, disk_report.sh, rotate_client_logs.sh]
+      title:
+        - '{Scripts/Ops}: {script} skips clients with long names'
+        - '{script} reports success when the backup failed'
+        - '{script} no longer matches the client list'
+        - Is {script} still used for patching?
+      body:
+        - ['Found while auditing the patch window.', '{b_raised}.']
+        - ['It was {written/built} for the {old/previous} {monitoring tool/alerting}.', 'Written before the RMM existed.']
+        - ['Nobody has {owned/had} it since the {last reorg/restructure}.', '']
+      comments:
+        - '{b_cm_check}'
+        - Can the RMM do this now?
+        - '{b_g_who}'
+chat:
+  support:
+    - root:
+        - '{s_cust|cap} cannot see the approvals queue {c_sep} {its_client_type}'
+        - '{its_client_type|cap} says the approver never got {the/that} email'
+        - client asks why the invoice shows {its_hours} more than they approved
+        - '{its_client_type|cap} wants the monthly service report resent'
+        - escalating to eng{c_sep} approvals page blank for one user {c_sep} {s_ticket}
+      replies:
+        - ['which browser?', 'can they log in at all?', 'is it just that one user?']
+        - ['edge, same on chrome', 'just the one approver', '{c_idk}, asked them']
+        - ['i will check their {role/account}', 'filed it, linking {s_ticket}', 'ok will look {s_soon}']
+    - root:
+        - '{its_client_type} wants a credit for downtime on {its_site}'
+        - 'credit request: {s_cust}, {s_money}, says the {b_ticket_noun} sat for days'
+        - client disputes {its_hours} on the {its_engagement} invoice
+        - they say the {its_rate} was not in the contract
+      replies:
+        - ['do we have the signed {order/contract}?', 'what does the sla say?']
+        - ['sending it over now', 'checking with the account manager']
+        - ['ok, apply it and note the {b_ticket_noun}', 'finance has to approve over {s_money}']
+    - root:
+        - queue is at {20-90} open tickets, the oldest is {its_period}
+        - 'evening handover: p2 open for {its_client_type}, rest quiet'
+        - heads up, {its_sev} open for {its_site}, comms every 30 min
+        - sla clock is wrong on {5-20} tickets again
+      replies:
+        - ['who owns the p2?', 'is the client updated?']
+        - ['{its_eng}, updated at {time}', 'yes, call done']
+        - ['{c_thanks}', '{c_ack}']
+  team:
+    - root:
+        - utilisation review {day} at {time}, please check your timesheets are in
+        - timesheets are due {c_soon}, finance cuts off at {time}
+        - who is covering the service desk {day}?
+        - '{its_eng} is {c_pto}, who takes the {its_engagement} calls?'
+        - 'on-call swap: can anyone take {day} night?'
+      replies:
+        - ['can i submit tomorrow morning?', 'does travel time go in too?']
+        - ['no, cutoff is firm', '{c_yes}, under the travel code']
+        - ['i can take it', 'i did last time{c_sep} someone else please']
+    - root:
+        - kickoff for {its_engagement} is {day}, who is on the team?
+        - new statement of work signed for {its_client_type}, needs {2-6} engineers
+        - capacity check for next month{c_sep} anyone under {40-80} percent?
+        - '{its_engagement} is slipping, can we review scope {day}?'
+      replies:
+        - ['i have space from {c_soon}', 'booked solid until the cutover']
+        - ['{its_eng} will lead', 'architect still tbc']
+        - ['{c_ack}', 'put it in the plan please']
+    - root:
+        - retro notes for the {its_engagement} handover are in the handbook
+        - post-project review for {its_engagement}, please add what slipped
+        - lessons learnt from the {its_site} cutover, list is open
+      replies:
+        - ['added mine', 'will add after the call']
+        - ['{c_thanks}', '{c_agree}']
+  engineering:
+    - root:
+        - can someone review my pr on {repo}? touches the rate lookup
+        - the timesheet sync is failing again{c_sep} anyone changed the token?
+        - psa webhook is returning 502 {s_since}
+        - '{c_ci_fail} fails on main {since/after} the schema change'
+        - should we {version/overwrite} the rate cards?
+      replies:
+        - ['on it', 'looking now', 'give me ten']
+        - ['token was rotated {c_soon}, forgot to update the vault', 'no changes on my side']
+        - ['i would version them{c_sep} auditors will ask', 'overwriting breaks old invoices']
+    - root:
+        - psa {engagements/projects} to contracts{c_sep} how is it mapped?
+        - device import duplicates {sites/devices} with two firewalls
+        - does anyone remember why invoices {round/total} per line?
+        - is the device import idempotent?
+      replies:
+        - ['by contract number, mostly', 'there is a lookup table {c_sep} check the repo']
+        - ['not for devices with no serial', '{c_no}, it keys on hostname']
+        - ['finance asked for it', 'it came from an old audit']
+    - root:
+        - heads up{c_sep} new rate lookup goes out {s_soon}{c_sep} billing run is {day}
+        - deploy freeze for quarter close {c_sep} from {day}
+        - portal moves to new login {c_soon}
+      replies:
+        - ['do we tell the {desk/team}?', 'will clients have to {log in/sign in} again?']
+        - ['yes, mail goes out {c_soon}', 'sessions will expire, nothing else']
+        - ['{c_ack}']
+    - root:
+        - local env broke after psa {client/library} update
+        - how do you run psa {api/client} locally?
+        - dev vpn keeps dropping {while/as} i test
+      replies:
+        - ['pin the old version for now', 'same here{c_sep} clearing the cache fixed it']
+        - ['recorded responses live in the {repo/tools folder}', 'a small {mock server/stub} in the tools folder']
+  incidents:
+    - root:
+        - '{its_sev} open for {its_client_type}, {its_tunnel} down since {time}'
+        - rmm shows {40-300} devices offline at {its_site}
+        - backups failing on {2-9} client servers since last night
+        - 'alert: ticket queue age over {20-90} min'
+        - the {p_alert_name} alert is flapping again
+      replies:
+        - ['who is on it?', '{its_ask}?']
+        - ['i have it, calling the client', '{its_eng} is on site']
+        - ['update at {time}', 'resolved, monitoring']
+    - root:
+        - post-incident review for the {its_site} outage is {day} at {time}
+        - client wants a root cause for {its_site}
+        - 'near miss{c_sep} patch window nearly hit trading hours'
+      replies:
+        - ['i will draft it', 'who writes the client letter?']
+        - ['account manager, {day}', '{c_ack}']
+    - root:
+        - '{its_vendor} has an outage{c_sep} status page is red'
+        - vendor portal is down{c_sep} licence orders are stuck
+        - the distributor cannot confirm {c_sep} client is waiting
+      replies:
+        - ['anything we can do?', 'any eta?']
+        - ['no eta yet', 'telling the client now']
+        - ['{c_thanks}']
+  town-square:
+    - root:
+        - '{c_hey}: the office is closed {c_soon}, service desk on rota'
+        - all hands {day} at {time}{c_sep} new client wins on the agenda
+        - welcome {person}, joining as a {its_role} {c_soon}
+      replies:
+        - ['who is on the rota?', 'welcome!']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - quarter end is {c_soon}, timesheets and expenses please
+        - reminder, security awareness training is due {c_soon}
+        - new client signed, a {its_client_type}, welcome pack going out
+      replies:
+        - ['how long is the course?', 'congrats!']
+        - ['about 40 minutes', '{c_thanks}']
+  off-topic:
+    - root:
+        - half my day went in {racks/cabinets}
+        - best headset for calls all day?
+        - lunch? thinking {c_food}
+      replies:
+        - ['every day this week', 'the one with the noise cancelling']
+        - ['{c_agree}', '{c_lol}']
+    - root:
+        - '{c_hey}{c_sep} who has a spare laptop charger?'
+        - anyone going to the {meetup/conference} {c_soon}?
+        - best podcast for long drives {c_sep} client sites?
+        - '{its_eng} found a rack with {c_food} wrappers inside'
+      replies:
+        - ['i do{c_sep} desk by the window', '{c_no}{c_sep} sorry']
+        - ['{c_agree}', '{c_lol}']
+    - root:
+        - '{c_pet} sat on my keyboard during the {its_client_type} call'
+        - '{c_weekend} for me, anyone else?'
+        - cold in the comms room again{c_sep} bring a jumper
+      replies:
+        - ['{c_lol}', 'send a photo']
+        - ['{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}{c_sep} can you cover my p2 {s_soon}?'
+        - 'quick question{c_sep} which rate for travel?'
+        - got a minute{c_sep} invoice run question?
+        - can you join the {its_client_type} call at {time}?
+      replies:
+        - ['sure', 'on a call, back at {time}']
+        - ['the travel rate {unless/until} it says otherwise', 'check the order form']
+        - ['{c_thanks}']
+    - root:
+        - handing over {its_engagement} while i am out {s_soon}
+        - can you check my timesheet {first/before i submit}?
+        - did the client sign the {change/order}?
+      replies:
+        - ['send me the notes', '{c_ack}']
+        - ['looks fine', 'one day is missing']
+        - ['not yet, chasing']
+comments:
+  - '{b_cm_check}{c_sep} the contract table may be it.'
+  - Which client was this on?
+  - Did finance see this on the {b_doc}?
+  - '{b_g_ask} the engagement code?'

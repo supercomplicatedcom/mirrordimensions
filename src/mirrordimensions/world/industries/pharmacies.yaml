@@ -1,0 +1,580 @@
+# SPDX-FileCopyrightText: 2026 Supercomplicated LLC
+# SPDX-License-Identifier: Apache-2.0
+# Pharmacies: extends the general profile (decision 0028). Templates, never whole sentences (0029).
+extends: general
+slug: pharmacies
+name: Pharmacies
+group: Health and life sciences
+aliases: [pharmacy chains, retail pharmacy, drugstores, community pharmacy]
+description: A pharmacy operator that fills prescriptions in stores and by mail, bills insurers and benefit managers, and serves patients through an app and portal.
+subscriptions: false  # leaves out the general themes about proration, dunning and payment retries
+name_suffixes: [Pharmacy, Drug, Rx, Pharmacies, Apothecary, Care Pharmacy]
+invoice_items: [Prescription fill, Delivery fee]
+organization:
+  head: Director of Engineering
+  it_admin: Store Systems Administrator
+  teams:
+    platform: {department: Engineering, title: Platform Engineer}
+    billing: {department: Reimbursement Systems, title: Software Engineer}
+    data: {department: Data and Analytics, title: Data Engineer}
+    support: {department: Pharmacy Support Desk, title: Pharmacy Support Specialist}
+    product: {department: Product, title: Product Manager}
+    operations: {department: Pharmacy Operations, title: Operations Analyst}
+names:
+  repos:
+    billing-service: [claims-billing, billing-service, reimbursement, copay-service]
+    platform-docs: [platform-docs, eng-handbook, store-systems-docs, runbooks]
+    data-pipeline: [fill-data-pipeline, data-pipeline, warehouse-loads, rx-etl]
+    infra-config: [infra-config, store-network-config, platform-config, deploy-config]
+    customer-portal: [patient-portal, refill-portal, rx-web, patient-app-web]
+    ops-scripts: [ops-scripts, store-scripts, legacy-scripts, tool-scripts]
+  channels:
+    engineering: [engineering, eng, dev, store-systems-eng]
+    incidents: [incidents, store-outages, prod-incidents, incident-response]
+    releases: [releases, app-releases, shipping, release-notes]
+    billing-team: [reimbursement, billing-team, claims-eng]
+    platform-team: [platform-team, platform, platform-eng]
+    data-team: [data-team, data, analytics-eng]
+    support: [pharmacy-support, support, store-support, help-desk]
+    leads: [leads, eng-leads, pharmacy-leads]
+systems:
+  typical: [github, slack, jira, okta, zendesk, twilio, stripe, salesforce, pioneerrx, surescripts]
+  common: [datadog, pagerduty, sentry, shopify plus, microsoft 365, jamf]
+
+symbols:
+  b_doc: [patient receipt, claim, remittance advice, wholesaler invoice, credit memo, refund receipt]
+  b_customer: [retail patient, mail order patient, long term care facility, specialty patient, clinic partner, employer plan]
+  b_who: [store operations, the pharmacy support desk, finance, the payer relations team, compliance]
+  b_pwho: [the support desk, a pharmacist, "{person}", store operations]
+  b_taxkind: [sales tax, state tax, local tax, VAT, GST]
+  b_region: [Texas, Ohio, Florida, Arizona, New Jersey, Ontario]
+  b_currency: [USD, CAD, GBP, EUR]
+  b_provider_event: [claim paid, claim rejected, reversal posted, remittance received, payment failed, refund completed]
+  b_page: [refills, prescriptions, order history, delivery tracking, the dashboard, account settings, payment methods, vaccine appointments]
+  b_acct_size: ["{20-90} prescriptions", "{3-12} family members", "{15-60} refills", "{40-300} past orders"]
+  b_money_path: [billing/copays.py, billing/claims.py, billing/pricing.py, billing/rounding.py]
+  b_credit_path: [billing/reversals.py, billing/refunds.py, billing/adjustments.py]
+  b_cb_path: [billing/adjudication.py, billing/provider_events.py, billing/remits.py]
+  b_check_path: [the copay tests, the claim tests, the reversal tests, the remit tests]
+  p_table: [prescriptions, fills, patients, claims, remits, inventory, stores, wholesaler_orders]
+  p_source: [the dispensing system export, the PBM remittance files, the wholesaler order feed, the point of sale totals, the CRM account list, the immunization registry reports]
+  p_report: [the daily fills dashboard, the claim rejection report, the days on hand report, the reimbursement report, the refill rate dashboard]
+  p_finance_ask: [the finance lead, someone in finance, the reimbursement analyst, the controller]
+  c_customer: [a patient, a long term care facility, a store manager, a clinic partner, a caregiver]
+  s_plan: [the standard copay, a discount card, a long term care contract, a mail order plan]
+  s_tool: [the dispensing system, the pharmacy support desk, the admin console, the ticket queue]
+  s_docs: [the wiki, the shared drive, the handbook, the policy site]
+  s_inv_late: [refill reminder texts delayed, receipt emails delayed, pickup notices running late, delivery updates not going out]
+  ph_drug: [antibiotics, inhalers, insulin pens, blood pressure tablets, eye drops, vaccines]
+  ph_payer: [a large PBM, a regional plan, a state Medicaid plan, a Part D plan]
+  ph_store: [the downtown store, a rural store, the mall store, the hospital outpatient store]
+  ph_reject: [refill too soon, missing prior authorization, product not covered, plan limit exceeded]
+  ph_task: [the will call shelf, the verification queue, the label printer, the pill counter, the robot]
+  ph_topic: [controlled substance counts, immunization records, privacy basics, recall handling, signature logs]
+  ph_audit: [the board inspection, a PBM audit, the DEA records check, the wholesaler audit]
+
+issues:
+  billing:
+    - labels: [bug]
+      let:
+        path: ['{b_money_path}']
+        drug: ['{ph_drug}']
+        payer: ['{ph_payer}']
+      title:
+        - 'Label copay {differs from/disagrees with} the receipt'
+        - 'Receipt shows {another/a different} copay than the label'
+        - '{payer|cap} copay wrong for {drug}'
+        - 'Patients {pay/are charged} more than quoted'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Store staff {report/saw} it on {2-9} fills.']
+        - ['The label uses the adjudicated amount.', 'The label prints the claim response.']
+        - ['The receipt recalculates in {path}.', 'Receipts are priced again in {path}.']
+        - ['The two disagree when a {deductible/coupon} applies.']
+      comments:
+        - '{b_cm_repro} with a {payer} claim.'
+        - 'Which amount is {the truth/the source}?'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        drug: ['{ph_drug}']
+        reject: ['{ph_reject}']
+        path: ['{b_money_path}']
+      title:
+        - 'Claims for {drug} rejected as {reject}'
+        - '{drug|cap} refills bounce with {reject}'
+        - 'Wrong days supply causes {reject}'
+        - '{2-60} rejections for {reject} {b_since}'
+      body:
+        - ['Pharmacists {report/flagged} {2-60} cases {b_since}.', '{b_raised}, {b_scope}.']
+        - ['Days supply is {rounded/counted} wrongly for {drug}.', 'The days supply math ignores {sig/the dose}.']
+        - ['The calculation lives in {path}.']
+        - ['Patients wait at the counter meanwhile.', '{b_urgent}']
+      comments:
+        - '{b_cm_repro} with {drug} fills.'
+        - Does the plan use calendar days?
+        - '{b_cm_plan}'
+    - labels: [bug, data-quality]
+      let:
+        payer: ['{ph_payer}']
+        gap: ['{2-40} cents', '{4-90} dollars', '{2-9} percent']
+        path: ['{b_cb_path}']
+      title:
+        - 'Remittance from {payer} posted twice'
+        - '{payer|cap} payment does not match the claims, {gap} off'
+        - 'Remit file for {payer} loads again each night'
+        - 'Reconciliation off by {gap} for {payer}'
+      body:
+        - ['Finance noticed {b_since}.', '{b_raised}.']
+        - ['The remit loader in {path} has no file key.', 'Remit files are loaded by {name/date}.']
+        - ['A resend {creates/adds} a second set of rows.', 'Reposted files double the rows.']
+        - ['Needs a fix {before/ahead of} month end close.']
+      comments:
+        - Totals match once the duplicates go.
+        - '{b_cm_check} the file names.'
+        - '{b_cm_fix_up}'
+    - labels: [bug]
+      let:
+        path: ['{b_credit_path}']
+        why: [a return to stock, a wrong patient, a cancelled delivery, a refused pickup]
+      title:
+        - 'Claim not reversed after {why}'
+        - 'Reversal after {why} never reaches the plan'
+        - 'Plans still hold paid claims after {why}'
+      body:
+        - ['Pharmacy ops found {2-30} open claims.', 'Audit found {2-30} claims left open.']
+        - ['Reversals are sent from {path}.', 'The reversal job is in {path}.']
+        - ['It skips fills {past/after} the return window.', 'Old fills {are skipped/get ignored} by the job.']
+        - ['Plans can {claw back/reclaim} with a fee.']
+      comments:
+        - '{b_cm_repro} {b_cm_stage}.'
+        - What is the payer reversal limit?
+        - '{b_cm_later}'
+    - labels: [needs-decision]
+      let:
+        question: [charging patients after a late rejection, refunding a copay after pickup, billing a plan for partials, writing off a small balance]
+      title:
+        - 'Policy for {question}?'
+        - 'Decide how we handle {question}'
+        - 'Rules needed for {question}'
+      body:
+        - ['Today stores {decide/handle it} {by hand/case by case}.', 'Each store does it differently.']
+        - ['Options: {always/never/ask first}.', 'We could {allow/refuse/review} each one.']
+        - ['Compliance {may/might} have a view.']
+        - ['Needs a decision from {b_who}.']
+      comments:
+        - '{b_g_blocked}'
+        - Plan contracts may limit this.
+        - '{b_g_who}'
+  portal:
+    - labels: [bug]
+      let:
+        drug: ['{ph_drug}']
+        store: ['{ph_store}']
+      title:
+        - 'Refill request for {drug} never reaches {store}'
+        - Refills sent from the app vanish
+        - '{store|cap} does not see online refill requests'
+        - 'Refill requests missing since the {day} release'
+      body:
+        - ['The app says {the request/it} was sent.', 'Patients get a confirmation.']
+        - ['{store|cap} queue shows nothing.', 'Nothing shows in the store queue.']
+        - ['{2-30} patients called in {b_since}.']
+        - ['Staff key them in by hand.', '{b_ask_logs}']
+      comments:
+        - Found them in the dead letters.
+        - '{b_cm_repro} {b_cm_stage}.'
+        - Need to call the patients back.
+    - labels: [bug, security]
+      let:
+        thing: [the drug name, the patient name, the dose, the pharmacy phone]
+      title:
+        - '{thing|cap} appears in the email subject'
+        - 'Notification text exposes {thing}'
+        - 'Lock screen alerts show {thing}'
+      body:
+        - ['Seen in the pickup ready message.', 'Seen in the refill reminder.']
+        - ['Anyone {near/beside} the phone can read it.', 'It shows on the lock screen.']
+        - ['Privacy wants the text changed.', '{b_pm_e}']
+      comments:
+        - Use "your order" and a link.
+        - '{b_cm_check} with the privacy officer.'
+        - '{b_cm_fix_up}'
+    - labels: [enhancement]
+      let:
+        field: [the old pharmacy phone, the drug list, the insurance card, the doctor name]
+      title:
+        - 'Transfer form asks too much about {field}'
+        - 'Make {field} optional on transfers'
+        - 'Patients abandon the transfer at {field}'
+      body:
+        - ['{b_raised}, {b_scope}.', 'Support saw {2-30} stuck transfers.']
+        - ['Look it up {from the chain/in the network}.', 'The old store can supply it.']
+        - ['Fewer fields should help.']
+      comments:
+        - '{b_g_est}'
+        - Which fields does the law need?
+        - '{b_cm_try}'
+    - labels: [bug]
+      let:
+        status: [out for delivery, delivered, attempted, ready for pickup]
+      title:
+        - 'Delivery tracking stuck on {status}'
+        - 'Order shows {status} after handoff'
+        - 'Tracking page {disagrees with/lags} the driver app'
+      body:
+        - ['Patients call, {asking where it is/chasing it}.', '{b_raised}, {b_scope}.']
+        - ['The courier feed lags {10-90} minutes.', 'Status updates arrive late.']
+        - ['Some updates never arrive.', 'A few stay as {status}.']
+      comments:
+        - '{b_cm_check} the courier feed.'
+        - '{b_cm_repro} with an old order.'
+        - '{b_cm_later}'
+    - labels: [bug]
+      let:
+        store: ['{ph_store}']
+      title:
+        - 'Vaccine slots shown at a closed {store}'
+        - Booking offers times after closing
+        - 'Double booked vaccine slots at {store}'
+      body:
+        - ['Slots ignore the holiday hours.', 'Hours are copied from last year.']
+        - ['Patients arrive and find it shut.', '{2-9} patients showed up closed.']
+        - ['Store hours live in {two places/the old table}.']
+      comments:
+        - Which table does booking read?
+        - '{b_cm_plan}'
+        - '{b_cm_fix_up}'
+  docs:
+    - labels: [docs, bug]
+      let:
+        step: [the second count, the witness signature, the log entry, the lock check]
+      title:
+        - 'Handbook: counting procedure skips {step}'
+        - 'Controlled substance page lacks {step}'
+        - 'Docs omit {step} for counts'
+      body:
+        - ['{ph_audit|cap} asked about {step}.', 'Pharmacy ops {flagged/noticed} it.']
+        - ['The page predates the new system.', 'The steps changed last year.']
+        - ['Who signs off {on the text/on it}?']
+      comments:
+        - '{b_cm_docs}'
+        - The pharmacist in charge has it.
+        - '{b_cm_ask_who}'
+    - labels: [docs, enhancement]
+      let:
+        what: [serialized product lookups, handling a recall, a state registry upload, an e-prescribing outage]
+      title:
+        - 'Write up {what}'
+        - 'Document {what} for new engineers'
+        - 'Nobody can explain {what}'
+      body:
+        - ['Support asks about {what} {often/weekly}.', 'New hires stumble on {what}.']
+        - ['Only {person} knows the steps.']
+        - ['A one page guide would do.']
+      comments:
+        - '{b_cm_draft} next week.'
+        - Include who to call.
+        - '{b_cm_up}'
+    - labels: [docs, needs-decision]
+      let:
+        rec: [signature logs, delivery records, prescription images, call recordings]
+      title:
+        - 'Decide how long to keep {rec}'
+        - 'Retention for {rec} is unclear'
+        - 'Docs: {rec} retention disagrees with policy'
+      body:
+        - ['The handbook says {2-10} years.', 'One page says {2-10} years.']
+        - ['State boards ask for {different/longer} periods.']
+        - ['Needs a ruling from compliance.']
+      comments:
+        - '{b_g_blocked}'
+        - Rules differ by state.
+        - '{b_cm_ask_who}'
+  data:
+    - labels: [bug, data-quality]
+      let:
+        n: ['{12-480}']
+      title:
+        - 'Fills differ from {the dispensing system/the source} by {n}'
+        - 'Daily fills in the warehouse look {2-9} percent low'
+        - Warehouse misses fills near midnight
+      body:
+        - ['{b_raised}, the gap is {n} fills.', 'The gap is {n} fills last week.']
+        - ['Fills after {10-11}pm land on the next day.', 'The load cuts at {10-11}pm store time.']
+        - ['{b_urgent}']
+      comments:
+        - '{b_cm_check} the time zone.'
+        - Stores in other zones are worse.
+        - '{b_cm_plan}'
+    - labels: [bug]
+      let:
+        stores: ['{4-60}']
+      title:
+        - 'Inventory feed from {stores} stores arrives late'
+        - 'Stock counts missing for {stores} stores'
+        - 'Days on hand report {is empty/has gaps} for some stores'
+      body:
+        - ['Stores upload at close.', 'The upload runs at store close.']
+        - ['Late closers miss the load.', 'The load starts before they finish.']
+        - ['Buyers order from stale counts.']
+      comments:
+        - 'Which stores close after {9-11}pm?'
+        - '{b_cm_try}'
+        - '{b_cm_later}'
+    - labels: [enhancement]
+      let:
+        source: [the immunization registry, the PBM remits, the wholesaler orders, the delivery courier]
+      title:
+        - 'Load {source} into the warehouse'
+        - 'Reporting wants {source} next to fills'
+        - 'Add {source} to nightly loads'
+      body:
+        - ['Today an analyst {runs it/pulls it} by hand.', '{person} pulls it each month.']
+        - ['Finance needs it by {day}.', '{b_urgent}']
+        - ['Add it as a new step.']
+      comments:
+        - '{b_g_est}'
+        - Needs access to the source.
+        - '{b_cm_plan}'
+  infra:
+    - labels: [bug]
+      let:
+        store: ['{ph_store}']
+        thing: [label printers, the pill robot, barcode scanners, signature pads]
+      title:
+        - '{thing|cap} lose their address at {store}'
+        - '{thing|cap} drop off the store network'
+        - 'Store network gives {thing} new addresses'
+      body:
+        - ['It happens after the router restarts.', 'It started after a lease change.']
+        - ['Staff cannot print labels.', 'Fills wait for the printer.']
+        - ['A fixed address would help.']
+      comments:
+        - '{b_cm_repro} at {store}.'
+        - Reserve addresses on the router.
+        - '{b_cm_plan}'
+    - labels: [security, enhancement]
+      let:
+        n: ['{14-60}']
+        cert: [the store VPN certificate, the label server certificate, the app API certificate]
+      title:
+        - '{cert|cap} expires in {n} days'
+        - 'Alert before {cert} lapses'
+        - 'Renewal of {cert} has no owner'
+      body:
+        - ['Expiry is {n} days away.', 'Nobody owns the renewal.']
+        - ['Stores cannot fill when it lapses.', 'Stores go offline when it lapses.']
+        - ['Renewal needs a change window.']
+      comments:
+        - Add it to the rota.
+        - '{b_g_own}'
+        - '{b_cm_plan}'
+    - labels: [bug, security]
+      let:
+        target: [the dispensing database, the image store, the message queue]
+      title:
+        - 'Restore of {target} was never tried'
+        - 'Backups of {target} are untested'
+        - 'Nobody has restored {target} lately'
+      body:
+        - ['Backups run every night.', 'Backups look healthy.']
+        - ['The last restore was {long ago/never}.', 'A real restore is overdue.']
+        - ['Stores cannot fill without it.']
+      comments:
+        - '{b_cm_plan}'
+        - Do it outside store hours.
+        - '{b_g_own}'
+  ops:
+    - labels: [question]
+      let:
+        script: [poll_stores.sh, sync_prices.sh, purge_labels.sh, check_robots.sh]
+      title:
+        - 'Is {script} still used?'
+        - 'Can we retire {script}?'
+      body:
+        - ['It polls the old store server.', 'It {runs from/is run by} {an old/the old} cron host.']
+      comments:
+        - '{b_cm_ask_who}'
+        - Not sure, ask store systems.
+
+chat:
+  town-square:
+    - root:
+        - '{c_hey}: {ph_audit} is {c_soon}, tidy your notes'
+        - '{ph_audit|cap} starts {c_soon}, compliance will brief us'
+        - 'heads up, {ph_audit} {c_soon}'
+        - '{c_hey}, an inspector is visiting {c_soon}'
+        - '{ph_audit|cap} next {day}, keep records handy'
+      replies:
+        - ['do we need to prepare?', 'which records will they ask for?', 'who is in the room?']
+        - ['{c_yes}, compliance will brief us', 'check the invite', '{c_idk}, ask {person}']
+        - ['{c_thanks}', '']
+    - root:
+        - 'mandatory training on {ph_topic} closes {c_soon}'
+        - '{c_hey}: {ph_topic} course is overdue for {3-12} people'
+        - 'reminder, finish {ph_topic} by {day}'
+      replies:
+        - ['how long does it take?', 'same as last year?', 'does it count for store staff?']
+        - ['about {20-45} minutes', '{c_no}, they updated it', '{c_yes}, everyone']
+        - ['{c_thanks}', '']
+    - root:
+        - 'flu season starts {c_soon}, expect heavy traffic'
+        - 'vaccine bookings open {c_soon}'
+        - '{c_hey}: flu shot demand is up {c_soon}'
+      replies:
+        - ['is the booking page ready?', 'can the stores handle it?', 'any load tests planned?']
+        - ['{c_yes}, we scaled it', 'checking with ops', 'not sure yet']
+        - ['{c_ack}', '']
+  off-topic:
+    - root:
+        - 'anyone watching the {match/game/race} {c_soon}?'
+        - 'lunch ideas? i am sick of {c_food}'
+        - 'what are you cooking {c_soon}?'
+        - 'best cold remedy? {asking for me/asking for a friend}'
+        - 'stores are {so busy/slammed}, anyone drowning?'
+      replies:
+        - ['{c_yes}, count me in', 'not me', '{c_lol}']
+        - ['soup works', 'try {c_place}', 'honey and lemon']
+        - ['']
+    - root:
+        - '{c_pet} update, vet says all fine'
+        - 'weekend plans? {c_weekend} for me'
+        - 'birthday cake in {c_room} at {time}'
+      replies:
+        - ['{c_lol}', 'nice one', 'enjoy it']
+        - ['{c_em}', '']
+  engineering:
+    - root:
+        - 'need a review on {repo}, it touches claims logic'
+        - 'pr for {repo} changes days supply, who reviews?'
+        - '{c_patch} in {repo}, no patient data involved'
+        - '{c_hey}, anyone free to review {repo}?'
+      replies:
+        - ['do we have a test {with/for} a real rejection?', 'what does the plan return?', 'is it behind a flag?']
+        - ['{c_yes}, added one', 'not yet, adding it', 'flag is off']
+        - ['approved', 'a few comments', '']
+    - root:
+        - 'ncpdp codes are mapped wrong for {ph_payer}'
+        - how do we bill partial fills?
+        - 'who knows the {ph_payer} rejection codes?'
+        - 'e-prescribing messages {fail to parse/error} again'
+      replies:
+        - ['which code?', 'is it every claim?', 'got a recent response?']
+        - ['reject 79, refill too soon', 'only on {ph_payer}', 'checking logs']
+        - ['{c_ack}', '']
+    - root:
+        - app build stuck in store review
+        - '{c_ci_fail} fails on main again'
+        - 'label printing breaks {on/after} the new driver'
+        - barcode scan fails on older phones
+      replies:
+        - ['same here', 'rerun it first', '{c_idk}']
+        - ['fixed in {repo}', 'only on {2-4} year old models', 'still red']
+    - root:
+        - should refills go through a queue?
+        - 'design question for {c_eng_area}, async or not?'
+        - how do stores sync prices?
+        - 'why does the price file take {20-90} minutes?'
+      replies:
+        - ['queue is safer', 'depends on the volume', '{c_idk}, ask {person}']
+        - ['{c_thanks}', '{c_ack}']
+    - root:
+        - 'dependency scan flags {c_dep}'
+        - 'does anything use {c_dep} in the app?'
+        - '{c_tool} is broken for anyone else?'
+      replies:
+        - ['only dev tooling', 'it ships, yes', 'checking']
+        - ['{c_thanks}', '']
+  team:
+    - root:
+        - 'support queue has {10-80} open, who can help?'
+        - 'store calls are up, {who/anyone} can help?'
+        - who is on support this week?
+      replies:
+        - ['i can take an hour', 'busy with the release', '{c_ack}']
+        - ['{c_thanks}', '']
+    - root:
+        - 'sprint planning at {time} on {day}'
+        - 'standup in {5-15} minutes, {c_status} on my side'
+        - 'who picks up {issue}?'
+      replies:
+        - ['i can take it', 'tied up this week', '{c_ack}']
+        - ['{c_thanks}', '']
+    - root:
+        - 'release freeze {before/ahead of} the flu push'
+        - 'freeze starts {day}, merge before {time}'
+        - '{c_hey}: store updates paused {c_soon}'
+      replies:
+        - ['can hotfixes go in?', 'what about the portal?', 'does docs count?']
+        - ['hotfixes need approval', 'portal too', 'docs are fine']
+  support:
+    - root:
+        - 'patient says refill was not ready{c_sep} ordered online'
+        - store manager says labels print blank
+        - '{c_customer} wants a receipt for taxes'
+        - 'caregiver cannot see {the other/a second} family profile'
+        - patient asks why the copay changed
+      replies:
+        - ['is it in the queue?', 'did they get a text?', 'check the order id']
+        - ['yes, #{4100-4999}', 'it was never received', 'fixed']
+    - root:
+        - delivery says delivered, patient says no
+        - '{c_customer} wants the order {moved/sent} to another store'
+        - refund request, wrong strength dispensed
+      replies:
+        - ['pass it to {the pharmacist/the manager}', 'did the driver take a photo?', 'check the log']
+        - ['photo shows the door', 'done', 'escalated to {person}']
+    - root:
+        - 'insurance rejected, patient {is/waits} at the counter'
+        - 'plan says refill too soon, {what/how} do we say it?'
+        - prior authorization status is not showing
+      replies:
+        - ['check with the pharmacist', 'we cannot override that', 'call the plan']
+        - ['{c_thanks}', 'they will wait', '']
+  incidents:
+    - root:
+        - 'stores cannot send claims, {s_since}'
+        - 'claim submissions failing, {s_symptom}'
+        - '{ph_payer|cap} is rejecting everything'
+      replies:
+        - ['all stores?', 'seeing it too', 'looking now']
+        - ['one clearinghouse', 'plan is down', 'recovering']
+        - ['all clear', '{c_thanks}']
+    - root:
+        - 'refill texts delayed {s_age}'
+        - '{ph_task|cap} is offline at {ph_store}'
+        - 'label printing down at {2-9} stores'
+      replies:
+        - ['is it the print server?', 'what changed?', 'sending someone']
+        - ['restarted it', 'network issue', 'back now']
+    - root:
+        - 'store VPN certificate expires in {2-9} days'
+        - cert warning on the label server
+        - 'dispensing sync is {s_age} behind'
+      replies:
+        - ['who owns it?', 'it needs a change record', 'opened one']
+        - ['{b_g_own}', '{c_ack}']
+  direct:
+    - root:
+        - '{s_hey}, could you review {repo} when you can?'
+        - 'could you check access for me? {s_soon}'
+        - '{s_hey}, got a minute for {claims/billing}?'
+        - 'can you read the policy note?'
+      replies:
+        - ['{s_ack}', 'sure, send it', 'after lunch ok?']
+        - ['done', 'a few comments', 'looks good']
+    - root:
+        - 'handing over {the queue/my tickets} while out {s_soon}'
+        - '{s_hey}, can we move the sync to {time}?'
+        - 'got a minute for {prices/the file}?'
+      replies:
+        - ['{s_ack}', 'give me ten minutes', 'sure']
+        - ['thanks', '{c_ack}']
+
+comments:
+  - Does this touch patient data?
+  - 'Keep patient names {out of chat/private}.'
+  - '{b_cm_check} with the pharmacist in charge.'
+  - Store operations can confirm.
+  - A state board rule may apply.
+  - 'Use the fill id, {not/never} the name.'
